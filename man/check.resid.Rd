@@ -1,0 +1,16 @@
+\name{check.resid}
+\alias{check.resid}
+\title{Check model residuals for each brain region.}
+\usage{
+check.resid(resids)
+}
+\arguments{
+  \item{resids}{data frame of model residuals for all brain
+  regions}
+}
+\description{
+This function checks the model residuals for each brain
+region in the analysis. It simply does a qqplot of the
+studentized residuals.
+}
+

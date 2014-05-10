@@ -1,0 +1,31 @@
+\name{small.world}
+\alias{small.world}
+\title{Get measures to calculate small-worldness.}
+\usage{
+small.world(g, rand, threshes)
+}
+\arguments{
+  \item{g}{the adjacency graph (or a list of graphs)}
+
+  \item{rand}{list of output from sim.random.graph}
+
+  \item{threshes}{Vector of thresholds (either by cost or
+  correlation coeff)}
+}
+\value{
+A data frame with the following components: \item{cost}{The
+range of cost thresholds used.} \item{Lp}{The
+characteristic path length.} \item{Cp}{The clustering
+coefficient.} \item{Lp.rand}{The mean characteristic path
+length of the random graphs with the same degree
+distribution as g.} \item{Cp.rand}{The mean clustering
+coefficient of the random graphs with the same degree
+distribution as g.} \item{sigma}{The small-world measure of
+the graph.}
+}
+\description{
+This function will calculate the characteristic path length
+and clustering coefficient, which are used to calculate
+small-worldness.
+}
+

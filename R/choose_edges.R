@@ -1,0 +1,89 @@
+#' Select edges for re-wiring.
+#'
+#' This function selects edges to be re-wired when simulating random graphs. It
+#' is based on the algorithm by Bansal et al. (2009), BMC Bioinformatics.
+#'
+#' @param g The random graph that has been generated
+#' @export
+#'
+#' @return A data frame with four elements; two edges will be removed and two
+#' edges will be added between the four vertices.
+#'
+#' @references Bansal, S., Khandelwal, S., Meyers, L.A. (2009) Exploring
+#' biological network structure with clustered random networks, BMC
+#' Bioinformatics 10, 405-421.
+
+choose.edges <- function(g) {
+  degs <- degree(g)
+  degs.large <- which(degs > 1)
+   
+  #=============================================================================
+  # Uniformly select random node with degree > 1
+  #=============================================================================
+  get.node <- function(graph, degrees.large) {
+    repeat {
+      x <- degrees.large[sample(length(degrees.large), 1)]
+      neighb <- intersect(neighbors(graph, x), degrees.large)
+      if (length(neighb) >= 2) {
+        return(list(x, neighb))
+      }
+    }
+  }
+  #=============================================================================
+  # Uniformly select 2 random neighbors with degree > 1
+  #=============================================================================
+  get.neighbors <- function(nbrhood) {
+    y <- nbrhood[sample(length(nbrhood), 2)] 
+    y1 <- y[1]
+    y2 <- y[2]
+    return(data.frame(y1=y1, y2=y2))
+  }
+  #=============================================================================
+  # Uniformly select a random neighbor from the gamma's with degree > 1
+  #=============================================================================
+  get.neighbors.z1 <- function(graph, node, degrees, y1) {
+    y1.neighb <- neighbors(graph, y1)
+    repeat {
+      z1 <- y1.neighb[sample(length(y1.neighb), 1)]
+      if (z1 != node) {
+        return(z1)
+      }
+    }
+  }
+  #=============================================================================
+  get.neighbors.z2 <- function(graph, node, degrees, degrees.large, y2, z1) {
+    z2s <- 0
+    y2.neighb <- neighbors(graph, y2)
+    repeat {
+      z2 <- y2.neighb[sample(length(y2.neighb), 1)] 
+      z2s <- z2s + 1
+      if ( z2 != node & z2 != z1 ) {
+        return(z2)
+      }
+      if (z2s >= 60) {
+        tmp <- get.node(graph, degrees.large)
+        node <- tmp[[1]]
+        neighb <- tmp[[2]]
+        n <- get.neighbors(neighb)
+        y1 <- n$y1
+        y2 <- n$y2
+
+        z1 <- get.neighbors.z1(graph, node, degrees, y1)
+        get.neighbors.z2(graph, node, degrees, degrees.large, y2, z1)
+      }
+    }   
+  }
+  #=============================================================================
+  #=============================================================================
+  tmp <- get.node(g, degs.large)
+  x <- tmp[[1]]
+  neighb <- tmp[[2]]
+
+  n <- get.neighbors(neighb)
+  y1 <- n$y1
+  y2 <- n$y2
+  z1 <- get.neighbors.z1(g, x, degs, y1)
+  z2 <- get.neighbors.z2(g, x, degs, degs.large, y2, z1)
+
+  return(data.frame(y1, y2, z1, z2))
+}

@@ -1,0 +1,33 @@
+\name{get.thickness}
+\alias{get.thickness}
+\title{Load the thickness data and separate into 2 groups.}
+\usage{
+get.thickness(file1, file2, group1, group2 = NULL)
+}
+\arguments{
+  \item{file1}{left hemisphere thickness data for both
+  groups}
+
+  \item{file2}{right hemisphere thickness data for both
+  groups}
+
+  \item{group1}{Character string identifying first subject
+  group}
+
+  \item{group2}{Character string identifying second subject
+  group (optional)}
+}
+\value{
+A list with components: \item{lh}{Thicknesses of the left
+hemisphere.} \item{rh}{Thicknesses of the right
+hemisphere.} \item{all}{Thicknesses of both hemispheres.}
+\item{group1}{Thicknesses for only group 1.}
+\item{group2}{Thicknesses for only group 2.}
+}
+\description{
+This function loads the thickness data from csv files
+(separated into left and right hemispheres. It combines
+data from each hemisphere, then subsets the data frame into
+separate DF's for each of 2 subject groups.
+}
+

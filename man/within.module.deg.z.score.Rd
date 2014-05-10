@@ -1,0 +1,31 @@
+\name{within.module.deg.z.score}
+\alias{within.module.deg.z.score}
+\title{Calculate the within-module degree z-score of each node.}
+\usage{
+\method{within}{module.deg.z.score}(adj.mat, adj.graph, community.mem)
+}
+\arguments{
+  \item{adj.mat}{the adjacency matrix}
+
+  \item{adj.graph}{the adjacency graph}
+
+  \item{community.mem}{the community membership indices of
+  each node}
+}
+\value{
+A vector of the within-module degree z-scores for each node
+of the graph.
+}
+\description{
+This function calculates the within-module degree z-score
+of each node in a graph. The graph must be split into
+modules beforehand. This is a measure of the connectivity
+from a given node to other nodes in its module. See Guimera
+et al., J Stat Mech, 2005.
+}
+\references{
+Guimera, R. and Amaral, L.A.N. (2005) Cartography of
+complex networks: modules and universal roles, Journal of
+Statistical Mechanics: Theory and Experiment, 02, P02001.
+}
+

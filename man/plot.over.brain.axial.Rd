@@ -1,0 +1,21 @@
+\name{plot.over.brain.axial}
+\alias{plot.over.brain.axial}
+\title{Draw axial slice of the MNI152 T1 image.}
+\usage{
+\method{plot}{over.brain.axial}(flag = 0, fname = NULL, z = 46)
+}
+\arguments{
+  \item{flag}{binary indicating whether or not a png file
+  should be saved}
+
+  \item{fname}{the name of the file to be saved}
+
+  \item{z}{The z-coordinate of the slice to use (defaults
+  to 46, the center)}
+}
+\description{
+This function draws an axial slice from the MNI152 T1
+image, to plot the nodes of a graph over it. It will
+optionally write to a filename for output.
+}
+

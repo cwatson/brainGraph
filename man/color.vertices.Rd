@@ -1,0 +1,21 @@
+\name{color.vertices}
+\alias{color.vertices}
+\title{Color the vertices of a graph based on community membership.}
+\usage{
+color.vertices(adj.graph, comm)
+}
+\arguments{
+  \item{adj.graph}{The adjacency graph to get its vertices
+  colored}
+
+  \item{comm}{The community object returned from
+  community.measures}
+}
+\description{
+This function takes the community membership of a given
+graph, and assigns to the vertices a specific color.
+Currently only works for up to 5 communities (colored: red,
+green, blue, yellow, magenta). Vertices that belong to
+small communities (defined by me as degree < 2) are white.
+}
+

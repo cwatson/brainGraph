@@ -1,0 +1,22 @@
+\name{sim.rand.graph.clust}
+\alias{sim.rand.graph.clust}
+\title{Simulate a random graph with given degree sequence and clustering.}
+\usage{
+sim.rand.graph.clust(d, c)
+}
+\arguments{
+  \item{d}{The degree sequence}
+
+  \item{c}{The clustering measure (clustering coeff,
+  transitivity, etc.)}
+}
+\value{
+A random graph
+}
+\description{
+This function will simulate a random graph with a given
+degree sequence and clustering coefficient. This function
+calls \link{choose.edges} to decide which edges will be
+re-wired.
+}
+

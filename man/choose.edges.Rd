@@ -1,0 +1,24 @@
+\name{choose.edges}
+\alias{choose.edges}
+\title{Select edges for re-wiring.}
+\usage{
+choose.edges(g)
+}
+\arguments{
+  \item{g}{The random graph that has been generated}
+}
+\value{
+A data frame with four elements; two edges will be removed
+and two edges will be added between the four vertices.
+}
+\description{
+This function selects edges to be re-wired when simulating
+random graphs. It is based on the algorithm by Bansal et
+al. (2009), BMC Bioinformatics.
+}
+\references{
+Bansal, S., Khandelwal, S., Meyers, L.A. (2009) Exploring
+biological network structure with clustered random
+networks, BMC Bioinformatics 10, 405-421.
+}
+
