@@ -13,7 +13,9 @@ plot.over.brain <- function(flag=0, fname=NULL) {
     if (flag==1) {
       png(file=fname)
     } else {
-      dev.new()
+      if (length(dev.list() == 0)) {
+        dev.new()
+      }
     }
     plot.new()
     rasterImage(r, -0.12, -0.21, 1.12, 1.22)

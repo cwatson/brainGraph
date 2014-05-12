@@ -12,9 +12,11 @@ plot.over.brain.axial <- function(flag=0, fname=NULL, z=46) {
     if (flag==1) {
       png(file=fname)
     } else {
-      dev.new()
+      if (length(dev.list()) == 0) {
+        dev.new()
+      }
     }
-    plot.new()
+    #plot.new()
     image(mni152, plot.type='single', z=z, zlim=c(3500, max(mni152[, , z])))
     par(new=T, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))
 }

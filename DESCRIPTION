@@ -14,7 +14,9 @@ Depends:
     igraph,
     foreach,
     oro.nifti,
-    boot
+    boot,
+    RGtk2,
+    cairoDevice
 Imports:
     Hmisc
 License: GPL-3
