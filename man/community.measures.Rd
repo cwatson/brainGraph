@@ -10,7 +10,7 @@ community.measures(g)
 \value{
 A list with the following components: \item{community}{The
 \link{communities} object for the present graph.}
-\item{vcolors}{A list of the vertex colors for the 5
+\item{vcolors}{A list of the vertex colors for the 8
 largest communities.}
 }
 \description{

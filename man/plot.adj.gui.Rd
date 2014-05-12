@@ -1,0 +1,12 @@
+\name{plot.adj.gui}
+\alias{plot.adj.gui}
+\title{GUI for plotting graphs overlaid on MNI axial image.}
+\usage{
+\method{plot}{adj.gui}()
+}
+\description{
+This function creates a GUI for plotting the graph over an
+axial image from the MNI template. It gives the user
+control over several plotting parameters.
+}
+

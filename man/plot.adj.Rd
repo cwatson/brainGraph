@@ -2,32 +2,31 @@
 \alias{plot.adj}
 \title{Plots an adjacency matrix with a specific spatial layout.}
 \usage{
-\method{plot}{adj}(adj.matrix, title = "", subtitle = "",
-  vert.lab.col = "black", vert.size = 10, vert.col = "lightblue3",
-  vert.lab.cex = 0.75, vert.lab = get.vertex.attribute(adj.matrix, "name"),
-  edge.col = "red", edge.width = 2,
-  layout = as.matrix(coords.cur[-exclude, 1:2]) \%*\% coord.scale, axes = F,
-  rescale = F, xlim = c(-1, 1), ylim = c(-1.5, 1.5))
+\method{plot}{adj}(adj.graph, vertex.size = 10, vertex.color = "lightblue3",
+  vertex.label.cex = 0.75, edge.color = "red", edge.width = 2,
+  layout = as.matrix(coords.cur[-exclude, 1:2]) \%*\% coord.scale,
+  rescale = F, ylim = c(-1.5, 1.5), ...)
 }
 \arguments{
-  \item{adj.matrix}{the adjacency matrix to plot}
+  \item{adj.graph}{The adjacency graph to plot}
 
-  \item{vert.label.col}{the color of vertex label text}
+  \item{vertex.size}{The size of the vertices}
 
-  \item{vert.size}{the size of the vertices}
+  \item{vertex.color}{The color of the vertices}
 
-  \item{vert.col}{the color of the vertices}
+  \item{vertex.label.cex}{The scaling of vertex label text}
 
-  \item{vert.lab.cex}{the scaling of vertex label text}
+  \item{edge.color}{The color of the edges}
 
-  \item{vert.lab}{the vertex label text}
+  \item{edge.width}{The size of the edges}
 
-  \item{edge.col}{the color of the edges}
+  \item{layout}{A matrix of the x, y, (and z, optional)
+  coordinates of each vertex}
 
-  \item{edge.width}{the size of the edges}
+  \item{rescale}{A logical constant, whether to rescale the
+  coordinates}
 
-  \item{layout}{a matrix of the x, y, and z coordinates of
-  each vertex}
+  \item{ylim}{A vector giving limits for the vertical axis}
 }
 \description{
 This function plots an adjacency matrix when the spatial
