@@ -114,7 +114,7 @@ plot.adj.gui <- function() {
   
   # Create a drawing area for the plot
   graphics <- gtkDrawingArea()
-  graphics$setSizeRequest(671, 670)
+  graphics$setSizeRequest(640, 640)
 
   #-----------------------------------------------------------------------------
   # Function to dynamically draw the graph
@@ -152,7 +152,7 @@ plot.adj.gui <- function() {
       20*eval(parse(text=paste('transitivity.group', string.end, sep=''))),
       range.transform(PC.group1[, N], 2.5, 15),
       range.transform(eval(parse(text=paste('l.eff.group', string.end, sep=''))), 0, 15),
-      range.transform(z.group1[, N], 1, 15))
+      range.transform(z.group1[, N], 0, 15))
     ewidth <- eval(parse(text=edgeWidth$getText()))
     plot.adj(g, vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
              vertex.size=vsize,
