@@ -20,7 +20,7 @@ plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
     }
 
     if (flag==1) {
-      png(file=fname)
+      png(filename=fname)
     } else {
       dev.new()
     }

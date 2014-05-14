@@ -13,6 +13,7 @@
 #' @param layout A matrix of the x, y, (and z, optional) coordinates of each vertex
 #' @param rescale A logical constant, whether to rescale the coordinates
 #' @param ylim A vector giving limits for the vertical axis
+#' @param ... Other parameters (passed to \code{\link{plot}}).
 #' @export
 
 plot.adj <- function(adj.graph, vertex.size=10, vertex.color='lightblue3',

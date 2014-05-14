@@ -10,7 +10,7 @@
 
 plot.over.brain.axial <- function(flag=0, fname=NULL, z=46) {
     if (flag==1) {
-      png(file=fname)
+      png(filename=fname)
     } else {
       if (length(dev.list()) == 0) {
         dev.new()

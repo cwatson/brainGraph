@@ -9,9 +9,9 @@
 
 local.eff <- function(g) {
   eff <- numeric(vcount(g))
-  nodes <- which(degree(g) != 0)
+  nodes <- which(degree(g) > 1)
   eff[nodes] <- vapply(nodes,
-      function(x) global.eff(graph.neighborhood(g, nodes=x, order=1)[[1]]),
+    function(x) global.eff(induced.subgraph(g, neighbors(g, v=x))),
       numeric(1))
   return(eff)
 }

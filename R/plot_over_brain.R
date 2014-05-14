@@ -11,7 +11,7 @@
 
 plot.over.brain <- function(flag=0, fname=NULL) {
     if (flag==1) {
-      png(file=fname)
+      png(filename=fname)
     } else {
       if (length(dev.list() == 0)) {
         dev.new()
