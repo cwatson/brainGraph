@@ -3,15 +3,12 @@
 \alias{sim.rand.graph.par}
 \title{Simulate N random graphs w/ same clustering and degree sequence as the input.}
 \usage{
-sim.rand.graph.par(deg.dist, N, cl)
+sim.rand.graph.par(g, N)
 }
 \arguments{
-\item{deg.dist}{A vector of the degree distribution the random graphs should
-have}
+\item{g}{A graph with the characteristics for simulation of random graphs}
 
 \item{N}{The number of iterations}
-
-\item{cl}{The clustering (transitivity) the random graphs should have}
 }
 \value{
 A list with the following components:

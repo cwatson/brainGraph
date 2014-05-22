@@ -123,10 +123,8 @@ plot.adj.gui <- function() {
     n <- nchar(graphname$getText())
     N <- eval(parse(text=substr(graphname$getText(), n-2, n-2)))
     g <- eval(parse(text=graphname$getText()))
-    string.end <- paste(substr(graphname$getText(), n-5, n-5), '[[', N, ']]',
-                        sep='')
 
-    underlay.fun(0)
+    plot.over.brain.axial(0)
     par(pty='s', mar=rep(0, 4))
     # Show vertex labels?
     if (vertLabels$active == FALSE) {
@@ -146,13 +144,13 @@ plot.adj.gui <- function() {
     }
     vsize <- switch(vertSize$getActive()+1,
       10,
-      range.transform(eval(parse(text=paste('deg.dist.group', string.end, sep=''))), 1, 15),
-      25*eval(parse(text=paste('centrality.ev.group', string.end, sep=''))),
-      3*log1p(eval(parse(text=paste('centrality.btwn.group', string.end, sep=''))))+.05,
-      20*eval(parse(text=paste('transitivity.group', string.end, sep=''))),
-      range.transform(PC.group1[, N], 2.5, 15),
-      range.transform(eval(parse(text=paste('l.eff.group', string.end, sep=''))), 0, 15),
-      range.transform(z.group1[, N], 0, 15))
+      range.transform(V(g)$degree, 0, 15),
+      25*V(g)$ev.cent,
+      3*log1p(V(g)$btwn.cent)+.05,
+      20*V(g)$transitivity,
+      range.transform(V(g)$PC, 2.5, 15),
+      range.transform(V(g)$l.eff, 0, 15),
+      range.transform(abs(V(g)$z), 0, 15))
     ewidth <- eval(parse(text=edgeWidth$getText()))
     plot.adj(g, vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
              vertex.size=vsize,
@@ -186,5 +184,5 @@ plot.adj.gui <- function() {
   asCairoDevice(graphics)
   
   par(pty='s', mar=rep(0, 4))
-  underlay.fun(0)
+  plot.over.brain.axial(0)
 }

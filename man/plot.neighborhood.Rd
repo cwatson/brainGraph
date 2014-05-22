@@ -6,12 +6,13 @@
 \method{plot}{neighborhood}(g, v)
 }
 \arguments{
-\item{g}{the total adjacency matrix}
+\item{g}{The total adjacency matrix}
 
-\item{v}{character string of the vertex name whose neighborhood is to be
+\item{v}{Character string of the vertex name whose neighborhood is to be
 plotted}
 }
 \description{
-This function plots only the neighborhood of a single given vertex.
+This function plots only the neighborhood of a single given vertex, if you
+want to see e.g. the neighborhood of the left precuneus and nothing else.
 }
 

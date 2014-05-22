@@ -28,8 +28,12 @@ get.resid <- function(thicknesses, kNumCovars, group1, group2=NULL) {
   # Get the studentized residuals
   all.resid <- data.frame(lapply(m, rstudent))
   colnames(all.resid) <- colnames(thicknesses)[regions]
-  all.resid$Group <- thicknesses$Group
-  group1.resid <- subset(all.resid, Group==group1)
+  if ('Group' %in% colnames(thicknesses)) {
+    all.resid$Group <- thicknesses$Group
+    group1.resid <- subset(all.resid, Group==group1)
+  } else {
+    group1.resid <- all.resid
+  }              
 
   if (exists('group2')) {
     group2.resid <- subset(all.resid, Group==group2)

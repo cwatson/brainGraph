@@ -6,10 +6,8 @@
 #' for \code{\link{sim.rand.graph.clust}}. It uses \code{\link{foreach}} to
 #' speed it up.
 #'
-#' @param deg.dist A vector of the degree distribution the random graphs should
-#' have
+#' @param g A graph with the characteristics for simulation of random graphs
 #' @param N The number of iterations
-#' @param cl The clustering (transitivity) the random graphs should have
 #' @export
 #'
 #' @return A list with the following components:
@@ -27,8 +25,11 @@
 #' \item{Ek}{The number of edges for each graph.}
 #' \item{triangles}{The number of triangles for each graph.}
 
-sim.rand.graph.par <- function(deg.dist, N, cl) {
+sim.rand.graph.par <- function(g, N) {
+  deg.dist <- V(g)$degree
   deg.thresh <- length(deg.dist) - ceiling(0.1 * length(deg.dist))
+  cl <- g$cl.coeff
+
   Lp <- vector(length=N)
   Cp <- vector(length=N)
   g.eff <- vector(length=N)

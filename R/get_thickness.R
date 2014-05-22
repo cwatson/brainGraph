@@ -21,8 +21,17 @@ get.thickness <- function(file1, file2, group1, group2=NULL) {
   lhThick <- read.csv(file1)
   rhThick <- read.csv(file2)
   all.thick <- merge(lhThick, rhThick)
-  group1.thick <- subset(all.thick, Group==group1)
-  group2.thick <- subset(all.thick, Group==group2)
-  list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick,
-       group2=group2.thick)
+  if ('Group' %in% colnames(all.thick)) {
+    group1.thick <- subset(all.thick, Group==group1)
+  } else {
+    group1.thick <- all.thick
+  }
+
+  if (exists('group2')) {
+    group2.thick <- subset(all.thick, Group==group2)
+    list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick,
+      group2=group2.thick)
+  } else {
+    list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick)
+  }
 }
