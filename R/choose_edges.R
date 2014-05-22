@@ -39,7 +39,7 @@ choose.edges <- function(g) {
     return(data.frame(y1=y1, y2=y2))
   }
   #=============================================================================
-  # Uniformly select a random neighbor from the gamma's with degree > 1
+  # Uniformly select a random neighbor from the y's with degree > 1
   #=============================================================================
   get.neighbors.z1 <- function(graph, node, degrees, y1) {
     y1.neighb <- neighbors(graph, y1)

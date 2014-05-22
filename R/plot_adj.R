@@ -1,8 +1,9 @@
 #' Plots an adjacency matrix with a specific spatial layout.
 #'
 #' This function plots an adjacency matrix when the spatial layout of the nodes
-#' is important. It is really just a wrapper for \code{\link{plot}}. Most of
-#' the parameters are for \code{\link{plot.igraph}}.
+#' is important. It is really just a wrapper for \code{\link{plot}}, but it uses
+#' as a default spatial layout coordinates that work for the brain. Most of the
+#' parameters are for \code{\link{plot.igraph}}.
 #'
 #' @param adj.graph The adjacency graph to plot
 #' @param vertex.size The size of the vertices
