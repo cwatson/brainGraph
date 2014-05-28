@@ -5,11 +5,10 @@
 #'
 #' @param g the adjacency graph (or a list of graphs)
 #' @param rand list of output from sim.random.graph
-#' @param threshes Vector of thresholds (either by cost or correlation coeff)
 #' @export
 #'
 #' @return A data frame with the following components:
-#' \item{cost}{The range of cost thresholds used.}
+#' \item{density}{The range of density thresholds used.}
 #' \item{Lp}{The characteristic path length.}
 #' \item{Cp}{The clustering coefficient.}
 #' \item{Lp.rand}{The mean characteristic path length of the random graphs with
@@ -18,14 +17,19 @@
 #' the same degree distribution as g.}
 #' \item{sigma}{The small-world measure of the graph.}
 
-small.world <- function(g, rand, threshes) {
-  Lp <- vapply(g, average.path.length, numeric(1))
-  Cp <- vapply(g, transitivity, numeric(1))
+small.world <- function(g, rand) {
+  Lp <- vapply(g, function(x) x$Lp, numeric(1))
+  Cp <- vapply(g, function(x) x$Cp, numeric(1))
+  density <- vapply(g, function(x) x$density, numeric(1))
 
-  Lp.rand <- vapply(rand, function(x) mean(x$Lp.rand), numeric(1))
-  Cp.rand <- vapply(rand, function(x) mean(x$Cp.rand), numeric(1))
+  Lp.rand <- colMeans(vapply(rand,
+      function(x) vapply(x,
+          function(y) y$Lp, numeric(1)), numeric(length(rand[[1]]))))
+  Cp.rand <- colMeans(vapply(rand,
+      function(x) vapply(x,
+          function(y) y$Cp, numeric(1)), numeric(length(rand[[1]]))))
 
   sigma <- (Cp / Cp.rand) / (Lp / Lp.rand)
-  return(data.frame(cost=threshes, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,
+  return(data.frame(density=density, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,
                     Cp.rand=Cp.rand, sigma=sigma))
 }

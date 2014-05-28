@@ -22,7 +22,8 @@ sim.rand.graph.clust <- function(d, c) {
       repeat {
         e <- choose.edges(g.cand)
         if ( (length(E(g.cand)[e$y1 %--% e$y2]) == 0) &&
-             (length(E(g.cand)[e$z1 %--% e$z2]) == 0)) {
+             (length(E(g.cand)[e$z1 %--% e$z2]) == 0) &&
+             (e$y1 != e$y2) && (e$z1 != e$z2) ) {
           break
         }
       }

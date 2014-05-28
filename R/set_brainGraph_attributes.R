@@ -10,7 +10,16 @@
 #'
 #' @return g A copy of the same graph, with the attributes added.
 
-set.brainGraph.attributes <- function(g, vcols, ecols, PC, z, rand=FALSE) {
+set.brainGraph.attributes <- function(g, vcols, ecols, PC, z, coords=NULL,
+                                      rand=FALSE) {
+  if (length(coords) > 0) {
+    V(g)$x <- coords[, 1]
+    V(g)$y <- coords[, 2]
+    V(g)$z <- coords[, 3]
+  }
+
+  Nv <- vcount(g)
+  g$density <- round(2 * ecount(g) / (Nv * (Nv - 1)), digits=3)
   g$conn.comp <- max(clusters(g)$csize)
   g$num.tri <- graph.motifs(g)[4]
   V(g)$degree <- degree(g)
@@ -30,14 +39,14 @@ set.brainGraph.attributes <- function(g, vcols, ecols, PC, z, rand=FALSE) {
   V(g)$l.eff <- local.eff(g)
 
   if (rand == TRUE) {
-    deg.thresh <- vcount(g) - ceiling(0.1 * vcount(g))
+    deg.thresh <- Nv - ceiling(0.1 * Nv)
     g$mod <- max(fastgreedy.community(g)$modularity)
     g$rich <- rich.club.coeff(g, sort(degree(g))[deg.thresh])$coeff
   } else {
     V(g)$color <- vcols
     E(g)$color <- ecols
     V(g)$PC <- PC
-    V(g)$z <- z
+    V(g)$z.score <- z
   }
 
   g
