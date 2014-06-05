@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 0.3.0
-Date: 2014-05-28
+Version: 0.3.1
+Date: 2014-06-05
 Title: Graph theory analysis of brain MRI data
 Author: Chris Watson <cgwatson@bu.edu>
 Maintainer: Chris Watson <cgwatson@bu.edu>

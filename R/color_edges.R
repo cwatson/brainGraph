@@ -6,12 +6,13 @@
 #' yellow, magenta). Edges that connect two different communities are colored
 #' gray.
 #'
-#' @param adj.graph The adjacency graph to get its edges colored
+#' @param g The adjacency graph to get its edges colored
 #' @param comm The community object returned from community.measures
 #' @export
 #'
 
-color.edges <- function(adj.graph, comm) {
+color.edges <- function(g, comm) {
+  kNumVertices <- vcount(g)
   mem <- comm$community$membership
   Nc <- max(mem)
   tmp <- list()
@@ -21,7 +22,7 @@ color.edges <- function(adj.graph, comm) {
     if (sum(mem == i) == 1) {
       tmp[[i]] <- 0
     } else {
-      tmp[[i]] <- as.vector(E(adj.graph)[which(mem == i) %--% 1:kNumVertices])
+      tmp[[i]] <- as.vector(E(g)[which(mem == i) %--% 1:kNumVertices])
       cols[tmp[[i]]] <- comm$vcolors[i]
     }
   }

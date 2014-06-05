@@ -1,7 +1,8 @@
 #' Community/module measures.
 #'
 #' This function splits a graph into communities, and gives vertices for each
-#' community a separate color.
+#' community a separate color. Any "small" communities (defined by me as having
+#' degree < 2) are colored white.
 #'
 #' @param g the adjacency graph
 #' @export

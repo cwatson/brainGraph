@@ -6,16 +6,19 @@
 #' \code{\link{within.module.deg.z.score}} have been calculated.
 #'
 #' @param g A graph
+#' @param coords A matrix of the spatial coordinates
+#' @param rand Logical indicating whether the graph is random or not
+#'
 #' @export
 #'
 #' @return g A copy of the same graph, with the attributes added.
 
-set.brainGraph.attributes <- function(g, vcols, ecols, PC, z, coords=NULL,
-                                      rand=FALSE) {
+set.brainGraph.attributes <- function(g, coords=NULL, rand=FALSE) {
   if (length(coords) > 0) {
     V(g)$x <- coords[, 1]
     V(g)$y <- coords[, 2]
     V(g)$z <- coords[, 3]
+    V(g)$name <- rownames(coords)
   }
 
   Nv <- vcount(g)
@@ -40,13 +43,19 @@ set.brainGraph.attributes <- function(g, vcols, ecols, PC, z, coords=NULL,
 
   if (rand == TRUE) {
     deg.thresh <- Nv - ceiling(0.1 * Nv)
-    g$mod <- max(fastgreedy.community(g)$modularity)
+    g$mod <- max(edge.betweenness.community(g)$modularity)
     g$rich <- rich.club.coeff(g, sort(degree(g))[deg.thresh])$coeff
   } else {
-    V(g)$color <- vcols
-    E(g)$color <- ecols
-    V(g)$PC <- PC
-    V(g)$z.score <- z
+    # Community stuff
+    comm <- community.measures(g)
+    V(g)$color <- comm$vcolors[comm$community$membership]
+    E(g)$color <- color.edges(g, comm)
+    V(g)$comm <- comm[[1]]$membership
+
+    A <- get.adjacency(g, sparse=F)
+    V(g)$PC <- part.coeff(A, g, comm[[1]]$membership)
+    V(g)$z.score <- within.module.deg.z.score(A, g, comm[[1]]$membership)
+    g$mod <- max(comm[[1]]$modularity)
   }
 
   g
