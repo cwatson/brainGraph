@@ -4,7 +4,7 @@
 #' will threshold r-values based on a given density value; e.g. 0.1 if you want
 #' to keep only the 10\% strongest correlations. It also allows for the exclusion
 #' of a set of columns (i.e. regions or nodes), given their indices. Also
-#' returns the p-values. Essentially a wrapper for \code{\link{'rcorr'}}, with
+#' returns the p-values. Essentially a wrapper for \code{\link{rcorr}}, with
 #' some added functionality to work with the type of data more easily.
 #'
 #' @param dat Matrix or data frame of the columns to correlate

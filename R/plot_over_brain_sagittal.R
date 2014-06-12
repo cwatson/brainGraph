@@ -10,6 +10,7 @@
 #' @export
 
 plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
+    data(mni152)
     if (hemi == 'right') {
       x <- mni152
     } else if (hemi == 'left') {
@@ -24,7 +25,6 @@ plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
     } else {
       dev.new()
     }
-    plot.new()
     image(x, plot.type='single', plane='sagittal',
         z=z, zlim=c(3500, max(mni152[z, , ])))
     par(new=T, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))

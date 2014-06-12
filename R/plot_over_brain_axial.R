@@ -9,6 +9,7 @@
 #' @export
 
 plot.over.brain.axial <- function(flag=0, fname=NULL, z=46) {
+    data(mni152)
     if (flag==1) {
       png(filename=fname)
     } else {
@@ -16,7 +17,6 @@ plot.over.brain.axial <- function(flag=0, fname=NULL, z=46) {
         dev.new()
       }
     }
-    #plot.new()
     image(mni152, plot.type='single', z=z, zlim=c(3500, max(mni152[, , z])))
     par(new=T, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))
 }

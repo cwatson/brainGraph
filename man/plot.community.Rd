@@ -1,0 +1,19 @@
+\name{plot.community}
+\alias{plot.community}
+\title{Plot a given community}
+\usage{
+\method{plot}{community}(g, n, ...)
+}
+\arguments{
+  \item{g}{The graph}
+
+  \item{n}{The community to be plotted (integer)}
+
+  \item{...}{Other parameters (passed to
+  \code{\link{plot.adj}})}
+}
+\description{
+This function plots a single community, if you want to see
+e.g. the first community and nothing else.
+}
+

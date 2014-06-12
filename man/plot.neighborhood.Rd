@@ -2,13 +2,16 @@
 \alias{plot.neighborhood}
 \title{Plot the neighborhood of a given vertex.}
 \usage{
-\method{plot}{neighborhood}(g, v)
+\method{plot}{neighborhood}(g, v, ...)
 }
 \arguments{
-  \item{g}{The total adjacency matrix}
+  \item{g}{The graph to be plotted}
 
   \item{v}{Character string of the vertex name whose
   neighborhood is to be plotted}
+
+  \item{...}{Other parameters (passed to
+  \code{\link{plot.adj}})}
 }
 \description{
 This function plots only the neighborhood of a single given

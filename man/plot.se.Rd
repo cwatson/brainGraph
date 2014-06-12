@@ -2,12 +2,13 @@
 \alias{plot.se}
 \title{Plot vectors for 2 groups along a range of some value, +/- std error.}
 \usage{
-\method{plot}{se}(densities, y1, y2, xlabel = "Density", ylabel = NULL, group1,
-  group2, y1se=NULL, y2se=NULL)
+\method{plot}{se}(densities, y1, y2, xlabel = "Density", ylabel = NULL,
+  group1, group2, y1se = NULL, y2se = NULL)
 }
 \arguments{
   \item{densities}{The densities to be plotted along the
   horizontal axis}
+
   \item{y1}{The first group's data}
 
   \item{y2}{The second group's data}
@@ -24,16 +25,18 @@
   \item{group2}{Character string identifying second subject
   group}
 
-  \item{y1se}{Standard error of the mean for group 1}
+  \item{y1se}{Standard error of the mean for group 1
+  (optional)}
 
-  \item{y2se}{Standard error of the mean for group 2}
+  \item{y2se}{Standard error of the mean for group 2
+  (optional)}
 }
 \description{
 This function takes a vector of values from each of two
 groups, and plots them over their respective ranges (e.g.
-plot the average degree over a range of network
-densities). The default xlabel here is 'Density'. It also
-plots plus/minus the standard error of the mean and fills
-in between.
+plot the average degree over a range of network densities).
+The default xlabel here is 'Density'. It also plots
+plus/minus the standard error of the mean and fills in
+between.
 }
 

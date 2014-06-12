@@ -2,20 +2,13 @@
 \alias{plot.adj}
 \title{Plots an adjacency matrix with a specific spatial layout.}
 \usage{
-\method{plot}{adj}(adj.graph, vertex.size = 10, vertex.color = "lightblue3",
-  vertex.label.cex = 0.75, edge.color = "red", edge.width = 2,
-  rescale = F, ylim = c(-1.5, 1.5), ...)
+\method{plot}{adj}(g, vertex.size = 10, edge.width = 2, rescale = F,
+  ylim = c(-1.5, 1.5), ...)
 }
 \arguments{
-  \item{adj.graph}{The adjacency graph to plot}
+  \item{g}{The graph to plot}
 
   \item{vertex.size}{The size of the vertices}
-
-  \item{vertex.color}{The color of the vertices}
-
-  \item{vertex.label.cex}{The scaling of vertex label text}
-
-  \item{edge.color}{The color of the edges}
 
   \item{edge.width}{The size of the edges}
 
