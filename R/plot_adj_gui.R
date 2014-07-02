@@ -7,10 +7,11 @@
 
 plot.adj.gui <- function() {
   window <- gtkWindow('toplevel')
-  window['title'] <- 'brainGraph plotting'
+  window['title'] <- 'brainGraph'
 
+  #=============================================================================
   # Add a menubar for different plotting functions
-  #-----------------------------------------------------------------------------
+  #=============================================================================
   plotFunc <- plot.adj
 
   menubar <- gtkMenuBar()
@@ -21,10 +22,11 @@ plot.adj.gui <- function() {
 
   # Plot the entire graph (default)
   #---------------------------------------------------------
-  adj_item <- gtkMenuItemNewWithMnemonic('Entire _Adjacency graph')
+  adj_item <- gtkMenuItemNewWithMnemonic('_Entire graph')
   gSignalConnect(adj_item, 'activate', function(item) {
     commNum$setSensitive(F)
     neighbVert$setSensitive(F)
+    vertColor$setSensitive(T)
     plotFunc <<- plot.adj
   })
   plot_menu$append(adj_item)
@@ -35,6 +37,7 @@ plot.adj.gui <- function() {
   gSignalConnect(neighb_item, 'activate', function(item) {
     commNum$setSensitive(F)
     neighbVert$setSensitive(T)
+    vertColor$setSensitive(T)
     plotFunc <<- plot.neighborhood
   })
   plot_menu$append(neighb_item)
@@ -43,9 +46,9 @@ plot.adj.gui <- function() {
   #---------------------------------------------------------
   community_item <- gtkMenuItemNewWithMnemonic('_Community graph')
   gSignalConnect(community_item, 'activate', function(item) {
+    commNum$setSensitive(T)
     neighbVert$setSensitive(F)
     vertColor$setSensitive(F)
-    commNum$setSensitive(T)
     plotFunc <<- plot.community
   })
   plot_menu$append(community_item)
@@ -53,12 +56,12 @@ plot.adj.gui <- function() {
   vboxMainMenu <- gtkVBoxNew(F, 8)
   window$add(vboxMainMenu)
   vboxMainMenu$packStart(menubar, F, F)
+  #=============================================================================
 
 
   # Create main (horizontal) container
   hboxMain <- gtkHBoxNew(F, 8)
   vboxMainMenu$add(hboxMain)
-#  window$add(hboxMain)
 
   #=============================================================================
   # Create main (left side) vertical container
@@ -80,7 +83,7 @@ plot.adj.gui <- function() {
   hbox <- gtkHBoxNew(F, 8)
   vbox$packStart(hbox, expand=F, fill=F, padding=0)
   
-  label <- gtkLabelNewWithMnemonic('Adjacency graph name')
+  label <- gtkLabelNewWithMnemonic('Graph name 1:')
   hbox$packStart(label, F, F, 0)
   # Add entry in the second column; named "graphname"
   graphname1 <- gtkEntryNew()
@@ -91,7 +94,7 @@ plot.adj.gui <- function() {
 
   hbox <- gtkHBoxNew(F, 8)
   vbox$packStart(hbox, expand=F, fill=F, padding=0)
-  label <- gtkLabelNewWithMnemonic('Adjacency graph name')
+  label <- gtkLabelNewWithMnemonic('Graph name 2:')
   hbox$packStart(label, F, F, 0)
   # Add entry in the second column; named "graphname"
   graphname2 <- gtkEntryNew()
@@ -150,7 +153,7 @@ plot.adj.gui <- function() {
 
   vertSize.const <- gtkEntryNew()
   vertSize.const$setWidthChars(3)
-  vertSize.const$setText('10')
+  vertSize.const$setText('5')
   hboxVsize$packStart(vertSize.const, F, F, 0)
   vertSize.const$setSensitive(F)
 
@@ -159,9 +162,24 @@ plot.adj.gui <- function() {
         vertSize.const$setSensitive(T)
       } else {
         vertSize.const$setSensitive(F)
-        #vertSize.const <- NULL
       }
     })
+
+  # Both, single hemisphere, or inter-hemispheric only?
+  #---------------------------------------------------------
+  hboxHemi <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxHemi, F, F, 0)
+  choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only')
+  
+  comboHemi <- gtkComboBoxNewText()
+  comboHemi$show()
+  for (choice in choices) comboHemi$appendText(choice)
+  comboHemi$setActive(0)
+
+  label <- gtkLabelNew('Hemisphere')
+  hboxHemi$packStart(label, F, F, 0)
+  hboxHemi$add(comboHemi)
+
 
   # Community number, if applicable
   hboxComm <- gtkHBoxNew(F, 8)
@@ -229,20 +247,32 @@ plot.adj.gui <- function() {
   #-------------------------------------
   # Create 2 drawing areas for the plotting
   #-------------------------------------
-  graphics1 <- gtkDrawingArea()
-  graphics1$setSizeRequest(640, 640)
+  graphics <- vector('list', 2)
+  vboxPlot <- vector('list', 2)
+  groupplot <- vector('list', 2)
 
-  graphics2 <- gtkDrawingArea()
-  graphics2$setSizeRequest(640, 640)
+  for (i in 1:2) {
+    graphics[[i]] <- gtkDrawingArea()
+    graphics[[i]]$setSizeRequest(640, 640)
+
+    vboxPlot[[i]] <- gtkVBox()
+    vboxPlot[[i]]$packStart(graphics[[i]], expand=T, fill=T, padding=0)
+    hboxMain$add(vboxPlot[[i]])
+
+    asCairoDevice(graphics[[i]])
+    par(pty='s', mar=rep(0, 4))
+    plot.over.brain.axial(0)
+    groupplot[[i]] <- dev.cur()
+  }
 
   #-----------------------------------------------------------------------------
   # Function to dynamically draw the graph
   #-----------------------------------------------------------------------------
   update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                          edgeWidth, vertColor, toSave1=FALSE, toSave2=FALSE,
-                         exportFileName1, exportFileName2, fileExt, group1plot,
-                         group2plot, vertSize.const=NULL, plotFunc, commNum,
-                         neighbVert) {
+                         exportFileName1, exportFileName2, fileExt, firstplot,
+                         secondplot, vertSize.const=NULL, plotFunc, commNum,
+                         neighbVert, hemi) {
     g1 <- eval(parse(text=graphname1$getText()))
     g2 <- eval(parse(text=graphname2$getText()))
 
@@ -251,9 +281,11 @@ plot.adj.gui <- function() {
     # Function that does all the work
     #-------------------------------------------------------
     make.plot <- function(dev, g, toSave, exportFileName, ...) {
+      Nv <- vcount(g)
       dev.set(dev)
       plot.over.brain.axial(0)
       par(pty='s', mar=rep(0, 4))
+
       # Show vertex labels?
       if (vertLabels$active == FALSE) {
         vertex.label <- NA
@@ -285,10 +317,18 @@ plot.adj.gui <- function() {
         20*V(g)$transitivity,
         range.transform(V(g)$PC, 2.5, 15),
         range.transform(V(g)$l.eff, 0, 15),
-        range.transform(abs(V(g)$z), 0, 15))
+        range.transform(abs(V(g)$z.score), 0, 15))
 
       # Edge width
       ewidth <- eval(parse(text=edgeWidth$getText()))
+
+      # Hemisphere to plot
+      g <- switch(hemi$getActive()+1,
+        g,
+        induced.subgraph(g, 1:(Nv/2)),
+        induced.subgraph(g, (Nv/2 + 1):Nv),
+        subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+        )
 
       # Community number, if applicable
       if (commNum$getSensitive()) {
@@ -328,37 +368,16 @@ plot.adj.gui <- function() {
       }
     }
 
-    make.plot(dev=group1plot, g=g1, toSave=toSave1,
+    make.plot(dev=firstplot, g=g1, toSave=toSave1,
               exportFileName=exportFileName1, vertLabels, vertSize, edgeWidth,
-              vertColor, fileExt, vertSize.const=NULL, commNum)
+              vertColor, fileExt, vertSize.const=NULL, commNum, hemi)
     if (nchar(graphname2$getText()) > 0) {
-      make.plot(dev=group2plot, g=g2, vertLabels, vertSize, edgeWidth, vertColor,
+      make.plot(dev=secondplot, g=g2, vertLabels, vertSize, edgeWidth, vertColor,
                 toSave=toSave2, exportFileName=exportFileName2, fileExt,
-                vertSize.const=NULL, commNum)
-    } else {
+                vertSize.const=NULL, commNum, hemi)
     }
-
   }
   #-----------------------------------------------------------------------------
-
-  vboxPlot1 <- gtkVBox()
-  vboxPlot1$packStart(graphics1, expand=T, fill=T, padding=0)
-  hboxMain$add(vboxPlot1)
-
-  vboxPlot2 <- gtkVBox()
-  vboxPlot2$packStart(graphics2, expand=T, fill=T, padding=0)
-  hboxMain$add(vboxPlot2)
-
-  asCairoDevice(graphics1)
-  par(pty='s', mar=rep(0, 4))
-  plot.over.brain.axial(0)
-  group1plot <- dev.cur()
-
-  asCairoDevice(graphics2)
-  par(pty='s', mar=rep(0, 4))
-  plot.over.brain.axial(0)
-  group2plot <- dev.cur()
-
 
   # Add buttons
   the.buttons <- gtkHButtonBoxNew()
@@ -371,15 +390,14 @@ plot.adj.gui <- function() {
                  function(widget) update.adj(graphname1, graphname2, vertLabels,
                                    vertSize=combo, edgeWidth, vertColor, toSave1,
                                    toSave2, exportFileName1, exportFileName2,
-                                   fileExt, group1plot, group2plot,
+                                   fileExt, firstplot=groupplot[[1]],
+                                   secondplot=groupplot[[2]],
                                    vertSize.const, plotFunc, commNum,
-                                   neighbVert))
+                                   neighbVert, hemi=comboHemi))
   the.buttons$packStart(buttonOK, fill=F)
   buttonClose <- gtkButtonNewFromStock("gtk-close")
   gSignalConnect(buttonClose, "clicked", window$destroy)
   the.buttons$packStart(buttonClose, fill=F)
 
   hboxMain$showAll()
-
-  browser()
 }

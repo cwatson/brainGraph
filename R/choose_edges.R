@@ -9,9 +9,9 @@
 #' @return A data frame with four elements; two edges will be removed and two
 #' edges will be added between the four vertices.
 #'
-#' @references Bansal, S., Khandelwal, S., Meyers, L.A. (2009) Exploring
-#' biological network structure with clustered random networks, BMC
-#' Bioinformatics 10, 405-421.
+#' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
+#' biological network structure with clustered random networks}. BMC
+#' Bioinformatics, 10:405-421.
 
 choose.edges <- function(g) {
   degs <- degree(g)
@@ -52,15 +52,15 @@ choose.edges <- function(g) {
   }
   #=============================================================================
   get.neighbors.z2 <- function(graph, node, degrees, degrees.large, y2, z1) {
-    z2s <- 0
+    iter <- 0
     y2.neighb <- neighbors(graph, y2)
     repeat {
       z2 <- y2.neighb[sample(length(y2.neighb), 1)] 
-      z2s <- z2s + 1
+      iter <- iter + 1
       if ( z2 != node & z2 != z1 ) {
         return(z2)
       }
-      if (z2s >= 60) {
+      if (iter >= 60) {
         tmp <- get.node(graph, degrees.large)
         node <- tmp[[1]]
         neighb <- tmp[[2]]
@@ -71,7 +71,7 @@ choose.edges <- function(g) {
         z1 <- get.neighbors.z1(graph, node, degrees, y1)
         get.neighbors.z2(graph, node, degrees, degrees.large, y2, z1)
       }
-    }   
+    }
   }
   #=============================================================================
   #=============================================================================
@@ -85,5 +85,5 @@ choose.edges <- function(g) {
   z1 <- get.neighbors.z1(g, x, degs, y1)
   z2 <- get.neighbors.z2(g, x, degs, degs.large, y2, z1)
 
-  return(data.frame(y1, y2, z1, z2))
+  return(data.frame(x, y1, y2, z1, z2))
 }

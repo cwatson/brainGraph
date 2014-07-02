@@ -2,23 +2,24 @@
 #'
 #' This function takes the community membership of a given graph, and assigns
 #' to the edges a specific color (the same as the vertex membership colors).
-#' Currently only works for up to 5 communities (colored: red, green, blue,
-#' yellow, magenta). Edges that connect two different communities are colored
-#' gray.
+#' Currently only works for up to 9 communities (colored: red, green, blue,
+#' yellow, magenta, orangered, lightgreen, lightblue, lightyellow). Edges that
+#' connect two different communities are colored gray.
 #'
-#' @param g The adjacency graph to get its edges colored
+#' @param g The graph to get its edges colored
 #' @param comm The community object returned from community.measures
 #' @export
+#' @return A character vector of colors for each edge in the graph
 #'
 
 color.edges <- function(g, comm) {
   kNumVertices <- vcount(g)
   mem <- comm$community$membership
-  Nc <- max(mem)
+  kNumComm <- max(mem)
   tmp <- list()
   cols <- vector()
 
-  for (i in 1:Nc) {
+  for (i in 1:kNumComm) {
     if (sum(mem == i) == 1) {
       tmp[[i]] <- 0
     } else {
@@ -30,5 +31,7 @@ color.edges <- function(g, comm) {
   dups <- dups[dups > 0]
 
   cols[dups] <- 'gray'
+
+  cols <- ifelse(is.na(cols), 'white', cols)
   return(cols)
 }

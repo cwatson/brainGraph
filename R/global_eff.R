@@ -6,6 +6,9 @@
 #' @export
 #'
 #' @return A number; the global efficiency of the graph.
+#'
+#' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
+#' small-world networks}. Phys Rev Lett, 87.19:198701.
 
 global.eff <- function(g) {
   Nv <- vcount(g)

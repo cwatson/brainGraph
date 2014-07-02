@@ -1,9 +1,7 @@
 #' Set a number of graph and vertex attributes useful in MRI analyses
 #'
 #' This function will set a number of graph and vertex attributes of a given
-#' igraph object. It is required that a community structure has already been
-#' determined, and \code{\link{part.coeff}} and
-#' \code{\link{within.module.deg.z.score}} have been calculated.
+#' igraph object.
 #'
 #' @param g A graph
 #' @param coords A matrix of the spatial coordinates
@@ -11,7 +9,22 @@
 #'
 #' @export
 #'
-#' @return g A copy of the same graph, with the attributes added.
+#' @return g A copy of the same graph, with the following attributes:
+#' \item{Graph-level}{Density, largest connected component size, number of
+#' triangles, transitivity, average path length, assortativity, global
+#' efficiency, modularity, and rich-club coefficient}
+#' \item{Vertex-level}{Degree, betweenness centrality, eigenvector centrality,
+#' transitivity (local), local efficiency, color, community membership,
+#' participation coefficient, within-module degree z-score, and coordinates (x,
+#' y, and z)}
+#' \item{Edge-level}{Color}
+#'
+#' @seealso \code{\link{clusters}, \link{graph.motifs},
+#' \link{centralization.betweenness}, \link{centralization.evcent},
+#' \link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
+#' \link{global.eff}, \link{local.eff}, \link{rich.club.coeff},
+#' \link{edge.betweenness.community}, \link{community.measures},
+#' \link{color.edges}, \link{part.coeff}, \link{within.module.degree.z.score}}
 
 set.brainGraph.attributes <- function(g, coords=NULL, rand=FALSE) {
   if (length(coords) > 0) {
@@ -41,10 +54,12 @@ set.brainGraph.attributes <- function(g, coords=NULL, rand=FALSE) {
   g$g.eff <- global.eff(g)
   V(g)$l.eff <- local.eff(g)
 
+  # Currently, takes the top 10% of nodes for rich club
+  deg.thresh <- Nv - ceiling(0.1 * Nv)
+  g$rich <- rich.club.coeff(g, sort(degree(g))[deg.thresh])$coeff
+
   if (rand == TRUE) {
-    deg.thresh <- Nv - ceiling(0.1 * Nv)
     g$mod <- max(edge.betweenness.community(g)$modularity)
-    g$rich <- rich.club.coeff(g, sort(degree(g))[deg.thresh])$coeff
   } else {
     # Community stuff
     comm <- community.measures(g)

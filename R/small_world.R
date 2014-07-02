@@ -3,8 +3,9 @@
 #' This function will calculate the characteristic path length and clustering
 #' coefficient, which are used to calculate small-worldness.
 #'
-#' @param g the adjacency graph (or a list of graphs)
-#' @param rand list of output from sim.random.graph
+#' @param g The graph (or list of graphs) of interest
+#' @param rand List of equivalent random graphs (output from
+#' \code{\link{sim.random.graph.par}}
 #' @export
 #'
 #' @return A data frame with the following components:
@@ -16,6 +17,9 @@
 #' \item{Cp.rand}{The mean clustering coefficient of the random graphs with
 #' the same degree distribution as g.}
 #' \item{sigma}{The small-world measure of the graph.}
+#'
+#' @references Watts D.J., Strogatz S.H. (1998) \emph{Collective dynamics of
+#' 'small-world' networks}. Nature, 393:440-442.
 
 small.world <- function(g, rand) {
   Lp <- vapply(g, function(x) x$Lp, numeric(1))

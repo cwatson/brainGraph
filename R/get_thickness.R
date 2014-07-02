@@ -4,8 +4,10 @@
 #' and right hemispheres. It combines data from each hemisphere, then subsets
 #' the data frame into separate DF's for each of 2 subject groups.
 #'
-#' @param file1 left hemisphere thickness data for both groups
-#' @param file2 right hemisphere thickness data for both groups
+#' @param fileLH Character string for the file containing left hemisphere
+#' thickness data for both groups
+#' @param fileRH Character string for the file containing right hemisphere
+#' thickness data for both groups
 #' @param group1 Character string identifying first subject group
 #' @param group2 Character string identifying second subject group (optional)
 #' @export
@@ -17,9 +19,9 @@
 #' \item{group1}{Thicknesses for only group 1.}
 #' \item{group2}{Thicknesses for only group 2.}
 
-get.thickness <- function(file1, file2, group1, group2=NULL) {
-  lhThick <- read.csv(file1)
-  rhThick <- read.csv(file2)
+get.thickness <- function(fileLH, fileRH, group1, group2=NULL) {
+  lhThick <- read.csv(fileLH)
+  rhThick <- read.csv(fileRH)
   all.thick <- merge(lhThick, rhThick)
   if ('Group' %in% colnames(all.thick)) {
     group1.thick <- subset(all.thick, Group==group1)

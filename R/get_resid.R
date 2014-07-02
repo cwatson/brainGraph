@@ -3,10 +3,9 @@
 #' This function runs linear models on the thickness data for each region, in
 #' order to adjust for relevant variables (e.g. age, sex, group, etc.).
 #'
-#' @param thicknesses data frame of all thickness data, including covariates.
+#' @param thicknesses Data frame of all thickness data, including covariates.
 #'  First column must be subject ID (or something similar)
-#' @param kNumCovars Integer specifying number of covariates to include in the
-#' model
+#' @param covars Data frame of covariates for the linear model
 #' @param group1 Character string indicating the first subject group
 #' @param group2 Character string indicating the second subject group (optional)
 #' @export
@@ -17,13 +16,14 @@
 #' \item{group1}{Residuals for just group 1.}
 #' \item{group2}{Residuals for just group 2.}
 
-get.resid <- function(thicknesses, kNumCovars, group1, group2=NULL) {
-  regions <- (kNumCovars+2):dim(thicknesses)[2]
+get.resid <- function(thicknesses, covars, group1, group2=NULL) {
+  dat <- merge(thicknesses, covars)
+  regions <- 3:dim(thicknesses)[2]
   m <- lapply(names(thicknesses)[regions],
-              function(x) lm(as.formula(paste(x, '~',
-                              paste(colnames(thicknesses)[2:(kNumCovars+1)],
-                                    collapse='+'), sep='')),
-                             data=thicknesses))
+              function(x) lm(as.formula(paste0(x, '~',
+                              paste(colnames(covars)[2:dim(covars)[2]],
+                                    collapse='+'))),
+                             data=dat))
 
   # Get the studentized residuals
   all.resid <- data.frame(lapply(m, rstudent))

@@ -17,7 +17,7 @@ check.resid <- function(resids) {
     dev.new()
     par(mfrow=c(3, 3))
     for (i in 1:9) {
-      qqnorm(resids[, 9*(j-1) + i])
+      qqnorm(resids[, 9*(j-1) + i], main=colnames(resids)[9*(j-1) + i])
       qqline(resids[, 9*(j-1) + i])
       title(sub=9*(j-1)+i)
     }
@@ -25,8 +25,8 @@ check.resid <- function(resids) {
   dev.new()
   par(mfrow=c(3, 3))
   for (k in 1:b) {
-    qqnorm(resids[, 9*(j) + k])
-    qqline(resids[, 9*(j) + k])
-    title(sub=9*(j)+k)
+    qqnorm(resids[, 9*j + k], main=colnames(resids)[9*j + k])
+    qqline(resids[, 9*j + k])
+    title(sub=9*j+k)
   }
 }

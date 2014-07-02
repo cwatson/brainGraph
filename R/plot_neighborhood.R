@@ -42,5 +42,5 @@ plot.neighborhood <- function(g, v, ...) {
            vertex.color=vertex.color, edge.color=edge.color,
            vertex.label=vertex.label, vertex.label.cex=0.75, ...)
   par(new=T, mar=c(5, 0, 3, 0)+0.1)
-  title(paste('Neighborhood of', v))
+  title(paste('Neighborhood of', v), col.main='white')
 }

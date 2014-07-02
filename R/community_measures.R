@@ -15,11 +15,10 @@ community.measures <- function(g) {
   comm <- edge.betweenness.community(g)
 
   # Find out how many communities exist that have >= 2 members
-  mod.colors <- c('red', 'green', 'blue', 'yellow', 'magenta', 'lightgreen',
-                  'lightblue', 'lightyellow')
+  mod.colors <- c('red', 'green', 'blue', 'yellow', 'magenta', 'orangered',
+                  'lightgreen', 'lightblue', 'lightyellow')
 
-  mod.sizes <- vapply(1:length(comm), function(x) sum(comm$membership==x),
-                      integer(1))
+  mod.sizes <- as.integer(table(comm$membership))
   big.modules <- which(mod.sizes >= 2)
   big.mod.sizes <- mod.sizes[big.modules]
   big.modules <- big.modules[rev(sort(big.mod.sizes, index.return=T)$ix)]

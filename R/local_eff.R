@@ -6,6 +6,10 @@
 #' @export
 #'
 #' @return A vector of the local efficiencies for each node of the graph.
+#'
+#' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
+#' small-world networks}. Phys Rev Lett, 87.19:198701.
+
 
 local.eff <- function(g) {
   eff <- numeric(vcount(g))

@@ -21,4 +21,10 @@ plot.adj <- function(g, vertex.size=10, edge.width=2,
   plot(g, vertex.size=vertex.size,
     edge.width=edge.width,
     asp=0, rescale=rescale, ylim=ylim, ...)
+
+  if (!is.null(g$density)) {
+    subt <- sprintf('%s: %1.3f', 'Density', g$density)
+    par(new=T, mar=c(5, 0, 3, 0)+0.1)
+    title(sub=subt, col.sub='white')
+  }
 }
