@@ -32,7 +32,7 @@ corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL) {
   # Calculate a threshold so that 10% of possible connections are present
   # Also called 'sparsity'
   if (hasArg('density')) {
-    N <- dim(r)[2]
+    N <- ncol(r)
     emax <- N  * (N - 1) / 2
   
     thresh <- sort(r[lower.tri(r)])[emax - density * emax]

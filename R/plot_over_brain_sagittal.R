@@ -15,7 +15,7 @@ plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
       x <- mni152
     } else if (hemi == 'left') {
       tmp <- mni152@.Data
-      x <- nifti(tmp[rev(seq_len(dim(tmp)[1])), rev(seq_len(dim(tmp)[2])), ])
+      x <- nifti(tmp[rev(seq_len(nrow(tmp))), rev(seq_len(ncol(tmp))), ])
     } else {
       stop('Argument "hemi" must be "left" or "right".')
     }

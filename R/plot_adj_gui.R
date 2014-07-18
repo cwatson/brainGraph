@@ -24,10 +24,9 @@ plot.adj.gui <- function() {
   #---------------------------------------------------------
   adj_item <- gtkMenuItemNewWithMnemonic('_Entire graph')
   gSignalConnect(adj_item, 'activate', function(item) {
-    commNum$setSensitive(F)
-    neighbVert$setSensitive(F)
-    vertColor$setSensitive(T)
-    plotFunc <<- plot.adj
+                 commNum$setSensitive(F)
+                 neighbVert$setSensitive(F)
+                 plotFunc <<- plot.adj
   })
   plot_menu$append(adj_item)
 
@@ -35,10 +34,10 @@ plot.adj.gui <- function() {
   #---------------------------------------------------------
   neighb_item <- gtkMenuItemNewWithMnemonic('_Neighborhood graph')
   gSignalConnect(neighb_item, 'activate', function(item) {
-    commNum$setSensitive(F)
-    neighbVert$setSensitive(T)
-    vertColor$setSensitive(T)
-    plotFunc <<- plot.neighborhood
+                 commNum$setSensitive(F)
+                 neighbVert$setSensitive(T)
+                 comboVcolor$setActive(0)
+                 plotFunc <<- plot.neighborhood
   })
   plot_menu$append(neighb_item)
 
@@ -46,10 +45,10 @@ plot.adj.gui <- function() {
   #---------------------------------------------------------
   community_item <- gtkMenuItemNewWithMnemonic('_Community graph')
   gSignalConnect(community_item, 'activate', function(item) {
-    commNum$setSensitive(T)
-    neighbVert$setSensitive(F)
-    vertColor$setSensitive(F)
-    plotFunc <<- plot.community
+                 commNum$setSensitive(T)
+                 neighbVert$setSensitive(F)
+                 comboVcolor$setActive(0)
+                 plotFunc <<- plot.community
   })
   plot_menu$append(community_item)
 
@@ -115,14 +114,18 @@ plot.adj.gui <- function() {
   label$setMnemonicWidget(vertLabels)
   
   # Vertex colors based on community membership?
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-  label <- gtkLabelNewWithMnemonic('Vertex community color?')
-  hbox$packStart(label, F, F, 0)
-  vertColor <- gtkCheckButton()
-  vertColor$active <- TRUE
-  hbox$packStart(vertColor, F, F, 0)
-  label$setMnemonicWidget(vertColor)
+  #---------------------------------------
+  hboxVcolor <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxVcolor, F, F, 0)
+  choices <- c('None (lightblue)', 'Communities', 'Lobes')
+  comboVcolor <- gtkComboBoxNewText()
+  comboVcolor$show()
+  for (choice in choices) comboVcolor$appendText(choice)
+  comboVcolor$setActive(1)
+
+  label <- gtkLabelNewWithMnemonic('Vertex color')
+  hboxVcolor$packStart(label, F, F, 0)
+  hboxVcolor$add(comboVcolor)
 
   # Edge width?
   hbox <- gtkHBoxNew(F, 8)
@@ -141,7 +144,7 @@ plot.adj.gui <- function() {
   vbox$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.',
-               'Within-module degree z-score')
+               'Within-module degree z-score', 'Hub score')
   combo <- gtkComboBoxNewText()
   combo$show()
   for (choice in choices) combo$appendText(choice)
@@ -179,6 +182,23 @@ plot.adj.gui <- function() {
   label <- gtkLabelNew('Hemisphere')
   hboxHemi$packStart(label, F, F, 0)
   hboxHemi$add(comboHemi)
+
+  # Major lobe number, if applicable
+  hboxLobe <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxLobe, F, F, 0)
+  choices <- c('All', 'Frontal', 'Parietal', 'Temporal', 'Occipital',
+               'Frontal & Parietal', 'Frontal & Temporal', 'Frontal & Occipital',
+               'Parietal & Temporal', 'Parietal & Occipital',
+               'Temporal & Occipital')
+
+  comboLobe <- gtkComboBoxNewText()
+  comboLobe$show()
+  for (choice in choices) comboLobe$appendText(choice)
+  comboLobe$setActive(0)
+
+  label <- gtkLabelNew('Lobe')
+  hboxLobe$packStart(label, F, F, 0)
+  hboxLobe$add(comboLobe)
 
 
   # Community number, if applicable
@@ -272,7 +292,7 @@ plot.adj.gui <- function() {
                          edgeWidth, vertColor, toSave1=FALSE, toSave2=FALSE,
                          exportFileName1, exportFileName2, fileExt, firstplot,
                          secondplot, vertSize.const=NULL, plotFunc, commNum,
-                         neighbVert, hemi) {
+                         neighbVert, hemi, lobe) {
     g1 <- eval(parse(text=graphname1$getText()))
     g2 <- eval(parse(text=graphname2$getText()))
 
@@ -294,14 +314,17 @@ plot.adj.gui <- function() {
         vertex.label <- V(g)$name
         vertex.label.cex <- 0.75
       }
-      # Show community membership colors?
-      if (vertColor$active == TRUE) {
-        vertex.color <- V(g)$color
-        edge.color <- E(g)$color
-      } else {
-        vertex.color <- 'lightblue3'
-        edge.color='red'
-      }
+      # Vertex colors
+      vertex.color <- switch(vertColor$getActive() + 1,
+                             'lightblue3',
+                             V(g)$color,
+                             V(g)$lobe.color
+      )
+      edge.color <- switch(vertColor$getActive() + 1,
+                           'red',
+                           E(g)$color,
+                           E(g)$lobe.color
+      )
 
       # Vertex sizes
       if (!vertSize.const$getSensitive()) {
@@ -315,9 +338,11 @@ plot.adj.gui <- function() {
         25*V(g)$ev.cent,
         3*log1p(V(g)$btwn.cent)+.05,
         20*V(g)$transitivity,
-        range.transform(V(g)$PC, 2.5, 15),
+        range.transform(V(g)$PC, 0, 15),
         range.transform(V(g)$l.eff, 0, 15),
-        range.transform(abs(V(g)$z.score), 0, 15))
+        range.transform(abs(V(g)$z.score), 0, 15),
+        10*sqrt(V(g)$hub.score)
+      )
 
       # Edge width
       ewidth <- eval(parse(text=edgeWidth$getText()))
@@ -328,7 +353,22 @@ plot.adj.gui <- function() {
         induced.subgraph(g, 1:(Nv/2)),
         induced.subgraph(g, (Nv/2 + 1):Nv),
         subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-        )
+      )
+
+      # Lobe to plot
+      g <- switch(lobe$getActive()+1,
+                  g,
+                  induced.subgraph(g, V(g)$lobe==1),
+                  induced.subgraph(g, V(g)$lobe==2),
+                  induced.subgraph(g, V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==2),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==3 | V(g)$lobe==4)
+                  )
 
       # Community number, if applicable
       if (commNum$getSensitive()) {
@@ -388,12 +428,13 @@ plot.adj.gui <- function() {
   buttonOK <- gtkButtonNewFromStock("gtk-ok")
   gSignalConnect(buttonOK, "clicked",
                  function(widget) update.adj(graphname1, graphname2, vertLabels,
-                                   vertSize=combo, edgeWidth, vertColor, toSave1,
+                                   vertSize=combo, edgeWidth,
+                                   vertColor=comboVcolor, toSave1,
                                    toSave2, exportFileName1, exportFileName2,
                                    fileExt, firstplot=groupplot[[1]],
                                    secondplot=groupplot[[2]],
                                    vertSize.const, plotFunc, commNum,
-                                   neighbVert, hemi=comboHemi))
+                                   neighbVert, hemi=comboHemi, lobe=comboLobe))
   the.buttons$packStart(buttonOK, fill=F)
   buttonClose <- gtkButtonNewFromStock("gtk-close")
   gSignalConnect(buttonClose, "clicked", window$destroy)

@@ -21,9 +21,10 @@ This function will simulate N simple random graphs with the same clustering
 and degree sequence as the input. Essentially a wrapper for
 \code{\link{sim.rand.graph.clust}} and
 \code{\link{set.brainGraph.attributes}}. It uses \code{\link{foreach}} to
-speed it up.
+speed it up. If you do not want to match by clustering, then it will do a
+simple rewiring of the given graph (1e4 times).
 }
 \seealso{
-\code{\link{sim.rand.graph.clust}}
+\code{\link{sim.rand.graph.clust}, \link{rewire}}
 }
 

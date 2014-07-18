@@ -1,7 +1,7 @@
 export(check.resid)
 export(choose.edges)
 export(color.edges)
-export(community.measures)
+export(color.vertices)
 export(corr.matrix)
 export(get.resid)
 export(get.thickness)

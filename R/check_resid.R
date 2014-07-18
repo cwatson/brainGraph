@@ -8,7 +8,7 @@
 #'
 
 check.resid <- function(resids) {
-  kNumRegions <- dim(resids)[2] - 1
+  kNumRegions <- ncol(resids) - 1
 
   a <- kNumRegions %/% 9
   b <- kNumRegions %% 9

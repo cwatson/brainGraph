@@ -3,14 +3,12 @@
 \alias{part.coeff}
 \title{Calculate the participation coefficient of each node}
 \usage{
-part.coeff(adj.mat, adj.graph, community.mem)
+part.coeff(g, community.mem)
 }
 \arguments{
-\item{adj.mat}{the adjacency matrix}
+\item{g}{The graph}
 
-\item{adj.graph}{the adjacency graph}
-
-\item{community.mem}{the community membership indices of each node}
+\item{community.mem}{The community membership indices of each node}
 }
 \value{
 A vector of the participation coeff's for each node of the graph.

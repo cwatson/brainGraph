@@ -16,8 +16,8 @@
 #' @param y2se Standard error of the mean for group 2 (optional)
 #' @export
 
-plot.se <- function(densities, y1, y2, xlabel='Density', ylabel=NULL, group1,
-                    group2, y1se=NULL, y2se=NULL) {
+plot.se <- function(densities, y1, y2, xlabel='Density', ylabel=NULL,
+                    group1='Control', group2=NULL, y1se=NULL, y2se=NULL) {
   if (length(y1se) == 0) {
     y1se <- 0
   }

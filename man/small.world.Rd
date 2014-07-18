@@ -9,7 +9,7 @@ small.world(g, rand)
 \item{g}{The graph (or list of graphs) of interest}
 
 \item{rand}{List of equivalent random graphs (output from
-\code{\link{sim.random.graph.par}}}
+\code{\link{sim.rand.graph.par}}}
 }
 \value{
 A data frame with the following components:

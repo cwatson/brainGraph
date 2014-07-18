@@ -3,10 +3,12 @@
 \alias{set.brainGraph.attributes}
 \title{Set a number of graph and vertex attributes useful in MRI analyses}
 \usage{
-set.brainGraph.attributes(g, coords = NULL, rand = FALSE)
+set.brainGraph.attributes(g, atlas = NULL, coords = NULL, rand = FALSE)
 }
 \arguments{
 \item{g}{A graph}
+
+\item{atlas}{A character vector indicating which atlas was used for the nodes}
 
 \item{coords}{A matrix of the spatial coordinates}
 
@@ -14,25 +16,26 @@ set.brainGraph.attributes(g, coords = NULL, rand = FALSE)
 }
 \value{
 g A copy of the same graph, with the following attributes:
-\item{Graph-level}{Density, largest connected component size, number of
-triangles, transitivity, average path length, assortativity, global
-efficiency, modularity, and rich-club coefficient}
+\item{Graph-level}{Atlas, density, connected component sizes, diameter,
+number of triangles, transitivity, average path length, assortativity,
+global efficiency, modularity, and rich-club coefficient}
 \item{Vertex-level}{Degree, betweenness centrality, eigenvector centrality,
-transitivity (local), local efficiency, color, community membership,
+transitivity (local), coreness, local efficiency, color, community membership,
 participation coefficient, within-module degree z-score, and coordinates (x,
 y, and z)}
-\item{Edge-level}{Color}
+\item{Edge-level}{Color, lobe color}
 }
 \description{
 This function will set a number of graph and vertex attributes of a given
 igraph object.
 }
 \seealso{
-\code{\link{clusters}, \link{graph.motifs},
+\code{\link{clusters}, \link{graph.motifs}, \link{diameter},
 \link{centralization.betweenness}, \link{centralization.evcent},
+\link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
 \link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
 \link{global.eff}, \link{local.eff}, \link{rich.club.coeff},
-\link{edge.betweenness.community}, \link{community.measures},
-\link{color.edges}, \link{part.coeff}, \link{within.module.degree.z.score}}
+\link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
+\link{within.module.deg.z.score},\link{graph.coreness}}
 }
 

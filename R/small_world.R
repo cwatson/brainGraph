@@ -5,7 +5,7 @@
 #'
 #' @param g The graph (or list of graphs) of interest
 #' @param rand List of equivalent random graphs (output from
-#' \code{\link{sim.random.graph.par}}
+#' \code{\link{sim.rand.graph.par}}
 #' @export
 #'
 #' @return A data frame with the following components:

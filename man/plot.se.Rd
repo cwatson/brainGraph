@@ -4,7 +4,7 @@
 \title{Plot vectors for 2 groups along a range of some value, +/- std error.}
 \usage{
 \method{plot}{se}(densities, y1, y2, xlabel = "Density", ylabel = NULL,
-  group1, group2, y1se = NULL, y2se = NULL)
+  group1 = "Control", group2 = NULL, y1se = NULL, y2se = NULL)
 }
 \arguments{
 \item{densities}{The densities to be plotted along the horizontal axis}

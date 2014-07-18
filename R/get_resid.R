@@ -18,10 +18,10 @@
 
 get.resid <- function(thicknesses, covars, group1, group2=NULL) {
   dat <- merge(thicknesses, covars)
-  regions <- 3:dim(thicknesses)[2]
+  regions <- 3:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],
               function(x) lm(as.formula(paste0(x, '~',
-                              paste(colnames(covars)[2:dim(covars)[2]],
+                              paste(colnames(covars)[2:ncol(covars)],
                                     collapse='+'))),
                              data=dat))
 

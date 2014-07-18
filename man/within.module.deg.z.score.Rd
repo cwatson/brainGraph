@@ -3,14 +3,12 @@
 \alias{within.module.deg.z.score}
 \title{Calculate the within-module degree z-score of each node.}
 \usage{
-\method{within}{module.deg.z.score}(adj.mat, adj.graph, community.mem)
+\method{within}{module.deg.z.score}(g, community.mem)
 }
 \arguments{
-\item{adj.mat}{the adjacency matrix}
+\item{g}{The graph}
 
-\item{adj.graph}{the adjacency graph}
-
-\item{community.mem}{the community membership indices of each node}
+\item{community.mem}{The community membership indices of each node}
 }
 \value{
 A vector of the within-module degree z-scores for each node of the
