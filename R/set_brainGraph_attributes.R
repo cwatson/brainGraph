@@ -56,8 +56,10 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   # Vertex-level attributes
   #-----------------------------------------------------------------------------
   # Give each vertex a 'lobe' attribute, and colors for each lobe
+  # For AAL90: frontal, parietal, temporal, occipital, limbic, insula, SCGM
   if (!is.null(atlas)) {
-    lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow')
+    lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
+                   'lightgreen')
     g$atlas <- atlas
     V(g)$lobe.color <- color.vertices(atlas=atlas)
 
@@ -88,7 +90,79 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
                               dk$occipital.lh, dk$insula.lh, dk$frontal.rh,
                               dk$parietal.rh, dk$temporal.rh, dk$occipital.rh,
                               dk$insula.rh)
+    } else if (atlas == 'aal90') {
+      lobes <- vector('integer', length=Nv)
+      lobes[aal90$frontal] <- 1
+      lobes[aal90$parietal] <- 2
+      lobes[aal90$temporal] <- 3
+      lobes[aal90$occipital] <- 4
+      lobes[aal90$insula] <- 5
+      lobes[aal90$limbic] <- 6
+      lobes[aal90$scgm] <- 7
+      V(g)$lobe <- lobes
+
+      V(g)$circle.layout <- c(aal90$frontal.lh, aal90$parietal.lh, aal90$temporal.lh,
+                              aal90$occipital.lh, aal90$insula.lh, aal90$limbic.lh,
+                              aal90$scgm.lh,
+                              aal90$frontal.rh, aal90$parietal.rh, aal90$temporal.rh,
+                              aal90$occipital.rh, aal90$insula.rh, aal90$limbic.rh,
+                              aal90$scgm.rh)
+
+    } else if (atlas == 'lpba40') {
+      lobes <- vector('integer', length=Nv)
+      lobes[lpba40$frontal] <- 1
+      lobes[lpba40$parietal] <- 2
+      lobes[lpba40$temporal] <- 3
+      lobes[lpba40$occipital] <- 4
+      lobes[lpba40$insula] <- 5
+      lobes[lpba40$cingulate] <- 6
+      lobes[lpba40$scgm] <- 7
+      V(g)$lobe <- lobes
+
+      V(g)$circle.layout <- c(lpba40$frontal.lh, lpba40$parietal.lh, lpba40$temporal.lh,
+                              lpba40$occipital.lh, lpba40$insula.lh, lpba40$cingulate.lh,
+                              lpba40$scgm.lh,
+                              lpba40$frontal.rh, lpba40$parietal.rh, lpba40$temporal.rh,
+                              lpba40$occipital.rh, lpba40$insula.rh, lpba40$cingulate.rh,
+                              lpba40$scgm.rh)
+    } else if (atlas == 'hoa112') {
+      lobes <- vector('integer', length=Nv)
+      lobes[hoa112$frontal] <- 1
+      lobes[hoa112$parietal] <- 2
+      lobes[hoa112$temporal] <- 3
+      lobes[hoa112$occipital] <- 4
+      lobes[hoa112$insula] <- 5
+      lobes[hoa112$cingulate] <- 6
+      lobes[hoa112$scgm] <- 7
+      V(g)$lobe <- lobes
+
+      V(g)$circle.layout <- c(hoa112$frontal.lh, hoa112$parietal.lh, hoa112$temporal.lh,
+                              hoa112$occipital.lh, hoa112$insula.lh, hoa112$cingulate.lh,
+                              hoa112$scgm.lh,
+                              hoa112$frontal.rh, hoa112$parietal.rh, hoa112$temporal.rh,
+                              hoa112$occipital.rh, hoa112$insula.rh, hoa112$cingulate.rh,
+                              hoa112$scgm.rh)
+    } else if (atlas == 'brainsuite') {
+      lobes <- vector('integer', length=Nv)
+      lobes[brainsuite$frontal] <- 1
+      lobes[brainsuite$parietal] <- 2
+      lobes[brainsuite$temporal] <- 3
+      lobes[brainsuite$occipital] <- 4
+      lobes[brainsuite$insula] <- 5
+      lobes[brainsuite$cingulate] <- 6
+      lobes[brainsuite$scgm] <- 7
+      V(g)$lobe <- lobes
+
+      V(g)$circle.layout <- c(brainsuite$frontal.lh, brainsuite$parietal.lh,
+                              brainsuite$temporal.lh, brainsuite$occipital.lh,
+                              brainsuite$insula.lh, brainsuite$cingulate.lh,
+                              brainsuite$scgm.lh,
+                              brainsuite$frontal.rh, brainsuite$parietal.rh,
+                              brainsuite$temporal.rh, brainsuite$occipital.rh,
+                              brainsuite$insula.rh, brainsuite$cingulate.rh,
+                              brainsuite$scgm.rh)
     }
+
     E(g)$lobe.color <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
   }
 

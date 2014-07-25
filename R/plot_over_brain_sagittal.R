@@ -23,7 +23,9 @@ plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
     if (flag==1) {
       png(filename=fname)
     } else {
-      dev.new()
+      if (length(dev.list()) == 0) {
+        dev.new()
+      }
     }
     image(x, plot.type='single', plane='sagittal',
         z=z, zlim=c(3500, max(mni152[z, , ])))

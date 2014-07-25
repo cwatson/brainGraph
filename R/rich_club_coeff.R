@@ -22,7 +22,7 @@ rich.club.coeff <- function(g, k) {
   if (Nk == 0) {
     list(coeff=NaN, graph=graph.empty(), Nk=0, Ek=0)
   } else {
-    rich.club.nodes <- sort(degree(g), index.return=T)$ix[(Nv - Nk + 1):Nv]
+    rich.club.nodes <- order(degree(g))[(Nv - Nk + 1):Nv]
     rich.club.graph <- induced.subgraph(g, rich.club.nodes)
     Ek <- ecount(rich.club.graph)
     phi <- (2 * Ek) / (Nk * (Nk - 1))

@@ -25,7 +25,7 @@ export(sim.rand.graph.par)
 
 import(igraph)
 import(RGtk2)
+import(cairoDevice)
 importFrom(Hmisc, rcorr)
-importFrom(cairoDevice, asCairoDevice)
 import(foreach)
 import(oro.nifti)

@@ -21,7 +21,6 @@ sim.rand.graph.clust <- function(graph, d, c) {
   #g.all <- vector('list')
 
   while (transitivity(g) < c) {
-
     m <- 1
     repeat {
       g.cand <- g
@@ -31,7 +30,7 @@ sim.rand.graph.clust <- function(graph, d, c) {
       repeat {
         n <- n + 1
         if (n >= 100) {
-          g.cand <- rewire(graph, 'simple', 1e4)#degree.sequence.game(d, method='simple.no.multiple')
+          g.cand <- rewire(graph, 'simple', 1e4)
           n <- 1
         }
         e <- choose.edges(g.cand)
@@ -50,7 +49,7 @@ sim.rand.graph.clust <- function(graph, d, c) {
 
       m <- m + 1
       if (m %% 100 == 0) {
-        g.cand <- rewire(graph, 'simple', 1e4)#degree.sequence.game(d, method='simple.no.multiple')
+        g.cand <- rewire(graph, 'simple', 1e4)
         m <- 1
         n <- 1
       }

@@ -75,32 +75,46 @@ plot.adj.gui <- function() {
   vboxMain$add(frame)
   
   vbox <- gtkVBoxNew(F, 8)
-  vbox$setBorderWidth(24)
+  vbox$setBorderWidth(10)
   frame$add(vbox)
 
-  # Add horizontal container for every widget line
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, expand=F, fill=F, padding=0)
-  
-  label <- gtkLabelNewWithMnemonic('Graph name 1:')
-  hbox$packStart(label, F, F, 0)
-  # Add entry in the second column; named "graphname"
-  graphname1 <- gtkEntryNew()
-  graphname1$setWidthChars(20)
-  graphname1$setText('adj.group1[[N]]')
-  label$setMnemonicWidget(graphname1)
-  hbox$packStart(graphname1, F, F, 0)
+  # Create a frame for each plot area
+  #-------------------------------------
+  frameG <- list(length=2)
+  vboxG <- list(length=2)
+  hboxOrient <- list(length=2)
+  comboOrient <- list(length=2)
+  graphname <- list(length=2)
+  for (i in 1:2) {
+    frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
+    vbox$add(frameG[[i]])
 
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, expand=F, fill=F, padding=0)
-  label <- gtkLabelNewWithMnemonic('Graph name 2:')
-  hbox$packStart(label, F, F, 0)
-  # Add entry in the second column; named "graphname"
-  graphname2 <- gtkEntryNew()
-  graphname2$setWidthChars(20)
-  graphname2$setText('adj.group2[[N]]')
-  label$setMnemonicWidget(graphname2)
-  hbox$packStart(graphname2, F, F, 0)
+    vboxG[[i]] <- gtkVBoxNew(F, 8)
+    vboxG[[i]]$setBorderWidth(10)
+    frameG[[i]]$add(vboxG[[i]])
+
+    hbox <- gtkHBoxNew(F, 8)
+    vboxG[[i]]$packStart(hbox, expand=F, fill=F, padding=0)
+
+    label <- gtkLabelNewWithMnemonic('Name:')
+    hbox$packStart(label, F, F, 0)
+    graphname[[i]] <- gtkEntryNew()
+    graphname[[i]]$setWidthChars(20)
+    label$setMnemonicWidget(graphname[[i]])
+    hbox$packStart(graphname[[i]], F, F, 0)
+
+    hboxOrient[[i]] <- gtkHBoxNew(F, 8)
+    vboxG[[i]]$add(hboxOrient[[i]])
+    choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)')
+    comboOrient[[i]] <- gtkComboBoxNewText()
+    comboOrient[[i]]$show()
+    for (choice in choices) comboOrient[[i]]$appendText(choice)
+    comboOrient[[i]]$setActive(0)
+
+    label <- gtkLabelNewWithMnemonic('Orientation')
+    hboxOrient[[i]]$packStart(label, F, F, 0)
+    hboxOrient[[i]]$add(comboOrient[[i]])
+  }
 
   # Add horizontal container to specify options
   # Should vertex labels be displayed?
@@ -281,7 +295,6 @@ plot.adj.gui <- function() {
 
     asCairoDevice(graphics[[i]])
     par(pty='s', mar=rep(0, 4))
-    plot.over.brain.axial(0)
     groupplot[[i]] <- dev.cur()
   }
 
@@ -292,19 +305,101 @@ plot.adj.gui <- function() {
                          edgeWidth, vertColor, toSave1=FALSE, toSave2=FALSE,
                          exportFileName1, exportFileName2, fileExt, firstplot,
                          secondplot, vertSize.const=NULL, plotFunc, commNum,
-                         neighbVert, hemi, lobe) {
-    g1 <- eval(parse(text=graphname1$getText()))
+                         neighbVert, hemi, lobe, orient1, orient2) {
+    graph1 <- eval(parse(text=graphname1$getText()))
     g2 <- eval(parse(text=graphname2$getText()))
 
 
-    #-------------------------------------------------------
+    #===========================================================================
+    #===========================================================================
     # Function that does all the work
-    #-------------------------------------------------------
-    make.plot <- function(dev, g, toSave, exportFileName, ...) {
-      Nv <- vcount(g)
+    #===========================================================================
+    #===========================================================================
+    make.plot <- function(dev, g, toSave, exportFileName, orient, ...) {
       dev.set(dev)
-      plot.over.brain.axial(0)
+
+      # Lobe to plot
+      g <- switch(lobe$getActive()+1,
+                  g,
+                  induced.subgraph(g, V(g)$lobe==1),
+                  induced.subgraph(g, V(g)$lobe==2),
+                  induced.subgraph(g, V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==2),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==3),
+                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==4),
+                  induced.subgraph(g, V(g)$lobe==3 | V(g)$lobe==4)
+      )
+      Nv <- vcount(g)
+
+      if (orient$getActive() == 0) {
+        plot.over.brain.axial(0)
+        # Hemisphere to plot
+        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+          g <- switch(hemi$getActive()+1,
+            g,
+            induced.subgraph(g, seq(1, Nv, 2)),
+            induced.subgraph(g, seq(2, Nv, 2)),
+            subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
+          )
+        } else {
+          g <- switch(hemi$getActive()+1,
+            g,
+            induced.subgraph(g, 1:(Nv/2)),
+            induced.subgraph(g, (Nv/2 + 1):Nv),
+            subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+          )
+        }
+        layout.g <- cbind(V(g)$x, V(g)$y)
+        xlim.g <- c(-1, 1)
+        ylim.g <- c(-1.5, 1.5)
+        mult <- 1
+
+      #---------------------------------
+      # Plot the left sagittal only
+      #---------------------------------
+      } else if (orient$getActive() == 1) {
+        plot.over.brain.sagittal(0, hemi='left', z=30)
+        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+          g <- induced.subgraph(g, seq(1, Nv, 2))
+          layout.g <- matrix(c(-eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
+                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
+                             ncol=2, byrow=F)
+        } else {
+          g <- induced.subgraph(g, 1:(Nv/2))
+          layout.g <- matrix(c(-eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
+                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
+                             ncol=2, byrow=F)
+        }
+        xlim.g <- c(-85, 110)
+        ylim.g <- c(-85, 125)
+        mult <- 100
+
+      #---------------------------------
+      # Plot the right sagittal only
+      #---------------------------------
+      } else if (orient$getActive() == 2) {
+        plot.over.brain.sagittal(0, hemi='right', z=30)
+        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+          g <- induced.subgraph(g, seq(2, Nv, 2))
+          layout.g <- matrix(c(eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
+                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
+                             ncol=2, byrow=F)
+        } else {
+          g <- induced.subgraph(g, ((Nv/2 + 1):Nv))
+          layout.g <- matrix(c(eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
+                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
+                             ncol=2, byrow=F)
+        }
+        xlim.g <- c(-125, 85)
+        ylim.g <- c(-85, 125)
+        mult <- 100
+      }
+
       par(pty='s', mar=rep(0, 4))
+
 
       # Show vertex labels?
       if (vertLabels$active == FALSE) {
@@ -333,42 +428,19 @@ plot.adj.gui <- function() {
         V <- eval(parse(text=vertSize.const$getText()))
       }
       vsize <- switch(vertSize$getActive()+1,
-        V,
-        range.transform(V(g)$degree, 0, 15),
-        25*V(g)$ev.cent,
-        3*log1p(V(g)$btwn.cent)+.05,
-        20*V(g)$transitivity,
-        range.transform(V(g)$PC, 0, 15),
-        range.transform(V(g)$l.eff, 0, 15),
-        range.transform(abs(V(g)$z.score), 0, 15),
-        10*sqrt(V(g)$hub.score)
+        mult*V,
+        mult*range.transform(V(g)$degree, 0, 15),
+        mult*25*V(g)$ev.cent,
+        mult*3*log1p(V(g)$btwn.cent)+.05,
+        mult*20*V(g)$transitivity,
+        mult*range.transform(V(g)$PC, 0, 15),
+        mult*range.transform(V(g)$l.eff, 0, 15),
+        mult*range.transform(abs(V(g)$z.score), 0, 15),
+        mult*10*sqrt(V(g)$hub.score)
       )
 
       # Edge width
       ewidth <- eval(parse(text=edgeWidth$getText()))
-
-      # Hemisphere to plot
-      g <- switch(hemi$getActive()+1,
-        g,
-        induced.subgraph(g, 1:(Nv/2)),
-        induced.subgraph(g, (Nv/2 + 1):Nv),
-        subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-      )
-
-      # Lobe to plot
-      g <- switch(lobe$getActive()+1,
-                  g,
-                  induced.subgraph(g, V(g)$lobe==1),
-                  induced.subgraph(g, V(g)$lobe==2),
-                  induced.subgraph(g, V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==2),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==3 | V(g)$lobe==4)
-                  )
 
       # Community number, if applicable
       if (commNum$getSensitive()) {
@@ -398,7 +470,10 @@ plot.adj.gui <- function() {
                vertex.size=vsize,
                edge.width=ewidth,
                vertex.color=vertex.color,
-               edge.color=edge.color)
+               edge.color=edge.color,
+               xlim=xlim.g,
+               ylim=ylim.g,
+               layout=layout.g)
       }
 
       if (toSave$active == TRUE) {
@@ -408,13 +483,14 @@ plot.adj.gui <- function() {
       }
     }
 
-    make.plot(dev=firstplot, g=g1, toSave=toSave1,
+    make.plot(dev=firstplot, g=graph1, toSave=toSave1,
               exportFileName=exportFileName1, vertLabels, vertSize, edgeWidth,
-              vertColor, fileExt, vertSize.const=NULL, commNum, hemi)
+              vertColor, fileExt, vertSize.const=NULL, commNum, hemi,
+              orient=orient1)
     if (nchar(graphname2$getText()) > 0) {
       make.plot(dev=secondplot, g=g2, vertLabels, vertSize, edgeWidth, vertColor,
                 toSave=toSave2, exportFileName=exportFileName2, fileExt,
-                vertSize.const=NULL, commNum, hemi)
+                vertSize.const=NULL, commNum, hemi, orient=orient2)
     }
   }
   #-----------------------------------------------------------------------------
@@ -427,18 +503,21 @@ plot.adj.gui <- function() {
   the.buttons$setSpacing(40)
   buttonOK <- gtkButtonNewFromStock("gtk-ok")
   gSignalConnect(buttonOK, "clicked",
-                 function(widget) update.adj(graphname1, graphname2, vertLabels,
+                 function(widget) update.adj(graphname[[1]], graphname[[2]], vertLabels,
                                    vertSize=combo, edgeWidth,
                                    vertColor=comboVcolor, toSave1,
                                    toSave2, exportFileName1, exportFileName2,
                                    fileExt, firstplot=groupplot[[1]],
                                    secondplot=groupplot[[2]],
                                    vertSize.const, plotFunc, commNum,
-                                   neighbVert, hemi=comboHemi, lobe=comboLobe))
+                                   neighbVert, hemi=comboHemi, lobe=comboLobe,
+                                   orient1=comboOrient[[1]],
+                                   orient2=comboOrient[[2]]))
   the.buttons$packStart(buttonOK, fill=F)
   buttonClose <- gtkButtonNewFromStock("gtk-close")
   gSignalConnect(buttonClose, "clicked", window$destroy)
   the.buttons$packStart(buttonClose, fill=F)
 
   hboxMain$showAll()
+
 }

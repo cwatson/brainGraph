@@ -17,7 +17,8 @@
 #' \item{group2}{Residuals for just group 2.}
 
 get.resid <- function(thicknesses, covars, group1, group2=NULL) {
-  dat <- merge(thicknesses, covars)
+  #dat <- merge(thicknesses, covars)
+  dat <- merge(covars, thicknesses)
   regions <- 3:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],
               function(x) lm(as.formula(paste0(x, '~',

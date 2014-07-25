@@ -12,7 +12,8 @@
 
 color.vertices <- function(comm, atlas=NULL) {
   if (!is.null(atlas)) {
-    lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow')
+    lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
+                   'lightgreen')
     if (atlas == 'dkt') { 
       Nv <- nrow(dkt$coords)
       lobe.color <- vector(length=Nv)
@@ -30,7 +31,53 @@ color.vertices <- function(comm, atlas=NULL) {
       lobe.color[dk$temporal] <- lobe.cols[3]
       lobe.color[dk$occipital] <- lobe.cols[4]
       lobe.color[dk$insula] <- lobe.cols[5]
+
+    } else if (atlas == 'aal90') {
+      Nv <- nrow(aal90$coords)
+      lobe.color <- vector(length=Nv)
+      lobe.color[aal90$frontal] <- lobe.cols[1]
+      lobe.color[aal90$parietal] <- lobe.cols[2]
+      lobe.color[aal90$temporal] <- lobe.cols[3]
+      lobe.color[aal90$occipital] <- lobe.cols[4]
+      lobe.color[aal90$insula] <- lobe.cols[5]
+      lobe.color[aal90$limbic] <- lobe.cols[6]
+      lobe.color[aal90$scgm] <- lobe.cols[7]
+
+    } else if (atlas == 'lpba40') {
+      Nv <- nrow(lpba40$coords)
+      lobe.color <- vector(length=Nv)
+      lobe.color[lpba40$frontal] <- lobe.cols[1]
+      lobe.color[lpba40$parietal] <- lobe.cols[2]
+      lobe.color[lpba40$temporal] <- lobe.cols[3]
+      lobe.color[lpba40$occipital] <- lobe.cols[4]
+      lobe.color[lpba40$insula] <- lobe.cols[5]
+      lobe.color[lpba40$cingulate] <- lobe.cols[6]
+      lobe.color[lpba40$scgm] <- lobe.cols[7]
+      lobe.color[55:56] <- 'white'
+
+    } else if (atlas == 'hoa112') {
+      Nv <- nrow(hoa112$coords)
+      lobe.color <- vector(length=Nv)
+      lobe.color[hoa112$frontal] <- lobe.cols[1]
+      lobe.color[hoa112$parietal] <- lobe.cols[2]
+      lobe.color[hoa112$temporal] <- lobe.cols[3]
+      lobe.color[hoa112$occipital] <- lobe.cols[4]
+      lobe.color[hoa112$insula] <- lobe.cols[5]
+      lobe.color[hoa112$cingulate] <- lobe.cols[6]
+      lobe.color[hoa112$scgm] <- lobe.cols[7]
+
+    } else if (atlas == 'brainsuite') {
+      Nv <- nrow(brainsuite$coords)
+      lobe.color <- vector(length=Nv)
+      lobe.color[brainsuite$frontal] <- lobe.cols[1]
+      lobe.color[brainsuite$parietal] <- lobe.cols[2]
+      lobe.color[brainsuite$temporal] <- lobe.cols[3]
+      lobe.color[brainsuite$occipital] <- lobe.cols[4]
+      lobe.color[brainsuite$insula] <- lobe.cols[5]
+      lobe.color[brainsuite$cingulate] <- lobe.cols[6]
+      lobe.color[brainsuite$scgm] <- lobe.cols[7]
     }
+
     return(lobe.color)
 
   } else {
@@ -41,7 +88,7 @@ color.vertices <- function(comm, atlas=NULL) {
     mod.sizes <- as.integer(table(comm$membership))
     big.modules <- which(mod.sizes >= 2)
     big.mod.sizes <- mod.sizes[big.modules]
-    big.modules <- big.modules[rev(sort(big.mod.sizes, index.return=T)$ix)]
+    big.modules <- big.modules[rev(order(big.mod.sizes))]
 
     mod.colors.comm <- vector(length=length(comm))
     for (i in 1:length(big.modules)) {
