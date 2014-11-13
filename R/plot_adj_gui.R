@@ -79,7 +79,7 @@ plot.adj.gui <- function() {
   frame$add(vbox)
 
   # Create a frame for each plot area
-  #-------------------------------------
+  #---------------------------------------------------------
   frameG <- list(length=2)
   vboxG <- list(length=2)
   hboxOrient <- list(length=2)
@@ -105,7 +105,7 @@ plot.adj.gui <- function() {
 
     hboxOrient[[i]] <- gtkHBoxNew(F, 8)
     vboxG[[i]]$add(hboxOrient[[i]])
-    choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)')
+    choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)', 'Circular')
     comboOrient[[i]] <- gtkComboBoxNewText()
     comboOrient[[i]]$show()
     for (choice in choices) comboOrient[[i]]$appendText(choice)
@@ -115,6 +115,8 @@ plot.adj.gui <- function() {
     hboxOrient[[i]]$packStart(label, F, F, 0)
     hboxOrient[[i]]$add(comboOrient[[i]])
   }
+  #---------------------------------------------------------
+
 
   # Add horizontal container to specify options
   # Should vertex labels be displayed?
@@ -157,6 +159,7 @@ plot.adj.gui <- function() {
   hboxVsize <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
+               'Subgraph centrality', 'Coreness',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.',
                'Within-module degree z-score', 'Hub score')
   combo <- gtkComboBoxNewText()
@@ -334,6 +337,11 @@ plot.adj.gui <- function() {
       )
       Nv <- vcount(g)
 
+      #====================================================
+      #====================================================
+      # Orientation of plots
+      #====================================================
+      #====================================================
       if (orient$getActive() == 0) {
         plot.over.brain.axial(0)
         # Hemisphere to plot
@@ -396,7 +404,44 @@ plot.adj.gui <- function() {
         xlim.g <- c(-125, 85)
         ylim.g <- c(-85, 125)
         mult <- 100
+
+      #---------------------------------
+      # Plot in a circular layout
+      #---------------------------------
+      } else if (orient$getActive() == 3) {
+        # Hemisphere to plot
+        circ <- V(g)$circle.layout
+        lobe <- V(g)$lobe
+        lobe.color <- V(g)$lobe.color
+        atlas <- g$atlas
+        if (hemi$getActive()+1 == 1) {
+          sg <- g
+        } else if (hemi$getActive()+1 == 2) {
+          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% 1:(Nv/2)])
+        } else if (hemi$getActive()+1 == 3) {
+          sg <- g - E(g) + subgraph.edges(g, E(g)[(Nv/2 + 1):Nv %--% (Nv/2 + 1):Nv])
+        } else if (hemi$getActive()+1 == 4) {
+          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+        }
+
+        for (att in list.graph.attributes(sg)) {
+          sg <- remove.graph.attribute(sg, att)
+        }
+        for (att in list.vertex.attributes(sg)) {
+          sg <- remove.vertex.attribute(sg, att)
+        }
+        for (att in list.edge.attributes(sg)) {
+          sg <- remove.edge.attribute(sg, att)
+        }
+
+        g <- graph.intersection(g, sg)
+        layout.g <- rotation(layout.circle(g, order=circ), -pi/2)
+        mult <- 1
+        xlim.g <- c(-1.25, 1.25)
+        ylim.g <- c(-1.25, 1.25)
       }
+      #====================================================
+      #====================================================
 
       par(pty='s', mar=rep(0, 4))
 
@@ -429,9 +474,12 @@ plot.adj.gui <- function() {
       }
       vsize <- switch(vertSize$getActive()+1,
         mult*V,
-        mult*range.transform(V(g)$degree, 0, 15),
+        #mult*range.transform(V(g)$degree, 0, 15),
+        mult*V(g)$degree,
         mult*25*V(g)$ev.cent,
         mult*3*log1p(V(g)$btwn.cent)+.05,
+        mult*range.transform(V(g)$subgraph.cent, 0, 15),
+        mult*V(g)$coreness,
         mult*20*V(g)$transitivity,
         mult*range.transform(V(g)$PC, 0, 15),
         mult*range.transform(V(g)$l.eff, 0, 15),
@@ -466,6 +514,9 @@ plot.adj.gui <- function() {
       }
 
       if ((!commNum$getSensitive()) && (!neighbVert$getSensitive())) {
+        if (orient$getActive() == 3) {
+          plotFunc <- plot
+        }
         plotFunc(g, vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
                vertex.size=vsize,
                edge.width=ewidth,
@@ -474,6 +525,12 @@ plot.adj.gui <- function() {
                xlim=xlim.g,
                ylim=ylim.g,
                layout=layout.g)
+        if (orient$getActive() == 3) {
+          lobe.cols <- unique(V(g)$lobe.color[order(V(g)$lobe)])
+          kNumLobes <- max(V(g)$lobe)
+          legend('topleft', eval(parse(text=g$atlas))$lobe.names[1:kNumLobes],
+                 fill=lobe.cols[1:kNumLobes])
+        }
       }
 
       if (toSave$active == TRUE) {

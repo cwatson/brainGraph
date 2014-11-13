@@ -10,6 +10,8 @@
 #' thickness data for both groups
 #' @param group1 Character string identifying first subject group
 #' @param group2 Character string identifying second subject group (optional)
+#' @param covars Data frame of covariates, one of which indicates group
+#' assignment, if necessary
 #' @export
 #'
 #' @return A list with components:
@@ -19,18 +21,19 @@
 #' \item{group1}{Thicknesses for only group 1.}
 #' \item{group2}{Thicknesses for only group 2.}
 
-get.thickness <- function(fileLH, fileRH, group1, group2=NULL) {
+get.thickness <- function(fileLH, fileRH, group1, group2=NULL, covars=NULL) {
   lhThick <- read.csv(fileLH)
   rhThick <- read.csv(fileRH)
   all.thick <- merge(lhThick, rhThick)
-  if ('Group' %in% colnames(all.thick)) {
-    group1.thick <- subset(all.thick, Group==group1)
+  if (! 'Group' %in% colnames(all.thick)) {
+    all.thick.cov <- merge(all.thick, covars)
   } else {
-    group1.thick <- all.thick
+    all.thick.cov <- all.thick
   }
 
+  group1.thick <- subset(all.thick.cov, Group==group1)
   if (exists('group2')) {
-    group2.thick <- subset(all.thick, Group==group2)
+    group2.thick <- subset(all.thick.cov, Group==group2)
     list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick,
       group2=group2.thick)
   } else {

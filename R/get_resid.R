@@ -17,9 +17,8 @@
 #' \item{group2}{Residuals for just group 2.}
 
 get.resid <- function(thicknesses, covars, group1, group2=NULL) {
-  #dat <- merge(thicknesses, covars)
   dat <- merge(covars, thicknesses)
-  regions <- 3:ncol(thicknesses)
+  regions <- 2:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],
               function(x) lm(as.formula(paste0(x, '~',
                               paste(colnames(covars)[2:ncol(covars)],
@@ -29,8 +28,8 @@ get.resid <- function(thicknesses, covars, group1, group2=NULL) {
   # Get the studentized residuals
   all.resid <- data.frame(lapply(m, rstudent))
   colnames(all.resid) <- colnames(thicknesses)[regions]
-  if ('Group' %in% colnames(thicknesses)) {
-    all.resid$Group <- thicknesses$Group
+  if ('Group' %in% colnames(covars)) {
+    all.resid$Group <- dat$Group
     group1.resid <- subset(all.resid, Group==group1)
   } else {
     group1.resid <- all.resid

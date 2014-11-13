@@ -3,7 +3,7 @@
 \alias{get.thickness}
 \title{Load the thickness data and separate into 2 groups.}
 \usage{
-get.thickness(fileLH, fileRH, group1, group2 = NULL)
+get.thickness(fileLH, fileRH, group1, group2 = NULL, covars = NULL)
 }
 \arguments{
 \item{fileLH}{Character string for the file containing left hemisphere
@@ -15,6 +15,9 @@ thickness data for both groups}
 \item{group1}{Character string identifying first subject group}
 
 \item{group2}{Character string identifying second subject group (optional)}
+
+\item{covars}{Data frame of covariates, one of which indicates group
+assignment, if necessary}
 }
 \value{
 A list with components:

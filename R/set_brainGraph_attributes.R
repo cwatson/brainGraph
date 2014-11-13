@@ -21,12 +21,12 @@
 #' \item{Edge-level}{Color, lobe color}
 #'
 #' @seealso \code{\link{clusters}, \link{graph.motifs}, \link{diameter},
-#' \link{centralization.betweenness}, \link{centralization.evcent},
-#' \link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
-#' \link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
-#' \link{global.eff}, \link{local.eff}, \link{rich.club.coeff},
-#' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-#' \link{within.module.deg.z.score},\link{graph.coreness}}
+#' \link{centralization.betweenness}, \link{edge.betweenness},
+#' \link{centralization.evcent}, \link{subgraph.centrality}, \link{hub.score},
+#' \link{authority.score}, \link{transitivity}, \link{average.path.length},
+#' \link{assortativity.degree}, \link{global.eff}, \link{local.eff},
+#' \link{rich.club.coeff}, \link{edge.betweenness.community}, \link{color.edges},
+#' \link{part.coeff}, \link{within.module.deg.z.score},\link{graph.coreness}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   Nv <- vcount(g)
@@ -41,7 +41,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   g$diameter <- diameter(g)
 
   t <- transitivity(g, type='local')
-  g$Cp <- transitivity(g)
+  g$transitivity <- transitivity(g)
+  g$Cp <- mean(t, na.rm=T)
   g$Lp <- average.path.length(g)
   g$assortativity <- assortativity.degree(g)
   g$g.eff <- global.eff(g)
@@ -163,6 +164,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
                               brainsuite$scgm.rh)
     }
 
+    g$assortativity.lobe <- assortativity(g, V(g)$lobe)
     E(g)$lobe.color <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
   }
 
@@ -176,6 +178,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
 
   V(g)$degree <- degree(g)
   V(g)$btwn.cent <- centralization.betweenness(g)$res
+  E(g)$btwn <- edge.betweenness(g)
   V(g)$ev.cent <- centralization.evcent(g)$vector
   V(g)$subgraph.cent <- subgraph.centrality(g)
   # Calculate the coreness of each vertex

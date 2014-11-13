@@ -94,7 +94,7 @@ color.vertices <- function(comm, atlas=NULL) {
     for (i in 1:length(big.modules)) {
       mod.colors.comm[big.modules[i]] <- mod.colors[i]
     }
-    mod.colors.comm <- ifelse(mod.colors.comm=='FALSE', 'white',
+    mod.colors.comm <- ifelse(mod.colors.comm=='FALSE', 'gray',
                               mod.colors.comm)
  
     return(mod.colors.comm)

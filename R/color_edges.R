@@ -19,30 +19,34 @@ color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
   kNumVertices <- vcount(g)
   if (!is.null(lobes)) {
     mem <- lobes
+    kNumComm <- max(mem)
+    comm.order <- 1:kNumComm
     cols <- lobe.cols
   } else {
     mem <- comm
-    cols <- V(g)$color
+    kNumComm <- max(mem)
+    comm.order <- rev(order(as.integer(table(mem))))
+    cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orangered',
+              'lightgreen', 'lightblue', 'lightyellow')
   }
 
-  kNumComm <- max(mem)
-  tmp <- list()
-  newcols <- vector()
+  tmp <- vector('list', length=kNumComm)
+  newcols <- vector('character', length=ecount(g))
 
   for (i in 1:kNumComm) {
-    if (sum(mem == i) == 1) {
+    if (sum(mem == comm.order[i]) == 1) {
       tmp[[i]] <- 0
     } else {
-      tmp[[i]] <- as.vector(E(g)[which(mem == i) %--% 1:kNumVertices])
+      tmp[[i]] <- as.vector(E(g)[which(mem == comm.order[i]) %--% which(mem == comm.order[i])])
       newcols[tmp[[i]]] <- cols[i]
     }
   }
   dups <- unlist(tmp)[duplicated(unlist(tmp))]
   dups <- dups[dups > 0]
 
-  newcols[dups] <- 'gray'
+  newcols[dups] <- 'gray50'
 
-  newcols <- ifelse(is.na(newcols), 'white', newcols)
+  newcols <- ifelse(newcols=='', 'gray50', newcols)
   
   return(newcols)
 }

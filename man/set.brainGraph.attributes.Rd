@@ -31,11 +31,11 @@ igraph object.
 }
 \seealso{
 \code{\link{clusters}, \link{graph.motifs}, \link{diameter},
-\link{centralization.betweenness}, \link{centralization.evcent},
-\link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
-\link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
-\link{global.eff}, \link{local.eff}, \link{rich.club.coeff},
-\link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-\link{within.module.deg.z.score},\link{graph.coreness}}
+\link{centralization.betweenness}, \link{edge.betweenness},
+\link{centralization.evcent}, \link{subgraph.centrality}, \link{hub.score},
+\link{authority.score}, \link{transitivity}, \link{average.path.length},
+\link{assortativity.degree}, \link{global.eff}, \link{local.eff},
+\link{rich.club.coeff}, \link{edge.betweenness.community}, \link{color.edges},
+\link{part.coeff}, \link{within.module.deg.z.score},\link{graph.coreness}}
 }
 
