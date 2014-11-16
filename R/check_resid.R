@@ -10,23 +10,26 @@
 check.resid <- function(resids) {
   kNumRegions <- ncol(resids) - 1
 
-  a <- kNumRegions %/% 9
-  b <- kNumRegions %% 9
+  kNumPlots <- 9
+  a <- kNumRegions %/% kNumPlots
+  b <- kNumRegions %% kNumPlots
 
-  for (j in 1:a) {
+  for (j in seq_len(a)) {
     dev.new()
     par(mfrow=c(3, 3))
-    for (i in 1:9) {
-      qqnorm(resids[, 9*(j-1) + i], main=colnames(resids)[9*(j-1) + i])
-      qqline(resids[, 9*(j-1) + i])
-      title(sub=9*(j-1)+i)
+    for (i in seq_len(kNumPlots)) {
+      ind <- kNumPlots * (j - 1) + 1
+      qqnorm(resids[, ind], main=colnames(resids)[ind])
+      qqline(resids[, ind])
+      title(sub=ind)
     }
   }
   dev.new()
   par(mfrow=c(3, 3))
-  for (k in 1:b) {
-    qqnorm(resids[, 9*j + k], main=colnames(resids)[9*j + k])
-    qqline(resids[, 9*j + k])
-    title(sub=9*j+k)
+  for (k in seq_len(b)) {
+    ind <- kNumPlots * j + k
+    qqnorm(resids[, ind], main=colnames(resids)[ind])
+    qqline(resids[, ind])
+    title(sub=ind)
   }
 }

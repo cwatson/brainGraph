@@ -142,17 +142,6 @@ plot.adj.gui <- function() {
   label <- gtkLabelNewWithMnemonic('Vertex color')
   hboxVcolor$packStart(label, F, F, 0)
   hboxVcolor$add(comboVcolor)
-
-  # Edge width?
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-  label <- gtkLabelNewWithMnemonic('Edge width')
-  hbox$packStart(label, F, F, 0)
-  edgeWidth <- gtkEntryNew()
-  edgeWidth$setWidthChars(3)
-  edgeWidth$setText('1.5')
-  hbox$packStart(edgeWidth, F, F, 0)
-  label$setMnemonicWidget(edgeWidth)
    
   # Vertex size?
   #---------------------------------------
@@ -185,6 +174,28 @@ plot.adj.gui <- function() {
       }
     })
 
+  #-----------------------------------------------------------------------------
+  # Edge width?
+  hbox <- gtkHBoxNew(F, 8)
+  vbox$packStart(hbox, F, F, 0)
+  label <- gtkLabelNewWithMnemonic('Edge width')
+  hbox$packStart(label, F, F, 0)
+  edgeWidth <- gtkEntryNew()
+  edgeWidth$setWidthChars(3)
+  edgeWidth$setText('1.5')
+  hbox$packStart(edgeWidth, F, F, 0)
+  label$setMnemonicWidget(edgeWidth)
+
+  # Show edge set differences?
+  label <- gtkLabelNewWithMnemonic('Show edge differences?')
+  hbox$packStart(label, F, F, 0)
+  edgeDiffs <- gtkCheckButton()
+  edgeDiffs$active <- FALSE
+  hbox$packStart(edgeDiffs, F, F, 0)
+  label$setMnemonicWidget(edgeDiffs)
+
+
+  #-----------------------------------------------------------------------------
   # Both, single hemisphere, or inter-hemispheric only?
   #---------------------------------------------------------
   hboxHemi <- gtkHBoxNew(F, 8)
@@ -244,42 +255,42 @@ plot.adj.gui <- function() {
   # Add two horizontal containers to check if the results will be saved to a file
   # and if so, to specify the file's name
   #-----------------------------------------------------------------------------
-  vbox <- gtkVBoxNew(F, 8)
-  vboxMain$add(vbox)
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-  label <- gtkLabelNewWithMnemonic('Save figure 1?')
-  hbox$packStart(label, F, F, 0)
-  toSave1 <- gtkCheckButton()
-  hbox$packStart(toSave1, F, F, 0)
-  label$setMnemonicWidget(toSave1)
-  label <- gtkLabelNewWithMnemonic('File name:')
-  hbox$packStart(label, F, F, 0)
-  exportFileName1 <- gtkEntryNew()
-  exportFileName1$setWidthChars(20)
-  exportFileName1$setText('output1')
-  hbox$packStart(exportFileName1, F, F, 0)
-  label$setMnemonicWidget(exportFileName1)
-  fileExt <- gtkLabel('.png')
-  hbox$packStart(fileExt, F, F, 0)
-  
-  # Save option for the second plotting area
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-  label <- gtkLabelNewWithMnemonic('Save figure 2?')
-  hbox$packStart(label, F, F, 0)
-  toSave2 <- gtkCheckButton()
-  hbox$packStart(toSave2, F, F, 0)
-  label$setMnemonicWidget(toSave2)
-  label <- gtkLabelNewWithMnemonic('File name:')
-  hbox$packStart(label, F, F, 0)
-  exportFileName2 <- gtkEntryNew()
-  exportFileName2$setWidthChars(20)
-  exportFileName2$setText('output2')
-  hbox$packStart(exportFileName2, F, F, 0)
-  label$setMnemonicWidget(exportFileName2)
-  fileExt <- gtkLabel('.png')
-  hbox$packStart(fileExt, F, F, 0)
+#  vbox <- gtkVBoxNew(F, 8)
+#  vboxMain$add(vbox)
+#  hbox <- gtkHBoxNew(F, 8)
+#  vbox$packStart(hbox, F, F, 0)
+#  label <- gtkLabelNewWithMnemonic('Save figure 1?')
+#  hbox$packStart(label, F, F, 0)
+#  toSave1 <- gtkCheckButton()
+#  hbox$packStart(toSave1, F, F, 0)
+#  label$setMnemonicWidget(toSave1)
+#  label <- gtkLabelNewWithMnemonic('File name:')
+#  hbox$packStart(label, F, F, 0)
+#  exportFileName1 <- gtkEntryNew()
+#  exportFileName1$setWidthChars(20)
+#  exportFileName1$setText('output1')
+#  hbox$packStart(exportFileName1, F, F, 0)
+#  label$setMnemonicWidget(exportFileName1)
+#  fileExt <- gtkLabel('.png')
+#  hbox$packStart(fileExt, F, F, 0)
+#  
+#  # Save option for the second plotting area
+#  hbox <- gtkHBoxNew(F, 8)
+#  vbox$packStart(hbox, F, F, 0)
+#  label <- gtkLabelNewWithMnemonic('Save figure 2?')
+#  hbox$packStart(label, F, F, 0)
+#  toSave2 <- gtkCheckButton()
+#  hbox$packStart(toSave2, F, F, 0)
+#  label$setMnemonicWidget(toSave2)
+#  label <- gtkLabelNewWithMnemonic('File name:')
+#  hbox$packStart(label, F, F, 0)
+#  exportFileName2 <- gtkEntryNew()
+#  exportFileName2$setWidthChars(20)
+#  exportFileName2$setText('output2')
+#  hbox$packStart(exportFileName2, F, F, 0)
+#  label$setMnemonicWidget(exportFileName2)
+#  fileExt <- gtkLabel('.png')
+#  hbox$packStart(fileExt, F, F, 0)
 
   #-------------------------------------
   # Create 2 drawing areas for the plotting
@@ -288,9 +299,23 @@ plot.adj.gui <- function() {
   vboxPlot <- vector('list', 2)
   groupplot <- vector('list', 2)
 
+  # Check screen resolution so the plotting window fits
+  display.size <- system('xdpyinfo | grep dimensions', intern=T)
+  m <- regexpr(' [0-9]+x', display.size)
+  res <- regmatches(display.size, m)
+  screen.x <- as.numeric(sub('x', '', sub(' ', '', res)))
+
+  if (screen.x <= 1440) {
+    graphics.res <- 480
+  } else if (screen.x > 1440 && screen.x <= 1680) {
+    graphics.res <- 560
+  } else {
+    graphics.res <- 640
+  }
+
   for (i in 1:2) {
     graphics[[i]] <- gtkDrawingArea()
-    graphics[[i]]$setSizeRequest(640, 640)
+    graphics[[i]]$setSizeRequest(graphics.res, graphics.res)
 
     vboxPlot[[i]] <- gtkVBox()
     vboxPlot[[i]]$packStart(graphics[[i]], expand=T, fill=T, padding=0)
@@ -305,12 +330,12 @@ plot.adj.gui <- function() {
   # Function to dynamically draw the graph
   #-----------------------------------------------------------------------------
   update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
-                         edgeWidth, vertColor, toSave1=FALSE, toSave2=FALSE,
-                         exportFileName1, exportFileName2, fileExt, firstplot,
-                         secondplot, vertSize.const=NULL, plotFunc, commNum,
-                         neighbVert, hemi, lobe, orient1, orient2) {
+                         edgeWidth, edgeDiffs, vertColor,#exportFileName1, exportFileName2, fileExt,
+                         firstplot, secondplot, vertSize.const=NULL,
+                         plotFunc, commNum, neighbVert, hemi, lobe, orient1,
+                         orient2) {
     graph1 <- eval(parse(text=graphname1$getText()))
-    g2 <- eval(parse(text=graphname2$getText()))
+    graph2 <- eval(parse(text=graphname2$getText()))
 
 
     #===========================================================================
@@ -318,7 +343,7 @@ plot.adj.gui <- function() {
     # Function that does all the work
     #===========================================================================
     #===========================================================================
-    make.plot <- function(dev, g, toSave, exportFileName, orient, ...) {
+    make.plot <- function(dev, g, g2, exportFileName, orient, ...) {
       dev.set(dev)
 
       # Lobe to plot
@@ -416,12 +441,30 @@ plot.adj.gui <- function() {
         atlas <- g$atlas
         if (hemi$getActive()+1 == 1) {
           sg <- g
+
         } else if (hemi$getActive()+1 == 2) {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% 1:(Nv/2)])
+          # LH only
+          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(1, Nv, 2)])
+          } else {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% 1:(Nv/2)])
+          }
+
         } else if (hemi$getActive()+1 == 3) {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[(Nv/2 + 1):Nv %--% (Nv/2 + 1):Nv])
+          # RH only
+          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(2, Nv, 2) %--% seq(2, Nv, 2)])
+          } else {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[(Nv/2 + 1):Nv %--% (Nv/2 + 1):Nv])
+          }
+
         } else if (hemi$getActive()+1 == 4) {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+          # Interhemispheric only
+          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
+          } else {
+            sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+          }
         }
 
         for (att in list.graph.attributes(sg)) {
@@ -465,6 +508,13 @@ plot.adj.gui <- function() {
                            E(g)$color,
                            E(g)$lobe.color
       )
+
+      # Show edge differences?
+      if (edgeDiffs$active == TRUE) {
+        g.diff12 <- graph.difference(g, g2)
+        E(g.diff12)$color <- 'red'
+        g.diff.union <- graph.union(g, g.diff12)
+      }
 
       # Vertex sizes
       if (!vertSize.const$getSensitive()) {
@@ -525,29 +575,37 @@ plot.adj.gui <- function() {
                xlim=xlim.g,
                ylim=ylim.g,
                layout=layout.g)
-        if (orient$getActive() == 3) {
+        if (vertColor$getActive() + 1 == 3) {
           lobe.cols <- unique(V(g)$lobe.color[order(V(g)$lobe)])
           kNumLobes <- max(V(g)$lobe)
-          legend('topleft', eval(parse(text=g$atlas))$lobe.names[1:kNumLobes],
-                 fill=lobe.cols[1:kNumLobes])
+          if (orient$getActive() == 3) {
+            legend.text.col <- 'black'
+          } else {
+            legend.text.col <- 'white'
+          }
+          legend('topleft',
+                 eval(parse(text=g$atlas))$lobe.names[1:kNumLobes],
+                 fill=lobe.cols[1:kNumLobes],
+                 text.col=legend.text.col)
         }
       }
 
-      if (toSave$active == TRUE) {
-        fname <- paste0(exportFileName$getText(), fileExt$getText())
-        dev.copy(png, filename=fname)
-        dev.off()
-      }
+#      if (toSave$active == TRUE) {
+#        fname <- paste0(exportFileName$getText(), fileExt$getText())
+#        dev.copy(png, filename=fname)
+#        dev.off()
+#      }
     }
 
-    make.plot(dev=firstplot, g=graph1, toSave=toSave1,
-              exportFileName=exportFileName1, vertLabels, vertSize, edgeWidth,
-              vertColor, fileExt, vertSize.const=NULL, commNum, hemi,
+    make.plot(dev=firstplot, g=graph1, g2=graph2, #toSave=toSave1, exportFileName=exportFileName1,
+              vertLabels, vertSize, edgeWidth,
+              vertColor, vertSize.const=NULL, commNum, hemi,
               orient=orient1)
     if (nchar(graphname2$getText()) > 0) {
-      make.plot(dev=secondplot, g=g2, vertLabels, vertSize, edgeWidth, vertColor,
-                toSave=toSave2, exportFileName=exportFileName2, fileExt,
-                vertSize.const=NULL, commNum, hemi, orient=orient2)
+      make.plot(dev=secondplot, g=graph2, g2=graph1, #toSave=toSave2, exportFileName=exportFileName2,
+                vertLabels, vertSize, edgeWidth,
+                vertColor, vertSize.const=NULL, commNum, hemi,
+                orient=orient2)
     }
   }
   #-----------------------------------------------------------------------------
@@ -560,11 +618,12 @@ plot.adj.gui <- function() {
   the.buttons$setSpacing(40)
   buttonOK <- gtkButtonNewFromStock("gtk-ok")
   gSignalConnect(buttonOK, "clicked",
-                 function(widget) update.adj(graphname[[1]], graphname[[2]], vertLabels,
-                                   vertSize=combo, edgeWidth,
-                                   vertColor=comboVcolor, toSave1,
-                                   toSave2, exportFileName1, exportFileName2,
-                                   fileExt, firstplot=groupplot[[1]],
+                 function(widget) update.adj(graphname[[1]], graphname[[2]],
+                                   vertLabels, vertSize=combo,
+                                   edgeWidth, edgeDiffs,
+                                   vertColor=comboVcolor, #toSave1, toSave2, 
+                                   #exportFileName1, exportFileName2, fileExt,
+                                   firstplot=groupplot[[1]],
                                    secondplot=groupplot[[2]],
                                    vertSize.const, plotFunc, commNum,
                                    neighbVert, hemi=comboHemi, lobe=comboLobe,

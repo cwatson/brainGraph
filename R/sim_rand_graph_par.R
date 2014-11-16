@@ -19,14 +19,14 @@
 
 sim.rand.graph.par <- function(g, N, clustering=TRUE) {
   if (clustering == TRUE) {
-    r <- foreach(i=1:N,
+    r <- foreach(i=seq_len(N),
                   .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- sim.rand.graph.clust(g, V(g)$degree, g$Cp)
       tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
       tmp
     }
   } else {
-    r <- foreach(i=1:N,
+    r <- foreach(i=seq_len(N),
                  .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- rewire(g, 'simple', 1e4)
       tmp <- set.brainGraph.attributes(tmp, rand=TRUE)

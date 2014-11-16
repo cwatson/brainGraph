@@ -34,9 +34,11 @@ get.thickness <- function(fileLH, fileRH, group1, group2=NULL, covars=NULL) {
   group1.thick <- subset(all.thick.cov, Group==group1)
   if (exists('group2')) {
     group2.thick <- subset(all.thick.cov, Group==group2)
+    all.thick <- subset(all.thick, select=-Group)
     list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick,
       group2=group2.thick)
   } else {
+    all.thick <- subset(all.thick, select=-Group)
     list(lh=lhThick, rh=rhThick, all=all.thick, group1=group1.thick)
   }
 }

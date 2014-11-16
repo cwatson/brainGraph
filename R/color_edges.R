@@ -17,12 +17,15 @@
 
 color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
   kNumVertices <- vcount(g)
+
+  # Color edges based on "lobe"
   if (!is.null(lobes)) {
     mem <- lobes
     kNumComm <- max(mem)
     comm.order <- 1:kNumComm
     cols <- lobe.cols
   } else {
+  # Color edges based on community membership
     mem <- comm
     kNumComm <- max(mem)
     comm.order <- rev(order(as.integer(table(mem))))
@@ -33,7 +36,7 @@ color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
   tmp <- vector('list', length=kNumComm)
   newcols <- vector('character', length=ecount(g))
 
-  for (i in 1:kNumComm) {
+  for (i in seq_len(kNumComm)) {
     if (sum(mem == comm.order[i]) == 1) {
       tmp[[i]] <- 0
     } else {

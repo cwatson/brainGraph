@@ -10,8 +10,11 @@
 #' not; can be "none" or "community"
 #' @export
 #'
+#' @references Xia M, Wang J, He Y (2013). \emph{BrainNet Viewer: a network
+#' visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
 
-write.brainnet <- function(g, node.color=c('none', 'community'), node.size='degree') {
+write.brainnet <- function(g, node.color=c('none', 'community'),
+                           node.size='degree') {
   coords.cur <- cbind(V(g)$x, V(g)$y, V(g)$z)
 
   if (node.color == 'none') {

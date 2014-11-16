@@ -22,16 +22,18 @@
 #' 'small-world' networks}. Nature, 393:440-442.
 
 small.world <- function(g, rand) {
-  Lp <- vapply(g, function(x) x$Lp, numeric(1))
-  Cp <- vapply(g, function(x) x$Cp, numeric(1))
-  density <- vapply(g, function(x) x$density, numeric(1))
+  Lp <- vapply(g, function(x) get.graph.attribute(x, 'Lp'), numeric(1))
+  Cp <- vapply(g, function(x) get.graph.attribute(x, 'Cp'), numeric(1))
+  density <- vapply(g, function(x) get.graph.attribute(x, 'density'), numeric(1))
 
   Lp.rand <- colMeans(vapply(rand,
       function(x) vapply(x,
-          function(y) y$Lp, numeric(1)), numeric(length(rand[[1]]))))
+          function(y) get.graph.attribute(y, 'Lp'), numeric(1)),
+                             numeric(length(rand[[1]]))))
   Cp.rand <- colMeans(vapply(rand,
       function(x) vapply(x,
-          function(y) y$Cp, numeric(1)), numeric(length(rand[[1]]))))
+          function(y) get.graph.attribute(y, 'Cp'), numeric(1)),
+                             numeric(length(rand[[1]]))))
 
   sigma <- (Cp / Cp.rand) / (Lp / Lp.rand)
   return(data.frame(density=density, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,

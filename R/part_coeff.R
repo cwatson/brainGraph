@@ -17,16 +17,17 @@
 part.coeff <- function(g, community.mem) {
   Nv <- vcount(g)
   Nc <- max(community.mem)
-  vertices <- unname(which(degree(g) != 0))
+  degrees <- degree(g)
+  vertices <- unname(which(degrees != 0))
 
   PC <- vector(length=Nv)
   PC2 <- vector('list', length=length(vertices))
 
-  PC2 <- foreach (i=1:length(vertices)) %dopar% {
-    Kis <- vapply(1:Nc, function(x)
+  PC2 <- foreach (i=seq_along(vertices)) %dopar% {
+    Kis <- vapply(seq_len(Nc), function(x)
                   length(E(g)[vertices[i] %--% which(community.mem==x)]),
                   integer(1))
-    Ki <- degree(g)[vertices[i]]
+    Ki <- degrees[vertices[i]]
     1 - sum((Kis/Ki)^2)
   }
 

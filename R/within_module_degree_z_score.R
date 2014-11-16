@@ -23,7 +23,7 @@ within.module.deg.z.score <- function(g, community.mem) {
   zs <- vector(length=Nv)
   zs2 <- vector('list', length=length(vertices))
 
-  zs2 <- foreach (i=1:length(vertices)) %dopar% {
+  zs2 <- foreach (i=seq_len(vertices)) %dopar% {
     si <- which(community.mem==community.mem[vertices[i]])
     K <- vapply(si, function(x) length(E(g)[x %--% si]), numeric(1))
     Ki <- length(E(g)[vertices[i] %--% si])
