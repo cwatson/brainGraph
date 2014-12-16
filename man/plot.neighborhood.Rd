@@ -3,18 +3,17 @@
 \alias{plot.neighborhood}
 \title{Plot the neighborhood of a given vertex.}
 \usage{
-\method{plot}{neighborhood}(g, v, ...)
+\method{plot}{neighborhood}(g, n, ...)
 }
 \arguments{
 \item{g}{The graph to be plotted}
 
-\item{v}{Character string of the vertex name whose neighborhood is to be
-plotted}
+\item{n}{Index (integer) of the vertex whose neighborhood is to be plotted}
 
 \item{...}{Other parameters (passed to \code{\link{plot.adj}})}
 }
 \description{
-This function plots only the neighborhood of a single given vertex, if you
-want to see e.g. the neighborhood of the left precuneus and nothing else.
+This function plots only the neighborhood of a single given vertex, e.g. if
+you want to see the neighborhood of the left precuneus and nothing else.
 }
 

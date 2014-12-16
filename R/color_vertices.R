@@ -15,7 +15,7 @@ color.vertices <- function(comm, atlas=NULL) {
     lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
                    'lightgreen')
 
-    atlas.list <- eval(parse(text=data(list=atlas)))
+    atlas.list <- eval(parse(text=atlas))
     Nv <- nrow(atlas.list$coords)
     lobe.color <- vector(length=Nv)
 
@@ -24,13 +24,13 @@ color.vertices <- function(comm, atlas=NULL) {
     lobe.color[atlas.list$temporal] <- lobe.cols[3]
     lobe.color[atlas.list$occipital] <- lobe.cols[4]
     lobe.color[atlas.list$insula] <- lobe.cols[5]
+    lobe.color[atlas.list$cingulate] <- lobe.cols[6]
 
     if (atlas == 'aal90') {
       lobe.color[atlas.list$limbic] <- lobe.cols[6]
       lobe.color[atlas.list$scgm] <- lobe.cols[7]
 
     } else if (atlas == 'lpba40' || atlas == 'hoa112' || atlas == 'brainsuite') {
-      lobe.color[atlas.list$cingulate] <- lobe.cols[6]
       lobe.color[atlas.list$scgm] <- lobe.cols[7]
     }
 

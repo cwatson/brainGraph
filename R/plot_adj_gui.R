@@ -1,72 +1,222 @@
-#' GUI for plotting graphs overlaid on MNI axial image.
+#' GUI for plotting graphs overlaid on an MNI152 image or in a circle.
 #'
-#' This function creates a GUI for plotting the graph over an axial image from
-#' the MNI template. It gives the user control over several plotting parameters.
+#' This function creates a GUI for plotting graphs over an image from the MNI152
+#' template. It gives the user control over several plotting parameters. Also
+#' possible is a circular plot (in addition to the axial and sagittal views).
 #'
 #' @export
 
 plot.adj.gui <- function() {
   window <- gtkWindow('toplevel')
   window['title'] <- 'brainGraph'
+  window['icon'] <- gdkPixbuf(filename='/home/cwatson/Dropbox/projects/brainGraph_icon.png')
 
   #=============================================================================
-  # Add a menubar for different plotting functions
+  # Add a menubar
   #=============================================================================
-  plotFunc <- plot.adj
 
-  menubar <- gtkMenuBar()
-  plot_menu <- gtkMenu()
-  plot_item <- gtkMenuItemNewWithMnemonic(label='_Plot')
-  plot_item$setSubmenu(plot_menu)
-  menubar$append(plot_item)
-
-  # Plot the entire graph (default)
   #---------------------------------------------------------
-  adj_item <- gtkMenuItemNewWithMnemonic('_Entire graph')
-  gSignalConnect(adj_item, 'activate', function(item) {
-                 commNum$setSensitive(F)
-                 neighbVert$setSensitive(F)
-                 plotFunc <<- plot.adj
-  })
-  plot_menu$append(adj_item)
-
-  # Plot just a neighborhood
+  # Callback functions for the "File" menu
   #---------------------------------------------------------
-  neighb_item <- gtkMenuItemNewWithMnemonic('_Neighborhood graph')
-  gSignalConnect(neighb_item, 'activate', function(item) {
-                 commNum$setSensitive(F)
-                 neighbVert$setSensitive(T)
-                 comboVcolor$setActive(0)
-                 plotFunc <<- plot.neighborhood
-  })
-  plot_menu$append(neighb_item)
+  save_cb1 <- function(widget, window, plot.dev=gui.params$plot1) {
+    dialog <- gtkFileChooserDialog('Enter a name for the file', window, 'save',
+                                   'gtk-cancel', GtkResponseType['cancel'],
+                                   'gtk-save', GtkResponseType['accept'])
+    fileFilter <- gtkFileFilter()
+    fileFilter$addPattern('*.png')
+    dialog$addFilter(fileFilter)
+    gSignalConnect(dialog, 'response', function(dialog, response) {
+                 if(response == GtkResponseType['accept']) {
+                     fname <- dialog$getFilename()
+                     dev.set(plot.dev)
+                     dev.copy(png, fname)
+                     dev.off()
+                 }
+                 dialog$destroy()
+              })
+  }
+  save_cb2 <- function(widget, window, plot.dev=gui.params$plot2) {
+    dialog <- gtkFileChooserDialog('Enter a name for the file', window, 'save',
+                                   'gtk-cancel', GtkResponseType['cancel'],
+                                   'gtk-save', GtkResponseType['accept'])
+    #dialog$setDoOverwriteConfirmation(TRUE)
+    if (dialog$run() == GtkResponseType['accept']) {
+      fname <- dialog$getFilename()
+      dev.set(plot.dev)
+      dev.copy(png, fname)
+      dev.off()
+    }
+    dialog$destroy()
+  }
+  quit_cb <- function(widget, window) window$destroy()
 
-  # Plot just a community
+  # Create a "GtkAction" class
+  file.actions <- list(
+    list('FileMenu', NULL, '_File'),
+    list('Save1', 'gtk-save', 'Save_1', '<control>1', 'Save plot 1?', save_cb1),
+    list('Save2', 'gtk-save', 'Save_2', '<control>2', 'Save plot 2?', save_cb2),
+    list('Quit', 'gtk-quit', '_Quit', '<control>Q', 'Quit the application',
+         quit_cb)
+  )
+  action_group <- gtkActionGroup('brainGraphActions')
+  action_group$addActions(file.actions, window)
+
   #---------------------------------------------------------
-  community_item <- gtkMenuItemNewWithMnemonic('_Community graph')
-  gSignalConnect(community_item, 'activate', function(item) {
-                 commNum$setSensitive(T)
-                 neighbVert$setSensitive(F)
-                 comboVcolor$setActive(0)
-                 plotFunc <<- plot.community
-  })
-  plot_menu$append(community_item)
+  # Callback functions for the "Plot" menu
+  #---------------------------------------------------------
+  plot_entire_cb <- function(widget, window) {
+    # Get number of children of vboxMainMenu and kill all but 'menubar'
+    kNumChildren <- length(window[[1]]$getChildren())
+    if (kNumChildren > 1) {
+      for (i in 2:kNumChildren) window[[1]][[i]]$destroy()
+    }
+    hboxMain <- gtkHBoxNew(F, 8)
+    window[[1]]$add(hboxMain)
+    gui.params <<- build.gui(hboxMain)
+
+    plotFunc <<- plot.adj
+    comboComm <<- NULL
+    comboNeighb <<- NULL
+  }
+
+  #-------------------------------------
+  # Plot neighborhood of individual vertices
+  #-------------------------------------
+  plot_neighb_cb <- function(widget, window) {
+    plotFunc <<- plot.neighborhood
+    # Get number of children of vboxMainMenu and kill all but 'menubar'
+    kNumChildren <- length(window[[1]]$getChildren())
+    if (kNumChildren > 1) {
+      for (i in 2:kNumChildren) window[[1]][[i]]$destroy()
+    }
+    hboxMain <- gtkHBoxNew(F, 8)
+    window[[1]]$add(hboxMain)
+    gui.params <<- build.gui(hboxMain)
+
+    hboxNeighb <- gtkHBoxNew(F, 8)
+    hboxMain[[1]][[1]][[1]]$packStart(hboxNeighb, F, F, 0)
+
+    comboNeighb <<- gtkComboBoxNewText()
+    comboNeighb$show()
+    label <- gtkLabelNew('Which vertex?')
+    hboxNeighb$packStart(label, F, F, 0)
+    hboxNeighb$add(comboNeighb)
+
+    graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
+    choicesNeighb <- data.frame(1:vcount(graph1), V(graph1)$name)
+    for (r in seq_len(nrow(choicesNeighb))) {
+      comboNeighb$appendText(paste(sprintf('%02i', choicesNeighb[r, 1]),
+                                   ': ', '\t',
+                                   as.character(choicesNeighb[r, 2])))
+    }
+    comboNeighb$setActive(0)
+
+    comboComm <<- NULL
+    gui.params$comboVcolor$setActive(0)
+    gui.params$showDiameter$setSensitive(F)
+    gui.params$edgeDiffs$setSensitive(F)
+  }
+
+  #-------------------------------------
+  # Plot individual communities
+  #-------------------------------------
+  plot_comm_cb <- function(widget, window) {
+    plotFunc <<- plot.community
+    # Get number of children of vboxMainMenu and kill all but 'menubar'
+    if (length(window[[1]]$getChildren()) > 1) {
+      kNumChildren <- length(window[[1]]$getChildren())
+      for (i in 2:kNumChildren) window[[1]][[i]]$destroy()
+    }
+    hboxMain <- gtkHBoxNew(F, 8)
+    window[[1]]$add(hboxMain)
+    gui.params <<- build.gui(hboxMain)
+
+    hboxComm <- gtkHBoxNew(F, 8)
+    hboxMain[[1]][[1]][[1]]$packStart(hboxComm, F, F, 0)
+  
+    comboComm <<- gtkComboBoxNewText()
+    comboComm$show()
+    label <- gtkLabelNew('Which community? (ordered by size)')
+    hboxComm$packStart(label, F, F, 0)
+    hboxComm$add(comboComm)
+
+    # Check if the text in the boxes represent igraph objects
+    if (!gui.params$graphname[[1]]$getText() == '') {
+      graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
+      c1 <- which(rev(sort(table(V(graph1)$comm))) > 1)
+      if (!gui.params$graphname[[2]]$getText() == '') {
+        graph2 <- eval(parse(text=gui.params$graphname[[2]]$getText()))
+        c2 <- which(rev(sort(table(V(graph2)$comm))) > 1)
+        choicesComm <- intersect(c1, c2)
+      } else {
+        choicesComm <- unique(V(graph1)$comm)
+      }
+      for (choice in choicesComm) comboComm$appendText(choice)
+      comboComm$setActive(0)
+    } else {
+      choicesComm <- NULL
+      comboComm$appendText(choicesComm)
+      comboComm$setActive(0)
+      comboComm$setSensitive(F)
+    }
+    comboComm$setSensitive(T)
+    comboNeighb <<- NULL
+    gui.params$comboVcolor$setActive(0)
+    gui.params$showDiameter$setSensitive(F)
+    gui.params$edgeDiffs$setSensitive(F)
+  }
+
+  # Action group for the "Plot" menu
+  plot.actions <- list(
+    list('PlotMenu', NULL, '_Plot'),
+    list('PlotAll', NULL, '_Entire Graph', '<control>E', 'Plot entire graph',
+         plot_entire_cb),
+    list('PlotNeighb', NULL, '_Neighborhood Graph', '<control>N', 'Plot
+         neighborhood of a single vertex', plot_neighb_cb),
+    list('PlotComm', NULL, '_Community Graph', '<control>C', 'Plot a single
+         community', plot_comm_cb)
+  )
+  action_group$addActions(plot.actions, window)
+
+  #---------------------------------------------------------
+  # Create a GtkUIManager instance
+  #---------------------------------------------------------
+  ui_manager <- gtkUIManager()
+  ui_manager$insertActionGroup(action_group, 0)
+
+  merge <- ui_manager$newMergeId()
+  ui_manager$addUi(merge.id=merge, path='/', name='menubar', action=NULL,
+                   type='menubar', top=F)
+  ui_manager$addUi(merge, '/menubar', 'file', 'FileMenu', 'menu', FALSE)
+  ui_manager$addUi(merge, '/menubar/file', 'save1', 'Save1', 'menuitem', FALSE)
+  ui_manager$addUi(merge, '/menubar/file', 'save2', 'Save2', 'menuitem', FALSE)
+  ui_manager$addUi(merge, '/menubar/file', 'sep', action=NULL, type=NULL, FALSE)
+  ui_manager$addUi(merge, '/menubar/file', 'quit', 'Quit', 'menuitem', FALSE)
+
+  ui_manager$addUi(merge, '/menubar', 'plot', 'PlotMenu', 'menu', FALSE)
+  ui_manager$addUi(merge, '/menubar/plot', 'plotall', 'PlotAll', 'menuitem',
+                   FALSE)
+  ui_manager$addUi(merge, '/menubar/plot', 'plotneighb', 'PlotNeighb',
+                   'menuitem', FALSE)
+  ui_manager$addUi(merge, '/menubar/plot', 'plotcomm', 'PlotComm', 'menuitem',
+                   FALSE)
+
+  menubar <- ui_manager$getWidget('/menubar')
+  window$addAccelGroup(ui_manager$getAccelGroup())
 
   vboxMainMenu <- gtkVBoxNew(F, 8)
   window$add(vboxMainMenu)
   vboxMainMenu$packStart(menubar, F, F)
   #=============================================================================
+  #=============================================================================
+  
 
-
-  # Create main (horizontal) container
-  hboxMain <- gtkHBoxNew(F, 8)
-  vboxMainMenu$add(hboxMain)
-
+  build.gui <- function(container) {
   #=============================================================================
   # Create main (left side) vertical container
   #=============================================================================
   vboxMain <- gtkVBoxNew(F, 8)
-  hboxMain$add(vboxMain)
+  container$add(vboxMain)
 
   #---------------------------------------------------------
   # Create frame + vert container for plot parameters
@@ -80,11 +230,11 @@ plot.adj.gui <- function() {
 
   # Create a frame for each plot area
   #---------------------------------------------------------
-  frameG <- list(length=2)
-  vboxG <- list(length=2)
-  hboxOrient <- list(length=2)
-  comboOrient <- list(length=2)
-  graphname <- list(length=2)
+  frameG <- vector('list', length=2)
+  vboxG <- vector('list', length=2)
+  hboxOrient <- vector('list', length=2)
+  comboOrient <- vector('list', length=2)
+  graphname <- vector('list', length=2)
   for (i in 1:2) {
     frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
@@ -100,6 +250,7 @@ plot.adj.gui <- function() {
     hbox$packStart(label, F, F, 0)
     graphname[[i]] <- gtkEntryNew()
     graphname[[i]]$setWidthChars(20)
+    graphname[[i]]$setText(paste0('g1[[', i, ']]'))
     label$setMnemonicWidget(graphname[[i]])
     hbox$packStart(graphname[[i]], F, F, 0)
 
@@ -151,14 +302,14 @@ plot.adj.gui <- function() {
                'Subgraph centrality', 'Coreness',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.',
                'Within-module degree z-score', 'Hub score')
-  combo <- gtkComboBoxNewText()
-  combo$show()
-  for (choice in choices) combo$appendText(choice)
-  combo$setActive(1)
+  comboVsize <- gtkComboBoxNewText()
+  comboVsize$show()
+  for (choice in choices) comboVsize$appendText(choice)
+  comboVsize$setActive(1)
 
   label <- gtkLabelNewWithMnemonic('Vertex size')
   hboxVsize$packStart(label, F, F, 0)
-  hboxVsize$add(combo)
+  hboxVsize$add(comboVsize)
 
   vertSize.const <- gtkEntryNew()
   vertSize.const$setWidthChars(3)
@@ -166,8 +317,8 @@ plot.adj.gui <- function() {
   hboxVsize$packStart(vertSize.const, F, F, 0)
   vertSize.const$setSensitive(F)
 
-  gSignalConnect(combo, 'changed', function(combo, ...) {
-      if (combo$getActive() == 0) {
+  gSignalConnect(comboVsize, 'changed', function(comboVsize, ...) {
+      if (comboVsize$getActive() == 0) {
         vertSize.const$setSensitive(T)
       } else {
         vertSize.const$setSensitive(F)
@@ -194,6 +345,15 @@ plot.adj.gui <- function() {
   hbox$packStart(edgeDiffs, F, F, 0)
   label$setMnemonicWidget(edgeDiffs)
 
+  # Highlight the diameter of each graph?
+  hbox <- gtkHBoxNew(F, 8)
+  vbox$packStart(hbox, F, F, 0)
+  label <- gtkLabelNewWithMnemonic('Highlight diameter?')
+  hbox$packStart(label, F, F, 0)
+  showDiameter <- gtkCheckButton()
+  showDiameter$active <- FALSE
+  hbox$packStart(showDiameter, F, F, 0)
+  label$setMnemonicWidget(showDiameter)
 
   #-----------------------------------------------------------------------------
   # Both, single hemisphere, or inter-hemispheric only?
@@ -228,73 +388,9 @@ plot.adj.gui <- function() {
   hboxLobe$packStart(label, F, F, 0)
   hboxLobe$add(comboLobe)
 
-
-  # Community number, if applicable
-  hboxComm <- gtkHBoxNew(F, 8)
-  vbox$packStart(hboxComm, F, F, 0)
-  label <- gtkLabelNew('Which community? (ordered by size)')
-  hboxComm$packStart(label, F, F, 0)
-  commNum <- gtkEntryNew()
-  commNum$setWidthChars(3)
-  commNum$setText('1')
-  hboxComm$packStart(commNum, F, F, 0)
-  commNum$setSensitive(F)
-
-  # Vertex and its neighborhood, if applicable
-  hboxNeighb <- gtkHBoxNew(F, 8)
-  vbox$packStart(hboxNeighb, F, F, 0)
-  label <- gtkLabelNew('Which vertex?')
-  hboxNeighb$packStart(label, F, F, 0)
-  neighbVert <- gtkEntryNew()
-  neighbVert$setWidthChars(4)
-  neighbVert$setText('1')
-  hboxNeighb$packStart(neighbVert, F, F, 0)
-  neighbVert$setSensitive(F)
-   
-  #-----------------------------------------------------------------------------
-  # Add two horizontal containers to check if the results will be saved to a file
-  # and if so, to specify the file's name
-  #-----------------------------------------------------------------------------
-#  vbox <- gtkVBoxNew(F, 8)
-#  vboxMain$add(vbox)
-#  hbox <- gtkHBoxNew(F, 8)
-#  vbox$packStart(hbox, F, F, 0)
-#  label <- gtkLabelNewWithMnemonic('Save figure 1?')
-#  hbox$packStart(label, F, F, 0)
-#  toSave1 <- gtkCheckButton()
-#  hbox$packStart(toSave1, F, F, 0)
-#  label$setMnemonicWidget(toSave1)
-#  label <- gtkLabelNewWithMnemonic('File name:')
-#  hbox$packStart(label, F, F, 0)
-#  exportFileName1 <- gtkEntryNew()
-#  exportFileName1$setWidthChars(20)
-#  exportFileName1$setText('output1')
-#  hbox$packStart(exportFileName1, F, F, 0)
-#  label$setMnemonicWidget(exportFileName1)
-#  fileExt <- gtkLabel('.png')
-#  hbox$packStart(fileExt, F, F, 0)
-#  
-#  # Save option for the second plotting area
-#  hbox <- gtkHBoxNew(F, 8)
-#  vbox$packStart(hbox, F, F, 0)
-#  label <- gtkLabelNewWithMnemonic('Save figure 2?')
-#  hbox$packStart(label, F, F, 0)
-#  toSave2 <- gtkCheckButton()
-#  hbox$packStart(toSave2, F, F, 0)
-#  label$setMnemonicWidget(toSave2)
-#  label <- gtkLabelNewWithMnemonic('File name:')
-#  hbox$packStart(label, F, F, 0)
-#  exportFileName2 <- gtkEntryNew()
-#  exportFileName2$setWidthChars(20)
-#  exportFileName2$setText('output2')
-#  hbox$packStart(exportFileName2, F, F, 0)
-#  label$setMnemonicWidget(exportFileName2)
-#  fileExt <- gtkLabel('.png')
-#  hbox$packStart(fileExt, F, F, 0)
-
-  #-------------------------------------
+  #---------------------------------------------------------
   # Create 2 drawing areas for the plotting
-  #-------------------------------------
+  #---------------------------------------------------------
   graphics <- vector('list', 2)
   vboxPlot <- vector('list', 2)
   groupplot <- vector('list', 2)
@@ -319,321 +415,39 @@ plot.adj.gui <- function() {
 
     vboxPlot[[i]] <- gtkVBox()
     vboxPlot[[i]]$packStart(graphics[[i]], expand=T, fill=T, padding=0)
-    hboxMain$add(vboxPlot[[i]])
+    container$add(vboxPlot[[i]])
 
     asCairoDevice(graphics[[i]])
     par(pty='s', mar=rep(0, 4))
     groupplot[[i]] <- dev.cur()
   }
 
+
   #-----------------------------------------------------------------------------
-  # Function to dynamically draw the graph
-  #-----------------------------------------------------------------------------
-  update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
-                         edgeWidth, edgeDiffs, vertColor,#exportFileName1, exportFileName2, fileExt,
-                         firstplot, secondplot, vertSize.const=NULL,
-                         plotFunc, commNum, neighbVert, hemi, lobe, orient1,
-                         orient2) {
-    graph1 <- eval(parse(text=graphname1$getText()))
-    graph2 <- eval(parse(text=graphname2$getText()))
-
-
-    #===========================================================================
-    #===========================================================================
-    # Function that does all the work
-    #===========================================================================
-    #===========================================================================
-    make.plot <- function(dev, g, g2, exportFileName, orient, ...) {
-      dev.set(dev)
-
-      # Lobe to plot
-      g <- switch(lobe$getActive()+1,
-                  g,
-                  induced.subgraph(g, V(g)$lobe==1),
-                  induced.subgraph(g, V(g)$lobe==2),
-                  induced.subgraph(g, V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==2),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==1 | V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==3),
-                  induced.subgraph(g, V(g)$lobe==2 | V(g)$lobe==4),
-                  induced.subgraph(g, V(g)$lobe==3 | V(g)$lobe==4)
-      )
-      Nv <- vcount(g)
-
-      #====================================================
-      #====================================================
-      # Orientation of plots
-      #====================================================
-      #====================================================
-      if (orient$getActive() == 0) {
-        plot.over.brain.axial(0)
-        # Hemisphere to plot
-        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-          g <- switch(hemi$getActive()+1,
-            g,
-            induced.subgraph(g, seq(1, Nv, 2)),
-            induced.subgraph(g, seq(2, Nv, 2)),
-            subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
-          )
-        } else {
-          g <- switch(hemi$getActive()+1,
-            g,
-            induced.subgraph(g, 1:(Nv/2)),
-            induced.subgraph(g, (Nv/2 + 1):Nv),
-            subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-          )
-        }
-        layout.g <- cbind(V(g)$x, V(g)$y)
-        xlim.g <- c(-1, 1)
-        ylim.g <- c(-1.5, 1.5)
-        mult <- 1
-
-      #---------------------------------
-      # Plot the left sagittal only
-      #---------------------------------
-      } else if (orient$getActive() == 1) {
-        plot.over.brain.sagittal(0, hemi='left', z=30)
-        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-          g <- induced.subgraph(g, seq(1, Nv, 2))
-          layout.g <- matrix(c(-eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
-                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
-                             ncol=2, byrow=F)
-        } else {
-          g <- induced.subgraph(g, 1:(Nv/2))
-          layout.g <- matrix(c(-eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
-                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
-                             ncol=2, byrow=F)
-        }
-        xlim.g <- c(-85, 110)
-        ylim.g <- c(-85, 125)
-        mult <- 100
-
-      #---------------------------------
-      # Plot the right sagittal only
-      #---------------------------------
-      } else if (orient$getActive() == 2) {
-        plot.over.brain.sagittal(0, hemi='right', z=30)
-        if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-          g <- induced.subgraph(g, seq(2, Nv, 2))
-          layout.g <- matrix(c(eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
-                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
-                             ncol=2, byrow=F)
-        } else {
-          g <- induced.subgraph(g, ((Nv/2 + 1):Nv))
-          layout.g <- matrix(c(eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 2],
-                               eval(parse(text=g$atlas))$brainnet.coords[V(g)$name, 3]),
-                             ncol=2, byrow=F)
-        }
-        xlim.g <- c(-125, 85)
-        ylim.g <- c(-85, 125)
-        mult <- 100
-
-      #---------------------------------
-      # Plot in a circular layout
-      #---------------------------------
-      } else if (orient$getActive() == 3) {
-        # Hemisphere to plot
-        circ <- V(g)$circle.layout
-        lobe <- V(g)$lobe
-        lobe.color <- V(g)$lobe.color
-        atlas <- g$atlas
-        if (hemi$getActive()+1 == 1) {
-          sg <- g
-
-        } else if (hemi$getActive()+1 == 2) {
-          # LH only
-          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(1, Nv, 2)])
-          } else {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% 1:(Nv/2)])
-          }
-
-        } else if (hemi$getActive()+1 == 3) {
-          # RH only
-          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(2, Nv, 2) %--% seq(2, Nv, 2)])
-          } else {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[(Nv/2 + 1):Nv %--% (Nv/2 + 1):Nv])
-          }
-
-        } else if (hemi$getActive()+1 == 4) {
-          # Interhemispheric only
-          if (g$atlas == 'aal90' || g$atlas == 'lpba40' || g$atlas == 'hoa112') {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
-          } else {
-            sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-          }
-        }
-
-        for (att in list.graph.attributes(sg)) {
-          sg <- remove.graph.attribute(sg, att)
-        }
-        for (att in list.vertex.attributes(sg)) {
-          sg <- remove.vertex.attribute(sg, att)
-        }
-        for (att in list.edge.attributes(sg)) {
-          sg <- remove.edge.attribute(sg, att)
-        }
-
-        g <- graph.intersection(g, sg)
-        layout.g <- rotation(layout.circle(g, order=circ), -pi/2)
-        mult <- 1
-        xlim.g <- c(-1.25, 1.25)
-        ylim.g <- c(-1.25, 1.25)
-      }
-      #====================================================
-      #====================================================
-
-      par(pty='s', mar=rep(0, 4))
-
-
-      # Show vertex labels?
-      if (vertLabels$active == FALSE) {
-        vertex.label <- NA
-        vertex.label.cex <- NA
-      } else {
-        vertex.label <- V(g)$name
-        vertex.label.cex <- 0.75
-      }
-      # Vertex colors
-      vertex.color <- switch(vertColor$getActive() + 1,
-                             'lightblue3',
-                             V(g)$color,
-                             V(g)$lobe.color
-      )
-      edge.color <- switch(vertColor$getActive() + 1,
-                           'red',
-                           E(g)$color,
-                           E(g)$lobe.color
-      )
-
-      # Show edge differences?
-      if (edgeDiffs$active == TRUE) {
-        g.diff12 <- graph.difference(g, g2)
-        E(g.diff12)$color <- 'red'
-        g.diff.union <- graph.union(g, g.diff12)
-      }
-
-      # Vertex sizes
-      if (!vertSize.const$getSensitive()) {
-        V <- NULL
-      } else {
-        V <- eval(parse(text=vertSize.const$getText()))
-      }
-      vsize <- switch(vertSize$getActive()+1,
-        mult*V,
-        #mult*range.transform(V(g)$degree, 0, 15),
-        mult*V(g)$degree,
-        mult*25*V(g)$ev.cent,
-        mult*3*log1p(V(g)$btwn.cent)+.05,
-        mult*range.transform(V(g)$subgraph.cent, 0, 15),
-        mult*V(g)$coreness,
-        mult*20*V(g)$transitivity,
-        mult*range.transform(V(g)$PC, 0, 15),
-        mult*range.transform(V(g)$l.eff, 0, 15),
-        mult*range.transform(abs(V(g)$z.score), 0, 15),
-        mult*10*sqrt(V(g)$hub.score)
-      )
-
-      # Edge width
-      ewidth <- eval(parse(text=edgeWidth$getText()))
-
-      # Community number, if applicable
-      if (commNum$getSensitive()) {
-        cNum <- eval(parse(text=commNum$getText()))
-        plotFunc(g, n=cNum,
-                 vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
-                 vertex.size=vsize,
-                 edge.width=ewidth,
-                 vertex.color=vertex.color,
-                 edge.color=edge.color)
-      }
-
-      # Vertex neighborhood, if applicable
-      if (neighbVert$getSensitive()) {
-        v <- V(g)$name[eval(parse(text=neighbVert$getText()))]
-        plotFunc(g, v=v,
-                 vertex.label=vertex.label,
-                 vertex.label.cex=vertex.label.cex,
-                 vertex.size=vsize,
-                 edge.width=ewidth,
-                 vertex.color=vertex.color,
-                 edge.color=edge.color)
-      }
-
-      if ((!commNum$getSensitive()) && (!neighbVert$getSensitive())) {
-        if (orient$getActive() == 3) {
-          plotFunc <- plot
-        }
-        plotFunc(g, vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
-               vertex.size=vsize,
-               edge.width=ewidth,
-               vertex.color=vertex.color,
-               edge.color=edge.color,
-               xlim=xlim.g,
-               ylim=ylim.g,
-               layout=layout.g)
-        if (vertColor$getActive() + 1 == 3) {
-          lobe.cols <- unique(V(g)$lobe.color[order(V(g)$lobe)])
-          kNumLobes <- max(V(g)$lobe)
-          if (orient$getActive() == 3) {
-            legend.text.col <- 'black'
-          } else {
-            legend.text.col <- 'white'
-          }
-          legend('topleft',
-                 eval(parse(text=g$atlas))$lobe.names[1:kNumLobes],
-                 fill=lobe.cols[1:kNumLobes],
-                 text.col=legend.text.col)
-        }
-      }
-
-#      if (toSave$active == TRUE) {
-#        fname <- paste0(exportFileName$getText(), fileExt$getText())
-#        dev.copy(png, filename=fname)
-#        dev.off()
-#      }
-    }
-
-    make.plot(dev=firstplot, g=graph1, g2=graph2, #toSave=toSave1, exportFileName=exportFileName1,
-              vertLabels, vertSize, edgeWidth,
-              vertColor, vertSize.const=NULL, commNum, hemi,
-              orient=orient1)
-    if (nchar(graphname2$getText()) > 0) {
-      make.plot(dev=secondplot, g=graph2, g2=graph1, #toSave=toSave2, exportFileName=exportFileName2,
-                vertLabels, vertSize, edgeWidth,
-                vertColor, vertSize.const=NULL, commNum, hemi,
-                orient=orient2)
-    }
-  }
-  #-----------------------------------------------------------------------------
-
   # Add buttons
   the.buttons <- gtkHButtonBoxNew()
   the.buttons$setBorderWidth(5)
   vboxMain$add(the.buttons)
-  the.buttons$setLayout("spread")
+  the.buttons$setLayout('spread')
   the.buttons$setSpacing(40)
-  buttonOK <- gtkButtonNewFromStock("gtk-ok")
-  gSignalConnect(buttonOK, "clicked",
+  buttonOK <- gtkButtonNewFromStock('gtk-ok')
+  gSignalConnect(buttonOK, 'clicked',
                  function(widget) update.adj(graphname[[1]], graphname[[2]],
-                                   vertLabels, vertSize=combo,
+                                   vertLabels, vertSize=comboVsize,
                                    edgeWidth, edgeDiffs,
-                                   vertColor=comboVcolor, #toSave1, toSave2, 
-                                   #exportFileName1, exportFileName2, fileExt,
+                                   vertColor=comboVcolor,
                                    firstplot=groupplot[[1]],
                                    secondplot=groupplot[[2]],
-                                   vertSize.const, plotFunc, commNum,
-                                   neighbVert, hemi=comboHemi, lobe=comboLobe,
+                                   vertSize.const, plotFunc,
+                                   comboNeighb=comboNeighb, hemi=comboHemi, lobe=comboLobe,
                                    orient1=comboOrient[[1]],
-                                   orient2=comboOrient[[2]]))
+                                   orient2=comboOrient[[2]], comm=comboComm,
+                                   showDiameter=showDiameter))
   the.buttons$packStart(buttonOK, fill=F)
-  buttonClose <- gtkButtonNewFromStock("gtk-close")
-  gSignalConnect(buttonClose, "clicked", window$destroy)
-  the.buttons$packStart(buttonClose, fill=F)
 
-  hboxMain$showAll()
+  container$showAll()
 
+  list(plot1=groupplot[[1]], plot2=groupplot[[2]], graphname=graphname,
+       comboVcolor=comboVcolor, showDiameter=showDiameter, edgeDiffs=edgeDiffs)
+  }
 }
