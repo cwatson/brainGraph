@@ -11,18 +11,18 @@
 #' @param rescale A logical, whether to rescale the coordinates
 #' @param ylim A vector giving limits for the vertical axis
 #' @param asp A numeric constant for the aspect ratio
-#' @param subt A logical, whether to show the subtitle
 #' @param ... Other parameters (passed to \code{\link{plot}}).
 #' @export
 
-plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, subt=F, ...) {
+plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, ...) {
 
   plot(g, asp=asp, rescale=rescale, ylim=ylim, ...)
 
-  #if (!is.null(g$density)) {
-  if (subt) {
-    subt <- sprintf('%s: %1.3f', 'Density', g$density)
-    par(new=T, mar=c(5, 0, 3, 0)+0.1)
-    title(sub=subt, col.sub='white')
-  }
+  Nv <- vcount(g)
+  Ne <- ecount(g)
+  g.density <- round((2 * Ne) / (Nv * (Nv - 1)), digits=3)
+  par(new=T, mar=c(5, 0, 3, 0)+0.1)
+  subt <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
+                'Density: ', g.density)
+  title(sub=subt, col.sub='white')
 }

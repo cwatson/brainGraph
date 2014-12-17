@@ -21,14 +21,14 @@ get.resid <- function(thicknesses, covars, group1, group2=NULL) {
   regions <- 2:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],
               function(x) lm(as.formula(paste0(x, '~',
-                              paste(colnames(covars)[2:ncol(covars)],
+                              paste(names(covars)[2:ncol(covars)],
                                     collapse='+'))),
                              data=dat))
 
   # Get the studentized residuals
   all.resid <- data.frame(lapply(m, rstudent))
   colnames(all.resid) <- colnames(thicknesses)[regions]
-  if ('Group' %in% colnames(covars)) {
+  if ('Group' %in% names(covars)) {
     all.resid$Group <- dat$Group
     group1.resid <- subset(all.resid, Group==group1)
   } else {

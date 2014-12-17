@@ -18,19 +18,19 @@
 
 within.module.deg.z.score <- function(g, community.mem) {
   Nv <- vcount(g)
-  vertices <- unname(which(degree(g) != 0))
+  vs <- unname(which(degree(g) != 0))
 
   zs <- vector(length=Nv)
-  zs2 <- vector('list', length=length(vertices))
+  zs2 <- vector('list', length=length(vs))
 
-  zs2 <- foreach (i=seq_len(vertices)) %dopar% {
-    si <- which(community.mem==community.mem[vertices[i]])
+  zs2 <- foreach (i=seq_along(vs)) %dopar% {
+    si <- which(community.mem==community.mem[vs[i]])
     K <- vapply(si, function(x) length(E(g)[x %--% si]), numeric(1))
-    Ki <- length(E(g)[vertices[i] %--% si])
+    Ki <- length(E(g)[vs[i] %--% si])
     (Ki - mean(K)) / sd(K)
   }
 
-  zs[vertices] <- unlist(zs2)
+  zs[vs] <- unlist(zs2)
   zs <- ifelse(is.na(zs), 0, zs)
   zs <- ifelse(is.infinite(zs), 0, zs)
   names(zs) <- V(g)$name

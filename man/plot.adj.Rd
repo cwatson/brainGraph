@@ -3,8 +3,7 @@
 \alias{plot.adj}
 \title{Plots an adjacency matrix with a specific spatial layout.}
 \usage{
-\method{plot}{adj}(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0,
-  subt = F, ...)
+\method{plot}{adj}(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0, ...)
 }
 \arguments{
 \item{g}{The graph to plot}
@@ -14,8 +13,6 @@
 \item{ylim}{A vector giving limits for the vertical axis}
 
 \item{asp}{A numeric constant for the aspect ratio}
-
-\item{subt}{A logical, whether to show the subtitle}
 
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }

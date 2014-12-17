@@ -235,7 +235,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                edge.color=edge.color)
     }
 
-    if (is.null(comm) && is.null(comboNeighb)) {
+    if (identical(plotFunc, plot.adj)) {
       if (orient$getActive() == 3) {
         plotFunc <- plot
       }
