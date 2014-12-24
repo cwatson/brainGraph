@@ -103,7 +103,7 @@ plot.adj.gui <- function() {
     hboxNeighb$add(comboNeighb)
 
     graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
-    choicesNeighb <- data.frame(1:vcount(graph1), V(graph1)$name)
+    choicesNeighb <- data.frame(seq_len(vcount(graph1)), V(graph1)$name)
     for (r in seq_len(nrow(choicesNeighb))) {
       comboNeighb$appendText(paste(sprintf('%02i', choicesNeighb[r, 1]),
                                    ': ', '\t',
@@ -115,6 +115,8 @@ plot.adj.gui <- function() {
     gui.params$comboVcolor$setActive(0)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
+    gui.params$comboHemi$setSensitive(F)
+    gui.params$comboLobe$setSensitive(F)
   }
 
   #-------------------------------------
@@ -160,10 +162,13 @@ plot.adj.gui <- function() {
       comboComm$setSensitive(F)
     }
     comboComm$setSensitive(T)
+
     comboNeighb <<- NULL
-    gui.params$comboVcolor$setActive(0)
+    gui.params$comboVcolor$setActive(1)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
+    gui.params$comboHemi$setSensitive(F)
+    gui.params$comboLobe$setSensitive(F)
   }
 
   # Action group for the "Plot" menu
@@ -210,6 +215,34 @@ plot.adj.gui <- function() {
   #=============================================================================
   #=============================================================================
   
+  # Temporary window to get graph object names
+  set.names <- function() {
+    graphObj <<- vector('list', length=2)
+    tempWindow <- gtkWindow()
+    tempVbox <- gtkVBoxNew(F, 8)
+    tempWindow$add(tempVbox)
+    label <- vector('list', length=2)
+    graphObjEntry <- vector('list', length=2)
+    tempHbox <- vector('list', length=2)
+    for (i in 1:2) {
+      tempHbox[[i]] <- gtkHBoxNew(F, 8)
+      tempVbox$packStart(tempHbox[[i]], F, F, 0)
+      label[[i]] <- gtkLabelNew(paste0('Graph ', i, ' name:'))
+      tempHbox[[i]]$packStart(label[[i]], F, F, 0)
+      graphObjEntry[[i]] <- gtkEntryNew()
+      graphObjEntry[[i]]$setWidthChars(20)
+      tempHbox[[i]]$packStart(graphObjEntry[[i]], F, F, 0)
+    }
+    button <- gtkButtonNewFromStock('gtk-ok')
+    gSignalConnect(button, 'clicked', function(widget) {
+                   graphObj[[1]] <<- graphObjEntry[[1]]$getText()
+                   graphObj[[2]] <<- graphObjEntry[[2]]$getText()
+                   tempWindow$destroy()
+                   })
+    tempVbox$packStart(button, fill=F)
+  }
+  set.names()
+
 
   build.gui <- function(container) {
   #=============================================================================
@@ -250,7 +283,8 @@ plot.adj.gui <- function() {
     hbox$packStart(label, F, F, 0)
     graphname[[i]] <- gtkEntryNew()
     graphname[[i]]$setWidthChars(20)
-    graphname[[i]]$setText(paste0('g1[[', i, ']]'))
+    graphname[[i]]$setText(graphObj[[i]])
+    graphname[[i]]$setSensitive(F)
     label$setMnemonicWidget(graphname[[i]])
     hbox$packStart(graphname[[i]], F, F, 0)
 
@@ -270,9 +304,12 @@ plot.adj.gui <- function() {
 
 
   # Add horizontal container to specify options
-  # Should vertex labels be displayed?
+  #---------------------------------------------------------
   hbox <- gtkHBoxNew(F, 8)
   vbox$packStart(hbox, F, F, 0)
+
+  # Should vertex labels be displayed?
+  #---------------------------------------
   label <- gtkLabelNewWithMnemonic('Display vertex labels?')
   hbox$packStart(label, F, F, 0)
   vertLabels <- gtkCheckButton()
@@ -284,7 +321,7 @@ plot.adj.gui <- function() {
   #---------------------------------------
   hboxVcolor <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxVcolor, F, F, 0)
-  choices <- c('None (lightblue)', 'Communities', 'Lobes')
+  choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
   comboVcolor <- gtkComboBoxNewText()
   comboVcolor$show()
   for (choice in choices) comboVcolor$appendText(choice)
@@ -337,6 +374,16 @@ plot.adj.gui <- function() {
   hbox$packStart(edgeWidth, F, F, 0)
   label$setMnemonicWidget(edgeWidth)
 
+  # Highlight the diameter of each graph?
+  hbox <- gtkHBoxNew(F, 8)
+  vbox$packStart(hbox, F, F, 0)
+  label <- gtkLabelNewWithMnemonic('Show diameter?')
+  hbox$packStart(label, F, F, 0)
+  showDiameter <- gtkCheckButton()
+  showDiameter$active <- FALSE
+  hbox$packStart(showDiameter, F, F, 0)
+  label$setMnemonicWidget(showDiameter)
+
   # Show edge set differences?
   label <- gtkLabelNewWithMnemonic('Show edge differences?')
   hbox$packStart(label, F, F, 0)
@@ -344,16 +391,6 @@ plot.adj.gui <- function() {
   edgeDiffs$active <- FALSE
   hbox$packStart(edgeDiffs, F, F, 0)
   label$setMnemonicWidget(edgeDiffs)
-
-  # Highlight the diameter of each graph?
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-  label <- gtkLabelNewWithMnemonic('Highlight diameter?')
-  hbox$packStart(label, F, F, 0)
-  showDiameter <- gtkCheckButton()
-  showDiameter$active <- FALSE
-  hbox$packStart(showDiameter, F, F, 0)
-  label$setMnemonicWidget(showDiameter)
 
   #-----------------------------------------------------------------------------
   # Both, single hemisphere, or inter-hemispheric only?
@@ -372,12 +409,19 @@ plot.adj.gui <- function() {
   hboxHemi$add(comboHemi)
 
   # Major lobe number, if applicable
+  atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
+  atlas.list <- eval(parse(text=atlas))
   hboxLobe <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxLobe, F, F, 0)
-  choices <- c('All', 'Frontal', 'Parietal', 'Temporal', 'Occipital',
-               'Frontal & Parietal', 'Frontal & Temporal', 'Frontal & Occipital',
-               'Parietal & Temporal', 'Parietal & Occipital',
-               'Temporal & Occipital')
+
+  kNumLobes <- length(atlas.list$lobe.names)
+  combos <- sapply(seq_len(kNumLobes - 1),
+                   function(x) combn(seq_along(atlas.list$lobe.names), x))
+  lobes <- sapply(2:(kNumLobes-1),
+          function(z) apply(t(apply(t(combos[[z]]), 1,
+                function(x) atlas.list$lobe.names[x])), 1, paste, collapse=', '))
+  lobes <- do.call('c', lobes)
+  choices <- c('All', atlas.list$lobe.names, lobes)
 
   comboLobe <- gtkComboBoxNewText()
   comboLobe$show()
@@ -402,7 +446,7 @@ plot.adj.gui <- function() {
   screen.x <- as.numeric(sub('x', '', sub(' ', '', res)))
 
   if (screen.x <= 1440) {
-    graphics.res <- 480
+    graphics.res <- 460
   } else if (screen.x > 1440 && screen.x <= 1680) {
     graphics.res <- 560
   } else {
@@ -422,14 +466,43 @@ plot.adj.gui <- function() {
     groupplot[[i]] <- dev.cur()
   }
 
+  # Slider for curvature of edges in circle plots
+  slider <<- vector('list', length=2)
+  orient_cb1 <- function(widget) {
+                if (widget$getActive() == 3) {
+                  slider[[1]] <<- gtkHScale(min=-1, max=1, step=0.05)
+                  vboxPlot[[1]]$packStart(slider[[1]], F, F, 0)
+                  slider[[1]]$setValue(0.25)
+                } else {
+                  kNumChildren <- length(vboxPlot[[1]]$getChildren())
+                  if (kNumChildren > 1) {
+                    for (i in 2:kNumChildren) vboxPlot[[1]][[i]]$destroy()
+                  }
+                  #slider[[1]] <<- NULL
+                }
+  }
+  gSignalConnect(comboOrient[[1]], 'changed', orient_cb1)
+  orient_cb2 <- function(widget) {
+                if (widget$getActive() == 3) {
+                  slider[[2]] <<- gtkHScale(min=-1, max=1, step=0.05)
+                  vboxPlot[[2]]$packStart(slider[[2]], F, F, 0)
+                  slider[[2]]$setValue(0.25)
+                } else {
+                  kNumChildren <- length(vboxPlot[[2]]$getChildren())
+                  if (kNumChildren > 1) {
+                    for (i in 2:kNumChildren) vboxPlot[[2]][[i]]$destroy()
+                  }
+                  #slider[[2]] <<- NULL
+                }
+  }
+  gSignalConnect(comboOrient[[2]], 'changed', orient_cb2)
+  #browser()
 
   #-----------------------------------------------------------------------------
   # Add buttons
   the.buttons <- gtkHButtonBoxNew()
   the.buttons$setBorderWidth(5)
   vboxMain$add(the.buttons)
-  the.buttons$setLayout('spread')
-  the.buttons$setSpacing(40)
   buttonOK <- gtkButtonNewFromStock('gtk-ok')
   gSignalConnect(buttonOK, 'clicked',
                  function(widget) update.adj(graphname[[1]], graphname[[2]],
@@ -442,12 +515,14 @@ plot.adj.gui <- function() {
                                    comboNeighb=comboNeighb, hemi=comboHemi, lobe=comboLobe,
                                    orient1=comboOrient[[1]],
                                    orient2=comboOrient[[2]], comm=comboComm,
-                                   showDiameter=showDiameter))
+                                   showDiameter=showDiameter,
+                                   slider1=slider[[1]], slider2=slider[[2]]))
   the.buttons$packStart(buttonOK, fill=F)
 
   container$showAll()
 
   list(plot1=groupplot[[1]], plot2=groupplot[[2]], graphname=graphname,
-       comboVcolor=comboVcolor, showDiameter=showDiameter, edgeDiffs=edgeDiffs)
+       comboVcolor=comboVcolor, showDiameter=showDiameter, edgeDiffs=edgeDiffs,
+       comboHemi=comboHemi, comboLobe=comboLobe)
   }
 }

@@ -22,7 +22,7 @@ color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
   if (!is.null(lobes)) {
     mem <- lobes
     kNumComm <- max(mem)
-    comm.order <- 1:kNumComm
+    comm.order <- seq_len(kNumComm)
     cols <- lobe.cols
   } else {
   # Color edges based on community membership

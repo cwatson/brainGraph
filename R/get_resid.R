@@ -3,8 +3,8 @@
 #' This function runs linear models on the thickness data for each region, in
 #' order to adjust for relevant variables (e.g. age, sex, group, etc.).
 #'
-#' @param thicknesses Data frame of all thickness data, including covariates.
-#'  First column must be subject ID (or something similar)
+#' @param thicknesses Data frame of all thickness data. First column must be
+#' subject ID (or something similar)
 #' @param covars Data frame of covariates for the linear model
 #' @param group1 Character string indicating the first subject group
 #' @param group2 Character string indicating the second subject group (optional)
@@ -35,7 +35,7 @@ get.resid <- function(thicknesses, covars, group1, group2=NULL) {
     group1.resid <- all.resid
   }              
 
-  if (exists('group2')) {
+  if (!is.null('group2')) {
     group2.resid <- subset(all.resid, Group==group2)
     list(models=m, all=all.resid, group1=group1.resid, group2=group2.resid)
   } else {

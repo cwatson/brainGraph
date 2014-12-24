@@ -54,13 +54,9 @@ plot.community <- function(g, n, ...) {
 
   Nv <- vcount(g.sub)
   Ne <- ecount(g.sub)
-  g.density <- round((2 * Ne) / (Nv * (Nv - 1)), digits=3)
+  g.density <- round(graph.density(g), digits=3)
   plot.adj(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,
            edge.color=edge.color, vertex.label=vertex.label,
            vertex.label.cex=vertex.label.cex, ...)
-  par(new=T, mar=c(5, 0, 3, 0)+0.1)
-  title(sub=paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
-                  'Density: ', g.density),
-        col.sub='white')
 }

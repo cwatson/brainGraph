@@ -1,9 +1,9 @@
 #' Set a number of graph and vertex attributes useful in MRI analyses
 #'
-#' This function will set a number of graph and vertex attributes of a given
-#' igraph object.
+#' This function will set a number of graph, vertex, and edge attributes of a
+#' given igraph object.
 #'
-#' @param g A graph
+#' @param g An igraph object
 #' @param atlas A character vector indicating which atlas was used for the nodes
 #' @param coords A matrix of the spatial coordinates
 #' @param rand Logical indicating whether the graph is random or not
@@ -13,15 +13,18 @@
 #' @return g A copy of the same graph, with the following attributes:
 #' \item{Graph-level}{Atlas, density, connected component sizes, diameter,
 #' number of triangles, transitivity, average path length, assortativity,
-#' global efficiency, modularity, and rich-club coefficient}
+#' clique sizes, global efficiency, modularity, hub score, and rich-club
+#' coefficient}
 #' \item{Vertex-level}{Degree, betweenness centrality, eigenvector centrality,
-#' transitivity (local), coreness, local efficiency, color, community membership,
+#' transitivity (local), coreness, local efficiency, color (community), color
+#' (lobe), color (component), membership (community), membership (component),
 #' participation coefficient, within-module degree z-score, and coordinates (x,
 #' y, and z)}
-#' \item{Edge-level}{Color, lobe color}
+#' \item{Edge-level}{Color (community), color (lobe), color (component), edge
+#' betweenness}
 #'
 #' @seealso \code{\link{clusters}, \link{graph.motifs}, \link{diameter},
-#' \link{centralization.betweenness}, \link{edge.betweenness},
+#' \link{cliques}, \link{centralization.betweenness}, \link{edge.betweenness},
 #' \link{centralization.evcent}, \link{subgraph.centrality}, \link{hub.score},
 #' \link{authority.score}, \link{transitivity}, \link{average.path.length},
 #' \link{assortativity.degree}, \link{global.eff}, \link{local.eff},
@@ -29,14 +32,16 @@
 #' \link{part.coeff}, \link{within.module.deg.z.score},\link{graph.coreness}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
-  Nv <- vcount(g)
-
   # Graph-level attributes
   #-----------------------------------------------------------------------------
-  g$density <- round(2 * ecount(g) / (Nv * (Nv - 1)), digits=3)
-  comps <- rev(table(clusters(g)$csize))
+  g$density <- round(graph.density(g), digits=3)
+
+  # Connected components
+  clusts <- clusters(g)
+  comps <- rev(table(clusts$csize))
   g$conn.comp <- data.frame(size=as.numeric(names(comps)),
                             number=unclass(unname(comps)))
+  #g$cliques <- table(sapply(cliques(g), length))
   g$num.tri <- graph.motifs(g)[4]
   g$diameter <- diameter(g)
 
@@ -54,18 +59,24 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   Ek <- sapply(R, function(x) x$Ek)
   g$rich <- data.frame(R=round(coef, 4), Nk=Nk, Ek=Ek)
 
+  hubs <- hub.score(g)
+  g$hub.score <- hubs$value
+  if (is.directed(g)) {
+    authorities <- authority.score(g)
+    g$authority.score <- authorities$value
+  }
+
   # Vertex-level attributes
   #-----------------------------------------------------------------------------
   # Give each vertex a 'lobe' attribute, and colors for each lobe
-  # For AAL90: frontal, parietal, temporal, occipital, limbic, insula, SCGM
   if (!is.null(atlas)) {
     lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
                    'lightgreen')
     g$atlas <- atlas
-    V(g)$lobe.color <- color.vertices(atlas=atlas)
+    V(g)$color.lobe <- color.vertices(atlas=atlas)
 
     atlas.list <- eval(parse(text=atlas))
-    lobes <- vector('integer', length=Nv)
+    lobes <- vector('integer', length=vcount(g))
 
     lobes[atlas.list$frontal] <- 1
     lobes[atlas.list$parietal] <- 2
@@ -86,26 +97,24 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
       lobes[atlas.list$limbic] <- 6
       lobes[atlas.list$scgm] <- 7
       V(g)$lobe <- lobes
-
       V(g)$circle.layout <- with(atlas.list,
                                  c(frontal.lh, limbic.lh, insula.lh, scgm.lh,
                                    temporal.lh, parietal.lh, occipital.lh,
-                                   frontal.rh, limbic.rh, insula.rh, scgm.rh,
-                                   temporal.rh, parietal.rh, occipital.rh))
+                                   occipital.rh, parietal.rh, temporal.rh,
+                                   scgm.rh, insula.rh, limbic.rh, frontal.rh))
 
     } else if (atlas == 'lpba40' || atlas == 'hoa112' || atlas == 'brainsuite') {
       lobes[atlas.list$scgm] <- 7
       V(g)$lobe <- lobes
-
       V(g)$circle.layout <- with(atlas.list,
                                  c(frontal.lh, cingulate.lh, insula.lh, scgm.lh,
                                    temporal.lh, parietal.lh, occipital.lh, 
-                                   frontal.rh, cingulate.rh, insula.rh, scgm.rh,
-                                   temporal.rh, parietal.rh, occipital.rh))
+                                   occipital.rh, parietal.rh, temporal.rh,
+                                   scgm.rh, insula.rh, cingulate.rh, frontal.rh))
     }
 
     g$assortativity.lobe <- assortativity(g, V(g)$lobe)
-    E(g)$lobe.color <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
+    E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
   }
 
   # Add the spatial coordinates for plotting over the brain
@@ -118,20 +127,17 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
 
   V(g)$degree <- degree(g)
   V(g)$btwn.cent <- centralization.betweenness(g)$res
-  E(g)$btwn <- edge.betweenness(g)
   V(g)$ev.cent <- centralization.evcent(g)$vector
   V(g)$subgraph.cent <- subgraph.centrality(g)
-  # Calculate the coreness of each vertex
   V(g)$coreness <- graph.coreness(g)
 
   V(g)$transitivity <- ifelse(is.nan(t), 0, t)
   V(g)$l.eff <- local.eff(g)
 
-  # Calculate both the hub and authority scores for each vertex
-  # Check if 'g' is directed; if not, both scores are the same
-  V(g)$hub.score <- hub.score(g)$vector
+  # Calculate both the hub and authority scores for each vertex (if 'g' is directed)
+  V(g)$hub.score <- hubs$vector
   if (is.directed(g)) {
-    V(g)$authority.score <- authority.score(g)$vector
+    V(g)$authority.score <- authorities$vector
   }
 
   if (rand == TRUE) {
@@ -140,9 +146,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     # Community stuff
     comm <- multilevel.community(g)
     V(g)$comm <- comm$membership
-    vcolors <- color.vertices(comm)
-    V(g)$color <- vcolors[V(g)$comm]
-    E(g)$color <- color.edges(g, V(g)$comm)
+    vcolors <- color.vertices(V(g)$comm)
+    V(g)$color.comm <- vcolors[V(g)$comm]
+    E(g)$color.comm <- color.edges(g, V(g)$comm)
 
     V(g)$circle.layout.comm <- order(V(g)$comm,
                                      V(g)$degree)
@@ -151,6 +157,15 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$z.score <- within.module.deg.z.score(g, V(g)$comm)
     g$mod <- max(comm$modularity)
   }
+
+  V(g)$comp <- clusts$membership
+  vcolors <- color.vertices(clusts$membership)
+  V(g)$color.comp <- vcolors[clusts$membership]
+
+  # Edge attributes
+  #-----------------------------------------------------------------------------
+  E(g)$color.comp <- color.edges(g, clusts$membership)
+  E(g)$btwn <- edge.betweenness(g)
 
   g
 }

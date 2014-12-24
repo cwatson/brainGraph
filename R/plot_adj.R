@@ -20,7 +20,7 @@ plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, ...) {
 
   Nv <- vcount(g)
   Ne <- ecount(g)
-  g.density <- round((2 * Ne) / (Nv * (Nv - 1)), digits=3)
+  g.density <- round(graph.density(g), digits=3)
   par(new=T, mar=c(5, 0, 3, 0)+0.1)
   subt <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
                 'Density: ', g.density)

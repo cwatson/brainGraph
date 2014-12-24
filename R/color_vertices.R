@@ -1,37 +1,39 @@
 #' Give graph vertices a color attribute.
 #'
-#' This function takes a \link{communities} object (or a character string
-#' indicating the brain atlas used (e.g. for the major lobes of the brain), and
-#' creates a character vector of colors for each vertex.
+#' This function takes an integer vector (representing membership of a community
+#' or component), or a character string indicating the brain atlas used (e.g. for
+#' the major lobes of the brain), and creates a character vector of colors for
+#' each community/module, component, etc.
 #'
-#' @param comm A \link{communities} object
+#' @param memb An integer vector representing membership of e.g. a community
 #' @param atlas A character string
 #' @export
 #'
-#' @return A character vector of length \code{vcount(g)}
+#' @return A character vector with length equal to the number of communities,
+#' lobes, components, etc.
 
-color.vertices <- function(comm, atlas=NULL) {
+color.vertices <- function(memb, atlas=NULL) {
+  cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orangered',
+            'lightgreen', 'lightblue', 'lightyellow')
+
   if (!is.null(atlas)) {
-    lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-                   'lightgreen')
-
     atlas.list <- eval(parse(text=atlas))
     Nv <- nrow(atlas.list$coords)
     lobe.color <- vector(length=Nv)
 
-    lobe.color[atlas.list$frontal] <- lobe.cols[1]
-    lobe.color[atlas.list$parietal] <- lobe.cols[2]
-    lobe.color[atlas.list$temporal] <- lobe.cols[3]
-    lobe.color[atlas.list$occipital] <- lobe.cols[4]
-    lobe.color[atlas.list$insula] <- lobe.cols[5]
-    lobe.color[atlas.list$cingulate] <- lobe.cols[6]
+    lobe.color[atlas.list$frontal] <- cols[1]
+    lobe.color[atlas.list$parietal] <- cols[2]
+    lobe.color[atlas.list$temporal] <- cols[3]
+    lobe.color[atlas.list$occipital] <- cols[4]
+    lobe.color[atlas.list$insula] <- cols[5]
+    lobe.color[atlas.list$cingulate] <- cols[6]
 
     if (atlas == 'aal90') {
-      lobe.color[atlas.list$limbic] <- lobe.cols[6]
-      lobe.color[atlas.list$scgm] <- lobe.cols[7]
+      lobe.color[atlas.list$limbic] <- cols[6]
+      lobe.color[atlas.list$scgm] <- cols[7]
 
     } else if (atlas == 'lpba40' || atlas == 'hoa112' || atlas == 'brainsuite') {
-      lobe.color[atlas.list$scgm] <- lobe.cols[7]
+      lobe.color[atlas.list$scgm] <- cols[7]
     }
 
     if (atlas == 'lpba40') {
@@ -42,21 +44,18 @@ color.vertices <- function(comm, atlas=NULL) {
 
   } else {
     # Find out how many communities exist that have >= 2 members
-    mod.colors <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orangered',
-                    'lightgreen', 'lightblue', 'lightyellow')
-
-    mod.sizes <- as.integer(table(comm$membership))
+    mod.sizes <- as.integer(table(memb))
     big.modules <- which(mod.sizes >= 2)
     big.mod.sizes <- mod.sizes[big.modules]
     big.modules <- big.modules[rev(order(big.mod.sizes))]
 
-    mod.colors.comm <- vector(length=length(comm))
+    mod.colors.memb <- vector(length=max(memb))
     for (i in seq_along(big.modules)) {
-      mod.colors.comm[big.modules[i]] <- mod.colors[i]
+      mod.colors.memb[big.modules[i]] <- cols[i]
     }
-    mod.colors.comm <- ifelse(mod.colors.comm=='FALSE', 'gray',
-                              mod.colors.comm)
+    mod.colors.memb <- ifelse(mod.colors.memb=='FALSE', 'gray',
+                              mod.colors.memb)
  
-    return(mod.colors.comm)
+    return(mod.colors.memb)
   }
 }
