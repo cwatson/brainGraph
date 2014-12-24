@@ -207,7 +207,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       mult*20*V(g)$transitivity,
       mult*range.transform(V(g)$PC, 0, 15),
       mult*range.transform(V(g)$l.eff, 0, 15),
-      mult*range.transform(abs(V(g)$z.score), 0, 15),
+      mult*ifelse(V(g)$z.score == 0, 0, range.transform(V(g)$z.score, 0, 15)),
       mult*10*sqrt(V(g)$hub.score)
     )
 
