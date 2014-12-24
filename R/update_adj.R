@@ -25,12 +25,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       kNumLobes <- length(atlas.list$lobe.names)
       combos <- sapply(seq_len(kNumLobes - 1),
                        function(x) combn(seq_along(atlas.list$lobe.names), x))
-#      inds.all <- lapply(seq_along(combos),
-#             function(z) sapply(seq_len(ncol(combos[[z]])),
-#                    function(x) apply(sapply(seq_len(z),
-#                             function(y) V(g)$lobe == t(combos[[z]])[x, y]), 1, any)))
-#      inds.all <- do.call('cbind', inds.all)
-#      g <- induced.subgraph(g, inds.all[, lobe$getActive()])
 
       n <- lobe$getActive()
       if (n <= kNumLobes) {
@@ -280,13 +274,16 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       kNumLobes <- max(V(g)$lobe)
       if (orient$getActive() == 3) {
+        legend.bg <- 'white'
         legend.text.col <- 'black'
       } else {
+        legend.bg <- 'black'
         legend.text.col <- 'white'
       }
       legend('topleft',
              lobe.names,
              fill=lobe.cols,
+             bg=legend.bg,
              text.col=legend.text.col)
     }
 
@@ -314,7 +311,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     }
   }
 
-#browser()
   graph1 <- eval(parse(text=graphname1$getText()))
   graph2 <- eval(parse(text=graphname2$getText()))
   if (!is.igraph(graph1)) {
