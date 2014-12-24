@@ -28,17 +28,18 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
       n <- lobe$getActive()
       if (n <= kNumLobes) {
-        FIRST <- 1
-        SECOND <- n
+        ind1 <- 1
+        ind2 <- n
       } else if (n > kNumLobes && n < 2*kNumLobes) {
-        FIRST <- 2
-        SECOND <- n - kNumLobes
+        ind1 <- 2
+        ind2 <- n - kNumLobes
       } else {
-        FIRST <- which(cumsum(sapply(combos, ncol)) %/% n >= 1)[1]
-        SECOND <- ncol(combos[[FIRST]]) - (cumsum(sapply(combos, ncol)) %% n)[FIRST]
+        ind1 <- which(cumsum(sapply(combos, ncol)) %/% n >= 1)[1]
+        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% n)[ind1]
       }
-      memb.alt <- apply(sapply(combos[[FIRST]][, SECOND], function(x) V(g)$lobe == x), 1, any)
-      g <- induced.subgraph(g, memb.alt)
+      memb <- apply(sapply(combos[[ind1]][, ind2],
+                           function(x) V(g)$lobe == x), 1, any)
+      g <- induced.subgraph(g, memb)
     }
     Nv <- vcount(g)
 
@@ -77,13 +78,13 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       plot.over.brain.sagittal(0, hemi='left', z=30)
       if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
         g <- induced.subgraph(g, seq(1, Nv, 2))
-        layout.g <- matrix(c(-atlas.list$brainnet.coords[, 2],
-                             atlas.list$brainnet.coords[, 3]),
+        layout.g <- matrix(c(-atlas.list$brainnet.coords[seq(1, Nv, 2), 2],
+                             atlas.list$brainnet.coords[seq(1, Nv, 2), 3]),
                            ncol=2, byrow=F)
       } else {
         g <- induced.subgraph(g, 1:(Nv/2))
-        layout.g <- matrix(c(-atlas.list$brainnet.coords[, 2],
-                             atlas.list$brainnet.coords[, 3]),
+        layout.g <- matrix(c(-atlas.list$brainnet.coords[1:(Nv/2), 2],
+                             atlas.list$brainnet.coords[1:(Nv/2), 3]),
                            ncol=2, byrow=F)
       }
       xlim.g <- c(-85, 110)
@@ -97,13 +98,13 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       plot.over.brain.sagittal(0, hemi='right', z=30)
       if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
         g <- induced.subgraph(g, seq(2, Nv, 2))
-        layout.g <- matrix(c(atlas.list$brainnet.coords[, 2],
-                             atlas.list$brainnet.coords[, 3]),
+        layout.g <- matrix(c(atlas.list$brainnet.coords[seq(2, Nv, 2), 2],
+                             atlas.list$brainnet.coords[seq(2, Nv, 2), 3]),
                            ncol=2, byrow=F)
       } else {
         g <- induced.subgraph(g, ((Nv/2 + 1):Nv))
-        layout.g <- matrix(c(atlas.list$brainnet.coords[, 2],
-                             atlas.list$brainnet.coords[, 3]),
+        layout.g <- matrix(c(atlas.list$brainnet.coords[((Nv/2 + 1):Nv), 2],
+                             atlas.list$brainnet.coords[((Nv/2 + 1):Nv), 3]),
                            ncol=2, byrow=F)
       }
       xlim.g <- c(-125, 85)
@@ -117,7 +118,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       par(bg='white')
       # Hemisphere to plot
       circ <- V(g)$circle.layout
-      lobe <- V(g)$lobe
 
       # Both hemispheres
       if (hemi$getActive()+1 == 1) {
@@ -148,15 +148,9 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
         }
       }
 
-      for (att in list.graph.attributes(sg)) {
-        sg <- remove.graph.attribute(sg, att)
-      }
-      for (att in list.vertex.attributes(sg)) {
-        sg <- remove.vertex.attribute(sg, att)
-      }
-      for (att in list.edge.attributes(sg)) {
-        sg <- remove.edge.attribute(sg, att)
-      }
+      for (att in list.graph.attributes(sg)) sg <- remove.graph.attribute(sg, att)
+      for (att in list.vertex.attributes(sg)) sg <- remove.vertex.attribute(sg, att)
+      for (att in list.edge.attributes(sg)) sg <- remove.edge.attribute(sg, att)
 
       V(sg)$name <- V(g)$name
       g <- graph.intersection(g, sg)
