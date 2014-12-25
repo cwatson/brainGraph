@@ -11,9 +11,5 @@
 #' @return A vector of the transformed input.
 
 range.transform <- function(x, min.val=0, max.val=1) {
-  if (max.val==1) {
-    (x - min(x)) / diff(range(x))
-  } else {
-    ((x - min(x)) * (max.val-1) / diff(range(x))) + min.val
-  }
+  ((x - min(x)) * (max.val - min.val) / diff(range(x))) + min.val
 }

@@ -9,7 +9,9 @@
 plot.adj.gui <- function() {
   window <- gtkWindow('toplevel')
   window['title'] <- 'brainGraph'
-  window['icon'] <- gdkPixbuf(filename='/home/cwatson/Dropbox/projects/brainGraph_icon.png')
+  window['icon'] <- gdkPixbuf(filename=system.file('include',
+                                                   'brainGraph_icon.png',
+                                                   package='brainGraph')
 
   #=============================================================================
   # Add a menubar
