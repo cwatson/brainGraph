@@ -43,9 +43,9 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     atlas.list <- eval(parse(text=atlas))
     Nv <- vcount(g)
 
-    #=================================
+    #=======================================================
     # Lobe to plot
-    #=================================
+    #=======================================================
     if (lobe$getActive() > 0) {
       kNumLobes <- length(atlas.list$lobe.names)
       combos <- sapply(seq_len(kNumLobes - 1),
@@ -74,11 +74,11 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
     V(sg.lobe)$name <- V(g)$name[memb.lobe]
 
-    #====================================================
+    #=======================================================
     # Hemisphere to plot
-    #====================================================
-    # Both hemispheres
+    #=======================================================
     if (hemi$getActive() == 0) {
+      # Both hemispheres
       sg.hemi <- g
       memb.hemi <- seq_len(Nv)
 
@@ -131,7 +131,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
 
-    #---------------------------------
     # Plot the left sagittal only
     #---------------------------------
     } else if (orient$getActive() == 1) {
@@ -144,7 +143,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ylim.g <- c(-85, 125)
       mult <- 100
 
-    #---------------------------------
     # Plot the right sagittal only
     #---------------------------------
     } else if (orient$getActive() == 2) {
@@ -157,7 +155,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ylim.g <- c(-85, 125)
       mult <- 100
 
-    #---------------------------------
     # Plot in a circular layout
     #---------------------------------
     } else if (orient$getActive() == 3) {
@@ -175,11 +172,14 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     # Show vertex labels?
     if (vertLabels$active == FALSE) {
-      vertex.label <- NA
-      vertex.label.cex <- NA
+      vlabel <- vlabel.cex <- vlabel.dist <- NA
+      vlabel.color <- vlabel.font <- NA
     } else {
-      vertex.label <- V(g)$name
-      vertex.label.cex <- 0.75
+      vlabel <- V(g)$name
+      vlabel.cex <- 0.75
+      vlabel.dist <- ifelse(V(g)$degree >= 10, 0, 0.75)
+      vlabel.color <- 'black'
+      vlabel.font <- 2
     }
     # Vertex & edge colors
     vertex.color <- switch(vertColor$getActive() + 1,
@@ -222,11 +222,11 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     if (identical(plotFunc, plot.community)) {
       cNum <- comm$getActive() + 1
       plotFunc(g, n=cNum,
-               vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
-               vertex.size=vsize,
-               edge.width=ewidth,
-               vertex.color=vertex.color,
-               edge.color=edge.color)
+               vertex.label=vlabel, vertex.label.cex=vlabel.cex,
+               vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
+               vertex.label.color=vlabel.color,
+               vertex.size=vsize, edge.width=ewidth,
+               vertex.color=vertex.color, edge.color=edge.color)
     }
 
     # Vertex neighborhood, if applicable
@@ -238,7 +238,9 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
         edge.color <- E(g)$color <- 'red'
       }
       plotFunc(g, n=n,
-               vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
+               vertex.label=vlabel, vertex.label.cex=vlabel.cex,
+               vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
+               vertex.label.color=vlabel.color,
                vertex.size=vsize, edge.width=ewidth,
                vertex.color=vertex.color, edge.color=edge.color)
     }
@@ -256,7 +258,9 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       }
 
       plotFunc(g,
-               vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
+               vertex.label=vlabel, vertex.label.cex=vlabel.cex,
+               vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
+               vertex.label.color=vlabel.color,
                vertex.size=vsize, edge.width=ewidth,
                vertex.color=vertex.color, edge.color=edge.color,
                xlim=xlim.g, ylim=ylim.g,
@@ -291,20 +295,21 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       E(g.sub)$color <- 'deeppink'
       E(g.sub)$width <- 5
       V(g.sub)$size <- 10
-      #browser()
       plotFunc(g.sub, add=T, vertex.label=NA,
                xlim=xlim.g,
-               ylim=ylim.g)
+               ylim=ylim.g,
+               edge.curved=curv)
     }
 
     # Show edge differences?
     if (edgeDiffs$active == TRUE) {
       g.diff12 <- graph.difference(g, g2)
-      plot.adj(g.diff12, add=T,
+      plotFunc(g.diff12, add=T,
                vertex.label=NA, vertex.size=degree(g.diff12),
                vertex.color='deeppink',edge.color='deeppink', 
                edge.width=5,
-               layout=layout.g)
+               layout=layout.g,
+               edge.curved=curv)
     }
   }
   #=============================================================================
