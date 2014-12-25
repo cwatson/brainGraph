@@ -469,16 +469,31 @@ plot.adj.gui <- function() {
   # Slider for curvature of edges in circle plots
   slider <<- vector('list', length=2)
   orient_cb1 <- function(widget) {
-                if (widget$getActive() == 3) {
-                  slider[[1]] <<- gtkHScale(min=-1, max=1, step=0.05)
-                  vboxPlot[[1]]$packStart(slider[[1]], F, F, 0)
-                  slider[[1]]$setValue(0.25)
-                } else {
+                if (widget$getActive() == 1) {
+                  comboHemi$setActive(1)
+                  comboHemi$setSensitive(F)
                   kNumChildren <- length(vboxPlot[[1]]$getChildren())
                   if (kNumChildren > 1) {
                     for (i in 2:kNumChildren) vboxPlot[[1]][[i]]$destroy()
                   }
-                  #slider[[1]] <<- NULL
+                } else if (widget$getActive() == 2) {
+                  comboHemi$setActive(2)
+                  comboHemi$setSensitive(F)
+                  kNumChildren <- length(vboxPlot[[1]]$getChildren())
+                  if (kNumChildren > 1) {
+                    for (i in 2:kNumChildren) vboxPlot[[1]][[i]]$destroy()
+                  }
+                } else if (widget$getActive() == 3) {
+                  comboHemi$setSensitive(T)
+                  slider[[1]] <<- gtkHScale(min=-1, max=1, step=0.05)
+                  vboxPlot[[1]]$packStart(slider[[1]], F, F, 0)
+                  slider[[1]]$setValue(0.25)
+                } else {
+                  comboHemi$setSensitive(T)
+                  kNumChildren <- length(vboxPlot[[1]]$getChildren())
+                  if (kNumChildren > 1) {
+                    for (i in 2:kNumChildren) vboxPlot[[1]][[i]]$destroy()
+                  }
                 }
   }
   gSignalConnect(comboOrient[[1]], 'changed', orient_cb1)
@@ -492,11 +507,9 @@ plot.adj.gui <- function() {
                   if (kNumChildren > 1) {
                     for (i in 2:kNumChildren) vboxPlot[[2]][[i]]$destroy()
                   }
-                  #slider[[2]] <<- NULL
                 }
   }
   gSignalConnect(comboOrient[[2]], 'changed', orient_cb2)
-  #browser()
 
   #-----------------------------------------------------------------------------
   # Add buttons

@@ -7,7 +7,7 @@
   indices for the major lobes of the brain.
 }
 \usage{dk}
-\format{List, 17 elements}
+\format{List, 21 elements}
 \references{
   Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An automated
   labeling system for subdividing the human cerebral cortex on MRI scans into

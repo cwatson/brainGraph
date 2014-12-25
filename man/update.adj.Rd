@@ -4,10 +4,52 @@
 \alias{update.adj}
 \title{Function to dynamically plot a graph}
 \usage{
-\method{update}{adj}(graphname1, graphname2, vertLabels, vertSize, edgeWidth,
-  edgeDiffs, vertColor, firstplot, secondplot, vertSize.const = NULL,
-  plotFunc, comm = NULL, comboNeighb, hemi, lobe, orient1, orient2,
-  showDiameter, slider1, slider2)
+update.adj(graphname1, graphname2, vertLabels, vertSize, edgeWidth, edgeDiffs,
+  vertColor, firstplot, secondplot, vertSize.const = NULL, plotFunc,
+  comm = NULL, comboNeighb, hemi, lobe, orient1, orient2, showDiameter,
+  slider1, slider2)
+}
+\arguments{
+\item{graphname1}{A GTK entry for the first plotting area}
+
+\item{graphname2}{A GTK entry for the second plotting area}
+
+\item{vertLabels}{A GTK check button for showing vertex labels}
+
+\item{vertSize}{A GTK combo box for scaling vertex size}
+
+\item{edgeWidth}{A GTK entry for changing edge width}
+
+\item{edgeDiffs}{A GTK check button for showing edge differences between
+graphs}
+
+\item{vertColor}{A GTK combo box for changing vertex colors}
+
+\item{firstplot}{A Cairo device for the first plotting area}
+
+\item{secondplot}{A Cairo device for the second plotting area}
+
+\item{vertSize.const}{A GTK entry for constant vertex size}
+
+\item{plotFunc}{A function specifying which type of plot to use}
+
+\item{comm}{A GTK combo box for plotting individual communities}
+
+\item{comboNeighb}{A GTK combo box for plotting individual neighborhoods}
+
+\item{hemi}{A GTK combo box for plotting individual hemispheres}
+
+\item{lobe}{A GTK combo box for plotting individual lobes}
+
+\item{orient1}{A GTK combo box for plotting a specific orientation}
+
+\item{orient2}{A GTK combo box for plotting a specific orientation}
+
+\item{showDiameter}{A GTK check button for showing the graph's diameter}
+
+\item{slider1}{A GTK horizontal slider widget for changing edge curvature}
+
+\item{slider2}{A GTK horizontal slider widget for changing edge curvature}
 }
 \description{
 This function is called by \link{plot.adj.gui} to update a plot on-the-fly.

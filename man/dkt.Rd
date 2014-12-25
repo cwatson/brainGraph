@@ -7,7 +7,7 @@
   indices for the major lobes of the brain.
 }
 \usage{dkt}
-\format{List, 17 elements}
+\format{List, 21 elements}
 \references{
   Klein A. and Tourville J. (2012) \emph{101 labeled brain images and a
   consistent human cortical labeling protocol}. Front Neurosci,

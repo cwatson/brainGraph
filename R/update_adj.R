@@ -2,11 +2,35 @@
 #'
 #' This function is called by \link{plot.adj.gui} to update a plot on-the-fly.
 #' It updates both of the plots by calling the helper function "make.plot".
+#'
+#' @param graphname1 A GTK entry for the first plotting area
+#' @param graphname2 A GTK entry for the second plotting area
+#' @param vertLabels A GTK check button for showing vertex labels
+#' @param vertSize A GTK combo box for scaling vertex size
+#' @param edgeWidth A GTK entry for changing edge width
+#' @param edgeDiffs A GTK check button for showing edge differences between
+#' graphs
+#' @param vertColor A GTK combo box for changing vertex colors
+#' @param firstplot A Cairo device for the first plotting area
+#' @param secondplot A Cairo device for the second plotting area
+#' @param vertSize.const A GTK entry for constant vertex size
+#' @param plotFunc A function specifying which type of plot to use
+#' @param comm A GTK combo box for plotting individual communities
+#' @param comboNeighb A GTK combo box for plotting individual neighborhoods
+#' @param hemi A GTK combo box for plotting individual hemispheres
+#' @param lobe A GTK combo box for plotting individual lobes
+#' @param orient1 A GTK combo box for plotting a specific orientation
+#' @param orient2 A GTK combo box for plotting a specific orientation
+#' @param showDiameter A GTK check button for showing the graph's diameter
+#' @param slider1 A GTK horizontal slider widget for changing edge curvature
+#' @param slider2 A GTK horizontal slider widget for changing edge curvature
+#'
+#' @export
 
 update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
-                       vertSize.const=NULL, plotFunc, comm=NULL, comboNeighb, hemi,
-                       lobe, orient1, orient2, showDiameter,
+                       vertSize.const=NULL, plotFunc, comm=NULL, comboNeighb,
+                       hemi, lobe, orient1, orient2, showDiameter,
                        slider1, slider2) {
   #===========================================================================
   #===========================================================================
@@ -17,6 +41,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     dev.set(dev)
     atlas <- g$atlas
     atlas.list <- eval(parse(text=atlas))
+    Nv <- vcount(g)
 
     #=================================
     # Lobe to plot
@@ -25,7 +50,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       kNumLobes <- length(atlas.list$lobe.names)
       combos <- sapply(seq_len(kNumLobes - 1),
                        function(x) combn(seq_along(atlas.list$lobe.names), x))
-
       n <- lobe$getActive()
       if (n <= kNumLobes) {
         ind1 <- 1
@@ -37,11 +61,63 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
         ind1 <- which(cumsum(sapply(combos, ncol)) %/% n >= 1)[1]
         ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% n)[ind1]
       }
-      memb <- apply(sapply(combos[[ind1]][, ind2],
+      memb.lobe <- apply(sapply(combos[[ind1]][, ind2],
                            function(x) V(g)$lobe == x), 1, any)
-      g <- induced.subgraph(g, memb)
+      sg.lobe <- induced.subgraph(g, memb.lobe)
+    } else {
+      memb.lobe <- rep(TRUE, Nv)
+      sg.lobe <- g
     }
-    Nv <- vcount(g)
+
+    for (att in graph_attr_names(sg.lobe)) sg.lobe <- delete_graph_attr(sg.lobe, att)
+    for (att in vertex_attr_names(sg.lobe)) sg.lobe <- delete_vertex_attr(sg.lobe, att)
+    for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
+    V(sg.lobe)$name <- V(g)$name[memb.lobe]
+
+    #====================================================
+    # Hemisphere to plot
+    #====================================================
+    # Both hemispheres
+    if (hemi$getActive() == 0) {
+      sg.hemi <- g
+      memb.hemi <- seq_len(Nv)
+
+    } else if (hemi$getActive() == 1) {
+      # LH only
+      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+        memb.hemi <- seq(1, Nv, 2)
+      } else {
+        memb.hemi <- 1:(Nv/2)
+      }
+      sg.hemi <- induced.subgraph(g, memb.hemi)
+
+    } else if (hemi$getActive() == 2) {
+      # RH only
+      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+        memb.hemi <- seq(2, Nv, 2)
+      } else {
+        memb.hemi <- (Nv/2  + 1):Nv
+      }
+      sg.hemi <- induced.subgraph(g, memb.hemi)
+
+    } else if (hemi$getActive() == 3) {
+      # Interhemispheric only
+      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+        sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
+      } else {
+        sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
+      }
+      memb.hemi <- seq_len(Nv)
+    }
+    for (att in graph_attr_names(sg.hemi)) sg.hemi <- delete_graph_attr(sg.hemi, att)
+    for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
+    for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
+    V(sg.hemi)$name <- V(g)$name[memb.hemi]
+
+    g <- g %s% (sg.lobe %s% sg.hemi)
+    if (orient$getActive() != 3) {
+      g <- g - vertices(setdiff(seq_len(Nv), intersect(which(memb.lobe), memb.hemi)))
+    }
 
     #====================================================
     #====================================================
@@ -50,22 +126,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     if (orient$getActive() == 0) {
       plot.over.brain.axial(0)
-      # Hemisphere to plot
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-        g <- switch(hemi$getActive()+1,
-          g,
-          induced.subgraph(g, seq(1, Nv, 2)),
-          induced.subgraph(g, seq(2, Nv, 2)),
-          subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
-        )
-      } else {
-        g <- switch(hemi$getActive()+1,
-          g,
-          induced.subgraph(g, 1:(Nv/2)),
-          induced.subgraph(g, (Nv/2 + 1):Nv),
-          subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-        )
-      }
       layout.g <- cbind(V(g)$x, V(g)$y)
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
@@ -76,17 +136,10 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #---------------------------------
     } else if (orient$getActive() == 1) {
       plot.over.brain.sagittal(0, hemi='left', z=30)
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-        g <- induced.subgraph(g, seq(1, Nv, 2))
-        layout.g <- matrix(c(-atlas.list$brainnet.coords[seq(1, Nv, 2), 2],
-                             atlas.list$brainnet.coords[seq(1, Nv, 2), 3]),
-                           ncol=2, byrow=F)
-      } else {
-        g <- induced.subgraph(g, 1:(Nv/2))
-        layout.g <- matrix(c(-atlas.list$brainnet.coords[1:(Nv/2), 2],
-                             atlas.list$brainnet.coords[1:(Nv/2), 3]),
-                           ncol=2, byrow=F)
-      }
+      cur.vertices <- intersect(which(memb.lobe), memb.hemi)
+      layout.g <- matrix(c(-atlas.list$brainnet.coords[cur.vertices, 2],
+                           atlas.list$brainnet.coords[cur.vertices, 3]),
+                         ncol=2, byrow=F)
       xlim.g <- c(-85, 110)
       ylim.g <- c(-85, 125)
       mult <- 100
@@ -96,17 +149,10 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #---------------------------------
     } else if (orient$getActive() == 2) {
       plot.over.brain.sagittal(0, hemi='right', z=30)
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-        g <- induced.subgraph(g, seq(2, Nv, 2))
-        layout.g <- matrix(c(atlas.list$brainnet.coords[seq(2, Nv, 2), 2],
-                             atlas.list$brainnet.coords[seq(2, Nv, 2), 3]),
-                           ncol=2, byrow=F)
-      } else {
-        g <- induced.subgraph(g, ((Nv/2 + 1):Nv))
-        layout.g <- matrix(c(atlas.list$brainnet.coords[((Nv/2 + 1):Nv), 2],
-                             atlas.list$brainnet.coords[((Nv/2 + 1):Nv), 3]),
-                           ncol=2, byrow=F)
-      }
+      cur.vertices <- intersect(which(memb.lobe), memb.hemi)
+      layout.g <- matrix(c(atlas.list$brainnet.coords[cur.vertices, 2],
+                           atlas.list$brainnet.coords[cur.vertices, 3]),
+                         ncol=2, byrow=F)
       xlim.g <- c(-125, 85)
       ylim.g <- c(-85, 125)
       mult <- 100
@@ -116,51 +162,15 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #---------------------------------
     } else if (orient$getActive() == 3) {
       par(bg='white')
-      # Hemisphere to plot
       circ <- V(g)$circle.layout
 
-      # Both hemispheres
-      if (hemi$getActive()+1 == 1) {
-        sg <- g
-
-      } else if (hemi$getActive()+1 == 2) {
-        # LH only
-        if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(1, Nv, 2)])
-        } else {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% 1:(Nv/2)])
-        }
-
-      } else if (hemi$getActive()+1 == 3) {
-        # RH only
-        if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[seq(2, Nv, 2) %--% seq(2, Nv, 2)])
-        } else {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[(Nv/2 + 1):Nv %--% (Nv/2 + 1):Nv])
-        }
-
-      } else if (hemi$getActive()+1 == 4) {
-        # Interhemispheric only
-        if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
-        } else {
-          sg <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
-        }
-      }
-
-      for (att in list.graph.attributes(sg)) sg <- remove.graph.attribute(sg, att)
-      for (att in list.vertex.attributes(sg)) sg <- remove.vertex.attribute(sg, att)
-      for (att in list.edge.attributes(sg)) sg <- remove.edge.attribute(sg, att)
-
-      V(sg)$name <- V(g)$name
-      g <- graph.intersection(g, sg)
       layout.g <- rotation(layout.circle(g, order=circ), -pi/2)
-      mult <- 1
       xlim.g <- c(-1.25, 1.25)
       ylim.g <- c(-1.25, 1.25)
+      mult <- 1
     }
-    #====================================================
-    #====================================================
+    #=======================================================
+    #=======================================================
     par(pty='s', mar=rep(0, 4))
 
     # Show vertex labels?
@@ -222,18 +232,15 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Vertex neighborhood, if applicable
     if (identical(plotFunc, plot.neighborhood)) {
       n <- comboNeighb$getActive() + 1
-      if (vertColor$getActive() + 1 == 1) {
+      if (vertColor$getActive() == 0) {
         vertex.color <- V(g)$color <- rep('lightblue3', Nv)
         vertex.color[n] <- V(g)[n]$color <- 'yellow'
         edge.color <- E(g)$color <- 'red'
       }
       plotFunc(g, n=n,
-               vertex.label=vertex.label,
-               vertex.label.cex=vertex.label.cex,
-               vertex.size=vsize,
-               edge.width=ewidth,
-               vertex.color=vertex.color,
-               edge.color=edge.color)
+               vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
+               vertex.size=vsize, edge.width=ewidth,
+               vertex.color=vertex.color, edge.color=edge.color)
     }
 
     if (identical(plotFunc, plot.adj)) {
@@ -242,7 +249,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       }
 
       # Slider for curvature of edges in circle plots
-      #if (!is.null(the.slider)) {
       if (length(class(the.slider)) > 1) {
         curv <- the.slider$getValue()
       } else {
@@ -251,12 +257,9 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
       plotFunc(g,
                vertex.label=vertex.label, vertex.label.cex=vertex.label.cex,
-               vertex.size=vsize,
-               edge.width=ewidth,
-               vertex.color=vertex.color,
-               edge.color=edge.color,
-               xlim=xlim.g,
-               ylim=ylim.g,
+               vertex.size=vsize, edge.width=ewidth,
+               vertex.color=vertex.color, edge.color=edge.color,
+               xlim=xlim.g, ylim=ylim.g,
                layout=layout.g,
                edge.curved=curv)
     }
@@ -304,7 +307,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                layout=layout.g)
     }
   }
-
+  #=============================================================================
   graph1 <- eval(parse(text=graphname1$getText()))
   graph2 <- eval(parse(text=graphname2$getText()))
   if (!is.igraph(graph1)) {
