@@ -15,17 +15,22 @@
 #' Theory and Experiment, 02, P02001.
 
 part.coeff <- function(g, community.mem) {
-  Nv <- vcount(g)
+  if ('degree' %in% vertex_attr_names(g)) {
+    degrees <- V(g)$degree
+  } else {
+    degrees <- degree(g)
+  }
+  Nv <- length(degrees)
   Nc <- max(community.mem)
-  degrees <- degree(g)
   vertices <- unname(which(degrees != 0))
 
   PC <- vector(length=Nv)
   PC2 <- vector('list', length=length(vertices))
 
+  edges <- E(g)
   PC2 <- foreach (i=seq_along(vertices)) %dopar% {
     Kis <- vapply(seq_len(Nc), function(x)
-                  length(E(g)[vertices[i] %--% which(community.mem==x)]),
+                  length(edges[vertices[i] %--% which(community.mem==x)]),
                   integer(1))
     Ki <- degrees[vertices[i]]
     1 - sum((Kis/Ki)^2)
@@ -35,5 +40,4 @@ part.coeff <- function(g, community.mem) {
   PC <- ifelse(is.nan(PC), 0, PC)
   names(PC) <- V(g)$name
   return(PC)
-
 }

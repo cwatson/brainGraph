@@ -24,31 +24,29 @@ plot.adj.gui <- function() {
     dialog <- gtkFileChooserDialog('Enter a name for the file', window, 'save',
                                    'gtk-cancel', GtkResponseType['cancel'],
                                    'gtk-save', GtkResponseType['accept'])
-    fileFilter <- gtkFileFilter()
-    fileFilter$addPattern('*.png')
-    dialog$addFilter(fileFilter)
     gSignalConnect(dialog, 'response', function(dialog, response) {
-                 if(response == GtkResponseType['accept']) {
+                   if(response == GtkResponseType['accept']) {
                      fname <- dialog$getFilename()
                      dev.set(plot.dev)
                      dev.copy(png, fname)
                      dev.off()
-                 }
-                 dialog$destroy()
-              })
+                   }
+                  dialog$destroy()
+                  })
   }
   save_cb2 <- function(widget, window, plot.dev=gui.params$plot2) {
     dialog <- gtkFileChooserDialog('Enter a name for the file', window, 'save',
                                    'gtk-cancel', GtkResponseType['cancel'],
                                    'gtk-save', GtkResponseType['accept'])
-    #dialog$setDoOverwriteConfirmation(TRUE)
-    if (dialog$run() == GtkResponseType['accept']) {
-      fname <- dialog$getFilename()
-      dev.set(plot.dev)
-      dev.copy(png, fname)
-      dev.off()
-    }
-    dialog$destroy()
+    gSignalConnect(dialog, 'response', function(dialog, response) {
+                   if(response == GtkResponseType['accept']) {
+                     fname <- dialog$getFilename()
+                     dev.set(plot.dev)
+                     dev.copy(png, fname)
+                     dev.off()
+                   }
+                 dialog$destroy()
+                 })
   }
   quit_cb <- function(widget, window) window$destroy()
 
@@ -67,6 +65,7 @@ plot.adj.gui <- function() {
   # Callback functions for the "Plot" menu
   #---------------------------------------------------------
   plot_entire_cb <- function(widget, window) {
+    plotFunc <<- plot.adj
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     kNumChildren <- length(window[[1]]$getChildren())
     if (kNumChildren > 1) {
@@ -76,7 +75,6 @@ plot.adj.gui <- function() {
     window[[1]]$add(hboxMain)
     gui.params <<- build.gui(hboxMain)
 
-    plotFunc <<- plot.adj
     comboComm <<- NULL
     comboNeighb <<- NULL
   }
@@ -147,21 +145,16 @@ plot.adj.gui <- function() {
     # Check if the text in the boxes represent igraph objects
     if (!gui.params$graphname[[1]]$getText() == '') {
       graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
-      c1 <- which(rev(sort(table(V(graph1)$comm))) > 1)
+      c1 <- which(rev(sort(table(V(graph1)$comm))) > 2)
       if (!gui.params$graphname[[2]]$getText() == '') {
         graph2 <- eval(parse(text=gui.params$graphname[[2]]$getText()))
-        c2 <- which(rev(sort(table(V(graph2)$comm))) > 1)
+        c2 <- which(rev(sort(table(V(graph2)$comm))) > 2)
         choicesComm <- intersect(c1, c2)
       } else {
         choicesComm <- unique(V(graph1)$comm)
       }
       for (choice in choicesComm) comboComm$appendText(choice)
       comboComm$setActive(0)
-    } else {
-      choicesComm <- NULL
-      comboComm$appendText(choicesComm)
-      comboComm$setActive(0)
-      comboComm$setSensitive(F)
     }
     comboComm$setSensitive(T)
 
@@ -340,7 +333,7 @@ plot.adj.gui <- function() {
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
                'Subgraph centrality', 'Coreness',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.',
-               'Within-module degree z-score', 'Hub score')
+               'Within-module degree z-score', 'Hub score', 'Other')
   comboVsize <- gtkComboBoxNewText()
   comboVsize$show()
   for (choice in choices) comboVsize$appendText(choice)
@@ -356,11 +349,25 @@ plot.adj.gui <- function() {
   hboxVsize$packStart(vertSize.const, F, F, 0)
   vertSize.const$setSensitive(F)
 
+  hboxVsizeOther <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxVsizeOther, F, F, 0)
+  label <- gtkLabelNewWithMnemonic(paste0('\t\t', 'Other:'))
+  hboxVsizeOther$packStart(label, F, F, 0)
+  vertSize.other <- gtkEntryNew()
+  vertSize.other$setWidthChars(10)
+  hboxVsizeOther$packStart(vertSize.other, F, F, 0)
+  vertSize.other$setSensitive(F)
+
   gSignalConnect(comboVsize, 'changed', function(comboVsize, ...) {
       if (comboVsize$getActive() == 0) {
         vertSize.const$setSensitive(T)
+        vertSize.other$setSensitive(F)
+      } else if (comboVsize$getActive() == 11) {
+        vertSize.const$setSensitive(F)
+        vertSize.other$setSensitive(T)
       } else {
         vertSize.const$setSensitive(F)
+        vertSize.other$setSensitive(F)
       }
     })
 
@@ -531,7 +538,8 @@ plot.adj.gui <- function() {
                                    orient1=comboOrient[[1]],
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
-                                   slider1=slider[[1]], slider2=slider[[2]]))
+                                   slider1=slider[[1]], slider2=slider[[2]],
+                                   vertSize.other))
   the.buttons$packStart(buttonOK, fill=F)
 
   container$showAll()

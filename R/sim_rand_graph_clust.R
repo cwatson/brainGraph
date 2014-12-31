@@ -6,21 +6,21 @@
 #'
 #' @param graph The graph from which null graphs are simulated
 #' @param d The degree sequence
-#' @param c The clustering measure (clustering coeff, transitivity, etc.)
+#' @param cl The clustering measure (clustering coeff, transitivity, etc.)
 #' @export
 #'
 #' @return A random graph
 #'
 #' @seealso \code{\link{degree.sequence.game}, \link{choose.edges},
-#' \link{rewire}, \link{transitivity}}
+#' \link{rewire}, \link{transitivity}, \link{keeping_degseq}}
 
-sim.rand.graph.clust <- function(graph, d, c) {
+sim.rand.graph.clust <- function(graph, d, cl) {
   #g <- degree.sequence.game(d, method='simple.no.multiple')
-  g <- rewire(graph, 'simple', 1e4)
+  g <- rewire(graph, keeping_degseq(loops=F, 1e4))
 
   #g.all <- vector('list')
 
-  while (transitivity(g) < c) {
+  while (g$transitivity < cl) {
     m <- 1
     repeat {
       g.cand <- g
@@ -30,12 +30,12 @@ sim.rand.graph.clust <- function(graph, d, c) {
       repeat {
         n <- n + 1
         if (n >= 100) {
-          g.cand <- rewire(graph, 'simple', 1e4)
+          g.cand <- rewire(graph, keeping_degseq(loops=F, 1e4))
           n <- 1
         }
         e <- choose.edges(g.cand)
-        if ( (length(E(g.cand)[e$y1 %--% e$y2]) == 0) &&
-             (length(E(g.cand)[e$z1 %--% e$z2]) == 0) &&
+        if ( (!are.connected(g.cand, e$y1, e$y2)) &&
+             (!are.connected(g.cand, e$z1, e$z2)) &&
              (e$y1 != e$y2) && (e$z1 != e$z2) ) {
           break
         }
@@ -49,7 +49,7 @@ sim.rand.graph.clust <- function(graph, d, c) {
 
       m <- m + 1
       if (m %% 100 == 0) {
-        g.cand <- rewire(graph, 'simple', 1e4)
+        g.cand <- rewire(graph, keeping_degseq(loops=F, 1e4))
         m <- 1
         n <- 1
       }

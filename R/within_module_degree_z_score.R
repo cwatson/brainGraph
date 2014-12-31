@@ -17,16 +17,22 @@
 #' Theory and Experiment, 02, P02001.
 
 within.module.deg.z.score <- function(g, community.mem) {
-  Nv <- vcount(g)
-  vs <- unname(which(degree(g) != 0))
+  if ('degree' %in% vertex_attr_names(g)) {
+    degs <- V(g)$degree
+  } else {
+    degs <- degree(g)
+  }
+  Nv <- length(degs)
+  vs <- unname(which(degs != 0))
 
   zs <- vector(length=Nv)
   zs2 <- vector('list', length=length(vs))
 
+  edges <- E(g)
   zs2 <- foreach (i=seq_along(vs)) %dopar% {
     si <- which(community.mem==community.mem[vs[i]])
-    K <- vapply(si, function(x) length(E(g)[x %--% si]), numeric(1))
-    Ki <- length(E(g)[vs[i] %--% si])
+    K <- vapply(si, function(x) length(edges[x %--% si]), numeric(1))
+    Ki <- length(edges[vs[i] %--% si])
     (Ki - mean(K)) / sd(K)
   }
 

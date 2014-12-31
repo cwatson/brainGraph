@@ -28,7 +28,7 @@ sim.rand.graph.par <- function(g, N, clustering=TRUE) {
   } else {
     r <- foreach(i=seq_len(N),
                  .packages=c('igraph', 'brainGraph')) %dopar% {
-      tmp <- rewire(g, 'simple', 1e4)
+      tmp <- rewire(g, keeping_degseq(loops=F, 1e4))
       tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
       tmp
     }

@@ -15,7 +15,7 @@
 
 choose.edges <- function(g) {
   degs <- degree(g)
-  degs.large <- which(degs > 1)
+  degs.large <- as.integer(which(degs > 1))
    
   #=============================================================================
   # Uniformly select random node with degree > 1
@@ -42,7 +42,7 @@ choose.edges <- function(g) {
   # Uniformly select a random neighbor from the y's with degree > 1
   #=============================================================================
   get.neighbors.z1 <- function(graph, node, degrees, y1) {
-    y1.neighb <- neighbors(graph, y1)
+    y1.neighb <- as.integer(neighbors(graph, y1))
     repeat {
       z1 <- y1.neighb[sample(length(y1.neighb), 1)]
       if (z1 != node) {
@@ -53,7 +53,7 @@ choose.edges <- function(g) {
   #=============================================================================
   get.neighbors.z2 <- function(graph, node, degrees, degrees.large, y2, z1) {
     iter <- 0
-    y2.neighb <- neighbors(graph, y2)
+    y2.neighb <- as.integer(neighbors(graph, y2))
     repeat {
       z2 <- y2.neighb[sample(length(y2.neighb), 1)] 
       iter <- iter + 1

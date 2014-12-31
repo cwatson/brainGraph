@@ -17,15 +17,20 @@
 #' in the internet topology}. IEEE Comm Lett, 8:180-182.
 
 rich.club.coeff <- function(g, k) {
+  if ('degree' %in% vertex_attr_names(g)) {
+    degs <- V(g)$degree
+  } else {
+    degs <- degree(g)
+  }
   Nv <- vcount(g)
-  Nk <- sum(degree(g) > k)
+  Nk <- sum(degs > k)
   if (Nk == 0) {
     list(coeff=NaN, graph=graph.empty(), Nk=0, Ek=0)
   } else {
-    rich.club.nodes <- order(degree(g))[(Nv - Nk + 1):Nv]
+    rich.club.nodes <- order(degs)[(Nv - Nk + 1):Nv]
     rich.club.graph <- induced.subgraph(g, rich.club.nodes)
     Ek <- ecount(rich.club.graph)
-    phi <- (2 * Ek) / (Nk * (Nk - 1))
+    phi <- graph.density(rich.club.graph)
     list(coeff=phi, graph=rich.club.graph, Nk=Nk, Ek=Ek)
   }
 }

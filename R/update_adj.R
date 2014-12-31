@@ -24,6 +24,7 @@
 #' @param showDiameter A GTK check button for showing the graph's diameter
 #' @param slider1 A GTK horizontal slider widget for changing edge curvature
 #' @param slider2 A GTK horizontal slider widget for changing edge curvature
+#' @param vertSize.other A GTK entry for vertex size (other attributes)
 #'
 #' @export
 
@@ -31,7 +32,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
                        vertSize.const=NULL, plotFunc, comm=NULL, comboNeighb,
                        hemi, lobe, orient1, orient2, showDiameter,
-                       slider1, slider2) {
+                       slider1, slider2, vertSize.other=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -197,12 +198,18 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     # Vertex sizes
     if (!vertSize.const$getSensitive()) {
-      V <- NULL
+      const <- NULL
+      if (!vertSize.other$getSensitive()) {
+        v.attr <- NULL
+      } else {
+        v.attr <- vertSize.other$getText()
+      }
     } else {
-      V <- eval(parse(text=vertSize.const$getText()))
+      const <- eval(parse(text=vertSize.const$getText()))
+      v.attr <- NULL
     }
     vsize <- switch(vertSize$getActive()+1,
-      mult*V,
+      mult*const,
       mult*V(g)$degree,
       mult*25*V(g)$ev.cent,
       mult*3*log1p(V(g)$btwn.cent)+.05,
@@ -210,9 +217,10 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       mult*V(g)$coreness,
       mult*20*V(g)$transitivity,
       mult*range.transform(V(g)$PC, 0, 15),
-      mult*range.transform(V(g)$l.eff, 0, 15),
+      mult*range.transform(V(g)$E.local, 0, 15),
       mult*ifelse(V(g)$z.score == 0, 0, range.transform(V(g)$z.score, 0, 15)),
-      mult*10*sqrt(V(g)$hub.score)
+      mult*10*sqrt(V(g)$hub.score),
+      mult*vertex_attr(g, v.attr)
     )
 
     # Edge width

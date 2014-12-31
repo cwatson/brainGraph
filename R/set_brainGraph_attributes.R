@@ -13,31 +13,32 @@
 #' @return g A copy of the same graph, with the following attributes:
 #' \item{Graph-level}{Atlas, density, connected component sizes, diameter,
 #' number of triangles, transitivity, average path length, assortativity,
-#' clique sizes, global efficiency, modularity, hub score, and rich-club
+#' clique sizes, global & local efficiency, modularity, hub score, and rich-club
 #' coefficient}
-#' \item{Vertex-level}{Degree, betweenness centrality, eigenvector centrality,
-#' transitivity (local), coreness, local efficiency, color (community), color
-#' (lobe), color (component), membership (community), membership (component),
-#' participation coefficient, within-module degree z-score, and coordinates (x,
-#' y, and z)}
+#' \item{Vertex-level}{Degree, strength, betweenness centrality, eigenvector
+#' centrality, transitivity (local), coreness, local & nodal efficiency, color
+#' (community), color (lobe), color (component), membership (community),
+#' membership (component), participation coefficient, within-module degree
+#' z-score, and coordinates (x, y, and z)}
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
 #' betweenness}
 #'
-#' @seealso \code{\link{clusters}, \link{graph.motifs}, \link{diameter},
+#' @seealso \code{\link{components}, \link{graph.motifs}, \link{diameter},
 #' \link{cliques}, \link{centralization.betweenness}, \link{edge.betweenness},
 #' \link{centralization.evcent}, \link{subgraph.centrality}, \link{hub.score},
 #' \link{authority.score}, \link{transitivity}, \link{average.path.length},
-#' \link{assortativity.degree}, \link{global.eff}, \link{local.eff},
-#' \link{rich.club.coeff}, \link{edge.betweenness.community}, \link{color.edges},
-#' \link{part.coeff}, \link{within.module.deg.z.score},\link{graph.coreness}}
+#' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
+#' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
+#' \link{within.module.deg.z.score},\link{graph.coreness}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
+  V(g)$degree <- degree(g)
   # Graph-level attributes
   #-----------------------------------------------------------------------------
   g$density <- round(graph.density(g), digits=3)
 
   # Connected components
-  clusts <- clusters(g)
+  clusts <- components(g)
   comps <- rev(table(clusts$csize))
   g$conn.comp <- data.frame(size=as.numeric(names(comps)),
                             number=unclass(unname(comps)))
@@ -45,15 +46,14 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   g$num.tri <- graph.motifs(g)[4]
   g$diameter <- diameter(g)
 
-  t <- transitivity(g, type='local')
   g$transitivity <- transitivity(g)
-  g$Cp <- mean(t, na.rm=T)
+  g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- average.path.length(g)
   g$assortativity <- assortativity.degree(g)
-  g$g.eff <- global.eff(g)
+  g$E.global <- graph.efficiency(g, type='global')
 
   # Get the rich club coeff for all possible degree values
-  R <- lapply(1:max(degree(g)), function(x) rich.club.coeff(g, x))
+  R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
   coef <- sapply(R, function(x) x$coeff)
   Nk <- sapply(R, function(x) x$Nk)
   Ek <- sapply(R, function(x) x$Ek)
@@ -125,14 +125,19 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$name <- rownames(coords)
   }
 
-  V(g)$degree <- degree(g)
+  if (is.weighted(g)) {
+    V(g)$strength <- graph.strength(g)
+  }
   V(g)$btwn.cent <- centralization.betweenness(g)$res
   V(g)$ev.cent <- centralization.evcent(g)$vector
   V(g)$subgraph.cent <- subgraph.centrality(g)
   V(g)$coreness <- graph.coreness(g)
 
-  V(g)$transitivity <- ifelse(is.nan(t), 0, t)
-  V(g)$l.eff <- local.eff(g)
+  V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
+
+  V(g)$E.local <- graph.efficiency(g, type='local')
+  V(g)$E.nodal <- graph.efficiency(g, type='nodal')
+  g$E.local <- mean(V(g)$E.local)
 
   # Calculate both the hub and authority scores for each vertex (if 'g' is directed)
   V(g)$hub.score <- hubs$vector
