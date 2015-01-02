@@ -297,14 +297,10 @@ plot.adj.gui <- function() {
   }
   #---------------------------------------------------------
 
-
-  # Add horizontal container to specify options
-  #---------------------------------------------------------
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
-
   # Should vertex labels be displayed?
   #---------------------------------------
+  hbox <- gtkHBoxNew(F, 8)
+  vbox$packStart(hbox, F, F, 0)
   label <- gtkLabelNewWithMnemonic('Display vertex labels?')
   hbox$packStart(label, F, F, 0)
   vertLabels <- gtkCheckButton()
@@ -326,8 +322,8 @@ plot.adj.gui <- function() {
   hboxVcolor$packStart(label, F, F, 0)
   hboxVcolor$add(comboVcolor)
    
+  #-----------------------------------------------------------------------------
   # Vertex size?
-  #---------------------------------------
   hboxVsize <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
@@ -370,18 +366,34 @@ plot.adj.gui <- function() {
         vertSize.other$setSensitive(F)
       }
     })
-
   #-----------------------------------------------------------------------------
   # Edge width?
-  hbox <- gtkHBoxNew(F, 8)
-  vbox$packStart(hbox, F, F, 0)
+  hboxEwidth <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxEwidth, F, F, 0)
+  choices <- c('Constant', 'Edge betweenness')
+  comboEwidth <- gtkComboBoxNewText()
+  comboEwidth$show()
+  for (choice in choices) comboEwidth$appendText(choice)
+  comboEwidth$setActive(1)
+
   label <- gtkLabelNewWithMnemonic('Edge width')
-  hbox$packStart(label, F, F, 0)
-  edgeWidth <- gtkEntryNew()
-  edgeWidth$setWidthChars(3)
-  edgeWidth$setText('1.5')
-  hbox$packStart(edgeWidth, F, F, 0)
-  label$setMnemonicWidget(edgeWidth)
+  hboxEwidth$packStart(label, F, F, 0)
+  hboxEwidth$add(comboEwidth)
+
+  edgeWidth.const <- gtkEntryNew()
+  edgeWidth.const$setWidthChars(3)
+  edgeWidth.const$setText('1')
+  hboxEwidth$packStart(edgeWidth.const, F, F, 0)
+  edgeWidth.const$setSensitive(F)
+
+  gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
+      if (widget$getActive() == 0) {
+        edgeWidth.const$setSensitive(T)
+      } else {
+        edgeWidth.const$setSensitive(F)
+      }
+    })
+  #-----------------------------------------------------------------------------
 
   # Highlight the diameter of each graph?
   hbox <- gtkHBoxNew(F, 8)
@@ -529,13 +541,13 @@ plot.adj.gui <- function() {
   gSignalConnect(buttonOK, 'clicked',
                  function(widget) update.adj(graphname[[1]], graphname[[2]],
                                    vertLabels, vertSize=comboVsize,
-                                   edgeWidth, edgeDiffs,
+                                   edgeWidth=comboEwidth, edgeDiffs,
                                    vertColor=comboVcolor,
                                    firstplot=groupplot[[1]],
                                    secondplot=groupplot[[2]],
-                                   vertSize.const, plotFunc,
-                                   comboNeighb=comboNeighb, hemi=comboHemi, lobe=comboLobe,
-                                   orient1=comboOrient[[1]],
+                                   vertSize.const, edgeWidth.const, plotFunc,
+                                   comboNeighb=comboNeighb, hemi=comboHemi,
+                                   lobe=comboLobe, orient1=comboOrient[[1]],
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],

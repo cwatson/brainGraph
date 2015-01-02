@@ -14,6 +14,7 @@
 #' @param firstplot A Cairo device for the first plotting area
 #' @param secondplot A Cairo device for the second plotting area
 #' @param vertSize.const A GTK entry for constant vertex size
+#' @param edgeWidth.const A GTK entry for constant width
 #' @param plotFunc A function specifying which type of plot to use
 #' @param comm A GTK combo box for plotting individual communities
 #' @param comboNeighb A GTK combo box for plotting individual neighborhoods
@@ -30,9 +31,9 @@
 
 update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
-                       vertSize.const=NULL, plotFunc, comm=NULL, comboNeighb,
-                       hemi, lobe, orient1, orient2, showDiameter,
-                       slider1, slider2, vertSize.other=NULL) {
+                       vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
+                       comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
+                       showDiameter, slider1, slider2, vertSize.other=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -127,7 +128,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     if (orient$getActive() == 0) {
       plot.over.brain.axial(0)
-      layout.g <- cbind(V(g)$x, V(g)$y)
+      #layout.g <- cbind(V(g)$x, V(g)$y)
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
@@ -140,6 +141,8 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       layout.g <- matrix(c(-atlas.list$brainnet.coords[cur.vertices, 2],
                            atlas.list$brainnet.coords[cur.vertices, 3]),
                          ncol=2, byrow=F)
+      V(g)$x <- layout.g[, 1]
+      V(g)$y <- layout.g[, 2]
       xlim.g <- c(-85, 110)
       ylim.g <- c(-85, 125)
       mult <- 100
@@ -152,6 +155,8 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       layout.g <- matrix(c(atlas.list$brainnet.coords[cur.vertices, 2],
                            atlas.list$brainnet.coords[cur.vertices, 3]),
                          ncol=2, byrow=F)
+      V(g)$x <- layout.g[, 1]
+      V(g)$y <- layout.g[, 2]
       xlim.g <- c(-125, 85)
       ylim.g <- c(-85, 125)
       mult <- 100
@@ -163,6 +168,8 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       circ <- V(g)$circle.layout
 
       layout.g <- rotation(layout.circle(g, order=circ), -pi/2)
+      V(g)$x <- layout.g[, 1]
+      V(g)$y <- layout.g[, 2]
       xlim.g <- c(-1.25, 1.25)
       ylim.g <- c(-1.25, 1.25)
       mult <- 1
@@ -224,7 +231,14 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     )
 
     # Edge width
-    ewidth <- eval(parse(text=edgeWidth$getText()))
+    if (!edgeWidth.const$getSensitive()) {
+      e.const <- NULL
+    } else {
+      e.const <- eval(parse(text=edgeWidth.const$getText()))
+    }
+    ewidth <- switch(edgeWidth$getActive() + 1,
+                     e.const,
+                     0.1 * E(g)$btwn)
 
     # Community number, if applicable
     if (identical(plotFunc, plot.community)) {
@@ -272,7 +286,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                vertex.size=vsize, edge.width=ewidth,
                vertex.color=vertex.color, edge.color=edge.color,
                xlim=xlim.g, ylim=ylim.g,
-               layout=layout.g,
+               #layout=layout.g,
                edge.curved=curv)
     }
 
@@ -298,14 +312,16 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     # Show the diameter of each graph?
     if (showDiameter$active == TRUE) {
-      g.sub <- induced.subgraph(g, get.diameter(g))
-      V(g.sub)$color <- 'deeppink'
-      E(g.sub)$color <- 'deeppink'
-      E(g.sub)$width <- 5
-      V(g.sub)$size <- 10
+      inds <- as.numeric(get.diameter(g))
+      es <- get.edge.ids(g, combn(inds, 2))
+      es <- es[which(es != 0)]
+      g.sub <- subgraph.edges(g, es)
+      #g.sub <- induced.subgraph(g, inds)
       plotFunc(g.sub, add=T, vertex.label=NA,
-               xlim=xlim.g,
-               ylim=ylim.g,
+               vertex.size=10, edge.width=5,
+               vertex.color='deeppink', edge.color='deeppink',
+               xlim=xlim.g, ylim=ylim.g,
+               #layout=layout.g[inds, ],
                edge.curved=curv)
     }
 
@@ -314,9 +330,10 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       g.diff12 <- graph.difference(g, g2)
       plotFunc(g.diff12, add=T,
                vertex.label=NA, vertex.size=degree(g.diff12),
-               vertex.color='deeppink',edge.color='deeppink', 
+               vertex.color='deeppink', edge.color='deeppink', 
                edge.width=5,
-               layout=layout.g,
+               xlim=xlim.g, ylim=ylim.g,
+               #layout=layout.g,
                edge.curved=curv)
     }
   }

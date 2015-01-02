@@ -38,8 +38,9 @@ graph.efficiency <- function(g, type='local') {
     )
   } else if (type == 'nodal') {
     Nv <- length(degs)
+    paths <- shortest.paths(g, weights=NA)
     eff <- simplify2array(mclapply(seq_len(Nv), function(x) {
-      path <- allpaths[x, ]
+      path <- paths[x, ]
       eff <- sum(1 / path[path != 0]) / (Nv - 1)
       }, mc.cores=detectCores())
     )

@@ -11,12 +11,16 @@
 plot.neighborhood <- function(g, n, ...) {
   g.sub <- graph.neighborhood(g, nodes=n, order=1)[[1]]
 
-  inds <- sort(c(n, neighbors(g, n)))
+  if (V(g)$degree[n] == 0) {
+    inds <- n
+  } else {
+    inds <- sort(c(n, neighbors(g, n)))
+  }
 
   fargs <- list(...)
   if (hasArg(vertex.label)) {
     vertex.label <- fargs$vertex.label
-    if (!is.na(vertex.label)) {
+    if (!is.na(vertex.label[1])) {
       vertex.label <- vertex.label[inds]
       vertex.label.cex <- 0.75
     } else {
@@ -47,13 +51,11 @@ plot.neighborhood <- function(g, n, ...) {
     }
   }
 
-  Nv <- vcount(g.sub)
-  Ne <- ecount(g.sub)
   g.density <- round(graph.density(g), digits=3)
   plot.adj(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,
            edge.color=edge.color, vertex.label=vertex.label, 
            vertex.label.cex=vertex.label.cex, ...)
   par(new=T, mar=c(5, 0, 3, 0)+0.1)
-  title(paste('Neighborhood of', V(g)[n]$name), col.main='white')
+  title(paste('Neighborhood of', V(g)$name[n]), col.main='white')
 }

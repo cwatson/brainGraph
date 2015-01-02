@@ -20,7 +20,7 @@ sim.rand.graph.clust <- function(graph, d, cl) {
 
   #g.all <- vector('list')
 
-  while (g$transitivity < cl) {
+  while (transitivity(g) < cl) {
     m <- 1
     repeat {
       g.cand <- g
