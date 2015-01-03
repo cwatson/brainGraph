@@ -28,6 +28,11 @@ plot.neighborhood <- function(g, n, ...) {
     }
   }
 
+  if (hasArg(vertex.label.dist)) {
+    vertex.label.dist <- fargs$vertex.label.dist
+    vertex.label.dist <- vertex.label.dist[inds]
+  }
+
   if (hasArg(vertex.color)) {
     vertex.color <- fargs$vertex.color
     if (length(vertex.color) > 1) {
@@ -55,7 +60,8 @@ plot.neighborhood <- function(g, n, ...) {
   plot.adj(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,
            edge.color=edge.color, vertex.label=vertex.label, 
-           vertex.label.cex=vertex.label.cex, ...)
+           vertex.label.cex=vertex.label.cex, 
+           vertex.label.dist=vertex.label.dist, ...)
   par(new=T, mar=c(5, 0, 3, 0)+0.1)
   title(paste('Neighborhood of', V(g)$name[n]), col.main='white')
 }

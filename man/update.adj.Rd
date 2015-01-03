@@ -7,7 +7,8 @@
 \method{update}{adj}(graphname1, graphname2, vertLabels, vertSize, edgeWidth,
   edgeDiffs, vertColor, firstplot, secondplot, vertSize.const = NULL,
   edgeWidth.const = NULL, plotFunc, comm = NULL, comboNeighb, hemi, lobe,
-  orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL)
+  orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL,
+  kNumComms = NULL)
 }
 \arguments{
 \item{graphname1}{A GTK entry for the first plotting area}
@@ -54,6 +55,8 @@ graphs}
 \item{slider2}{A GTK horizontal slider widget for changing edge curvature}
 
 \item{vertSize.other}{A GTK entry for vertex size (other attributes)}
+
+\item{kNumComms}{Integer indicating the number of total communities (optional)}
 }
 \description{
 This function is called by \link{plot.adj.gui} to update a plot on-the-fly.

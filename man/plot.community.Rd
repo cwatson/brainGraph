@@ -9,12 +9,12 @@
 \arguments{
 \item{g}{The graph}
 
-\item{n}{The community to be plotted (integer)}
+\item{n}{The community to be plotted (integer or vector)}
 
 \item{...}{Other parameters (passed to \code{\link{plot.adj}})}
 }
 \description{
-This function plots a single community, if you want to see e.g. the first
-community and nothing else.
+This function plots a single (or multiple) community, if you want to see e.g.
+the first community and nothing else, or the first two, etc.
 }
 

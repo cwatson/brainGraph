@@ -76,6 +76,7 @@ plot.adj.gui <- function() {
     gui.params <<- build.gui(hboxMain)
 
     comboComm <<- NULL
+    kNumComms <<- NULL
     comboNeighb <<- NULL
   }
 
@@ -112,6 +113,7 @@ plot.adj.gui <- function() {
     comboNeighb$setActive(0)
 
     comboComm <<- NULL
+    kNumComms <<- NULL
     gui.params$comboVcolor$setActive(0)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
@@ -149,13 +151,21 @@ plot.adj.gui <- function() {
       if (!gui.params$graphname[[2]]$getText() == '') {
         graph2 <- eval(parse(text=gui.params$graphname[[2]]$getText()))
         c2 <- which(rev(sort(table(V(graph2)$comm))) > 2)
-        choicesComm <- intersect(c1, c2)
+        all.comms <- union(c1, c2)
       } else {
-        choicesComm <- unique(V(graph1)$comm)
+        all.comms <- c1
       }
-      for (choice in choicesComm) comboComm$appendText(choice)
-      comboComm$setActive(0)
     }
+    kNumComms <<- length(all.comms)
+    combos <- sapply(seq_len(kNumComms), function(x)
+                     combn(seq_len(kNumComms), x))
+    comms <- sapply(2:(kNumComms), function(z)
+                    apply(t(apply(t(combos[[z]]), 1, function(x)
+                                  all.comms[x])), 1, paste, collapse=', '))
+    comms <- do.call('c', comms)
+    choices <- c(as.character(all.comms), comms)
+    for (choice in choices) comboComm$appendText(choice)
+    comboComm$setActive(0)
     comboComm$setSensitive(T)
 
     comboNeighb <<- NULL
@@ -551,7 +561,7 @@ plot.adj.gui <- function() {
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],
-                                   vertSize.other))
+                                   vertSize.other, kNumComms=kNumComms))
   the.buttons$packStart(buttonOK, fill=F)
 
   container$showAll()

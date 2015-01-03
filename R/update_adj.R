@@ -26,6 +26,7 @@
 #' @param slider1 A GTK horizontal slider widget for changing edge curvature
 #' @param slider2 A GTK horizontal slider widget for changing edge curvature
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
+#' @param kNumComms Integer indicating the number of total communities (optional)
 #'
 #' @export
 
@@ -33,13 +34,14 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
-                       showDiameter, slider1, slider2, vertSize.other=NULL) {
+                       showDiameter, slider1, slider2, vertSize.other=NULL,
+                       kNumComms=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
   #===========================================================================
   #===========================================================================
-  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, ...) {
+  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms, ...) {
     dev.set(dev)
     atlas <- g$atlas
     atlas.list <- eval(parse(text=atlas))
@@ -243,6 +245,19 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Community number, if applicable
     if (identical(plotFunc, plot.community)) {
       cNum <- comm$getActive() + 1
+      combos <- sapply(seq_len(kNumComms), function(x)
+                       combn(seq_len(kNumComms), x))
+      if (cNum <= kNumComms) {
+        ind1 <- 1
+        ind2 <- cNum
+      } else if (cNum > kNumComms && cNum < 2*kNumComms) {
+        ind1 <- 2
+        ind2 <- cNum - kNumComms
+      } else {
+        ind1 <- which(cumsum(sapply(combos, ncol)) %/% cNum >= 1)[1]
+        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% cNum)[ind1]
+      }
+      cNum <- combos[[ind1]][, ind2]
       plotFunc(g, n=cNum,
                vertex.label=vlabel, vertex.label.cex=vlabel.cex,
                vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
@@ -346,7 +361,8 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
   
   make.plot(dev=firstplot, g=graph1, g2=graph2, orient=orient1,
             comm, vertLabels, vertSize, edgeWidth,
-            vertColor, vertSize.const=NULL, hemi, the.slider=slider1)
+            vertColor, vertSize.const=NULL, hemi, the.slider=slider1,
+            kNumComms=kNumComms)
 
   if (nchar(graphname2$getText()) > 0) {
     if (!is.igraph(graph2)) {
@@ -354,6 +370,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     }
     make.plot(dev=secondplot, g=graph2, g2=graph1, orient=orient2,
               comm, vertLabels, vertSize, edgeWidth,
-              vertColor, vertSize.const=NULL, hemi, the.slider=slider2)
+              vertColor, vertSize.const=NULL, hemi, the.slider=slider2,
+              kNumComms=kNumComms)
   }
 }
