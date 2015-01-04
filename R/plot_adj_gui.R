@@ -338,7 +338,7 @@ plot.adj.gui <- function() {
   vbox$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
                'Subgraph centrality', 'Coreness',
-               'Clustering coeff.', 'Part. coeff.', 'Loc. eff.',
+               'Clustering coeff.', 'Part. coeff.', 'Loc. eff.', 'Nodal eff.',
                'Within-module degree z-score', 'Hub score', 'Other')
   comboVsize <- gtkComboBoxNewText()
   comboVsize$show()
@@ -363,6 +363,16 @@ plot.adj.gui <- function() {
   vertSize.other$setWidthChars(10)
   hboxVsizeOther$packStart(vertSize.other, F, F, 0)
   vertSize.other$setSensitive(F)
+
+  hboxVsizeMin <- gtkHBoxNew(F, 8)
+  hboxVsizeOther$packStart(hboxVsizeMin, F, F, 0)
+  label <- gtkLabelNewWithMnemonic('Min:')
+  hboxVsizeMin$packStart(label, F, F, 0)
+  vertSize.min <- gtkEntryNew()
+  vertSize.min$setWidthChars(3)
+  hboxVsizeMin$packStart(vertSize.min, F, F, 0)
+  vertSize.min$setText('0')
+  vertSize.min$setSensitive(T)
 
   gSignalConnect(comboVsize, 'changed', function(comboVsize, ...) {
       if (comboVsize$getActive() == 0) {
@@ -561,7 +571,8 @@ plot.adj.gui <- function() {
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],
-                                   vertSize.other, kNumComms=kNumComms))
+                                   vertSize.other, vertSize.min,
+                                   kNumComms=kNumComms))
   the.buttons$packStart(buttonOK, fill=F)
 
   container$showAll()

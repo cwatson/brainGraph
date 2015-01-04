@@ -26,6 +26,7 @@
 #' @param slider1 A GTK horizontal slider widget for changing edge curvature
 #' @param slider2 A GTK horizontal slider widget for changing edge curvature
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
+#' @param vertSize.min A GTK entry for minimum vertex size
 #' @param kNumComms Integer indicating the number of total communities (optional)
 #'
 #' @export
@@ -35,7 +36,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       kNumComms=NULL) {
+                       vertSize.min, kNumComms=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -130,7 +131,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     if (orient$getActive() == 0) {
       plot.over.brain.axial(0)
-      #layout.g <- cbind(V(g)$x, V(g)$y)
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
@@ -180,31 +180,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #=======================================================
     par(pty='s', mar=rep(0, 4))
 
-    # Show vertex labels?
-    if (vertLabels$active == FALSE) {
-      vlabel <- vlabel.cex <- vlabel.dist <- NA
-      vlabel.color <- vlabel.font <- NA
-    } else {
-      vlabel <- V(g)$name
-      vlabel.cex <- 0.75
-      vlabel.dist <- ifelse(V(g)$degree >= 10, 0, 0.75)
-      vlabel.color <- 'black'
-      vlabel.font <- 2
-    }
-    # Vertex & edge colors
-    vertex.color <- switch(vertColor$getActive() + 1,
-                           'lightblue3',
-                           V(g)$color.comm,
-                           V(g)$color.lobe,
-                           V(g)$color.comp
-    )
-    edge.color <- switch(vertColor$getActive() + 1,
-                         'red',
-                         E(g)$color.comm,
-                         E(g)$color.lobe,
-                         E(g)$color.comp
-    )
-
     # Vertex sizes
     if (!vertSize.const$getSensitive()) {
       const <- NULL
@@ -217,19 +192,73 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       const <- eval(parse(text=vertSize.const$getText()))
       v.attr <- NULL
     }
-    vsize <- switch(vertSize$getActive()+1,
-      mult*const,
-      mult*V(g)$degree,
-      mult*25*V(g)$ev.cent,
-      mult*3*log1p(V(g)$btwn.cent)+.05,
-      mult*range.transform(V(g)$subgraph.cent, 0, 15),
-      mult*V(g)$coreness,
-      mult*20*V(g)$transitivity,
-      mult*range.transform(V(g)$PC, 0, 15),
-      mult*range.transform(V(g)$E.local, 0, 15),
-      mult*ifelse(V(g)$z.score == 0, 0, range.transform(V(g)$z.score, 0, 15)),
-      mult*10*sqrt(V(g)$hub.score),
-      mult*vertex_attr(g, v.attr)
+    v.min <- eval(parse(text=vertSize.min$getText()))
+
+    if (vertSize$getActive() == 0) {
+      vsize <- mult * const
+    } else if (vertSize$getActive() == 1) {
+      g <- delete.vertices(g, V(g)$degree < v.min)
+      vsize <- mult * V(g)$degree
+    } else if (vertSize$getActive() == 2) {
+      g <- delete.vertices(g, V(g)$ev.cent < v.min)
+      vsize <- mult * 15 * V(g)$ev.cent
+    } else if (vertSize$getActive() == 3) {
+      g <- delete.vertices(g, V(g)$btwn.cent < v.min)
+      vsize <- mult * 3 * log1p(V(g)$btwn.cent)
+    } else if (vertSize$getActive() == 4) {
+      g <- delete.vertices(g, V(g)$subgraph.cent < v.min)
+      vsize <- mult * 2 * log1p(V(g)$subgraph.cent)
+    } else if (vertSize$getActive() == 5) {
+      g <- delete.vertices(g, V(g)$coreness < v.min)
+      vsize <- mult * V(g)$coreness
+    } else if (vertSize$getActive() == 6) {
+      g <- delete.vertices(g, V(g)$transitivity < v.min)
+      vsize <- mult * 20 * V(g)$transitivity
+    } else if (vertSize$getActive() == 7) {
+      g <- delete.vertices(g, V(g)$PC < v.min)
+      vsize <- mult * 25 * V(g)$PC
+    } else if (vertSize$getActive() == 8) {
+      g <- delete.vertices(g, V(g)$E.local < v.min)
+      vsize <- mult * 15 * V(g)$E.local
+    } else if (vertSize$getActive() == 9) {
+      g <- delete.vertices(g, V(g)$E.nodal < v.min)
+      vsize <- mult * 30 * V(g)$E.nodal
+    } else if (vertSize$getActive() == 10) {
+      g <- delete.vertices(g, V(g)$z.score < v.min)
+      vsize <- mult*ifelse(V(g)$z.score == 0, 0,
+                           range.transform(V(g)$z.score, 0, 15))
+    } else if (vertSize$getActive() == 11) {
+      g <- delete.vertices(g, V(g)$hub.score < v.min)
+      vsize <- mult * 10 * sqrt(V(g)$hub.score)
+    } else if (vertSize$getActive() == 12) {
+      g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
+      vsize <- mult * vertex_attr(g, v.attr)
+    }
+
+    # Show vertex labels?
+    if (vertLabels$active == FALSE) {
+      vlabel <- vlabel.cex <- vlabel.dist <- NA
+      vlabel.color <- vlabel.font <- NA
+    } else {
+      vlabel <- V(g)$name
+      vlabel.cex <- 0.75
+      vlabel.dist <- ifelse(V(g)$degree >= 10, 0, 0.75)
+      vlabel.color <- 'black'
+      vlabel.font <- 2
+    }
+
+    # Vertex & edge colors
+    vertex.color <- switch(vertColor$getActive() + 1,
+                           'lightblue',
+                           V(g)$color.comm,
+                           V(g)$color.lobe,
+                           V(g)$color.comp
+    )
+    edge.color <- switch(vertColor$getActive() + 1,
+                         'red',
+                         E(g)$color.comm,
+                         E(g)$color.lobe,
+                         E(g)$color.comp
     )
 
     # Edge width
@@ -270,7 +299,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     if (identical(plotFunc, plot.neighborhood)) {
       n <- comboNeighb$getActive() + 1
       if (vertColor$getActive() == 0) {
-        vertex.color <- V(g)$color <- rep('lightblue3', Nv)
+        vertex.color <- V(g)$color <- rep('lightblue', Nv)
         vertex.color[n] <- V(g)[n]$color <- 'yellow'
         edge.color <- E(g)$color <- 'red'
       }

@@ -8,7 +8,7 @@
   edgeDiffs, vertColor, firstplot, secondplot, vertSize.const = NULL,
   edgeWidth.const = NULL, plotFunc, comm = NULL, comboNeighb, hemi, lobe,
   orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL,
-  kNumComms = NULL)
+  vertSize.min, kNumComms = NULL)
 }
 \arguments{
 \item{graphname1}{A GTK entry for the first plotting area}
@@ -55,6 +55,8 @@ graphs}
 \item{slider2}{A GTK horizontal slider widget for changing edge curvature}
 
 \item{vertSize.other}{A GTK entry for vertex size (other attributes)}
+
+\item{vertSize.min}{A GTK entry for minimum vertex size}
 
 \item{kNumComms}{Integer indicating the number of total communities (optional)}
 }
