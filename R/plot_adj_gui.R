@@ -378,7 +378,7 @@ plot.adj.gui <- function() {
       if (comboVsize$getActive() == 0) {
         vertSize.const$setSensitive(T)
         vertSize.other$setSensitive(F)
-      } else if (comboVsize$getActive() == 11) {
+      } else if (comboVsize$getActive() == 12) {
         vertSize.const$setSensitive(F)
         vertSize.other$setSensitive(T)
       } else {

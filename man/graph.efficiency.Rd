@@ -7,7 +7,7 @@
 graph.efficiency(g, type = "local")
 }
 \arguments{
-\item{g}{The adjacency graph on which to calculate efficiency}
+\item{g}{The graph on which to calculate efficiency}
 
 \item{type}{A character string; either 'local', 'nodal', or 'global'}
 }

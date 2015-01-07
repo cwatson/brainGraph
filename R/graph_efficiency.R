@@ -4,7 +4,7 @@
 #' nodal efficiency of each vertex of a graph. The global efficiency is equal
 #' to the mean of all nodal efficiencies.
 #'
-#' @param g The adjacency graph on which to calculate efficiency
+#' @param g The graph on which to calculate efficiency
 #' @param type A character string; either 'local', 'nodal', or 'global'
 #' @export
 #'

@@ -243,7 +243,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       vlabel <- V(g)$name
       vlabel.cex <- 0.75
       vlabel.dist <- ifelse(V(g)$degree >= 10, 0, 0.75)
-      vlabel.color <- 'black'
+      vlabel.color <- 'blue'
       vlabel.font <- 2
     }
 
@@ -269,7 +269,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     }
     ewidth <- switch(edgeWidth$getActive() + 1,
                      e.const,
-                     0.1 * E(g)$btwn)
+                     log1p(E(g)$btwn))
 
     # Community number, if applicable
     if (identical(plotFunc, plot.community)) {
