@@ -22,7 +22,7 @@ choose.edges <- function(g) {
   #=============================================================================
   get.node <- function(graph, degrees.large) {
     repeat {
-      x <- degrees.large[sample(length(degrees.large), 1)]
+      x <- sample(degrees.large, 1)
       neighb <- intersect(neighbors(graph, x), degrees.large)
       if (length(neighb) >= 2) {
         return(list(x, neighb))
@@ -33,7 +33,7 @@ choose.edges <- function(g) {
   # Uniformly select 2 random neighbors with degree > 1
   #=============================================================================
   get.neighbors <- function(nbrhood) {
-    y <- nbrhood[sample(length(nbrhood), 2)] 
+    y <- sample(nbrhood, 2)
     y1 <- y[1]
     y2 <- y[2]
     return(data.frame(y1=y1, y2=y2))
@@ -43,24 +43,26 @@ choose.edges <- function(g) {
   #=============================================================================
   get.neighbors.z1 <- function(graph, node, degrees, y1) {
     y1.neighb <- as.integer(neighbors(graph, y1))
-    repeat {
-      z1 <- y1.neighb[sample(length(y1.neighb), 1)]
-      if (z1 != node) {
-        return(z1)
-      }
+    choices <- setdiff(y1.neighb, node)
+    if (length(choices) <= 1) {
+      return(choices)
+    } else {
+      return(sample(choices, 1))
     }
   }
   #=============================================================================
   get.neighbors.z2 <- function(graph, node, degrees, degrees.large, y2, z1) {
-    iter <- 0
+    #iter <- 0
     y2.neighb <- as.integer(neighbors(graph, y2))
     repeat {
-      z2 <- y2.neighb[sample(length(y2.neighb), 1)] 
-      iter <- iter + 1
-      if ( z2 != node & z2 != z1 ) {
-        return(z2)
+      choices <- setdiff(y2.neighb, c(node, z1))
+      if (length(choices) == 1) {
+        return(choices)
+      } else if (length(choices) > 1) {
+        return(sample(choices, 1))
       }
-      if (iter >= 60) {
+      #iter <- iter + 1
+      #if (iter >= length(y2.neighb)) {
         tmp <- get.node(graph, degrees.large)
         node <- tmp[[1]]
         neighb <- tmp[[2]]
@@ -70,7 +72,7 @@ choose.edges <- function(g) {
 
         z1 <- get.neighbors.z1(graph, node, degrees, y1)
         get.neighbors.z2(graph, node, degrees, degrees.large, y2, z1)
-      }
+      #}
     }
   }
   #=============================================================================
