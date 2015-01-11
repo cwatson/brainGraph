@@ -19,6 +19,9 @@ This function calculates the participation coefficient of each node in a
 graph. The graph must be split into modules beforehand. The coefficient
 should not exceed 1 - (1 / # modules).
 }
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}
 \references{
 Guimera, R. and Amaral, L.A.N. (2005) Cartography of complex
 networks: modules and universal roles, Journal of Statistical Mechanics:

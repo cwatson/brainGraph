@@ -4,23 +4,30 @@
 \alias{write.brainnet}
 \title{Write files to be used for visualization with BrainNet Viewer}
 \usage{
-write.brainnet(g, node.color = c("none", "community"), node.size = "degree")
+write.brainnet(g, node.color = c("none", "community", "lobe"),
+  node.size = c("constant", "degree"))
 }
 \arguments{
 \item{g}{A graph}
 
 \item{node.color}{Character string indicating whether to color the nodes or
-not; can be "none" or "community"}
+not; can be 'none', 'lobe', or 'community'}
 
 \item{node.size}{Character string indicating what size the nodes should be;
-can be any vertex-level attribute (see \link{list.vertex.attributes})}
+can be any vertex-level attribute or 'constant'}
 }
 \description{
-This function will write the "node" and "edge" files necessary for
-visualization with the BrainNet Viewer software.
+This function will write the 'node' and 'edge' files necessary for
+visualization with the BrainNet Viewer software (see Reference below).
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \references{
 Xia M, Wang J, He Y (2013). \emph{BrainNet Viewer: a network
 visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
+}
+\seealso{
+\code{\link{vertex_attr}}
 }
 

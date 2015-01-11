@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 0.15.1
-Date: 2015-01-08
+Version: 0.15.2
+Date: 2015-01-11
 Title: Graph theory analysis of brain MRI data
 Author: Chris Watson <cgwatson@bu.edu>
 Maintainer: Chris Watson <cgwatson@bu.edu>
@@ -13,10 +13,11 @@ Description: brainGraph is a set of functions that performs graph theory
 Depends:
     R (>= 3.0.0),
     igraph,
-    cairoDevice,
     RGtk2
 Imports:
+    cairoDevice,
     Hmisc,
     foreach,
     oro.nifti,
+    data.table
 License: GPL-3

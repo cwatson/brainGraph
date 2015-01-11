@@ -89,7 +89,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     } else if (hemi$getActive() == 1) {
       # LH only
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+      if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
         memb.hemi <- seq(1, Nv, 2)
       } else {
         memb.hemi <- 1:(Nv/2)
@@ -98,7 +98,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     } else if (hemi$getActive() == 2) {
       # RH only
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+      if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
         memb.hemi <- seq(2, Nv, 2)
       } else {
         memb.hemi <- (Nv/2  + 1):Nv
@@ -107,7 +107,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     } else if (hemi$getActive() == 3) {
       # Interhemispheric only
-      if (atlas == 'aal90' || atlas == 'lpba40' || atlas == 'hoa112') {
+      if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
         sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
       } else {
         sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
@@ -166,10 +166,10 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Plot in a circular layout
     #---------------------------------
     } else if (orient$getActive() == 3) {
-      par(bg='white')
+      par(bg='black')
       circ <- V(g)$circle.layout
 
-      layout.g <- rotation(layout.circle(g, order=circ), -pi/2)
+      layout.g <- rotation(layout.circle(g, order=circ), -pi/2 - pi/Nv)
       V(g)$x <- layout.g[, 1]
       V(g)$y <- layout.g[, 2]
       xlim.g <- c(-1.25, 1.25)
@@ -228,23 +228,16 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       vsize <- mult*ifelse(V(g)$z.score == 0, 0,
                            range.transform(V(g)$z.score, 0, 15))
     } else if (vertSize$getActive() == 11) {
-      g <- delete.vertices(g, V(g)$hub.score < v.min)
-      vsize <- mult * 10 * sqrt(V(g)$hub.score)
+      if (is.directed(g)) {
+        g <- delete.vertices(g, V(g)$hub.score < v.min)
+        vsize <- mult * 10 * sqrt(V(g)$hub.score)
+      } else {
+        g <- delete.vertices(g, V(g)$ev.cent < v.min)
+        vsize <- mult * 15 * V(g)$ev.cent
+      }
     } else if (vertSize$getActive() == 12) {
       g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
       vsize <- mult * vertex_attr(g, v.attr)
-    }
-
-    # Show vertex labels?
-    if (vertLabels$active == FALSE) {
-      vlabel <- vlabel.cex <- vlabel.dist <- NA
-      vlabel.color <- vlabel.font <- NA
-    } else {
-      vlabel <- V(g)$name
-      vlabel.cex <- 0.75
-      vlabel.dist <- ifelse(V(g)$degree >= 10, 0, 0.75)
-      vlabel.color <- 'blue'
-      vlabel.font <- 2
     }
 
     # Vertex & edge colors
@@ -260,6 +253,18 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                          E(g)$color.lobe,
                          E(g)$color.comp
     )
+
+    # Show vertex labels?
+    if (vertLabels$active == FALSE) {
+      vlabel <- vlabel.cex <- vlabel.dist <- NA
+      vlabel.color <- vlabel.font <- NA
+    } else {
+      vlabel <- V(g)$name
+      vlabel.cex <- 0.75
+      vlabel.dist <- ifelse(vsize >= 10, 0, 0.75)
+      vlabel.color <- ifelse(vertex.color %in% c('red', 'blue'), 'white', 'blue')
+      vlabel.font <- 2
+    }
 
     # Edge width
     if (!edgeWidth.const$getSensitive()) {
@@ -340,18 +345,11 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       lobe.names <- atlas.list$lobe.names[lobes]
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       kNumLobes <- max(V(g)$lobe)
-      if (orient$getActive() == 3) {
-        legend.bg <- 'white'
-        legend.text.col <- 'black'
-      } else {
-        legend.bg <- 'black'
-        legend.text.col <- 'white'
-      }
       legend('topleft',
              lobe.names,
              fill=lobe.cols,
-             bg=legend.bg,
-             text.col=legend.text.col)
+             bg='black',
+             text.col='white')
     }
 
     # Show the diameter of each graph?

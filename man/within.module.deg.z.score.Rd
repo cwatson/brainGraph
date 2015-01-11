@@ -21,6 +21,9 @@ graph. The graph must be split into modules beforehand. This is a measure of
 the connectivity from a given node to other nodes in its module. See Guimera
 et al., J Stat Mech, 2005.
 }
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}
 \references{
 Guimera, R. and Amaral, L.A.N. (2005) Cartography of complex
 networks: modules and universal roles, Journal of Statistical Mechanics:

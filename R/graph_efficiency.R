@@ -7,12 +7,14 @@
 #' \deqn{E_{global}(G) = \frac{1}{N(N-1)} \sum_{i \ne j \in G} \frac{1}{d_{ij}}}
 #' where \eqn{d_{ij}} is the shortest path length between vertices \emph{i} and
 #' \emph{j}.
+#'
 #' Local efficiency for vertex \emph{i} is:
 #' \deqn{E_{local}(i) = \frac{1}{N} \sum_{i \in G} E_{global}(G_i)}
 #' where \eqn{G_i} is the subgraph of neighbors of \emph{i}, and \emph{N} is the
 #' number of vertices in that subgraph.
+#'
 #' Nodal efficiency for vertex \emph{i} is:
-#' \deqn{E_{nodal}(i) = \frac{1}{N-1} \sum{j \in G} \frac{1}{d_{ij}}}
+#' \deqn{E_{nodal}(i) = \frac{1}{N-1} \sum_{j \in G} \frac{1}{d_{ij}}}
 #'
 #' @param g The graph on which to calculate efficiency
 #' @param type A character string; either 'local', 'nodal', or 'global'

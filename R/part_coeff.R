@@ -10,6 +10,7 @@
 #'
 #' @return A vector of the participation coeff's for each node of the graph.
 #'
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Guimera, R. and Amaral, L.A.N. (2005) Cartography of complex
 #' networks: modules and universal roles, Journal of Statistical Mechanics:
 #' Theory and Experiment, 02, P02001.

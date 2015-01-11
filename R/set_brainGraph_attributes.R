@@ -59,11 +59,13 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   Ek <- sapply(R, function(x) x$Ek)
   g$rich <- data.frame(R=round(coef, 4), Nk=Nk, Ek=Ek)
 
-  hubs <- hub.score(g)
-  g$hub.score <- hubs$value
   if (is.directed(g)) {
+    hubs <- hub.score(g)
+    g$hub.score <- hubs$value
     authorities <- authority.score(g)
     g$authority.score <- authorities$value
+    V(g)$hub.score <- hubs$vector
+    V(g)$authority.score <- authorities$vector
   }
 
   # Vertex-level attributes
@@ -98,7 +100,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     lobe.hemi[atlas.list$cingulate.lh] <- 11
     lobe.hemi[atlas.list$cingulate.rh] <- 12
 
-    if (atlas == 'dkt' || atlas == 'dk') {
+    if (atlas %in% c('dkt', 'dk')) {
       V(g)$circle.layout <- with(atlas.list,
                                  c(frontal.lh, insula.lh, cingulate.lh, 
                                    temporal.lh, parietal.lh, occipital.lh, 
@@ -118,7 +120,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
       lobe.hemi[atlas.list$scgm.lh] <- 13
       lobe.hemi[atlas.list$scgm.rh] <- 14
 
-    } else if (atlas == 'lpba40' || atlas == 'hoa112' || atlas == 'brainsuite') {
+    } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
       lobes[atlas.list$scgm] <- 7
       V(g)$circle.layout <- with(atlas.list,
                                  c(frontal.lh, insula.lh, cingulate.lh, scgm.lh,
@@ -157,12 +159,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   V(g)$E.local <- graph.efficiency(g, type='local')
   V(g)$E.nodal <- graph.efficiency(g, type='nodal')
   g$E.local <- mean(V(g)$E.local)
-
-  # Calculate both the hub and authority scores for each vertex (if 'g' is directed)
-  V(g)$hub.score <- hubs$vector
-  if (is.directed(g)) {
-    V(g)$authority.score <- authorities$vector
-  }
 
   if (rand == TRUE) {
     g$mod <- max(multilevel.community(g)$modularity)

@@ -8,6 +8,7 @@
 #' @export
 #'
 #' @return A matrix with 2 columns of the points' new locations
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 rotation <- function(x, theta) {
   R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)),

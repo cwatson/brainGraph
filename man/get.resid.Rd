@@ -4,24 +4,18 @@
 \alias{get.resid}
 \title{Run linear models of thickness data to get model residuals.}
 \usage{
-get.resid(thicknesses, covars, group1, group2 = NULL)
+get.resid(thicknesses, covars)
 }
 \arguments{
 \item{thicknesses}{Data frame of all thickness data. First column must be
 subject ID (or something similar)}
 
 \item{covars}{Data frame of covariates for the linear model}
-
-\item{group1}{Character string indicating the first subject group}
-
-\item{group2}{Character string indicating the second subject group (optional)}
 }
 \value{
 A list with components:
 \item{models}{The \link{lm} objects for each brain region.}
-\item{all}{All residuals for all subjects and brain regions.}
-\item{group1}{Residuals for just group 1.}
-\item{group2}{Residuals for just group 2.}
+\item{resids}{Data table of residuals for all subjects and brain regions.}
 }
 \description{
 This function runs linear models on the thickness data for each region, in

@@ -3,7 +3,7 @@
 #' This function checks the model residuals for each brain region in the
 #' analysis. It simply does a qqplot of the studentized residuals.
 #'
-#' @param resids data frame of model residuals for all brain regions
+#' @param resids data table of model residuals for all brain regions
 #' @export
 #'
 
@@ -18,7 +18,7 @@ check.resid <- function(resids) {
     dev.new()
     par(mfrow=c(3, 3))
     for (i in seq_len(kNumPlots)) {
-      ind <- kNumPlots * (j - 1) + 1
+      ind <- kNumPlots * (j - 1) + i
       qqnorm(resids[, ind], main=colnames(resids)[ind])
       qqline(resids[, ind])
       title(sub=ind)

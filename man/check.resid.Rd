@@ -7,7 +7,7 @@
 check.resid(resids)
 }
 \arguments{
-\item{resids}{data frame of model residuals for all brain regions}
+\item{resids}{data table of model residuals for all brain regions}
 }
 \description{
 This function checks the model residuals for each brain region in the
