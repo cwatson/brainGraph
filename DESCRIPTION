@@ -13,11 +13,11 @@ Description: brainGraph is a set of functions that performs graph theory
 Depends:
     R (>= 3.0.0),
     igraph,
-    RGtk2
-Imports:
+    RGtk2,
     cairoDevice,
+    data.table
+Imports:
     Hmisc,
     foreach,
     oro.nifti,
-    data.table
 License: GPL-3

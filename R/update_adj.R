@@ -237,7 +237,11 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       }
     } else if (vertSize$getActive() == 12) {
       g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
-      vsize <- mult * vertex_attr(g, v.attr)
+      if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
+        vsize <- mult * 15 * vertex_attr(g, v.attr)
+      } else {
+        vsize <- mult * vertex_attr(g, v.attr)
+      }
     }
 
     # Vertex & edge colors
@@ -337,6 +341,13 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                xlim=xlim.g, ylim=ylim.g,
                #layout=layout.g,
                edge.curved=curv)
+      if (orient$getActive() == 3) {
+        g.density <- round(graph.density(g), digits=3)
+        par(new=T, mar=c(5, 0, 3, 0) + 0.1)
+        subt <- paste('# vertices: ', vcount(g), '# edges: ', ecount(g), '\n',
+                      'Density: ', g.density)
+        title(sub=subt, col.sub='white')
+      }
     }
 
     # Show a legend for lobe colors
