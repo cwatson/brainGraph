@@ -22,7 +22,7 @@ A character vector of colors for each edge in the graph
 This function takes the community membership of a given graph, and assigns
 to the edges a specific color (the same as the vertex membership colors).
 Currently only works for up to 9 communities (colored: red, green, blue,
-yellow, magenta, orangered, lightgreen, lightblue, lightyellow). Edges that
+yellow, magenta, orange, lightgreen, lightblue, lightyellow). Edges that
 connect two different communities are colored gray. Also works for the major
 lobes of the brain (plus insula).
 }

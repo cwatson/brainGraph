@@ -4,7 +4,7 @@
 \alias{graph.efficiency}
 \title{Calculate the global, local, or nodal efficiency of a graph.}
 \usage{
-graph.efficiency(g, type = "local")
+graph.efficiency(g, type = c("local", "nodal", "global"))
 }
 \arguments{
 \item{g}{The graph on which to calculate efficiency}
@@ -19,12 +19,13 @@ type='local|nodal') or a number (if type='global').
 This function calculates the global efficiency of a graph or the local or
 nodal efficiency of each vertex of a graph. The global efficiency is equal
 to the mean of all nodal efficiencies.
+}
+\details{
 Global efficiency for graph \emph{G} with \emph{N} vertices is:
 \deqn{E_{global}(G) = \frac{1}{N(N-1)} \sum_{i \ne j \in G} \frac{1}{d_{ij}}}
 where \eqn{d_{ij}} is the shortest path length between vertices \emph{i} and
 \emph{j}.
-}
-\details{
+
 Local efficiency for vertex \emph{i} is:
 \deqn{E_{local}(i) = \frac{1}{N} \sum_{i \in G} E_{global}(G_i)}
 where \eqn{G_i} is the subgraph of neighbors of \emph{i}, and \emph{N} is the

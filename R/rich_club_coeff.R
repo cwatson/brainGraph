@@ -17,7 +17,7 @@
 #' @references Zhou S., Mondragon R.J. (2004) \emph{The rich-club phenomenon
 #' in the internet topology}. IEEE Comm Lett, 8:180-182.
 
-rich.club.coeff <- function(g, k) {
+rich.club.coeff <- function(g, k=1) {
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {

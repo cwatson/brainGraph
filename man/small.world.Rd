@@ -27,6 +27,9 @@ the same degree distribution as g.}
 This function will calculate the characteristic path length and clustering
 coefficient, which are used to calculate small-worldness.
 }
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}
 \references{
 Watts D.J., Strogatz S.H. (1998) \emph{Collective dynamics of
 'small-world' networks}. Nature, 393:440-442.

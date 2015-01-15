@@ -18,6 +18,7 @@
 #' the same degree distribution as g.}
 #' \item{sigma}{The small-world measure of the graph.}
 #'
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Watts D.J., Strogatz S.H. (1998) \emph{Collective dynamics of
 #' 'small-world' networks}. Nature, 393:440-442.
 

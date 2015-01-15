@@ -13,7 +13,7 @@
 #' lobes, components, etc.
 
 color.vertices <- function(memb, atlas=NULL) {
-  cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orangered',
+  cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
             'lightgreen', 'lightblue', 'lightyellow')
 
   if (!is.null(atlas)) {

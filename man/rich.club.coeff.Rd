@@ -4,7 +4,7 @@
 \alias{rich.club.coeff}
 \title{Calculate the rich club of a graph.}
 \usage{
-rich.club.coeff(g, k)
+rich.club.coeff(g, k = 1)
 }
 \arguments{
 \item{g}{The graph of interest}

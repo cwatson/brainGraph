@@ -3,6 +3,7 @@
 #' This function calculates the global efficiency of a graph or the local or
 #' nodal efficiency of each vertex of a graph. The global efficiency is equal
 #' to the mean of all nodal efficiencies.
+#'
 #' Global efficiency for graph \emph{G} with \emph{N} vertices is:
 #' \deqn{E_{global}(G) = \frac{1}{N(N-1)} \sum_{i \ne j \in G} \frac{1}{d_{ij}}}
 #' where \eqn{d_{ij}} is the shortest path length between vertices \emph{i} and
@@ -27,13 +28,14 @@
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
 #' small-world networks}. Phys Rev Lett, 87.19:198701.
 
-graph.efficiency <- function(g, type='local') {
+graph.efficiency <- function(g, type=c('local', 'nodal', 'global')) {
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {
     degs <- degree(g)
   }
 
+  type <- match.arg(type)
   if (type == 'local') {
     eff <- numeric(length(degs))
     nodes <- which(degs > 1)
