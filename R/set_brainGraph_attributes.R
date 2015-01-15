@@ -135,6 +135,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$lobe.hemi <- lobe.hemi
 
     g$assortativity.lobe <- assortativity(g, V(g)$lobe)
+    g$assortativity.lobe.hemi <- assortativity(g, V(g)$lobe.hemi)
     E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
   }
 
