@@ -260,7 +260,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ewidth <- log1p(E(g)$btwn)
     } else if (edgeWidth$getActive() == 2) {
       g <- delete.edges(g, which(E(g)$dist < e.min))
-      ewidth <- 1
+      ewidth <- 2
     }
 
     # Vertex & edge colors
