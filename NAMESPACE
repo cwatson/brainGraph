@@ -22,6 +22,7 @@ export(within.module.deg.z.score)
 export(set.brainGraph.attributes)
 export(sim.rand.graph.clust)
 export(sim.rand.graph.par)
+export(spatial.dist)
 export(update.adj)
 export(write.brainnet)
 

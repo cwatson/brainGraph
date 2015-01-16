@@ -21,7 +21,7 @@
 #' membership (component), participation coefficient, within-module degree
 #' z-score, and coordinates (x, y, and z)}
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
-#' betweenness}
+#' betweenness, Euclidean distance (in mm)}
 #'
 #' @seealso \code{\link{components}, \link{graph.motifs}, \link{diameter},
 #' \link{cliques}, \link{centralization.betweenness}, \link{edge.betweenness},
@@ -29,7 +29,7 @@
 #' \link{authority.score}, \link{transitivity}, \link{average.path.length},
 #' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-#' \link{within.module.deg.z.score},\link{graph.coreness}}
+#' \link{within.module.deg.z.score},\link{graph.coreness},\link{spatial.dist}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   V(g)$degree <- degree(g)
@@ -187,6 +187,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   #-----------------------------------------------------------------------------
   E(g)$color.comp <- color.edges(g, clusts$membership)
   E(g)$btwn <- edge.betweenness(g)
+  E(g)$dist <- spatial.dist(g)
 
   g
 }

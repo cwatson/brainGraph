@@ -27,6 +27,7 @@
 #' @param slider2 A GTK horizontal slider widget for changing edge curvature
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
 #' @param vertSize.min A GTK entry for minimum vertex size
+#' @param edgeWidth.min A GTK entry for minimum edge width
 #' @param kNumComms Integer indicating the number of total communities (optional)
 #'
 #' @export
@@ -36,7 +37,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min, kNumComms=NULL) {
+                       vertSize.min, edgeWidth.min, kNumComms=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -244,6 +245,24 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       }
     }
 
+    # Edge width
+    if (!edgeWidth.const$getSensitive()) {
+      e.const <- NULL
+    } else {
+      e.const <- eval(parse(text=edgeWidth.const$getText()))
+    }
+    e.min <- eval(parse(text=edgeWidth.min$getText()))
+
+    if (edgeWidth$getActive() == 0) {
+      ewidth <- e.const
+    } else if (edgeWidth$getActive() == 1) {
+      g <- delete.edges(g, which(E(g)$btwn < e.min))
+      ewidth <- log1p(E(g)$btwn)
+    } else if (edgeWidth$getActive() == 2) {
+      g <- delete.edges(g, which(E(g)$dist < e.min))
+      ewidth <- 1
+    }
+
     # Vertex & edge colors
     vertex.color <- switch(vertColor$getActive() + 1,
                            'lightblue',
@@ -270,15 +289,6 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
       vlabel.font <- 2
     }
 
-    # Edge width
-    if (!edgeWidth.const$getSensitive()) {
-      e.const <- NULL
-    } else {
-      e.const <- eval(parse(text=edgeWidth.const$getText()))
-    }
-    ewidth <- switch(edgeWidth$getActive() + 1,
-                     e.const,
-                     log1p(E(g)$btwn))
 
     # Community number, if applicable
     if (identical(plotFunc, plot.community)) {

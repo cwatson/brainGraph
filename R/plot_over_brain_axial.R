@@ -9,7 +9,6 @@
 #' @export
 
 plot.over.brain.axial <- function(flag=0, fname=NULL, z=46) {
-    mni152 <- NULL
     data(mni152)
     if (flag==1) {
       png(filename=fname)

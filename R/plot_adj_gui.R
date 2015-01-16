@@ -390,7 +390,7 @@ plot.adj.gui <- function() {
   # Edge width?
   hboxEwidth <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxEwidth, F, F, 0)
-  choices <- c('Constant', 'Edge betweenness')
+  choices <- c('Constant', 'Edge betweenness', 'Distance')
   comboEwidth <- gtkComboBoxNewText()
   comboEwidth$show()
   for (choice in choices) comboEwidth$appendText(choice)
@@ -405,6 +405,16 @@ plot.adj.gui <- function() {
   edgeWidth.const$setText('1')
   hboxEwidth$packStart(edgeWidth.const, F, F, 0)
   edgeWidth.const$setSensitive(F)
+
+  hboxEwidthMin <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxEwidthMin, F, F, 0)
+  label <- gtkLabelNewWithMnemonic(paste0('\t\t', 'Min:'))
+  hboxEwidthMin$packStart(label, F, F, 0)
+  edgeWidth.min <- gtkEntryNew()
+  edgeWidth.min$setWidthChars(3)
+  hboxEwidthMin$packStart(edgeWidth.min, F, F, 0)
+  edgeWidth.min$setText('0')
+  edgeWidth.min$setSensitive(T)
 
   gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
       if (widget$getActive() == 0) {
@@ -571,7 +581,7 @@ plot.adj.gui <- function() {
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],
-                                   vertSize.other, vertSize.min,
+                                   vertSize.other, vertSize.min, edgeWidth.min,
                                    kNumComms=kNumComms))
   the.buttons$packStart(buttonOK, fill=F)
 

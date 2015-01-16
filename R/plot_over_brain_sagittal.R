@@ -10,7 +10,6 @@
 #' @export
 
 plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
-    mni152 <- NULL
     data(mni152)
     if (hemi == 'right') {
       x <- mni152

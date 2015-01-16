@@ -27,7 +27,7 @@ centrality, transitivity (local), coreness, local & nodal efficiency, color
 membership (component), participation coefficient, within-module degree
 z-score, and coordinates (x, y, and z)}
 \item{Edge-level}{Color (community), color (lobe), color (component), edge
-betweenness}
+betweenness, Euclidean distance (in mm)}
 }
 \description{
 This function will set a number of graph, vertex, and edge attributes of a
@@ -40,6 +40,6 @@ given igraph object.
 \link{authority.score}, \link{transitivity}, \link{average.path.length},
 \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-\link{within.module.deg.z.score},\link{graph.coreness}}
+\link{within.module.deg.z.score},\link{graph.coreness},\link{spatial.dist}}
 }
 
