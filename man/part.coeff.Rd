@@ -2,22 +2,32 @@
 % Please edit documentation in R/part_coeff.R
 \name{part.coeff}
 \alias{part.coeff}
-\title{Calculate the participation coefficient of each node}
+\title{Calculate the participation coefficient of each vertex}
 \usage{
-part.coeff(g, community.mem)
+part.coeff(g, memb)
 }
 \arguments{
 \item{g}{The graph}
 
-\item{community.mem}{The community membership indices of each node}
+\item{memb}{The community membership indices of each vertex}
 }
 \value{
-A vector of the participation coeff's for each node of the graph.
+A vector of the participation coeff's for each vertex of the graph.
 }
 \description{
-This function calculates the participation coefficient of each node in a
-graph. The graph must be split into modules beforehand. The coefficient
-should not exceed 1 - (1 / # modules).
+This function calculates the participation coefficient of each vertex in a
+graph, based on community membership.
+}
+\details{
+The participation coefficient \eqn{P_i} of vertex \emph{i} is:
+\deqn{P_i = 1 - \sum_{s=1}^{N_M} \left ( \frac{\kappa_{is}}{\kappa_i} \right )^2}
+where \eqn{\kappa_{is}} is the number of edges from vertex \emph{i} to
+vertices in module \emph{s}, and \eqn{\kappa_s} is the degree of vertex
+\emph{i}. \eqn{N_M} equals the number of modules.
+
+As discussed in Guimera et al., \eqn{P_i = 0} if vertex \emph{i} is connected
+only to vertices in the same module, and \eqn{P_i = 1} if vertex \emph{i} is
+equally connected to all other modules.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

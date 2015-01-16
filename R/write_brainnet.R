@@ -47,11 +47,11 @@ write.brainnet <- function(g, node.color=c('none', 'community', 'lobe'),
                     color,
                     size,
                     V(g)$name),
-              file=paste0(group1, '_', node.size, '_', node.color, '.node'),
+              file=paste0(quote(g), '_', node.size, '_', node.color, '.node'),
               row.names=F, col.names=F, sep='\t', quote=F)
 
   write.table(as_adj(g, sparse=F),
-              file=paste0(group1, '.edge'),
+              file=paste0(quote(g), '.edge'),
               row.names=F, col.names=F, sep='\t', quote=F)
 
 }

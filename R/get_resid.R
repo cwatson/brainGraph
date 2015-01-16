@@ -13,6 +13,7 @@
 #' \item{resids}{Data table of residuals for all subjects and brain regions.}
 
 get.resid <- function(thicknesses, covars) {
+  Group <- NULL
   dat <- merge(covars, thicknesses)
   regions <- 2:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],

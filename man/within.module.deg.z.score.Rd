@@ -2,24 +2,31 @@
 % Please edit documentation in R/within_module_degree_z_score.R
 \name{within.module.deg.z.score}
 \alias{within.module.deg.z.score}
-\title{Calculate the within-module degree z-score of each node.}
+\title{Calculate the within-module degree z-score of each vertex}
 \usage{
-\method{within}{module.deg.z.score}(g, community.mem)
+\method{within}{module.deg.z.score}(g, memb)
 }
 \arguments{
 \item{g}{The graph}
 
-\item{community.mem}{The community membership indices of each node}
+\item{memb}{The community membership indices of each vertex}
 }
 \value{
-A vector of the within-module degree z-scores for each node of the
+A vector of the within-module degree z-scores for each vertex of the
 graph.
 }
 \description{
-This function calculates the within-module degree z-score of each node in a
-graph. The graph must be split into modules beforehand. This is a measure of
-the connectivity from a given node to other nodes in its module. See Guimera
-et al., J Stat Mech, 2005.
+This function calculates the within-module degree z-score of each vertex in a
+graph, based on some module membership. This is a measure of the connectivity
+from a given vertex to other vertices in its module.
+}
+\details{
+The within-module degree z-score is:
+\deqn{z_i = \frac{\kappa_i - \bar{\kappa}_{s_i}}{\sigma_{\kappa_{s_i}}}}
+where \eqn{\kappa_i} is the number of edges from vertex \emph{i} to vertices
+in the same module \eqn{s_i}, \eqn{\bar{\kappa}_{s_i}} is the average of
+\eqn{\kappa} over all vertices in \eqn{s_i}, and \eqn{\sigma_{\kappa_{s_i}}}
+is the standard deviation.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
