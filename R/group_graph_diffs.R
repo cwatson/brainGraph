@@ -15,7 +15,7 @@
 #' is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the FDR-adjusted p-value
 #'
 #' @seealso \code{\link[stats]{t.test}, \link[stats]{p.adjust},
-#' \link{range.transform}}
+#' \link{vec.transform}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 group.graph.diffs <- function(g1, g2, measure) { 
@@ -27,7 +27,7 @@ group.graph.diffs <- function(g1, g2, measure) {
 
   g.diffs <- g1[[1]]
   V(g.diffs)$size2 <- sapply(t.stats, function(x) x$statistic)
-  V(g.diffs)$size <- range.transform(V(g.diffs)$size2, 0, 20)
+  V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
   V(g.diffs)$p <- sapply(t.stats, function(x) x$p.value)
   V(g.diffs)$p.adj <- p.adjust(V(g.diffs)$p, 'fdr')
   V(g.diffs)$p <- 1 - V(g.diffs)$p

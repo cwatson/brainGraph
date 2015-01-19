@@ -23,7 +23,7 @@
 #' networks: modules and universal roles, Journal of Statistical Mechanics:
 #' Theory and Experiment, 02, P02001.
 
-within.module.deg.z.score <- function(g, memb) {
+within_module_deg_z_score <- function(g, memb) {
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {

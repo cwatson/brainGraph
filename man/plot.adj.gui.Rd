@@ -9,6 +9,9 @@
 \description{
 This function creates a GUI for plotting graphs over an image from the MNI152
 template. It gives the user control over several plotting parameters. Also
-possible is a circular plot (in addition to the axial and sagittal views).
+possible is a circular plot (in addition to the axial and sagittal views). It
+is necessary for the graphs to have an \emph{atlas} attribute, and several
+vertex- and edge-level attributes (set by
+ink{\code{set.brainGraph.attributes}}).
 }
 

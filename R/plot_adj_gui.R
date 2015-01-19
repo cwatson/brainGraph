@@ -2,7 +2,10 @@
 #'
 #' This function creates a GUI for plotting graphs over an image from the MNI152
 #' template. It gives the user control over several plotting parameters. Also
-#' possible is a circular plot (in addition to the axial and sagittal views).
+#' possible is a circular plot (in addition to the axial and sagittal views). It
+#' is necessary for the graphs to have an \emph{atlas} attribute, and several
+#' vertex- and edge-level attributes (set by
+#' ink{\code{set.brainGraph.attributes}}).
 #'
 #' @export
 
@@ -13,6 +16,8 @@ plot.adj.gui <- function() {
                                                    'brainGraph_icon.png',
                                                    package='brainGraph'))
 
+  gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
+  graphObj <- slider <- NULL
   #=============================================================================
   # Add a menubar
   #=============================================================================
@@ -84,7 +89,7 @@ plot.adj.gui <- function() {
   # Plot neighborhood of individual vertices
   #-------------------------------------
   plot_neighb_cb <- function(widget, window) {
-    plotFunc <<- plot.neighborhood
+    plotFunc <<- plot_neighborhood
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     kNumChildren <- length(window[[1]]$getChildren())
     if (kNumChildren > 1) {
@@ -125,7 +130,7 @@ plot.adj.gui <- function() {
   # Plot individual communities
   #-------------------------------------
   plot_comm_cb <- function(widget, window) {
-    plotFunc <<- plot.community
+    plotFunc <<- plot_community
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     if (length(window[[1]]$getChildren()) > 1) {
       kNumChildren <- length(window[[1]]$getChildren())
@@ -569,7 +574,7 @@ plot.adj.gui <- function() {
   vboxMain$add(the.buttons)
   buttonOK <- gtkButtonNewFromStock('gtk-ok')
   gSignalConnect(buttonOK, 'clicked',
-                 function(widget) update.adj(graphname[[1]], graphname[[2]],
+                 function(widget) update_adj(graphname[[1]], graphname[[2]],
                                    vertLabels, vertSize=comboVsize,
                                    edgeWidth=comboEwidth, edgeDiffs,
                                    vertColor=comboVcolor,

@@ -28,6 +28,6 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
 \code{\link[stats]{t.test}, \link[stats]{p.adjust},
-\link{range.transform}}
+\link{vec.transform}}
 }
 

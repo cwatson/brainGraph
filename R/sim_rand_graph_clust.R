@@ -7,19 +7,27 @@
 #' @param graph The graph from which null graphs are simulated
 #' @param d The degree sequence
 #' @param cl The clustering measure (clustering coeff, transitivity, etc.)
+#' @param max.iters The maximum number of iterations to perform (default: 100)
 #' @export
 #'
-#' @return A random graph
+#' @return A list with components:
+#' \item{g}{The random graph that was generated}
+#' \item{iters}{The total number of iterations performed}
+#' \item{cl}{The clustering coefficient at each step}
 #'
-#' @seealso \code{\link{degree.sequence.game}, \link{choose.edges},
-#' \link{rewire}, \link{transitivity}, \link{keeping_degseq}}
+#' @seealso \code{\link{choose.edges}, \link{rewire}, \link{transitivity},
+#' \link{keeping_degseq}}
 
-sim.rand.graph.clust <- function(graph, d, cl) {
+sim.rand.graph.clust <- function(graph, d, cl, max.iters=100) {
   g <- rewire(graph, keeping_degseq(loops=F, 1e4))
 
   #g.all <- vector('list')
 
-  while (transitivity(g) < cl) {
+  cur.iters <- 0
+  cl.all <- vector(length=length(max.iters))
+  loop.time <- vector(length=length(max.iters))
+  while ((transitivity(g) < cl) & (cur.iters < max.iters)) {
+    start.time <- Sys.time()
     repeat {
       g.cand <- g
   
@@ -49,8 +57,11 @@ sim.rand.graph.clust <- function(graph, d, cl) {
       }
     }
 
+    cur.iters <- cur.iters + 1
+    cl.all[cur.iters] <- transitivity(g.cand)
     g <- g.cand
+    loop.time[cur.iters] <- as.numeric(Sys.time() - start.time)
   }
 
-  return(g)#, g.all))
+  return(list(g=g, iters=cur.iters, cl=cl.all, time=loop.time))#, g.all))
 }

@@ -32,7 +32,7 @@
 #'
 #' @export
 
-update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
+update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
@@ -227,7 +227,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     } else if (vertSize$getActive() == 10) {
       g <- delete.vertices(g, V(g)$z.score < v.min)
       vsize <- mult*ifelse(V(g)$z.score == 0, 0,
-                           range.transform(V(g)$z.score, 0, 15))
+                           vec.transform(V(g)$z.score, 0, 15))
     } else if (vertSize$getActive() == 11) {
       if (is.directed(g)) {
         g <- delete.vertices(g, V(g)$hub.score < v.min)
@@ -291,7 +291,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
 
     # Community number, if applicable
-    if (identical(plotFunc, plot.community)) {
+    if (identical(plotFunc, plot_community)) {
       cNum <- comm$getActive() + 1
       combos <- sapply(seq_len(kNumComms), function(x)
                        combn(seq_len(kNumComms), x))
@@ -315,7 +315,7 @@ update.adj <- function(graphname1, graphname2, vertLabels, vertSize,
     }
 
     # Vertex neighborhood, if applicable
-    if (identical(plotFunc, plot.neighborhood)) {
+    if (identical(plotFunc, plot_neighborhood)) {
       n <- comboNeighb$getActive() + 1
       if (vertColor$getActive() == 0) {
         vertex.color <- V(g)$color <- rep('lightblue', Nv)

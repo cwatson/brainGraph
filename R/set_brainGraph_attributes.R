@@ -29,7 +29,7 @@
 #' \link{authority.score}, \link{transitivity}, \link{average.path.length},
 #' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-#' \link{within.module.deg.z.score},\link{graph.coreness},\link{spatial.dist}}
+#' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   V(g)$degree <- degree(g)
@@ -175,7 +175,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
                                      V(g)$degree)
 
     V(g)$PC <- part.coeff(g, V(g)$comm)
-    V(g)$z.score <- within.module.deg.z.score(g, V(g)$comm)
+    V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
     g$mod <- max(comm$modularity)
   }
 

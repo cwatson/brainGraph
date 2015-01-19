@@ -4,7 +4,7 @@
 \alias{sim.rand.graph.clust}
 \title{Simulate a random graph with given degree sequence and clustering.}
 \usage{
-sim.rand.graph.clust(graph, d, cl)
+sim.rand.graph.clust(graph, d, cl, max.iters = 100)
 }
 \arguments{
 \item{graph}{The graph from which null graphs are simulated}
@@ -12,9 +12,14 @@ sim.rand.graph.clust(graph, d, cl)
 \item{d}{The degree sequence}
 
 \item{cl}{The clustering measure (clustering coeff, transitivity, etc.)}
+
+\item{max.iters}{The maximum number of iterations to perform (default: 100)}
 }
 \value{
-A random graph
+A list with components:
+\item{g}{The random graph that was generated}
+\item{iters}{The total number of iterations performed}
+\item{cl}{The clustering coefficient at each step}
 }
 \description{
 This function will simulate a random graph with a given degree sequence and
@@ -22,7 +27,7 @@ clustering coefficient. This function calls \link{choose.edges} to decide
 which edges will be re-wired.
 }
 \seealso{
-\code{\link{degree.sequence.game}, \link{choose.edges},
-\link{rewire}, \link{transitivity}, \link{keeping_degseq}}
+\code{\link{choose.edges}, \link{rewire}, \link{transitivity},
+\link{keeping_degseq}}
 }
 

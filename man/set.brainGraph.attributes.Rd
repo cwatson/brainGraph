@@ -40,6 +40,6 @@ given igraph object.
 \link{authority.score}, \link{transitivity}, \link{average.path.length},
 \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-\link{within.module.deg.z.score},\link{graph.coreness},\link{spatial.dist}}
+\link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist}}
 }
 

@@ -8,7 +8,7 @@
 #' @param ... Other parameters (passed to \code{\link{plot.adj}})
 #' @export
 
-plot.community <- function(g, n, ...) {
+plot_community <- function(g, n, ...) {
   M <- max(V(g)$comm)
   if (any(n > M)) {
     stop(sprintf('Community number out of bounds; max = %i.', M))

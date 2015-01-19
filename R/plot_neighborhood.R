@@ -8,7 +8,7 @@
 #' @param ... Other parameters (passed to \code{\link{plot.adj}})
 #' @export
 
-plot.neighborhood <- function(g, n, ...) {
+plot_neighborhood <- function(g, n, ...) {
   g.sub <- graph.neighborhood(g, nodes=n, order=1)[[1]]
 
   if (V(g)$degree[n] == 0) {

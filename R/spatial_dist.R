@@ -22,6 +22,5 @@ spatial.dist <- function(g) {
   atlas.list <- eval(parse(text=g$atlas))
   coords <- atlas.list$brainnet.coords
   es <- get.edgelist(g)
-  dists <- apply(es, 1,
-                function(x) sqrt(sum((coords[x[2], ] - coords[x[1], ])^2)))
+  dists <- sqrt(rowSums((coords[es[, 2], ] - coords[es[, 1], ])^2))
 }
