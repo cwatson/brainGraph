@@ -4,7 +4,6 @@
 #' is based on the algorithm by Bansal et al. (2009), BMC Bioinformatics.
 #'
 #' @param g The random graph that has been generated
-#' @export
 #'
 #' @return A data frame with four elements; two edges will be removed and two
 #' edges will be added between the four vertices.

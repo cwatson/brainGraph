@@ -11,7 +11,7 @@
 #' @param comm An integer vector indicating community membership
 #' @param lobes An integer vector of the lobe membership for each vertex
 #' @param lobe.cols A character vector of the colors each lobe should take
-#' @export
+#'
 #' @return A character vector of colors for each edge in the graph
 #'
 

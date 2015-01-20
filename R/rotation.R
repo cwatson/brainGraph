@@ -5,7 +5,6 @@
 #'
 #' @param x A matrix with 2 columns of the points to rotate
 #' @param theta The angle to apply
-#' @export
 #'
 #' @return A matrix with 2 columns of the points' new locations
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}

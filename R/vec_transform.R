@@ -6,7 +6,6 @@
 #' @param x the vector to transform
 #' @param min.val the minimum value of the new range
 #' @param max.val the maximum value of the new range
-#' @export
 #'
 #' @return A vector of the transformed input.
 

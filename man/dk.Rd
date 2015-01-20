@@ -7,7 +7,16 @@
   indices for the major lobes of the brain.
 }
 \usage{dk}
-\format{List, 21 elements}
+\format{List with 21 elements:
+\describe{
+    \item{coords}{Data frame with 68 rows and 3 columns of (x, y, z)
+        coordinates}
+    \item{brainnet.coords}{Data frame with 68 rows and 3 columns of (x, y, z)
+        coordinates in MNI space}
+    \item{lobe.names}{Character string with 6 elements naming the major lobes of
+        the brain}
+}
+}
 \references{
   Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An automated
   labeling system for subdividing the human cerebral cortex on MRI scans into

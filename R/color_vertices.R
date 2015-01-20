@@ -7,7 +7,6 @@
 #'
 #' @param memb An integer vector representing membership of e.g. a community
 #' @param atlas A character string
-#' @export
 #'
 #' @return A character vector with length equal to the number of communities,
 #' lobes, components, etc.
