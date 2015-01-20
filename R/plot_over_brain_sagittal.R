@@ -3,14 +3,18 @@
 #' This function draws an sagittal slice from the MNI152 T1 image, to plot the
 #' nodes of a graph over it. It will optionally write to a filename for output.
 #'
-#' @param flag Binary indicating whether or not a png file should be saved
+#' @param save Binary indicating whether or not a png file should be saved
 #' @param fname Character string; the name of the file to be saved
 #' @param z The x-coordinate of the slice to use (defaults to 50, the center)
-#' @param hemi The hemisphere (either 'left' or 'right')
+#' @param hemi Character string indicating the hemisphere (either 'left' or
+#' 'right')
 #' @export
+#'
+#' @seealso \code{\link{plot.over.brain.axial}}
 
-plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
-    data(mni152)
+plot.over.brain.sagittal <- function(save=0, fname=NULL, z=50,
+                                     hemi=c('left', 'right')) {
+    hemi <- match.arg(hemi)
     if (hemi == 'right') {
       x <- mni152
     } else if (hemi == 'left') {
@@ -20,7 +24,7 @@ plot.over.brain.sagittal <- function(flag=0, fname=NULL, z=50, hemi) {
       stop('Argument "hemi" must be "left" or "right".')
     }
 
-    if (flag==1) {
+    if (save==1) {
       png(filename=fname)
     } else {
       if (length(dev.list()) == 0) {

@@ -4,19 +4,24 @@
 \alias{plot.over.brain.sagittal}
 \title{Draw sagittal slice of the MNI152 T1 image.}
 \usage{
-\method{plot}{over.brain.sagittal}(flag = 0, fname = NULL, z = 50, hemi)
+\method{plot}{over.brain.sagittal}(save = 0, fname = NULL, z = 50,
+  hemi = c("left", "right"))
 }
 \arguments{
-\item{flag}{Binary indicating whether or not a png file should be saved}
+\item{save}{Binary indicating whether or not a png file should be saved}
 
 \item{fname}{Character string; the name of the file to be saved}
 
 \item{z}{The x-coordinate of the slice to use (defaults to 50, the center)}
 
-\item{hemi}{The hemisphere (either 'left' or 'right')}
+\item{hemi}{Character string indicating the hemisphere (either 'left' or
+'right')}
 }
 \description{
 This function draws an sagittal slice from the MNI152 T1 image, to plot the
 nodes of a graph over it. It will optionally write to a filename for output.
+}
+\seealso{
+\code{\link{plot.over.brain.axial}}
 }
 
