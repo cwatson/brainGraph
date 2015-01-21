@@ -9,7 +9,7 @@ small.world(g, rand)
 \arguments{
 \item{g}{The graph (or list of graphs) of interest}
 
-\item{rand}{List of lists of equivalent random graphs (output from
+\item{rand}{List of (lists of) equivalent random graphs (output from
 \code{\link{sim.rand.graph.par}}}
 }
 \value{

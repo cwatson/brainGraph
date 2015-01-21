@@ -132,6 +132,14 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     if (orient$getActive() == 0) {
       plot.over.brain.axial(0)
+      #layout.g <- matrix(c(atlas.list$brainnet.coords[, 1],
+      #                     atlas.list$brainnet.coords[, 2]),
+      #                   ncol=2, byrow=F)
+      #V(g)$x <- layout.g[, 1]
+      #V(g)$y <- layout.g[, 2]
+      #xlim.g <- c(-100, 100)
+      #ylim.g <- c(-125, 85)
+      #mult <- 100
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1

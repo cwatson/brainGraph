@@ -4,7 +4,7 @@
 #' coefficient, which are used to calculate small-worldness.
 #'
 #' @param g The graph (or list of graphs) of interest
-#' @param rand List of lists of equivalent random graphs (output from
+#' @param rand List of (lists of) equivalent random graphs (output from
 #' \code{\link{sim.rand.graph.par}}
 #' @export
 #'
@@ -23,11 +23,21 @@
 #' 'small-world' networks}. Nature, 393:440-442.
 
 small.world <- function(g, rand) {
-  Lp <- vapply(g, function(x) graph_attr(x, 'Lp'), numeric(1))
-  Cp <- vapply(g, function(x) graph_attr(x, 'Cp'), numeric(1))
-  densities <- vapply(g, function(x) graph_attr(x, 'density'), numeric(1))
+  if (is.igraph(g)) {
+    Lp <- g$Lp
+    Cp <- g$Cp
+    densities <- g$density
+  } else {
+    Lp <- vapply(g, function(x) graph_attr(x, 'Lp'), numeric(1))
+    Cp <- vapply(g, function(x) graph_attr(x, 'Cp'), numeric(1))
+    densities <- vapply(g, function(x) graph_attr(x, 'density'), numeric(1))
+  }
 
-  if (length(rand[[1]]) == 1) {
+  if (is.igraph(rand[[1]])) {
+    Lp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Lp'), numeric(1)))
+    Cp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Cp'), numeric(1)))
+  } else {
+    if (length(rand[[1]]) == 1) {
     Lp.rand <- vapply(rand,
       function(x) vapply(x,
           function(y) graph_attr(y, 'Lp'), numeric(1)),
@@ -45,6 +55,7 @@ small.world <- function(g, rand) {
       function(x) vapply(x,
           function(y) graph_attr(y, 'Cp'), numeric(1)),
                              numeric(length(rand[[1]]))))
+  }
   }
   sigma <- (Cp / Cp.rand) / (Lp / Lp.rand)
   return(data.frame(density=densities, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,

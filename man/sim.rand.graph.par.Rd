@@ -4,15 +4,16 @@
 \alias{sim.rand.graph.par}
 \title{Simulate N random graphs w/ same clustering and degree sequence as the input.}
 \usage{
-sim.rand.graph.par(g, N, clustering = TRUE)
+sim.rand.graph.par(g, N, clustering = TRUE, ...)
 }
 \arguments{
 \item{g}{A graph with the characteristics for simulation of random graphs}
 
 \item{N}{The number of iterations}
 
-\item{clustering}{Logical for whether or not clustering should be controlled
-for}
+\item{clustering}{Logical for whether or not to control for clustering}
+
+\item{...}{Other parameters (passed to \code{\link{sim.rand.graph.clust}})}
 }
 \value{
 A random graph with vertex and graph attributes.

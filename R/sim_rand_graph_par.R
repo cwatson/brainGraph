@@ -9,19 +9,19 @@
 #'
 #' @param g A graph with the characteristics for simulation of random graphs
 #' @param N The number of iterations
-#' @param clustering Logical for whether or not clustering should be controlled
-#' for
+#' @param clustering Logical for whether or not to control for clustering
+#' @param ... Other parameters (passed to \code{\link{sim.rand.graph.clust}})
 #' @export
 #'
 #' @return A random graph with vertex and graph attributes.
 #'
 #' @seealso \code{\link{sim.rand.graph.clust}, \link{rewire}}
 
-sim.rand.graph.par <- function(g, N, clustering=TRUE) {
+sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
   if (clustering == TRUE) {
     r <- foreach(i=seq_len(N),
                   .packages=c('igraph', 'brainGraph')) %dopar% {
-      tmp <- sim.rand.graph.clust(g, V(g)$degree, g$transitivity)
+      tmp <- sim.rand.graph.clust(g, V(g)$degree, g$transitivity, ...)
       tmp$g <- set.brainGraph.attributes(tmp$g, rand=TRUE)
       tmp
     }
