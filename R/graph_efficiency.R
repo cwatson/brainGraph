@@ -19,6 +19,9 @@
 #'
 #' @param g The graph on which to calculate efficiency
 #' @param type A character string; either 'local', 'nodal', or 'global'
+#' @param weights A numeric vector of edge weights; if 'NULL', and if the graph
+#' has edge attribute 'weight', then that will be used. To avoid using weights,
+#' this should be 'NA'
 #' @export
 #'
 #' @return A vector of the local efficiencies for each node of the graph (if 
@@ -28,11 +31,22 @@
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
 #' small-world networks}. Phys Rev Lett, 87.19:198701.
 
-graph.efficiency <- function(g, type=c('local', 'nodal', 'global')) {
+graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
+                             weights=NULL) {
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {
     degs <- degree(g)
+  }
+
+  if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
+    weights <- NULL
+  } else {
+    if (!is.null(weights) && any(!is.na(weights))) {
+      weights <- as.numeric(weights)
+    } else {
+      weights <- NA
+    }
   }
 
   type <- match.arg(type)
@@ -45,14 +59,14 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global')) {
       g.sub <- induced.subgraph(g, neighbs)
       Nv <- vcount(g.sub)
   
-      paths <- shortest.paths(g.sub, weights=NA)
+      paths <- shortest.paths(g.sub, weights=weights)
       paths <- paths[upper.tri(paths)]
       2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
       }, mc.cores=detectCores())
     )
   } else if (type == 'nodal') {
     Nv <- length(degs)
-    paths <- shortest.paths(g, weights=NA)
+    paths <- shortest.paths(g, weights=weights)
     eff <- simplify2array(mclapply(seq_len(Nv), function(x) {
       path <- paths[x, ]
       eff <- sum(1 / path[path != 0]) / (Nv - 1)
@@ -61,7 +75,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global')) {
   } else {
     Nv <- length(degs)
     nodes <- V(g)[degs != 0]
-    paths <- shortest.paths(g, v=nodes, to=nodes, weights=NA)
+    paths <- shortest.paths(g, v=nodes, to=nodes, weights=weights)
     paths <- paths[upper.tri(paths)]
 
     eff <- 2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
