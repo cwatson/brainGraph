@@ -433,10 +433,15 @@ plot.adj.gui <- function() {
   groupplot <- vector('list', 2)
 
   # Check screen resolution so the plotting window fits
+  OS <- .Platform$OS.type
+  if (OS == 'windows') {
+    screen.x <- 1600
+  } else {
   display.size <- system('xdpyinfo | grep dimensions', intern=T)
   m <- regexpr(' [0-9]+x', display.size)
   res <- regmatches(display.size, m)
   screen.x <- as.numeric(sub('x', '', sub(' ', '', res)))
+  }
 
   if (screen.x <= 1440) {
     graphics.res <- 460

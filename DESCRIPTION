@@ -1,6 +1,6 @@
 Package: brainGraph
 Type: Package
-Version: 0.18.1
+Version: 0.18.2
 Date: 2015-01-21
 Title: Graph theory analysis of brain MRI data
 Author: Chris Watson <cgwatson@bu.edu>
@@ -10,7 +10,7 @@ Description: brainGraph is a set of functions that performs graph theory
     Freesurfer analysis (for now), but can work with more. If using data from a
     Freesurfer atlas, there are also functions for graph visualization
     (rudimentary).
-URL: https://code.google.com/p/braingraph/
+URL: https://github.com/cwatson/brainGraph
 BugReports: https://groups.google.com/forum/?hl=en#!forum/brainGraph-help
 Depends:
     R (>= 3.0.0),
