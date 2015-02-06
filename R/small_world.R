@@ -46,16 +46,16 @@ small.world <- function(g, rand) {
       function(x) vapply(x,
           function(y) graph_attr(y, 'Cp'), numeric(1)),
                              numeric(1))
-  } else {
-  Lp.rand <- colMeans(vapply(rand,
-      function(x) vapply(x,
-          function(y) graph_attr(y, 'Lp'), numeric(1)),
-                             numeric(length(rand[[1]]))))
-  Cp.rand <- colMeans(vapply(rand,
-      function(x) vapply(x,
-          function(y) graph_attr(y, 'Cp'), numeric(1)),
-                             numeric(length(rand[[1]]))))
-  }
+    } else {
+    Lp.rand <- colMeans(vapply(rand,
+        function(x) vapply(x,
+            function(y) graph_attr(y, 'Lp'), numeric(1)),
+                               numeric(length(rand[[1]]))))
+    Cp.rand <- colMeans(vapply(rand,
+        function(x) vapply(x,
+            function(y) graph_attr(y, 'Cp'), numeric(1)),
+                               numeric(length(rand[[1]]))))
+    }
   }
   sigma <- (Cp / Cp.rand) / (Lp / Lp.rand)
   return(data.frame(density=densities, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,

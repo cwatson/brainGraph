@@ -13,13 +13,13 @@
 #' @return g A copy of the same graph, with the following attributes:
 #' \item{Graph-level}{Atlas, density, connected component sizes, diameter,
 #' number of triangles, transitivity, average path length, assortativity,
-#' clique sizes, global & local efficiency, modularity, hub score, and rich-club
-#' coefficient}
+#' clique sizes, global & local efficiency, modularity, vulnerability, hub score,
+#' and rich-club coefficient}
 #' \item{Vertex-level}{Degree, strength, betweenness centrality, eigenvector
 #' centrality, transitivity (local), coreness, local & nodal efficiency, color
 #' (community), color (lobe), color (component), membership (community),
 #' membership (component), participation coefficient, within-module degree
-#' z-score, and coordinates (x, y, and z)}
+#' z-score, vulnerability, and coordinates (x, y, and z)}
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
 #' betweenness, Euclidean distance (in mm)}
 #'
@@ -29,7 +29,8 @@
 #' \link{authority.score}, \link{transitivity}, \link{average.path.length},
 #' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-#' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist}}
+#' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
+#' \link{vulnerability}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   V(g)$degree <- degree(g)
@@ -160,6 +161,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   V(g)$E.local <- graph.efficiency(g, type='local')
   V(g)$E.nodal <- graph.efficiency(g, type='nodal')
   g$E.local <- mean(V(g)$E.local)
+
+  V(g)$vulnerability <- vulnerability(g)
+  g$vulnerability <- max(V(g)$vulnerability)
 
   if (rand == TRUE) {
     g$mod <- max(multilevel.community(g)$modularity)
