@@ -16,7 +16,7 @@ permute.global(densities, resids, num.subjs, num.perms = 1000)
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 }
 \description{
-This function draws permutations of linear model residuals to determine the
+This function draws permutations from linear model residuals to determine the
 significance of between-group differences of a global graph measure. This
 function is intended for cortical thickness networks (in which there is only
 one graph per group).
