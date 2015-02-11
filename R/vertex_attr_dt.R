@@ -13,7 +13,6 @@
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
 
 vertex_attr_dt <- function(g, Group=NULL) {
-  region <- lobe <- NULL
   atlas.list <- eval(parse(text=data(list=g$atlas)))
   net.meas <- data.table(region=V(g)$name,
                          lobe=atlas.list$lobe[V(g)$lobe],
@@ -30,9 +29,9 @@ vertex_attr_dt <- function(g, Group=NULL) {
 
   if (!is.null(Group)) {
     net.meas$Group <- Group
-    setkey(net.meas, region, lobe, Group)
+    setkey(net.meas, 'region', 'lobe', Group)
   } else {
-    setkey(net.meas, region, lobe)
+    setkey(net.meas, 'region', 'lobe')
   }
 
   return(net.meas)
