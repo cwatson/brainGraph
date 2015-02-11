@@ -27,7 +27,7 @@ clustering coefficient. This function calls \link{choose.edges} to decide
 which edges will be re-wired.
 }
 \seealso{
-\code{\link{choose.edges}, \link{rewire}, \link{transitivity},
-\link{keeping_degseq}}
+\code{\link{choose.edges}, \link[igraph]{rewire},
+\link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
 }
 

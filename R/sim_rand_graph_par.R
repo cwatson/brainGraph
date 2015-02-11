@@ -15,7 +15,7 @@
 #'
 #' @return A random graph with vertex and graph attributes.
 #'
-#' @seealso \code{\link{sim.rand.graph.clust}, \link{rewire}}
+#' @seealso \code{\link{sim.rand.graph.clust}, \link[igraph]{rewire}}
 
 sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
   if (clustering == TRUE) {

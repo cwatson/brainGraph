@@ -27,6 +27,6 @@ speed it up. If you do not want to match by clustering, then it will do a
 simple rewiring of the given graph (1e4 times).
 }
 \seealso{
-\code{\link{sim.rand.graph.clust}, \link{rewire}}
+\code{\link{sim.rand.graph.clust}, \link[igraph]{rewire}}
 }
 

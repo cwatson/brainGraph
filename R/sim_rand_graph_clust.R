@@ -15,8 +15,8 @@
 #' \item{iters}{The total number of iterations performed}
 #' \item{cl}{The clustering coefficient at each step}
 #'
-#' @seealso \code{\link{choose.edges}, \link{rewire}, \link{transitivity},
-#' \link{keeping_degseq}}
+#' @seealso \code{\link{choose.edges}, \link[igraph]{rewire},
+#' \link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
 
 sim.rand.graph.clust <- function(graph, d, cl, max.iters=100) {
   g <- rewire(graph, keeping_degseq(loops=F, 1e4))
