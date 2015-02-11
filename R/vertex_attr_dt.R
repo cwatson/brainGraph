@@ -25,7 +25,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          E.local=V(g)$E.local,
                          E.nodal=V(g)$E.nodal,
                          PC=V(g)$PC,
-                         z=V(g)$z.score,)
+                         z=V(g)$z.score)
 
   if (!is.null(Group)) {
     net.meas$Group <- Group
