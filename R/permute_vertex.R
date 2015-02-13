@@ -1,15 +1,14 @@
-#' Permutation test of groupwise differences in a graph measure
+#' Permutation test for group difference of graph vertex measures
 #'
-#' This function performs a permutation test looking at max t-statistic for a
-#' given vertex-level graph attribute (e.g. vertex degree). This is the same
-#' principle as that of Nichols & Holmes (2001).
+#' This function performs a permutation test looking at the max t-statistic for
+#' a given vertex-level graph attribute (e.g. degree). This is the same
+#' principle as that of Nichols & Holmes (2001) used in voxelwise MRI analysis.
 #'
 #' @param g1 A list of igraph graph objects for group 1
 #' @param g2 A list of igraph graph objects for group 2
 #' @param alpha The significance level (default: 0.05)
 #' @param num.perms The number of permutations (default: 1e3)
 #' @param measure A character string of the measure to test
-#'
 #' @export
 #'
 #' @return A list with the following elements:
@@ -29,11 +28,10 @@
 #' g.diff <- permute.groups(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
 #' }
 
-permute.groups <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
+permute.vertex <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
   combined <- c(g1, g2)
   g.diffs <- group.graph.diffs(g1, g2, measure)
   max.observed <- max(V(g.diffs)$size2)
-  max.rand <- vector(length=num.perms)
 
   n1 <- length(g1)
   n.all <- length(combined)
@@ -45,7 +43,7 @@ permute.groups <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
     max(V(group.graph.diffs(g1.rand, g2.rand, measure))$size2)
   }
 
-  p.max <- sum(abs(max.rand) >= abs(max.observed)) / num.perms
+  p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (num.perms + 1)
   thresh <- sort(max.rand)[(1 - alpha) * num.perms]
   Nv <- vcount(g.diffs)
   V(g.diffs)$p.perm <- 1 - sapply(seq_len(Nv), function(x)

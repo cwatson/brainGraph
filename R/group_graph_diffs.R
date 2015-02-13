@@ -7,12 +7,12 @@
 #' @param g1 A list of igraph graph objects for group 1
 #' @param g2 A list of igraph graph objects for group 2
 #' @param measure A character string of the measure to test
-#'
 #' @export
 #'
 #' @return A graph with vertex attributes: \emph{size2} equals the t-statistic;
-#' \emph{size} is transformed to be positive values for visualization; \emph{p}
-#' is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the FDR-adjusted p-value
+#' \emph{size} is transformed to be positive values (for visualization)
+#' purposes; \emph{p} is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the
+#' FDR-adjusted p-value
 #'
 #' @seealso \code{\link[stats]{t.test}, \link[stats]{p.adjust},
 #' \link{vec.transform}}

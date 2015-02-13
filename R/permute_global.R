@@ -19,7 +19,6 @@
 permute.global <- function(densities, resids, num.subjs, num.perms=1e3) {
   n1 <- num.subjs[1]
   n.all <- sum(num.subjs)
-  group <- levels(resids$Group)
 
   out <- foreach(i=seq_len(num.perms), .combine='rbind') %dopar% {
     shuffled <- sample(n.all)
