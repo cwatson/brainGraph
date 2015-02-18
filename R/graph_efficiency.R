@@ -1,4 +1,4 @@
-#' Calculate the global, local, or nodal efficiency of a graph.
+#' Calculate graph global, local, or nodal efficiency
 #'
 #' This function calculates the global efficiency of a graph or the local or
 #' nodal efficiency of each vertex of a graph. The global efficiency is equal

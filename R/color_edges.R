@@ -1,4 +1,4 @@
-#' Color the edges of a graph based on community membership or major lobe.
+#' Color graph edges
 #'
 #' This function takes the community membership of a given graph, and assigns
 #' to the edges a specific color (the same as the vertex membership colors).
@@ -13,7 +13,6 @@
 #' @param lobe.cols A character vector of the colors each lobe should take
 #'
 #' @return A character vector of colors for each edge in the graph
-#'
 
 color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
   # Color edges based on "lobe"

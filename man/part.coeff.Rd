@@ -2,7 +2,7 @@
 % Please edit documentation in R/part_coeff.R
 \name{part.coeff}
 \alias{part.coeff}
-\title{Calculate the participation coefficient of each vertex}
+\title{Calculate vertex participation coefficient}
 \usage{
 part.coeff(g, memb)
 }

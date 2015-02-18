@@ -2,7 +2,7 @@
 % Please edit documentation in R/corr_matrix.R
 \name{corr.matrix}
 \alias{corr.matrix}
-\title{Perform correlations on a matrix, and threshold.}
+\title{Calculate correlation matrix and threshold}
 \usage{
 corr.matrix(dat, thresh = NULL, density = 0.1, exclusions = NULL)
 }
@@ -28,7 +28,10 @@ This function does a column-by-column correlation of a given data frame, and
 will threshold r-values based on a given density value; e.g. 0.1 if you want
 to keep only the 10\% strongest correlations. It also allows for the exclusion
 of a set of columns (i.e. regions or nodes), given their indices. Also
-returns the p-values. Essentially a wrapper for \code{\link{rcorr}}, with
-some added functionality to work with the type of data more easily.
+returns the p-values. Essentially a wrapper for \code{\link[Hmisc]{rcorr}},
+with #' some added functionality to work with the type of data more easily.
+}
+\seealso{
+\code{\link[Hmisc]{rcorr}}
 }
 

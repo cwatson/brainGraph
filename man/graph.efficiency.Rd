@@ -2,7 +2,7 @@
 % Please edit documentation in R/graph_efficiency.R
 \name{graph.efficiency}
 \alias{graph.efficiency}
-\title{Calculate the global, local, or nodal efficiency of a graph.}
+\title{Calculate graph global, local, or nodal efficiency}
 \usage{
 graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/graph_contract_brain.R
 \name{graph.contract.brain}
 \alias{graph.contract.brain}
-\title{Contract vertices based on brain lobes and hemispheres}
+\title{Contract graph vertices based on brain lobe and hemisphere}
 \usage{
 graph.contract.brain(g)
 }
@@ -21,6 +21,6 @@ The new edge weight is equal to the number of inter-lobular connections of
 the original graph.
 }
 \seealso{
-\code{\link{contract.vertices}}
+\code{\link[igraph]{contract.vertices}}
 }
 

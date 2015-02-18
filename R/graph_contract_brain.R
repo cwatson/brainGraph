@@ -1,4 +1,4 @@
-#' Contract vertices based on brain lobes and hemispheres
+#' Contract graph vertices based on brain lobe and hemisphere
 #'
 #' This function creates a new graph after merging multiple vertices based on
 #' brain lobe and hemisphere membership. The new vertex size is equal to the
@@ -12,7 +12,7 @@
 #'
 #' @return A new graph
 #'
-#' @seealso \code{\link{contract.vertices}}
+#' @seealso \code{\link[igraph]{contract.vertices}}
 
 graph.contract.brain <- function(g) {
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)

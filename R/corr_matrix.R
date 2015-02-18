@@ -1,11 +1,11 @@
-#' Perform correlations on a matrix, and threshold.
+#' Calculate correlation matrix and threshold
 #'
 #' This function does a column-by-column correlation of a given data frame, and
 #' will threshold r-values based on a given density value; e.g. 0.1 if you want
 #' to keep only the 10\% strongest correlations. It also allows for the exclusion
 #' of a set of columns (i.e. regions or nodes), given their indices. Also
-#' returns the p-values. Essentially a wrapper for \code{\link{rcorr}}, with
-#' some added functionality to work with the type of data more easily.
+#' returns the p-values. Essentially a wrapper for \code{\link[Hmisc]{rcorr}},
+#' with #' some added functionality to work with the type of data more easily.
 #'
 #' @param dat Matrix or data frame of the columns to correlate
 #' @param thresh Absolute correlation value to threshold by
@@ -19,6 +19,7 @@
 #' \item{r.thresh}{Binary matrix indicating correlations that are above a
 #' certain threshold.}
 #' \item{threshold}{The threshold used.}
+#' @seealso \code{\link[Hmisc]{rcorr}}
 
 corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL) {
   if (length(exclusions) == 0) {

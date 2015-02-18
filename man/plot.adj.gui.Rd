@@ -12,6 +12,6 @@ template. It gives the user control over several plotting parameters. Also
 possible is a circular plot (in addition to the axial and sagittal views). It
 is necessary for the graphs to have an \emph{atlas} attribute, and several
 vertex- and edge-level attributes (set by
-ink{\code{set.brainGraph.attributes}}).
+\code{\link{set.brainGraph.attributes}}).
 }
 

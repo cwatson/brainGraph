@@ -1,4 +1,4 @@
-#' Calculate the participation coefficient of each vertex
+#' Calculate vertex participation coefficient
 #'
 #' This function calculates the participation coefficient of each vertex in a
 #' graph, based on community membership.

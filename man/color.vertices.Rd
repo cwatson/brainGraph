@@ -2,7 +2,7 @@
 % Please edit documentation in R/color_vertices.R
 \name{color.vertices}
 \alias{color.vertices}
-\title{Give graph vertices a color attribute.}
+\title{Color graph vertices}
 \usage{
 color.vertices(memb, atlas = NULL)
 }

@@ -1,7 +1,7 @@
 \name{hoa112}
 \docType{data}
 \alias{hoa112}
-\title{Coordinates for data from the Harvard-Oxford atlas}
+\title{Coordinates for data from Harvard-Oxford atlas}
 \description{
   This is a list of spatial coordinates for the Harvard-Oxford atlas, along with
   indices for the major lobes of the brain.

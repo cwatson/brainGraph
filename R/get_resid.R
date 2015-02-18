@@ -1,7 +1,8 @@
-#' Run linear models of thickness data to get model residuals.
+#' Linear models of data frame and model residuals
 #'
-#' This function runs linear models on the thickness data for each region, in
-#' order to adjust for relevant variables (e.g. age, sex, group, etc.).
+#' This function runs linear models on the columns of the input data frame (e.g.
+#' cortical thickness data for each region), in order to adjust for relevant
+#' variables (e.g. age, sex, group, etc.).
 #'
 #' @param thicknesses Data frame of all thickness data. First column must be
 #' subject ID (or something similar)
@@ -9,7 +10,7 @@
 #' @export
 #'
 #' @return A list with components:
-#' \item{models}{The \link{lm} objects for each brain region.}
+#' \item{models}{The \code{\link[stats]{lm}} objects for each brain region.}
 #' \item{resids}{Data table of residuals for all subjects and brain regions.}
 
 get.resid <- function(thicknesses, covars) {

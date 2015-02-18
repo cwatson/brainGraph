@@ -2,7 +2,7 @@
 % Please edit documentation in R/color_edges.R
 \name{color.edges}
 \alias{color.edges}
-\title{Color the edges of a graph based on community membership or major lobe.}
+\title{Color graph edges}
 \usage{
 color.edges(g, comm, lobes = NULL, lobe.cols = NULL)
 }

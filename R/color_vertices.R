@@ -1,4 +1,4 @@
-#' Give graph vertices a color attribute.
+#' Color graph vertices
 #'
 #' This function takes an integer vector (representing membership of a community
 #' or component), or a character string indicating the brain atlas used (e.g. for
