@@ -2,7 +2,7 @@
 % Please edit documentation in R/vec_transform.R
 \name{vec.transform}
 \alias{vec.transform}
-\title{Transform a vector to have a different range.}
+\title{Transform a vector to have a different range}
 \usage{
 vec.transform(x, min.val = 0, max.val = 1)
 }

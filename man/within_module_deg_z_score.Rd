@@ -2,7 +2,7 @@
 % Please edit documentation in R/within_module_degree_z_score.R
 \name{within_module_deg_z_score}
 \alias{within_module_deg_z_score}
-\title{Calculate the within-module degree z-score of each vertex}
+\title{Calculate vertex within-module degree z-score}
 \usage{
 within_module_deg_z_score(g, memb)
 }

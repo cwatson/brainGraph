@@ -1,4 +1,4 @@
-#' Calculate the within-module degree z-score of each vertex
+#' Calculate vertex within-module degree z-score
 #'
 #' This function calculates the within-module degree z-score of each vertex in a
 #' graph, based on some module membership. This is a measure of the connectivity
