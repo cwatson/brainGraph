@@ -1,7 +1,7 @@
 \name{brainsuite}
 \docType{data}
 \alias{brainsuite}
-\title{Coordinates for data from the BrainSuite software}
+\title{Coordinates for data from BrainSuite atlas}
 \description{
   This is a list of spatial coordinates for the BrainSuite software, along with
   indices for the major lobes of the brain.
