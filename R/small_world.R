@@ -58,6 +58,6 @@ small.world <- function(g, rand) {
     }
   }
   sigma <- (Cp / Cp.rand) / (Lp / Lp.rand)
-  return(data.frame(density=densities, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,
+  return(data.table(density=densities, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,
                     Cp.rand=Cp.rand, sigma=sigma))
 }
