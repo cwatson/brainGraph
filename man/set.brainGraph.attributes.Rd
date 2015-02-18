@@ -13,7 +13,7 @@ set.brainGraph.attributes(g, atlas = NULL, coords = NULL, rand = FALSE)
 
 \item{coords}{A matrix of the spatial coordinates}
 
-\item{rand}{Logical indicating whether the graph is random or not}
+\item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
 }
 \value{
 g A copy of the same graph, with the following attributes:
