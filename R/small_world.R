@@ -1,4 +1,4 @@
-#' Get measures to calculate small-worldness.
+#' Calculate graph small-worldness
 #'
 #' This function will calculate the characteristic path length and clustering
 #' coefficient, which are used to calculate small-worldness.

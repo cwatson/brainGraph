@@ -1,4 +1,4 @@
-#' Create a data table listing vertex-wise measures for a graph
+#' Create a data table with graph vertex measures
 #'
 #' This is just a helper function that creates a data table in which each row is
 #' a vertex and each column is a different network measure (degree, centrality,

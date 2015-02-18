@@ -2,7 +2,7 @@
 % Please edit documentation in R/graph_attr_dt.R
 \name{graph_attr_dt}
 \alias{graph_attr_dt}
-\title{Create a data table listing the global measures for each graph in a list}
+\title{Create a data table with graph global measures}
 \usage{
 graph_attr_dt(g.list, Group = NULL)
 }

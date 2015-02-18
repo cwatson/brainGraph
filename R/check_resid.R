@@ -6,7 +6,7 @@
 #' @param resids Data table of model residuals for all brain regions
 #' @export
 #'
-#' @seealso \code{\link[stats]{qqnorm}, \link[stats]{qqline}}
+#' @seealso \code{\link[stats]{qqnorm}}
 
 check.resid <- function(resids) {
   kNumRegions <- ncol(resids) - 1

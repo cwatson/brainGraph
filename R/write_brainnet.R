@@ -10,7 +10,6 @@
 #' can be any vertex-level attribute or 'constant'
 #' @export
 #'
-#' @seealso \code{\link[igraph]{vertex_attr}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Xia M, Wang J, He Y (2013). \emph{BrainNet Viewer: a network
 #' visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.

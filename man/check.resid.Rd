@@ -14,6 +14,6 @@ This function checks the model residuals for each brain region in the
 analysis. It simply does a qqplot of the studentized residuals.
 }
 \seealso{
-\code{\link[stats]{qqnorm}, \link[stats]{qqline}}
+\code{\link[stats]{qqnorm}}
 }
 

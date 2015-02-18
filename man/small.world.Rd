@@ -2,7 +2,7 @@
 % Please edit documentation in R/small_world.R
 \name{small.world}
 \alias{small.world}
-\title{Get measures to calculate small-worldness.}
+\title{Calculate graph small-worldness}
 \usage{
 small.world(g, rand)
 }

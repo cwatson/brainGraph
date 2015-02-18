@@ -1,4 +1,4 @@
-#' Create a data table listing the global measures for each graph in a list
+#' Create a data table with graph global measures
 #'
 #' This is just a helper function that takes a list of graphs and creates a data
 #' table of global measures for each graph, ordered by graph density.

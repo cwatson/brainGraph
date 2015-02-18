@@ -2,7 +2,7 @@
 % Please edit documentation in R/vertex_attr_dt.R
 \name{vertex_attr_dt}
 \alias{vertex_attr_dt}
-\title{Create a data table listing vertex-wise measures for a graph}
+\title{Create a data table with graph vertex measures}
 \usage{
 vertex_attr_dt(g, Group = NULL)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_adj.R
 \name{plot.adj}
 \alias{plot.adj}
-\title{Plots an adjacency matrix with a specific spatial layout.}
+\title{Plot a graph with a specific spatial layout}
 \usage{
 \method{plot}{adj}(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0, ...)
 }
@@ -18,10 +18,11 @@
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }
 \description{
-This function plots an adjacency matrix when the spatial layout of the nodes
-is important. It is really just a wrapper for \code{\link{plot}}, with some
-options pre-specified that work for plotting in the brain's layout. This means
-that \code{\link{set.brainGraph.attributes}} needs to be run on the graph,
+This function plots a graph when the spatial layout of the nodes is important
+(e.g. in the brain). It is really just a wrapper for
+\code{\link{plot.igraph}}, with some options pre-specified that work for
+plotting in the brain's layout. This means that
+\code{\link{set.brainGraph.attributes}} needs to be run on the graph,
 and a valid set of coordinates provided for the vertices. Most of the
 parameters valid here can be seen in \code{\link{igraph.plotting}}.
 }
