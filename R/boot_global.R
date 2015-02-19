@@ -27,6 +27,7 @@
 
 boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') {
 
+  meas <- Group <- se <- ci.low <- ci.high <- NULL
   # 'statistic' function for the bootstrapping process
   statfun <- function(x, i, measure='mod') {
     group <- x[i]
