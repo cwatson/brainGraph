@@ -10,6 +10,7 @@
 #' if integer, the region is chosen from the data table based on the index
 #' @export
 #'
+#' @return A ggplot object for plotting the histograms
 #' @seealso \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 

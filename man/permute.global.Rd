@@ -15,6 +15,10 @@ permute.global(densities, resids, num.subjs, num.perms = 1000)
 
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 }
+\value{
+A data table with values for group differences in modularity, global
+efficiency, clustering, average path length, and assortativity
+}
 \description{
 This function draws permutations from linear model residuals to determine the
 significance of between-group differences of a global graph measure. This

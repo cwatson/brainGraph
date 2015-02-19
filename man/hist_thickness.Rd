@@ -13,6 +13,9 @@ hist_thickness(dat, cur.region)
 \item{cur.region}{A character string or integer of the brain region to plot;
 if integer, the region is chosen from the data table based on the index}
 }
+\value{
+A ggplot object for plotting the histograms
+}
 \description{
 This function takes a "tidied" dataset of cortical thickness and plots a
 histogram for 2 groups, including a dashed vertical line indicating the group

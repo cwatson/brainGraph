@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 0.18.9
-Date: 2015-02-13
+Version: 0.19.0
+Date: 2015-02-19
 Title: Graph theory analysis of brain MRI data
 Author: Chris Watson <cgwatson@bu.edu>
 Maintainer: Chris Watson <cgwatson@bu.edu>
@@ -23,5 +23,6 @@ Imports:
     parallel,
     oro.nifti,
     data.table,
-    ggplot2
+    ggplot2,
+    boot
 License: GPL-3

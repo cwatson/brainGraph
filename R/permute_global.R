@@ -9,7 +9,10 @@
 #' @param resids A data.table of the residuals (from \code{\link{get.resid}})
 #' @param num.subjs A vector of length 2 indicating group sizes
 #' @param num.perms The number of permutations to perform (default: 1e3)
+#' @export
 #'
+#' @return A data table with values for group differences in modularity, global
+#' efficiency, clustering, average path length, and assortativity
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
