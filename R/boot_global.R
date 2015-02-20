@@ -29,7 +29,7 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
 
   meas <- Group <- se <- ci.low <- ci.high <- NULL
   # 'statistic' function for the bootstrapping process
-  statfun <- function(x, i, measure='mod') {
+  statfun <- function(x, i, measure) {
     group <- x[i]
     corrs <- lapply(densities, function(x) corr.matrix(group, density=x))
     g.boot <- lapply(corrs, function(x)
@@ -49,10 +49,10 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
   }
 
   kNumDensities <- length(densities)
-  boot1 <- boot(resids[groups[1]][, !'Group', with=F], statfun, R=num.reps,
-                   parallel='multicore', ncpus=detectCores())
-  boot2 <- boot(resids[groups[2]][, !'Group', with=F], statfun, R=num.reps,
-                   parallel='multicore', ncpus=detectCores())
+  boot1 <- boot(resids[groups[1]][, !'Group', with=F], statfun, measure=measure,
+                R=num.reps, parallel='multicore', ncpus=detectCores())
+  boot2 <- boot(resids[groups[2]][, !'Group', with=F], statfun, measure=measure,
+                R=num.reps, parallel='multicore', ncpus=detectCores())
   boot.dt <- data.table(density=rep(densities, 2),
                         meas=c(boot1$t0, boot2$t0),
                         se=c(apply(boot1$t, 2, sd), apply(boot2$t, 2, sd)),
