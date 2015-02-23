@@ -14,6 +14,8 @@
 #' @export
 #'
 #' @return A list with the following elements:
+#' \item{g1}{The \code{\link[boot]{boot}} object for group 1}
+#' \item{g2}{The \code{\link[boot]{boot}} object for group 2}
 #' \item{dt}{A data table with length \emph{\# densities * \# groups}}
 #' \item{p1}{A ggplot object with ribbon representing standard error}
 #' \item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
@@ -72,5 +74,5 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
     geom_line() + geom_point() +
     geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3)
 
-  return(list(dt=boot.dt, p1=bootplot, p2=bootplot.ci))
+  return(list(g1=boot1, g2=boot2, dt=boot.dt, p1=bootplot, p2=bootplot.ci))
 }
