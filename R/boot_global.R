@@ -20,7 +20,7 @@
 #' \item{p1}{A ggplot object with ribbon representing standard error}
 #' \item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
 #' @seealso \code{\link[boot]{boot}, \link[boot]{boot.ci},
-#' \link{permute.global}}
+#' \link{permute.group}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{

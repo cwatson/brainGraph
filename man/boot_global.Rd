@@ -42,6 +42,6 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
 \code{\link[boot]{boot}, \link[boot]{boot.ci},
-\link{permute.global}}
+\link{permute.group}}
 }
 
