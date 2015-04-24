@@ -61,7 +61,8 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
                         Group=rep(groups, each=kNumDensities))
   bootplot <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() +
-    geom_ribbon(aes(ymin=meas-se, ymax=meas+se, fill=Group), alpha=0.3)
+    geom_ribbon(aes(ymin=meas-se, ymax=meas+se, fill=Group), alpha=0.3) +
+    ylab(measure)
 
   # Use the estimated normal 95% CI instead of se
   ci1 <- sapply(seq_len(kNumDensities), function(x) boot.ci(boot1, type='norm',
@@ -72,7 +73,8 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
   boot.dt$ci.high <- c(ci1[2, ], ci2[2, ])
   bootplot.ci <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() + geom_point() +
-    geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3)
+    geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3) +
+    ylab(measure)
 
   return(list(g1=boot1, g2=boot2, dt=boot.dt, p1=bootplot, p2=bootplot.ci))
 }
