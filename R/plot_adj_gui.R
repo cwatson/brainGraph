@@ -348,11 +348,15 @@ plot.adj.gui <- function() {
   vertSize.other <- add_entry(hboxVsizeOther, label.text=paste0('\t\t', 'Other:'),
                               char.width=10)
 
-  hboxVsizeMin <- gtkHBoxNew(F, 8)
-  hboxVsizeOther$packStart(hboxVsizeMin, F, F, 0)
-  vertSize.min <- add_entry(hboxVsizeMin, label.text='Min:', char.width=3,
-                            entry.text='0')
-  vertSize.min$setSensitive(T)
+  # Have 2 boxes to allow for different minimums for 2 groups
+  hboxVsizeMin <- vertSize.min <- vector('list', 2)
+  for (i in 1:2) {
+    hboxVsizeMin[[i]] <- gtkHBoxNew(F, 8)
+    hboxVsizeOther$packStart(hboxVsizeMin[[i]], F, F, 0)
+    vertSize.min[[i]] <- add_entry(hboxVsizeMin[[i]], label.text=sprintf('Min%i:', i), char.width=3,
+                              entry.text='0')
+    vertSize.min[[i]]$setSensitive(T)
+  }
 
   gSignalConnect(comboVsize, 'changed', function(comboVsize, ...) {
       if (comboVsize$getActive() == 0) {
@@ -510,7 +514,8 @@ plot.adj.gui <- function() {
                                    orient2=comboOrient[[2]], comm=comboComm,
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],
-                                   vertSize.other, vertSize.min, edgeWidth.min,
+                                   vertSize.other, vertSize.min1=vertSize.min[[1]],
+                                   vertSize.min2=vertSize.min[[2]], edgeWidth.min,
                                    kNumComms=kNumComms))
   buttonRename <- gtkButtonNewWithLabel('Pick new graphs')
   gSignalConnect(buttonRename, 'clicked',

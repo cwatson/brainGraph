@@ -15,11 +15,11 @@
 #' number of triangles, transitivity, average path length, assortativity,
 #' clique sizes, global & local efficiency, modularity, vulnerability, hub score,
 #' and rich-club coefficient}
-#' \item{Vertex-level}{Degree, strength, betweenness centrality, eigenvector
-#' centrality, transitivity (local), coreness, local & nodal efficiency, color
-#' (community), color (lobe), color (component), membership (community),
-#' membership (component), participation coefficient, within-module degree
-#' z-score, vulnerability, and coordinates (x, y, and z)}
+#' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
+#' leverage centralities, transitivity (local), coreness, local & nodal
+#' efficiency, color (community), color (lobe), color (component), membership
+#' (community), membership (component), participation coefficient, within-module
+#' degree z-score, vulnerability, and coordinates (x, y, and z)}
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
 #' betweenness, Euclidean distance (in mm)}
 #'
@@ -30,7 +30,7 @@
 #' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 #' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-#' \link{vulnerability}}
+#' \link{vulnerability}, \link{centr_lev}}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   if (rand == TRUE) {
@@ -113,6 +113,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
                                      temporal.lh, parietal.lh, occipital.lh, 
                                      occipital.rh, parietal.rh, temporal.rh,
                                      cingulate.rh, insula.rh, frontal.rh))
+        V(g)$hemi[grep('^l.*', rownames(atlas.list$coords))] <- 'L'
+        V(g)$hemi[grep('^r.*', rownames(atlas.list$coords))] <- 'R'
   
       } else if (atlas == 'aal90') {
         lobes[atlas.list$limbic] <- 6
@@ -126,6 +128,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
         lobe.hemi[atlas.list$limbic.rh] <- 12
         lobe.hemi[atlas.list$scgm.lh] <- 13
         lobe.hemi[atlas.list$scgm.rh] <- 14
+
+        V(g)$hemi[grep('.*L$', rownames(atlas.list$coords))] <- 'L'
+        V(g)$hemi[grep('.*R$', rownames(atlas.list$coords))] <- 'R'
   
       } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
         lobes[atlas.list$scgm] <- 7
@@ -136,6 +141,14 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
                                      scgm.rh, cingulate.rh, insula.rh, frontal.rh))
         lobe.hemi[atlas.list$scgm.lh] <- 13
         lobe.hemi[atlas.list$scgm.rh] <- 14
+
+        if (atlas == 'lpba40') {
+          V(g)$hemi[grep('^l.*', rownames(atlas.list$coords))] <- 'L'
+          V(g)$hemi[grep('^r.*', rownames(atlas.list$coords))] <- 'R'
+        } else {
+          V(g)$hemi[grep('.*L$', rownames(atlas.list$coords))] <- 'L'
+          V(g)$hemi[grep('.*R$', rownames(atlas.list$coords))] <- 'R'
+        }
       }
   
       V(g)$lobe <- lobes
@@ -160,6 +173,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$btwn.cent <- centralization.betweenness(g)$res
     V(g)$ev.cent <- centralization.evcent(g)$vector
     V(g)$subgraph.cent <- subgraph.centrality(g)
+    V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- graph.coreness(g)
   
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')

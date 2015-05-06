@@ -26,7 +26,8 @@
 #' @param slider1 A GTK horizontal slider widget for changing edge curvature
 #' @param slider2 A GTK horizontal slider widget for changing edge curvature
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
-#' @param vertSize.min A GTK entry for minimum vertex size
+#' @param vertSize.min1 A GTK entry for minimum vertex size, group 1
+#' @param vertSize.min2 A GTK entry for minimum vertex size, group 2
 #' @param edgeWidth.min A GTK entry for minimum edge width
 #' @param kNumComms Integer indicating the number of total communities (optional)
 #'
@@ -37,13 +38,13 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min, edgeWidth.min, kNumComms=NULL) {
+                       vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
   #===========================================================================
   #===========================================================================
-  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms, ...) {
+  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms, vertSize.min, ...) {
     dev.set(dev)
     atlas <- g$atlas
     atlas.list <- eval(parse(text=atlas))
@@ -251,6 +252,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
       } else {
         vsize <- mult * vertex_attr(g, v.attr)
       }
+      #TODO: add lev.cent; same problem as w/ z.score though 
     }
 
     # Edge width
@@ -418,7 +420,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
   make.plot(dev=firstplot, g=graph1, g2=graph2, orient=orient1,
             comm, vertLabels, vertSize, edgeWidth,
             vertColor, vertSize.const=NULL, hemi, the.slider=slider1,
-            kNumComms=kNumComms)
+            kNumComms=kNumComms, vertSize.min=vertSize.min1)
 
   if (nchar(graphname2$getText()) > 0) {
     if (!is.igraph(graph2)) {
@@ -427,6 +429,6 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     make.plot(dev=secondplot, g=graph2, g2=graph1, orient=orient2,
               comm, vertLabels, vertSize, edgeWidth,
               vertColor, vertSize.const=NULL, hemi, the.slider=slider2,
-              kNumComms=kNumComms)
+              kNumComms=kNumComms, vertSize.min=vertSize.min2)
   }
 }

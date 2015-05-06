@@ -13,3 +13,6 @@ devtools::install_github('cwatson/brainGraph')
 ```
 This should install all of the dependencies needed along with the package
 itself.
+
+# Usage
+Stay tuned for the addition of the *brainGraph* User Guide.

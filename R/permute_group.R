@@ -44,6 +44,7 @@ permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
       btwn.diff <- mapply(function(x, y) centr_betw(x)$res - centr_betw(y)$res,
                           g1, g2, SIMPLIFY=T)
       tmp <- as.data.table(cbind(densities, t(btwn.diff)))
+
     } else if (level == 'graph') {
       mod1 <- sapply(g1, function(x) modularity(cluster_louvain(x)))
       mod2 <- sapply(g2, function(x) modularity(cluster_louvain(x)))
