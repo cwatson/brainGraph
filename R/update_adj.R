@@ -80,6 +80,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     for (att in vertex_attr_names(sg.lobe)) sg.lobe <- delete_vertex_attr(sg.lobe, att)
     for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
     V(sg.lobe)$name <- V(g)$name[memb.lobe]
+    V(sg.lobe)$hemi <- V(g)$hemi[memb.lobe]
 
     #=======================================================
     # Hemisphere to plot
@@ -91,20 +92,12 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     } else if (hemi$getActive() == 1) {
       # LH only
-      if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
-        memb.hemi <- seq(1, Nv, 2)
-      } else {
-        memb.hemi <- 1:(Nv/2)
-      }
+      memb.hemi <- which(V(g)$hemi == 'L')
       sg.hemi <- induced.subgraph(g, memb.hemi)
 
     } else if (hemi$getActive() == 2) {
       # RH only
-      if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
-        memb.hemi <- seq(2, Nv, 2)
-      } else {
-        memb.hemi <- (Nv/2  + 1):Nv
-      }
+      memb.hemi <- which(V(g)$hemi == 'R')
       sg.hemi <- induced.subgraph(g, memb.hemi)
 
     } else if (hemi$getActive() == 3) {
@@ -120,6 +113,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
     for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
     V(sg.hemi)$name <- V(g)$name[memb.hemi]
+    V(sg.lobe)$hemi <- V(g)$hemi[memb.hemi]
 
     g <- g %s% (sg.lobe %s% sg.hemi)
     if (orient$getActive() != 3) {

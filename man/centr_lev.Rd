@@ -7,7 +7,7 @@
 centr_lev(g)
 }
 \arguments{
-\item{g}{The graph}
+\item{g}{The igraph graph object}
 }
 \value{
 A vector of the leverage centrality for all vertices.

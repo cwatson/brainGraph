@@ -8,7 +8,7 @@
 #' @param Group A character string indicating group membership (default:NULL)
 #' @export
 #'
-#' @return A data table with 13 columns and row number equal to the number of
+#' @return A data table with 14 columns and row number equal to the number of
 #' vertices in the graph
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
 
@@ -21,6 +21,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          btwn.cent=V(g)$btwn.cent,
                          ev.cent=V(g)$ev.cent,
                          subg.cent=V(g)$subgraph.cent,
+                         lev.cent=V(g)$lev.cent,
                          coreness=V(g)$coreness,
                          trans=V(g)$transitivity,
                          E.local=V(g)$E.local,

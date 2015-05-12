@@ -31,6 +31,8 @@
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 #' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
 #' \link{vulnerability}, \link{centr_lev}}
+#'
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   if (rand == TRUE) {
@@ -77,7 +79,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
   
     # Vertex-level attributes
     #-----------------------------------------------------------------------------
-    # Give each vertex a 'lobe' attribute, and colors for each lobe
+    # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
     if (!is.null(atlas)) {
       lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
                      'lightgreen')
@@ -85,77 +87,10 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
       V(g)$color.lobe <- color.vertices(atlas=atlas)
   
       atlas.list <- eval(parse(text=atlas))
-      lobes <- lobe.hemi <- vector('integer', length=vcount(g))
+      g <- assign_lobes(g, atlas, atlas.list)
   
-      lobes[atlas.list$frontal] <- 1
-      lobes[atlas.list$parietal] <- 2
-      lobes[atlas.list$temporal] <- 3
-      lobes[atlas.list$occipital] <- 4
-      lobes[atlas.list$insula] <- 5
-      lobes[atlas.list$cingulate] <- 6
-  
-      lobe.hemi[atlas.list$frontal.lh] <- 1
-      lobe.hemi[atlas.list$frontal.rh] <- 2
-      lobe.hemi[atlas.list$parietal.lh] <- 3
-      lobe.hemi[atlas.list$parietal.rh] <- 4
-      lobe.hemi[atlas.list$temporal.lh] <- 5
-      lobe.hemi[atlas.list$temporal.rh] <- 6
-      lobe.hemi[atlas.list$occipital.lh] <- 7
-      lobe.hemi[atlas.list$occipital.rh] <- 8
-      lobe.hemi[atlas.list$insula.lh] <- 9
-      lobe.hemi[atlas.list$insula.rh] <- 10
-      lobe.hemi[atlas.list$cingulate.lh] <- 11
-      lobe.hemi[atlas.list$cingulate.rh] <- 12
-  
-      if (atlas %in% c('dkt', 'dk')) {
-        V(g)$circle.layout <- with(atlas.list,
-                                   c(frontal.lh, insula.lh, cingulate.lh, 
-                                     temporal.lh, parietal.lh, occipital.lh, 
-                                     occipital.rh, parietal.rh, temporal.rh,
-                                     cingulate.rh, insula.rh, frontal.rh))
-        V(g)$hemi[grep('^l.*', rownames(atlas.list$coords))] <- 'L'
-        V(g)$hemi[grep('^r.*', rownames(atlas.list$coords))] <- 'R'
-  
-      } else if (atlas == 'aal90') {
-        lobes[atlas.list$limbic] <- 6
-        lobes[atlas.list$scgm] <- 7
-        V(g)$circle.layout <- with(atlas.list,
-                                   c(frontal.lh, insula.lh, limbic.lh, scgm.lh,
-                                     temporal.lh, parietal.lh, occipital.lh,
-                                     occipital.rh, parietal.rh, temporal.rh,
-                                     scgm.rh, limbic.rh, insula.rh, frontal.rh))
-        lobe.hemi[atlas.list$limbic.lh] <- 11
-        lobe.hemi[atlas.list$limbic.rh] <- 12
-        lobe.hemi[atlas.list$scgm.lh] <- 13
-        lobe.hemi[atlas.list$scgm.rh] <- 14
-
-        V(g)$hemi[grep('.*L$', rownames(atlas.list$coords))] <- 'L'
-        V(g)$hemi[grep('.*R$', rownames(atlas.list$coords))] <- 'R'
-  
-      } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
-        lobes[atlas.list$scgm] <- 7
-        V(g)$circle.layout <- with(atlas.list,
-                                   c(frontal.lh, insula.lh, cingulate.lh, scgm.lh,
-                                     temporal.lh, parietal.lh, occipital.lh, 
-                                     occipital.rh, parietal.rh, temporal.rh,
-                                     scgm.rh, cingulate.rh, insula.rh, frontal.rh))
-        lobe.hemi[atlas.list$scgm.lh] <- 13
-        lobe.hemi[atlas.list$scgm.rh] <- 14
-
-        if (atlas == 'lpba40') {
-          V(g)$hemi[grep('^l.*', rownames(atlas.list$coords))] <- 'L'
-          V(g)$hemi[grep('^r.*', rownames(atlas.list$coords))] <- 'R'
-        } else {
-          V(g)$hemi[grep('.*L$', rownames(atlas.list$coords))] <- 'L'
-          V(g)$hemi[grep('.*R$', rownames(atlas.list$coords))] <- 'R'
-        }
-      }
-  
-      V(g)$lobe <- lobes
-      V(g)$lobe.hemi <- lobe.hemi
-  
-      g$assortativity.lobe <- assortativity(g, V(g)$lobe)
-      g$assortativity.lobe.hemi <- assortativity(g, V(g)$lobe.hemi)
+      g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
+      g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
       E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
     }
   
@@ -170,8 +105,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     if (is.weighted(g)) {
       V(g)$strength <- graph.strength(g)
     }
-    V(g)$btwn.cent <- centralization.betweenness(g)$res
-    V(g)$ev.cent <- centralization.evcent(g)$vector
+    V(g)$btwn.cent <- centr_betw(g)$res
+    V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$subgraph.cent <- subgraph.centrality(g)
     V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- graph.coreness(g)
@@ -182,8 +117,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$E.nodal <- graph.efficiency(g, type='nodal')
     g$E.local <- mean(V(g)$E.local)
   
-    V(g)$vulnerability <- vulnerability(g)
-    g$vulnerability <- max(V(g)$vulnerability)
+    #V(g)$vulnerability <- vulnerability(g)
+    #g$vulnerability <- max(V(g)$vulnerability)
   
     # Community stuff
     comm <- multilevel.community(g)

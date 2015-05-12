@@ -33,6 +33,9 @@ betweenness, Euclidean distance (in mm)}
 This function will set a number of graph, vertex, and edge attributes of a
 given igraph object.
 }
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}
 \seealso{
 \code{\link{components}, \link{graph.motifs}, \link{diameter},
 \link{cliques}, \link{centralization.betweenness}, \link{edge.betweenness},

@@ -11,7 +11,7 @@
 #'
 #' This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 #'
-#' @param g The graph
+#' @param g The igraph graph object
 #' @export
 #'
 #' @return A vector of the leverage centrality for all vertices.

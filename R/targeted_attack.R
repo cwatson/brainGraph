@@ -29,7 +29,7 @@ targeted.attack <- function(g, type=c('vertex', 'edge'),
       max.comp[i+1] <- max(components(g)$csize)
     }
   } else {
-    if(measure == 'degree') {
+    if (measure == 'degree') {
       stop('For edge attacks, must choose "btwn.cent"')
     }
     ord <- order(E(g)$btwn, decreasing=T)

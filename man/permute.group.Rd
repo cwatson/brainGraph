@@ -5,7 +5,8 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(densities, resids, num.subjs, num.perms = 1000,
-  level = c("graph", "vertex"))
+  level = c("graph", "vertex", "lobe", "asymmetry"), atlas = NULL,
+  atlas.list = NULL)
 }
 \arguments{
 \item{densities}{A vector of graph densities to loop through}
@@ -17,7 +18,7 @@ permute.group(densities, resids, num.subjs, num.perms = 1000,
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
 \item{level}{A character string for the attribute level to calculate
-differences; either 'graph' or 'vertex'}
+differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'}
 }
 \value{
 A data table with values for group differences in modularity, global
@@ -27,14 +28,28 @@ efficiency, clustering, average path length, and assortativity
 This function draws permutations from linear model residuals to determine the
 significance of between-group differences of a global graph measure. This
 function is intended for cortical thickness networks (in which there is only
-one graph per group).
+one graph per group), but is not restricted to that type of data.
+}
+\details{
+The \emph{lobe} "level" is intended to test for group differences in
+inter-lobar connections, e.g. from the temporal lobe to the rest of the
+brain.
+
+The \emph{asymmetry} "level" is intended to test for group differences in an
+"asymmetry index", which is a measure of difference in intra-hemispheric
+connection density.
 }
 \examples{
 \dontrun{
 out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
+out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe', atlas, atlas.list)
 }
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
+}
+\seealso{
+\code{\link[igraph]{centr_betw}, \link{count_interlobar},
+\link{edge_asymmetry}}
 }
 
