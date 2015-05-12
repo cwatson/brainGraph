@@ -5,7 +5,7 @@
 #' The leverage centrality relates a vertex's degree with the degree of its
 #' neighbors. The equation is:
 #' \deqn{l_i = \frac{1}{k_i} \sum_{j \in N_i} \frac{k_i - k_j}{k_i + k_j}}
-#' where \eqn{k_i} is the degree of the \emph{i}^th vertex and \eqn{N_i} is the
+#' where \eqn{k_i} is the degree of the \eqn{i^{th}} vertex and \eqn{N_i} is the
 #' set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 #' \emph{NA} (for functions that have the argument \emph{na.rm}).
 #'

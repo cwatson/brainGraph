@@ -17,7 +17,11 @@ permute.group(densities, resids, num.subjs, num.perms = 1000,
 
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
-\item{level}{A character string for the attribute level to calculate
+\item{level}{A character string for the attribute level to calculate}
+
+\item{atlas}{Character string for the specific atlas to use}
+
+\item{atlas.list}{List containing the specific atlas data
 differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'}
 }
 \value{

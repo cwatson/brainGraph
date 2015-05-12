@@ -15,8 +15,8 @@ group.graph.diffs(g1, g2, measure)
 }
 \value{
 A graph with vertex attributes: \emph{size2} equals the t-statistic;
-\emph{size} is transformed to be positive values (for visualization)
-purposes; \emph{p} is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the
+\emph{size} is transformed to be positive values (for visualization
+purposes); \emph{p} is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the
 FDR-adjusted p-value
 }
 \description{

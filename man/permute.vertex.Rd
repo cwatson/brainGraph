@@ -23,7 +23,7 @@ A list with the following elements:
 as a vertex-level attribute (it is actually 1 - \emph{p.perm})}
 \item{p.max}{The proportion of the number of times the maximum t-statistic of
 the permuted groups was greater than the observed maximum t-statistic}
-\item{thresh}{The (1 - alpha) \%ile maximum t-statistic of all permuted values}
+\item{thresh}{The \eqn{1 - \alpha} \%ile maximum t-statistic of all permuted values}
 }
 \description{
 This function performs a permutation test looking at the max t-statistic for

@@ -18,7 +18,7 @@ This function calculates the Euclidean distance of edges between vertices of
 a graph. The distances are in mm and based on MNI space. The distances are
 \emph{NOT} along the cortical surface, so can only be considered
 approximations, particularly concerning inter-hemispheric connections. The
-input graph must have 'atlas' as a graph-level attribute.
+input graph must have \emph{atlas} as a graph-level attribute.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

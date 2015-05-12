@@ -25,7 +25,7 @@
 #' @export
 #'
 #' @return A vector of the local efficiencies for each node of the graph (if 
-#' type='local|nodal') or a number (if type='global').
+#' \emph{type} is 'local|nodal') or a number (if \emph{type} is 'global').
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of

@@ -5,7 +5,7 @@
 #' to keep only the 10\% strongest correlations. It also allows for the exclusion
 #' of a set of columns (i.e. regions or nodes), given their indices. Also
 #' returns the p-values. Essentially a wrapper for \code{\link[Hmisc]{rcorr}},
-#' with #' some added functionality to work with the type of data more easily.
+#' with some added functionality to work with the type of data more easily.
 #'
 #' @param dat Matrix or data frame of the columns to correlate
 #' @param thresh Absolute correlation value to threshold by

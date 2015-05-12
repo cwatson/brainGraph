@@ -5,9 +5,9 @@
 #' graph object for brain MRI data.
 #'
 #' The equation is:
-#'\deqn{A = \frac{E_{lh} - E_{rh}}{0.5 \mtimes E_{lh} + E_{rh}}}
+#'\deqn{A = \frac{E_{lh} - E_{rh}}{0.5 \times (E_{lh} + E_{rh})}}
 #' where \emph{lh} and \emph{rh} are left and right hemispheres, respectively.
-#' The range of this measure is \eqn{\[-1, 1\]}, with negative numbers
+#' The range of this measure is \eqn{[-1, 1]}, with negative numbers
 #' indicating more edges in the left hemisphere, and a value of 0 indicating
 #' equal number of edges in each hemisphere.
 #'

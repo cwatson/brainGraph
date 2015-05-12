@@ -18,6 +18,8 @@
 #' @param num.subjs A vector of length 2 indicating group sizes
 #' @param num.perms The number of permutations to perform (default: 1e3)
 #' @param level A character string for the attribute level to calculate
+#' @param atlas Character string for the specific atlas to use
+#' @param atlas.list List containing the specific atlas data
 #' differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'
 #' @export
 #'

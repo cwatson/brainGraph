@@ -21,7 +21,7 @@ boot_global(densities, resids, groups, num.reps = 1000, measure = "mod")
 A list with the following elements:
 \item{g1}{The \code{\link[boot]{boot}} object for group 1}
 \item{g2}{The \code{\link[boot]{boot}} object for group 2}
-\item{dt}{A data table with length \emph{\# densities * \# groups}}
+\item{dt}{A data table with length \emph{# densities * # groups}}
 \item{p1}{A ggplot object with ribbon representing standard error}
 \item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
 }
