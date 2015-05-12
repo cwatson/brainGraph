@@ -33,7 +33,8 @@
 #' @examples
 #' \dontrun{
 #' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
-#' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe', atlas, atlas.list)
+#' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe',
+#'   atlas, atlas.list)
 #' }
 
 permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
@@ -62,30 +63,31 @@ permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
       tmp <- as.data.table(cbind(densities, t(btwn.diff)))
 
     } else if (level == 'graph') {
-#      mod1 <- sapply(g1, function(x) modularity(cluster_louvain(x)))
-#      mod2 <- sapply(g2, function(x) modularity(cluster_louvain(x)))
-#      mod.diff <- mod1 - mod2
-#      Cp1 <- sapply(g1, transitivity, type='localaverage')
-#      Cp2 <- sapply(g2, transitivity, type='localaverage')
-#      Cp.diff <- Cp1 - Cp2
-#      Lp1 <- sapply(g1, average.path.length)
-#      Lp2 <- sapply(g2, average.path.length)
-#      Lp.diff <- Lp1 - Lp2
-#      assortativity1 <- sapply(g1, assortativity.degree)
-#      assortativity2 <- sapply(g2, assortativity.degree)
-#      assort.diff <- assortativity1 - assortativity2
-#      E.global1 <- sapply(g1, graph.efficiency, 'global')
-#      E.global2 <- sapply(g2, graph.efficiency, 'global')
-#      E.global.diff <- E.global1 - E.global2
+      mod1 <- sapply(g1, function(x) modularity(cluster_louvain(x)))
+      mod2 <- sapply(g2, function(x) modularity(cluster_louvain(x)))
+      mod.diff <- mod1 - mod2
+      Cp1 <- sapply(g1, transitivity, type='localaverage')
+      Cp2 <- sapply(g2, transitivity, type='localaverage')
+      Cp.diff <- Cp1 - Cp2
+      Lp1 <- sapply(g1, average.path.length)
+      Lp2 <- sapply(g2, average.path.length)
+      Lp.diff <- Lp1 - Lp2
+      assortativity1 <- sapply(g1, assortativity.degree)
+      assortativity2 <- sapply(g2, assortativity.degree)
+      assort.diff <- assortativity1 - assortativity2
+      E.global1 <- sapply(g1, graph.efficiency, 'global')
+      E.global2 <- sapply(g2, graph.efficiency, 'global')
+      E.global.diff <- E.global1 - E.global2
 
       g1 <- lapply(g1, assign_lobes, atlas, atlas.list)
       g2 <- lapply(g2, assign_lobes, atlas, atlas.list)
       assort.lobe1 <- sapply(g1, function(x) assortativity_nominal(x, V(x)$lobe))
       assort.lobe2 <- sapply(g2, function(x) assortativity_nominal(x, V(x)$lobe))
       assort.lobe.diff <- assort.lobe1 - assort.lobe2
-#      tmp <- data.table(density=densities, mod=mod.diff, E.global=E.global.diff,
-#                 Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff)
-      tmp <- data.table(density=densities, assortativity.lobe=assort.lobe.diff)
+      tmp <- data.table(density=densities, mod=mod.diff, E.global=E.global.diff,
+                 Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
+                 assortativity.lobe=assort.lobe.diff)
+      #tmp <- data.table(density=densities, assortativity.lobe=assort.lobe.diff)
 
     } else if (level == 'lobe') {
       g1 <- lapply(g1, assign_lobes, atlas, atlas.list)

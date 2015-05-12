@@ -46,7 +46,8 @@ connection density.
 \examples{
 \dontrun{
 out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
-out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe', atlas, atlas.list)
+out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe',
+  atlas, atlas.list)
 }
 }
 \author{
