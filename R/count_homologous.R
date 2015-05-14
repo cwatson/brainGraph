@@ -12,7 +12,7 @@
 count_homologous <- function(g) {
   atlas <- g$atlas
   eids <- vector('integer')
-  if (atlas %in% c('dkt', 'dk', 'brainsuite')) {
+  if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite')) {
     for (i in seq_len(vcount(g) / 2)) {
       region <- substr(V(g)$name[i], 2, nchar(V(g)$name[i]))
       region.l <- paste0('l', region)

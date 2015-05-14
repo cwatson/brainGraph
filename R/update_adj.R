@@ -240,6 +240,9 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
         vsize <- mult * 15 * V(g)$ev.cent
       }
     } else if (vertSize$getActive() == 12) {
+      g <- delete.vertices(g, V(g)$vulnerability < v.min)
+      vsize <- mult * vec.transform(V(g)$vulnerability, 0, 15)
+    } else if (vertSize$getActive() == 13) {
       g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
       if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
         vsize <- mult * 15 * vertex_attr(g, v.attr)

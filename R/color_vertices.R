@@ -33,6 +33,9 @@ color.vertices <- function(memb, atlas=NULL) {
 
     } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
       lobe.color[atlas.list$scgm] <- cols[7]
+
+    } else if (atlas == 'destrieux') {
+      lobe.color[atlas.list$limbic] <- cols[6]
     }
 
     if (atlas == 'lpba40') {

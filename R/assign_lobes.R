@@ -62,11 +62,11 @@ assign_lobes <- function(g, atlas, atlas.list) {
   
   } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
     lobes[atlas.list$scgm] <- 7
-    V(g)$circle.layout <- with(atlas.list,
-    c(frontal.lh, insula.lh, cingulate.lh, scgm.lh,
-    temporal.lh, parietal.lh, occipital.lh,
-    occipital.rh, parietal.rh, temporal.rh,
-    scgm.rh, cingulate.rh, insula.rh, frontal.rh))
+    V(g)$circle.layout <- with(atlas.list, c(frontal.lh, insula.lh, cingulate.lh,
+                                             scgm.lh, temporal.lh, parietal.lh,
+                                             occipital.lh, occipital.rh,
+                                             parietal.rh, temporal.rh, scgm.rh,
+                                             cingulate.rh, insula.rh, frontal.rh))
     lobe.hemi[atlas.list$scgm.lh] <- 13
     lobe.hemi[atlas.list$scgm.rh] <- 14
   
@@ -77,6 +77,18 @@ assign_lobes <- function(g, atlas, atlas.list) {
       V(g)$hemi[grep('.*L$', rownames(atlas.list$coords))] <- 'L'
       V(g)$hemi[grep('.*R$', rownames(atlas.list$coords))] <- 'R'
     }
+  } else if (atlas == 'destrieux') {
+    lobes[atlas.list$limbic] <- 6
+    V(g)$circle.layout <- with(atlas.list, c(frontal.lh, insula.lh, limbic.lh,
+                                             temporal.lh, parietal.lh,
+                                             occipital.lh, occipital.rh,
+                                             parietal.rh, temporal.rh, limbic.rh,
+                                             insula.rh, frontal.rh))
+    lobe.hemi[atlas.list$limbic.lh] <- 11
+    lobe.hemi[atlas.list$limbic.rh] <- 12
+
+    V(g)$hemi[grep('^l.*', rownames(atlas.list$coords))] <- 'L'
+    V(g)$hemi[grep('^r.*', rownames(atlas.list$coords))] <- 'R'
   }
 
   V(g)$lobe <- lobes

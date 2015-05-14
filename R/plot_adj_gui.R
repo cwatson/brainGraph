@@ -338,7 +338,8 @@ plot.adj.gui <- function() {
   choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
                'Subgraph centrality', 'Coreness',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.', 'Nodal eff.',
-               'Within-module degree z-score', 'Hub score', 'Other')
+               'Within-module degree z-score', 'Hub score', 'Vulnerability',
+               'Other')
   comboVsize <- add_combo(hboxVsize, choices, 'Vertex _size')
 
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
