@@ -18,11 +18,11 @@ or 'wilcox.test'}
 }
 \value{
 A graph with vertex attributes:
-\item{\emph{size2} equals the t-statistic}
-\item{\emph{size} is transformed to be positive values (for visualization
-purposes)}
-\item{\emph{p} is equal to \eqn{1 - p}}
-\item{\emph{p.adj} is 1 - the #' FDR-adjusted p-value}
+\item{size2}{equals the t-statistic}
+\item{size}{\emph{size2} transformed to be positive values (for
+visualization purposes)}
+\item{p}{Equal to \eqn{1-p}}
+\item{p.adj}{Equal to \eqn{1-} the FDR-adjusted p-value}
 }
 \description{
 This function takes two lists of graphs (the length of each equaling the
