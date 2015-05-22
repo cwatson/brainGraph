@@ -19,6 +19,7 @@ spatial.dist <- function(g) {
     stop(sprintf('Error: Input graph "%s" does not have an "atlas" attribute!',
                  deparse(substitute(g))))
   }
+  name <- index <- NULL
   atlas.dt <- eval(parse(text=g$atlas))
   coords <- atlas.dt[, c('x.mni', 'y.mni', 'z.mni'), with=F]
   es <- get.edgelist(g)

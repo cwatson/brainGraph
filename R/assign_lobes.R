@@ -12,8 +12,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 assign_lobes <- function(g, atlas.dt) {
-  lobes <- lobe.hemi <- vector('integer', length=vcount(g))
-
+  lobe <- hemi <- index <- NULL
   vorder <- match(V(g)$name, atlas.dt$name)
   V(g)$lobe <- atlas.dt[vorder, as.numeric(lobe)]
   V(g)$lobe.hemi <- as.numeric(atlas.dt[vorder, interaction(lobe, hemi)])

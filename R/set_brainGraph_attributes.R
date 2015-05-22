@@ -97,6 +97,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   
     # Add the spatial coordinates for plotting over the brain
     if ('name' %in% vertex_attr_names(g)) {
+      x <- y <- z <- NULL
       vorder <- match(V(g)$name, atlas.dt$name)
       V(g)$x <- atlas.dt[vorder, x]
       V(g)$y <- atlas.dt[vorder, y]

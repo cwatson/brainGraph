@@ -13,6 +13,7 @@
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
 
 vertex_attr_dt <- function(g, Group=NULL) {
+  lobe <- name <- NULL
   atlas.list <- eval(parse(text=data(list=g$atlas)))
   net.meas <- data.table(region=V(g)$name,
                          lobe=as.character(atlas.list[, lobe])[match(V(g)$name, atlas.list[, name])],

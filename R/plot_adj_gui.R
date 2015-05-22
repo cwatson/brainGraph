@@ -17,7 +17,7 @@ plot.adj.gui <- function() {
                                                    package='brainGraph'))
 
   gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
-  graphObj <- slider <- NULL
+  graphObj <- slider <- lobe <- NULL
 
   # Function to add an entry 
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
