@@ -4,14 +4,12 @@
 \alias{assign_lobes}
 \title{Give vertices in a graph a \emph{lobe} attribute}
 \usage{
-assign_lobes(g, atlas, atlas.list)
+assign_lobes(g, atlas.dt)
 }
 \arguments{
 \item{g}{An igraph graph object}
 
-\item{atlas}{Character string for the atlas name}
-
-\item{atlas.list}{A list with data for a specific atlas}
+\item{atlas.dt}{A list with data for a specific atlas}
 }
 \value{
 An igraph graph object with additional vertex attributes \emph{lobe},

@@ -5,8 +5,7 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(densities, resids, num.subjs, num.perms = 1000,
-  level = c("graph", "vertex", "lobe", "asymmetry"), atlas = NULL,
-  atlas.list = NULL)
+  level = c("graph", "vertex", "lobe", "asymmetry"), atlas.list = NULL)
 }
 \arguments{
 \item{densities}{A vector of graph densities to loop through}
@@ -18,8 +17,6 @@ permute.group(densities, resids, num.subjs, num.perms = 1000,
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
 \item{level}{A character string for the attribute level to calculate}
-
-\item{atlas}{Character string for the specific atlas to use}
 
 \item{atlas.list}{List containing the specific atlas data
 differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'}
@@ -47,7 +44,7 @@ connection density.
 \dontrun{
 out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
 out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe',
-  atlas, atlas.list)
+atlas.list)
 }
 }
 \author{

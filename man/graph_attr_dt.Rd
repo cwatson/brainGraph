@@ -12,7 +12,7 @@ graph_attr_dt(g.list, Group = NULL)
 \item{Group}{A character string indicating group membership (default:NULL)}
 }
 \value{
-A data table with 12 columns and row number equal to the number of
+A data table with 14-15 columns and row number equal to the number of
 graphs in the input list
 }
 \description{

@@ -363,7 +363,7 @@ plot.adj.gui <- function() {
       if (comboVsize$getActive() == 0) {
         vertSize.const$setSensitive(T)
         vertSize.other$setSensitive(F)
-      } else if (comboVsize$getActive() == 12) {
+      } else if (comboVsize$getActive() == 13) {
         vertSize.const$setSensitive(F)
         vertSize.other$setSensitive(T)
       } else {
@@ -418,14 +418,14 @@ plot.adj.gui <- function() {
   hboxLobe <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxLobe, F, F, 0)
 
-  kNumLobes <- length(atlas.list$lobe.names)
+  kNumLobes <- nlevels(atlas.list[, lobe])
   combos <- sapply(seq_len(kNumLobes - 1),
-                   function(x) combn(seq_along(atlas.list$lobe.names), x))
+                   function(x) combn(seq_along(levels(atlas.list[, lobe])), x))
   lobes <- sapply(2:(kNumLobes-1),
           function(z) apply(t(apply(t(combos[[z]]), 1,
-                function(x) atlas.list$lobe.names[x])), 1, paste, collapse=', '))
+                function(x) levels(atlas.list[, lobe[x]]))), 1, paste, collapse=', '))
   lobes <- do.call('c', lobes)
-  choices <- c('All', atlas.list$lobe.names, lobes)
+  choices <- c('All', levels(atlas.list[, lobe]), lobes)
 
   comboLobe <- add_combo(hboxLobe, choices, 'Lobe')
   comboLobe$setActive(0)

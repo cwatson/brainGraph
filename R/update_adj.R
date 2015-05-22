@@ -54,9 +54,9 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Lobe to plot
     #=======================================================
     if (lobe$getActive() > 0) {
-      kNumLobes <- length(atlas.list$lobe.names)
+      kNumLobes <- nlevels(atlas.list[, lobe])
       combos <- sapply(seq_len(kNumLobes - 1),
-                       function(x) combn(seq_along(atlas.list$lobe.names), x))
+                       function(x) combn(seq_along(levels(atlas.list[, lobe])), x))
       n <- lobe$getActive()
       if (n <= kNumLobes) {
         ind1 <- 1
@@ -144,8 +144,9 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     } else if (orient$getActive() == 1) {
       plot.over.brain.sagittal(0, hemi='left', z=30)
       cur.vertices <- intersect(which(memb.lobe), memb.hemi)
-      layout.g <- matrix(c(-atlas.list$brainnet.coords[cur.vertices, 2],
-                           atlas.list$brainnet.coords[cur.vertices, 3]),
+      mni.coords <- as.matrix(atlas.list[, c('x.mni', 'y.mni', 'z.mni'), with=F])
+      layout.g <- matrix(c(-mni.coords[cur.vertices, 2],
+                           mni.coords[cur.vertices, 3]),
                          ncol=2, byrow=F)
       V(g)$x <- layout.g[, 1]
       V(g)$y <- layout.g[, 2]
@@ -158,8 +159,9 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     } else if (orient$getActive() == 2) {
       plot.over.brain.sagittal(0, hemi='right', z=30)
       cur.vertices <- intersect(which(memb.lobe), memb.hemi)
-      layout.g <- matrix(c(atlas.list$brainnet.coords[cur.vertices, 2],
-                           atlas.list$brainnet.coords[cur.vertices, 3]),
+      mni.coords <- as.matrix(atlas.list[, c('x.mni', 'y.mni', 'z.mni'), with=F])
+      layout.g <- matrix(c(mni.coords[cur.vertices, 2],
+                           mni.coords[cur.vertices, 3]),
                          ncol=2, byrow=F)
       V(g)$x <- layout.g[, 1]
       V(g)$y <- layout.g[, 2]
@@ -201,8 +203,8 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     if (vertSize$getActive() == 0) {
       vsize <- mult * const
     } else if (vertSize$getActive() == 1) {
+      vsize <- mult * vec.transform(V(g)$degree, 0, 15)
       g <- delete.vertices(g, V(g)$degree < v.min)
-      vsize <- mult * V(g)$degree
     } else if (vertSize$getActive() == 2) {
       g <- delete.vertices(g, V(g)$ev.cent < v.min)
       vsize <- mult * 15 * V(g)$ev.cent
@@ -370,7 +372,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Show a legend for lobe colors
     if (vertColor$getActive() + 1 == 3) {
       lobes <- sort(unique(V(g)$lobe))
-      lobe.names <- atlas.list$lobe.names[lobes]
+      lobe.names <- levels(atlas.list[, lobe])
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       kNumLobes <- max(V(g)$lobe)
       legend('topleft',

@@ -10,24 +10,21 @@
 #' @param g The graph to get its edges colored
 #' @param comm An integer vector indicating community membership
 #' @param lobes An integer vector of the lobe membership for each vertex
-#' @param lobe.cols A character vector of the colors each lobe should take
+#' @param cols A character vector of the colors each vertex group should take
 #'
 #' @return A character vector of colors for each edge in the graph
 
-color.edges <- function(g, comm, lobes=NULL, lobe.cols=NULL) {
+color.edges <- function(g, comm, lobes=NULL, cols=NULL) {
   # Color edges based on "lobe"
   if (!is.null(lobes)) {
     mem <- lobes
     kNumComm <- max(mem)
     comm.order <- seq_len(kNumComm)
-    cols <- lobe.cols
   } else {
   # Color edges based on community membership
     mem <- comm
     kNumComm <- max(mem)
     comm.order <- rev(order(as.integer(table(mem))))
-    cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-              'lightgreen', 'lightblue', 'lightyellow')
   }
 
   tmp <- vector('list', length=kNumComm)

@@ -4,14 +4,12 @@
 \alias{set.brainGraph.attributes}
 \title{Set a number of graph and vertex attributes useful in MRI analyses}
 \usage{
-set.brainGraph.attributes(g, atlas = NULL, coords = NULL, rand = FALSE)
+set.brainGraph.attributes(g, atlas = NULL, rand = FALSE)
 }
 \arguments{
 \item{g}{An igraph object}
 
 \item{atlas}{A character vector indicating which atlas was used for the nodes}
-
-\item{coords}{A matrix of the spatial coordinates}
 
 \item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
 }
@@ -20,7 +18,7 @@ g A copy of the same graph, with the following attributes:
 \item{Graph-level}{Atlas, density, connected component sizes, diameter,
 number of triangles, transitivity, average path length, assortativity,
 clique sizes, global & local efficiency, modularity, vulnerability, hub score,
-and rich-club coefficient}
+rich-club coefficient, and edge asymmetry}
 \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
 leverage centralities, transitivity (local), coreness, local & nodal
 efficiency, color (community), color (lobe), color (component), membership
@@ -44,6 +42,6 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-\link{vulnerability}, \link{centr_lev}}
+\link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry}}
 }
 

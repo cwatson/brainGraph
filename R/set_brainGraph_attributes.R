@@ -5,7 +5,6 @@
 #'
 #' @param g An igraph object
 #' @param atlas A character vector indicating which atlas was used for the nodes
-#' @param coords A matrix of the spatial coordinates
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
 #'
 #' @export
@@ -14,7 +13,7 @@
 #' \item{Graph-level}{Atlas, density, connected component sizes, diameter,
 #' number of triangles, transitivity, average path length, assortativity,
 #' clique sizes, global & local efficiency, modularity, vulnerability, hub score,
-#' and rich-club coefficient}
+#' rich-club coefficient, and edge asymmetry}
 #' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
 #' leverage centralities, transitivity (local), coreness, local & nodal
 #' efficiency, color (community), color (lobe), color (component), membership
@@ -30,11 +29,11 @@
 #' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 #' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-#' \link{vulnerability}, \link{centr_lev}}
+#' \link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
+set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   if (rand == TRUE) {
     g$Cp <- transitivity(g, type='localaverage')
     g$Lp <- average.path.length(g)
@@ -68,6 +67,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     Ek <- sapply(R, function(x) x$Ek)
     g$rich <- data.frame(R=round(coef, 4), Nk=Nk, Ek=Ek)
   
+    g$asymm <- edge_asymmetry(g)$asymm
+
     if (is.directed(g)) {
       hubs <- hub.score(g)
       g$hub.score <- hubs$value
@@ -81,25 +82,25 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     #-----------------------------------------------------------------------------
     # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
     if (!is.null(atlas)) {
-      lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-                     'lightgreen')
       g$atlas <- atlas
-      V(g)$color.lobe <- color.vertices(atlas=atlas)
-  
-      atlas.list <- eval(parse(text=atlas))
-      g <- assign_lobes(g, atlas, atlas.list)
+      atlas.dt <- eval(parse(text=atlas))
+
+      g <- assign_lobes(g, atlas.dt)
+      lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
+                     'lightgreen', 'lightblue', 'lightyellow')
+      V(g)$color.lobe <- lobe.cols[V(g)$lobe]
   
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
-      E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, lobe.cols=lobe.cols)
+      E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, cols=lobe.cols)
     }
   
     # Add the spatial coordinates for plotting over the brain
-    if (length(coords) > 0) {
-      V(g)$x <- coords[, 1]
-      V(g)$y <- coords[, 2]
-      V(g)$z <- coords[, 3]
-      V(g)$name <- rownames(coords)
+    if ('name' %in% vertex_attr_names(g)) {
+      vorder <- match(V(g)$name, atlas.dt$name)
+      V(g)$x <- atlas.dt[vorder, x]
+      V(g)$y <- atlas.dt[vorder, y]
+      V(g)$z <- atlas.dt[vorder, z]
     }
   
     if (is.weighted(g)) {
@@ -117,15 +118,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     V(g)$E.nodal <- graph.efficiency(g, type='nodal')
     g$E.local <- mean(V(g)$E.local)
   
-    #V(g)$vulnerability <- vulnerability(g)
-    #g$vulnerability <- max(V(g)$vulnerability)
-  
     # Community stuff
-    comm <- multilevel.community(g)
+    comm <- cluster_louvain(g)
     V(g)$comm <- comm$membership
-    vcolors <- color.vertices(V(g)$comm)
+    vcolors <- color.vertices(V(g)$comm, lobe.cols)
     V(g)$color.comm <- vcolors[V(g)$comm]
-    E(g)$color.comm <- color.edges(g, V(g)$comm)
+    E(g)$color.comm <- color.edges(g, V(g)$comm, cols=lobe.cols)
   
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
   
@@ -134,12 +132,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, coords=NULL, rand=FALSE) {
     g$mod <- max(comm$modularity)
   
     V(g)$comp <- clusts$membership
-    vcolors <- color.vertices(clusts$membership)
+    vcolors <- color.vertices(clusts$membership, lobe.cols)
     V(g)$color.comp <- vcolors[clusts$membership]
   
     # Edge attributes
     #-----------------------------------------------------------------------------
-    E(g)$color.comp <- color.edges(g, clusts$membership)
+    E(g)$color.comp <- color.edges(g, clusts$membership, cols=lobe.cols)
     E(g)$btwn <- edge.betweenness(g)
     E(g)$dist <- spatial.dist(g)
   }

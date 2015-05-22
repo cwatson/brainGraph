@@ -4,12 +4,12 @@
 \alias{color.vertices}
 \title{Color graph vertices}
 \usage{
-color.vertices(memb, atlas = NULL)
+color.vertices(memb, cols)
 }
 \arguments{
 \item{memb}{An integer vector representing membership of e.g. a community}
 
-\item{atlas}{A character string}
+\item{cols}{A character vector of the colors each vertex group should take}
 }
 \value{
 A character vector with length equal to the number of communities,
@@ -17,8 +17,7 @@ lobes, components, etc.
 }
 \description{
 This function takes an integer vector (representing membership of a community
-or component), or a character string indicating the brain atlas used (e.g. for
-the major lobes of the brain), and creates a character vector of colors for
-each community/module, component, etc.
+or component) and creates a character vector of colors for each
+community/module, component, etc.
 }
 

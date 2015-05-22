@@ -7,7 +7,7 @@
 #' @param Group A character string indicating group membership (default:NULL)
 #' @export
 #'
-#' @return A data table with 12 columns and row number equal to the number of
+#' @return A data table with 14-15 columns and row number equal to the number of
 #' graphs in the input list
 #' @seealso \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 
@@ -23,7 +23,9 @@ graph_attr_dt <- function(g.list, Group=NULL) {
     assortativity.lobe.hemi=sapply(g.list, function(x) x$assortativity.lobe.hemi),
     E.global=sapply(g.list, function(x) x$E.global),
     E.local=sapply(g.list, function(x) x$E.local),
-    mod=sapply(g.list, function(x) x$mod))
+    mod=sapply(g.list, function(x) x$mod),
+    asymm=sapply(g.list, function(x) x$asymm),
+    vulnerability=sapply(g.list, function(x) x$vulnerability))
 
   if (!is.null(Group)) {
     glob.meas$Group <- Group

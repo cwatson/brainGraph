@@ -6,7 +6,7 @@
   This is a list of spatial coordinates for the Destrieux atlas, along with
   indices for the major lobes of the brain.
 }
-\usage{dk}
+\usage{destrieux}
 \format{List with 21 elements:
 \describe{
     \item{coords}{Data frame with 148 rows and 3 columns of (x, y, z)

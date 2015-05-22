@@ -23,7 +23,7 @@
 centr_lev <- function(g) {
   k <- degree(g)
   n <- vcount(g)
-  lev.cent <- vector(length=n)
+  lev.cent <- vector('numeric', length=n)
 
   lev.cent <- sapply(seq_len(n), function(v) mean((k[v] - k[neighbors(g, v)]) /
                                                   (k[v] + k[neighbors(g, v)])))

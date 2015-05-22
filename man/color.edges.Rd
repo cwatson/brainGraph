@@ -4,7 +4,7 @@
 \alias{color.edges}
 \title{Color graph edges}
 \usage{
-color.edges(g, comm, lobes = NULL, lobe.cols = NULL)
+color.edges(g, comm, lobes = NULL, cols = NULL)
 }
 \arguments{
 \item{g}{The graph to get its edges colored}
@@ -13,7 +13,7 @@ color.edges(g, comm, lobes = NULL, lobe.cols = NULL)
 
 \item{lobes}{An integer vector of the lobe membership for each vertex}
 
-\item{lobe.cols}{A character vector of the colors each lobe should take}
+\item{cols}{A character vector of the colors each vertex group should take}
 }
 \value{
 A character vector of colors for each edge in the graph

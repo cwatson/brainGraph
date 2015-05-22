@@ -18,7 +18,6 @@
 #' @param num.subjs A vector of length 2 indicating group sizes
 #' @param num.perms The number of permutations to perform (default: 1e3)
 #' @param level A character string for the attribute level to calculate
-#' @param atlas Character string for the specific atlas to use
 #' @param atlas.list List containing the specific atlas data
 #' differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'
 #' @export
@@ -34,12 +33,12 @@
 #' \dontrun{
 #' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
 #' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe',
-#'   atlas, atlas.list)
+#' atlas.list)
 #' }
 
 permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
                           level=c('graph', 'vertex', 'lobe', 'asymmetry'),
-                          atlas=NULL, atlas.list=NULL) {
+                          atlas.list=NULL) {
   n1 <- num.subjs[1]
   n.all <- sum(num.subjs)
 
@@ -79,19 +78,18 @@ permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
       E.global2 <- sapply(g2, graph.efficiency, 'global')
       E.global.diff <- E.global1 - E.global2
 
-      g1 <- lapply(g1, assign_lobes, atlas, atlas.list)
-      g2 <- lapply(g2, assign_lobes, atlas, atlas.list)
+      g1 <- lapply(g1, assign_lobes, atlas.list)
+      g2 <- lapply(g2, assign_lobes, atlas.list)
       assort.lobe1 <- sapply(g1, function(x) assortativity_nominal(x, V(x)$lobe))
       assort.lobe2 <- sapply(g2, function(x) assortativity_nominal(x, V(x)$lobe))
       assort.lobe.diff <- assort.lobe1 - assort.lobe2
       tmp <- data.table(density=densities, mod=mod.diff, E.global=E.global.diff,
                  Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
                  assortativity.lobe=assort.lobe.diff)
-      #tmp <- data.table(density=densities, assortativity.lobe=assort.lobe.diff)
 
     } else if (level == 'lobe') {
-      g1 <- lapply(g1, assign_lobes, atlas, atlas.list)
-      g2 <- lapply(g2, assign_lobes, atlas, atlas.list)
+      g1 <- lapply(g1, assign_lobes, atlas.list)
+      g2 <- lapply(g2, assign_lobes, atlas.list)
 
       t1 <- as.data.table(ldply(g1, count_interlobar, 'Temporal', atlas.list))
       t2 <- as.data.table(ldply(g2, count_interlobar, 'Temporal', atlas.list))
@@ -99,13 +97,13 @@ permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
       tmp <- data.table(density=densities, diff=tdiff)
 
     } else if (level == 'asymmetry') {
-      g1 <- lapply(g1, assign_lobes, atlas, atlas.list)
-      g2 <- lapply(g2, assign_lobes, atlas, atlas.list)
+      g1 <- lapply(g1, assign_lobes, atlas.list)
+      g2 <- lapply(g2, assign_lobes, atlas.list)
 
       asymm1 <- ldply(g1, edge_asymmetry)$asymm
       asymm2 <- ldply(g2, edge_asymmetry)$asymm
       adiff <- asymm1 - asymm2
-      tmp <- data.table(density=densities, diff=adiff)
+      tmp <- data.table(density=densities, asymm=adiff)
     }
 
     tmp

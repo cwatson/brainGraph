@@ -18,7 +18,7 @@
 #' }
 
 count_interlobar <- function(g, lobe, atlas.list) {
-  lobe.names <- atlas.list$lobe.names
+  lobe.names <- levels(atlas.list$lobe)
   if (! lobe %in% lobe.names) {
     stop('Incorrect lobe name!')
   }

@@ -1,36 +1,49 @@
-#' Do between-group t-tests at each vertex for a given graph measure
+#' Do between-group tests at each vertex for a given graph measure
 #'
 #' This function takes two lists of graphs (the length of each equaling the
-#' number of subjects per group) and performs a 2-sample t-test at each vertex
-#' for a given network measure (e.g. vertex degree).
+#' number of subjects per group) and performs either a 2-sample t-test or
+#' 2-sample Wilcoxon test at each vertex for a given network measure (e.g.
+#' vertex degree).
 #'
 #' @param g1 A list of igraph graph objects for group 1
 #' @param g2 A list of igraph graph objects for group 2
 #' @param measure A character string of the measure to test
+#' @param test A character string for the test to use, either 't.test' (default)
+#' or 'wilcox.test'
 #' @export
 #'
-#' @return A graph with vertex attributes: \emph{size2} equals the t-statistic;
-#' \emph{size} is transformed to be positive values (for visualization
-#' purposes); \emph{p} is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the
-#' FDR-adjusted p-value
+#' @return A graph with vertex attributes:
+#' \item{\emph{size2} equals the t-statistic}
+#' \item{\emph{size} is transformed to be positive values (for visualization
+#' purposes)}
+#' \item{\emph{p} is equal to \eqn{1 - p}}
+#' \item{\emph{p.adj} is 1 - the #' FDR-adjusted p-value}
 #'
-#' @seealso \code{\link[stats]{t.test}, \link[stats]{p.adjust},
-#' \link{vec.transform}}
+#' @seealso \code{\link[stats]{t.test}, \link[stats]{wilcox.test},
+#' \link[stats]{p.adjust}, \link{vec.transform}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' g.diffs.btwn <- group.graph.diffs(g1, g2, 'btwn.cent', test='wilcox.test')
+#' }
 
-group.graph.diffs <- function(g1, g2, measure) { 
+group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) { 
   Nv <- vcount(g1[[1]])
   meas1 <- sapply(g1, vertex_attr, measure)
   meas2 <- sapply(g2, vertex_attr, measure)
-  t.stats <- mapply(function(x, y) t.test(meas1[x, ], meas2[y, ]),
-                    seq_len(Nv), seq_len(Nv), SIMPLIFY=F)
+
+  if (test == 't.test') {
+    stats <- mapply(function(x, y) t.test(meas1[x, ], meas2[y, ]),
+                      seq_len(Nv), seq_len(Nv), SIMPLIFY=F)
+  } else if (test == 'wilcox.test') {
+    stats <- mapply(function(x, y) wilcox.test(meas1[x, ], meas2[y, ]),
+                      seq_len(Nv), seq_len(Nv), SIMPLIFY=F)
+  }
 
   g.diffs <- g1[[1]]
-  V(g.diffs)$size2 <- sapply(t.stats, function(x) x$statistic)
+  V(g.diffs)$size2 <- sapply(stats, function(x) x$statistic)
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
-  V(g.diffs)$p <- sapply(t.stats, function(x) x$p.value)
-  V(g.diffs)$p.adj <- p.adjust(V(g.diffs)$p, 'fdr')
-  V(g.diffs)$p <- 1 - V(g.diffs)$p
-  V(g.diffs)$p.adj <- 1 - V(g.diffs)$p.adj
+  V(g.diffs)$p <- 1 - sapply(stats, function(x) x$p.value)
+  V(g.diffs)$p.adj <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
   return(g.diffs)
 }

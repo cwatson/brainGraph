@@ -2,9 +2,9 @@
 % Please edit documentation in R/group_graph_diffs.R
 \name{group.graph.diffs}
 \alias{group.graph.diffs}
-\title{Do between-group t-tests at each vertex for a given graph measure}
+\title{Do between-group tests at each vertex for a given graph measure}
 \usage{
-group.graph.diffs(g1, g2, measure)
+group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test"))
 }
 \arguments{
 \item{g1}{A list of igraph graph objects for group 1}
@@ -12,23 +12,34 @@ group.graph.diffs(g1, g2, measure)
 \item{g2}{A list of igraph graph objects for group 2}
 
 \item{measure}{A character string of the measure to test}
+
+\item{test}{A character string for the test to use, either 't.test' (default)
+or 'wilcox.test'}
 }
 \value{
-A graph with vertex attributes: \emph{size2} equals the t-statistic;
-\emph{size} is transformed to be positive values (for visualization
-purposes); \emph{p} is equal to \eqn{1 - p}; and \emph{p.adj} is 1 - the
-FDR-adjusted p-value
+A graph with vertex attributes:
+\item{\emph{size2} equals the t-statistic}
+\item{\emph{size} is transformed to be positive values (for visualization
+purposes)}
+\item{\emph{p} is equal to \eqn{1 - p}}
+\item{\emph{p.adj} is 1 - the #' FDR-adjusted p-value}
 }
 \description{
 This function takes two lists of graphs (the length of each equaling the
-number of subjects per group) and performs a 2-sample t-test at each vertex
-for a given network measure (e.g. vertex degree).
+number of subjects per group) and performs either a 2-sample t-test or
+2-sample Wilcoxon test at each vertex for a given network measure (e.g.
+vertex degree).
+}
+\examples{
+\dontrun{
+g.diffs.btwn <- group.graph.diffs(g1, g2, 'btwn.cent', test='wilcox.test')
+}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
-\code{\link[stats]{t.test}, \link[stats]{p.adjust},
-\link{vec.transform}}
+\code{\link[stats]{t.test}, \link[stats]{wilcox.test},
+\link[stats]{p.adjust}, \link{vec.transform}}
 }
 
