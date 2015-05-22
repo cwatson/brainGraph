@@ -21,10 +21,6 @@ assign_lobes <- function(g, atlas.dt) {
 
   if (atlas %in% c('dkt', 'dk')) {
     third <- 'Cingulate'
-    V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, cingulate.lh,
-                                             temporal.lh, parietal.lh, occipital.lh,
-                                             occipital.rh, parietal.rh, temporal.rh,
-                                             cingulate.rh, insula.rh, frontal.rh))
     
   } else if (atlas == 'aal90') {
     V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, limbic.lh,
@@ -41,6 +37,8 @@ assign_lobes <- function(g, atlas.dt) {
                                              cingulate.rh, insula.rh, frontal.rh))
   } else if (atlas == 'destrieux') {
     third <- 'Limbic'
+  }
+
     V(g)$circle.layout <- c(atlas.dt[lobe == 'Frontal' & hemi == 'L', index],
                             atlas.dt[lobe == 'Insula' & hemi == 'L', index],
                             atlas.dt[lobe == third & hemi == 'L', index],
@@ -53,8 +51,6 @@ assign_lobes <- function(g, atlas.dt) {
                             atlas.dt[lobe == third & hemi == 'R', index],
                             atlas.dt[lobe == 'Insula' & hemi == 'R', index],
                             atlas.dt[lobe == 'Frontal' & hemi == 'R', index])
-
-  }
 
   g
 }
