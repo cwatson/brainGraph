@@ -13,6 +13,7 @@
 
 assign_lobes <- function(g, atlas.dt) {
   lobe <- hemi <- index <- NULL
+  atlas <- g$atlas
   vorder <- match(V(g)$name, atlas.dt$name)
   V(g)$lobe <- atlas.dt[vorder, as.numeric(lobe)]
   V(g)$lobe.hemi <- as.numeric(atlas.dt[vorder, interaction(lobe, hemi)])
