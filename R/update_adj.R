@@ -139,35 +139,31 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
 
+      adjust <- 0
+
     # Plot the left sagittal only
     #---------------------------------
     } else if (orient$getActive() == 1) {
       plot.over.brain.sagittal(0, hemi='left', z=30)
-      cur.vertices <- intersect(which(memb.lobe), memb.hemi)
-      mni.coords <- as.matrix(atlas.list[, c('x.mni', 'y.mni', 'z.mni'), with=F])
-      layout.g <- matrix(c(-mni.coords[cur.vertices, 2],
-                           mni.coords[cur.vertices, 3]),
-                         ncol=2, byrow=F)
-      V(g)$x <- layout.g[, 1]
-      V(g)$y <- layout.g[, 2]
+      V(g)$x <- -V(g)$y.mni
+      V(g)$y <- V(g)$z.mni
       xlim.g <- c(-85, 110)
       ylim.g <- c(-85, 125)
       mult <- 100
+
+      adjust <- 1
 
     # Plot the right sagittal only
     #---------------------------------
     } else if (orient$getActive() == 2) {
       plot.over.brain.sagittal(0, hemi='right', z=30)
-      cur.vertices <- intersect(which(memb.lobe), memb.hemi)
-      mni.coords <- as.matrix(atlas.list[, c('x.mni', 'y.mni', 'z.mni'), with=F])
-      layout.g <- matrix(c(mni.coords[cur.vertices, 2],
-                           mni.coords[cur.vertices, 3]),
-                         ncol=2, byrow=F)
-      V(g)$x <- layout.g[, 1]
-      V(g)$y <- layout.g[, 2]
+      V(g)$x <- V(g)$y.mni
+      V(g)$y <- V(g)$z.mni
       xlim.g <- c(-125, 85)
       ylim.g <- c(-85, 125)
       mult <- 100
+
+      adjust <- 1
 
     # Plot in a circular layout
     #---------------------------------
@@ -181,6 +177,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
       xlim.g <- c(-1.25, 1.25)
       ylim.g <- c(-1.25, 1.25)
       mult <- 1
+      adjust <- 0
     }
     #=======================================================
     #=======================================================
@@ -286,6 +283,14 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                          E(g)$color.comp
     )
 
+    # Make most medial colors more transparent if in sagittal view
+    if (adjust == 1) {
+      medial <- which(abs(V(g)$x.mni) < 20)
+      vertex.color[medial] <- adjustcolor(vertex.color[medial], alpha.f=0.4)
+      medial.es <- as.numeric(E(g)[medial %--% medial])
+      edge.color[medial.es] <- adjustcolor(edge.color[medial.es], alpha.f=0.4)
+    }
+
     # Show vertex labels?
     if (vertLabels$active == FALSE) {
       vlabel <- vlabel.cex <- vlabel.dist <- NA
@@ -372,7 +377,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Show a legend for lobe colors
     if (vertColor$getActive() + 1 == 3) {
       lobes <- sort(unique(V(g)$lobe))
-      lobe.names <- levels(atlas.list[, lobe])
+      lobe.names <- levels(atlas.list[, lobe])[lobes]
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       kNumLobes <- max(V(g)$lobe)
       legend('topleft',

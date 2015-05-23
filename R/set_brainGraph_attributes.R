@@ -97,11 +97,14 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   
     # Add the spatial coordinates for plotting over the brain
     if ('name' %in% vertex_attr_names(g)) {
-      x <- y <- z <- NULL
+      x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
       vorder <- match(V(g)$name, atlas.dt$name)
       V(g)$x <- atlas.dt[vorder, x]
       V(g)$y <- atlas.dt[vorder, y]
       V(g)$z <- atlas.dt[vorder, z]
+      V(g)$x.mni <- atlas.dt[vorder, x.mni]
+      V(g)$y.mni <- atlas.dt[vorder, y.mni]
+      V(g)$z.mni <- atlas.dt[vorder, z.mni]
     }
   
     if (is.weighted(g)) {

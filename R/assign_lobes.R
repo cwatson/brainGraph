@@ -39,18 +39,32 @@ assign_lobes <- function(g, atlas.dt) {
     third <- 'Limbic'
   }
 
-    V(g)$circle.layout <- c(atlas.dt[lobe == 'Frontal' & hemi == 'L', index],
-                            atlas.dt[lobe == 'Insula' & hemi == 'L', index],
-                            atlas.dt[lobe == third & hemi == 'L', index],
-                            atlas.dt[lobe == 'Temporal' & hemi == 'L', index],
-                            atlas.dt[lobe == 'Parietal' & hemi == 'L', index],
-                            atlas.dt[lobe == 'Occipital' & hemi == 'L', index],
-                            atlas.dt[lobe == 'Occipital' & hemi == 'R', index],
-                            atlas.dt[lobe == 'Parietal' & hemi == 'R', index],
-                            atlas.dt[lobe == 'Temporal' & hemi == 'R', index],
-                            atlas.dt[lobe == third & hemi == 'R', index],
-                            atlas.dt[lobe == 'Insula' & hemi == 'R', index],
-                            atlas.dt[lobe == 'Frontal' & hemi == 'R', index])
+  counts <- atlas.dt[, length(name), by=c('lobe', 'hemi')][order(lobe)]$V1
+  V(g)$circle.layout <-
+    c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 6 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 3 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 2 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 4 & V(g)$hemi == 'L'),
+      which(V(g)$lobe == 4 & V(g)$hemi == 'R'),
+      which(V(g)$lobe == 2 & V(g)$hemi == 'R'),
+      which(V(g)$lobe == 3 & V(g)$hemi == 'R'),
+      which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
+      which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
+      which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
+#    c(atlas.dt[lobe == 'Frontal' & hemi == 'L', index[vorder]][seq_len(counts[1])],
+#      atlas.dt[lobe == 'Insula' & hemi == 'L', index[vorder]][seq_len(counts[9])],
+#      atlas.dt[lobe == third & hemi == 'L', index[vorder]][seq_len(counts[11])],
+#      atlas.dt[lobe == 'Temporal' & hemi == 'L', index[vorder]][seq_len(counts[5])],
+#      atlas.dt[lobe == 'Parietal' & hemi == 'L', index[vorder]][seq_len(counts[3])],
+#      atlas.dt[lobe == 'Occipital' & hemi == 'L', index[vorder]][seq_len(counts[7])],
+#      atlas.dt[lobe == 'Occipital' & hemi == 'R', index[vorder]][seq_len(counts[8])],
+#      atlas.dt[lobe == 'Parietal' & hemi == 'R', index[vorder]][seq_len(counts[4])],
+#      atlas.dt[lobe == 'Temporal' & hemi == 'R', index[vorder]][seq_len(counts[6])],
+#      atlas.dt[lobe == third & hemi == 'R', index[vorder]][seq_len(counts[12])],
+#      atlas.dt[lobe == 'Insula' & hemi == 'R', index[vorder]][seq_len(counts[10])],
+#      atlas.dt[lobe == 'Frontal' & hemi == 'R', index[vorder]][seq_len(counts[2])])
 
   g
 }

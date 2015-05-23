@@ -423,7 +423,7 @@ plot.adj.gui <- function() {
                    function(x) combn(seq_along(levels(atlas.list[, lobe])), x))
   lobes <- sapply(2:(kNumLobes-1),
           function(z) apply(t(apply(t(combos[[z]]), 1,
-                function(x) levels(atlas.list[, lobe][x]))), 1, paste, collapse=', '))
+                function(x) levels(atlas.list[, lobe])[x])), 1, paste, collapse=', '))
   lobes <- do.call('c', lobes)
   choices <- c('All', levels(atlas.list[, lobe]), lobes)
 
