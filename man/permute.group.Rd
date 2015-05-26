@@ -5,7 +5,7 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(densities, resids, num.subjs, num.perms = 1000,
-  level = c("graph", "vertex", "lobe", "asymmetry"), atlas.list = NULL)
+  level = c("graph", "vertex", "lobe", "asymmetry"), atlas, atlas.dt = NULL)
 }
 \arguments{
 \item{densities}{A vector of graph densities to loop through}
@@ -16,10 +16,12 @@ permute.group(densities, resids, num.subjs, num.perms = 1000,
 
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
-\item{level}{A character string for the attribute level to calculate}
-
-\item{atlas.list}{List containing the specific atlas data
+\item{level}{A character string for the attribute level to calculate
 differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'}
+
+\item{atlas}{Character string of the atlas name}
+
+\item{atlas.dt}{Data table containing the specific atlas data}
 }
 \value{
 A data table with values for group differences in modularity, global
@@ -32,6 +34,10 @@ function is intended for cortical thickness networks (in which there is only
 one graph per group), but is not restricted to that type of data.
 }
 \details{
+The \emph{graph} "level" will calculate modularity (Louvain algorithm),
+clustering coefficient, average path length, degree assortativity, global
+efficiency, and lobe assortativity.
+
 The \emph{lobe} "level" is intended to test for group differences in
 inter-lobar connections, e.g. from the temporal lobe to the rest of the
 brain.
@@ -42,9 +48,9 @@ connection density.
 }
 \examples{
 \dontrun{
-out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph')
-out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'lobe',
-atlas.list)
+out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph',
+  atlas='dk', atlas.dt)
+out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'vertex')
 }
 }
 \author{

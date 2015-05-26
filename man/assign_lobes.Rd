@@ -9,7 +9,7 @@ assign_lobes(g, atlas.dt)
 \arguments{
 \item{g}{An igraph graph object}
 
-\item{atlas.dt}{A list with data for a specific atlas}
+\item{atlas.dt}{A data table for a specific atlas}
 }
 \value{
 An igraph graph object with additional vertex attributes \emph{lobe},
