@@ -22,7 +22,7 @@ targeted.attack <- function(g, type=c('vertex', 'edge'),
   measure <- match.arg(measure)
   if (type == 'vertex') {
     ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=T)]
-    max.comp <- vector(length=length(ord)+1)
+    max.comp <- vector('integer', length=length(ord)+1)
     max.comp[1] <- g$conn.comp[1, 1]
     for (i in seq_len(vcount(g)-1)) {
       g <- delete.vertices(g, ord[i])
@@ -34,7 +34,7 @@ targeted.attack <- function(g, type=c('vertex', 'edge'),
     }
     ord <- order(E(g)$btwn, decreasing=T)
     verts <- as_edgelist(g)[ord, ]
-    max.comp <- vector(length=length(ord)+1)
+    max.comp <- vector('integer', length=length(ord)+1)
     max.comp[1] <- g$conn.comp[1, 1]
     for (i in seq_along(ord)) {
       g <- delete.edges(g, E(g)[V(g)[verts[ord[i], 1]] %--% verts[ord[i], 2]])

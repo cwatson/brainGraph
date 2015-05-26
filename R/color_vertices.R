@@ -18,7 +18,7 @@ color.vertices <- function(memb, cols) {
   big.mod.sizes <- mod.sizes[big.modules]
   big.modules <- big.modules[rev(order(big.mod.sizes))]
 
-  mod.colors.memb <- vector(length=max(memb))
+  mod.colors.memb <- vector('character', length=max(memb))
   for (i in seq_along(big.modules)) {
     mod.colors.memb[big.modules[i]] <- cols[i]
   }

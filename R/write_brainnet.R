@@ -16,8 +16,8 @@
 
 write.brainnet <- function(g, node.color=c('none', 'community', 'lobe'),
                            node.size=c('constant', 'degree')) {
-  atlas.list <- eval(parse(text=g$atlas))
-  coords.cur <- round(atlas.list$brainnet.coords)
+  atlas.dt <- eval(parse(text=g$atlas))
+  coords.cur <- round(atlas.dt[, matrix(c(x.mni, y.mni, z.mni), ncol=3)])
 
   node.color <- match.arg(node.color)
   if (node.color == 'none') {

@@ -92,7 +92,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
-      E(g)$color.lobe <- color.edges(g, lobes=V(g)$lobe, cols=lobe.cols)
+      E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
     }
   
     # Add the spatial coordinates for plotting over the brain

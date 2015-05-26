@@ -8,32 +8,27 @@
 #' lobes of the brain (plus insula).
 #'
 #' @param g The graph to get its edges colored
-#' @param comm An integer vector indicating community membership
-#' @param lobes An integer vector of the lobe membership for each vertex
+#' @param memb An integer vector indicating vertex group membership
+#' @param order A logical indicating if groups should be ordered by size
 #' @param cols A character vector of the colors each vertex group should take
 #'
 #' @return A character vector of colors for each edge in the graph
 
-color.edges <- function(g, comm, lobes=NULL, cols=NULL) {
-  # Color edges based on "lobe"
-  if (!is.null(lobes)) {
-    mem <- lobes
-    kNumComm <- max(mem)
-    comm.order <- seq_len(kNumComm)
+color.edges <- function(g, memb, order=TRUE, cols=NULL) {
+  kNumComm <- max(memb)
+  if (isTRUE(order)) {
+    comm.order <- rev(order(as.integer(table(memb))))
   } else {
-  # Color edges based on community membership
-    mem <- comm
-    kNumComm <- max(mem)
-    comm.order <- rev(order(as.integer(table(mem))))
+    comm.order <- seq_len(kNumComm)
   }
 
   tmp <- vector('list', length=kNumComm)
   newcols <- vector('character', length=ecount(g))
 
-  sums <- sapply(seq_len(kNumComm), function(x) sum(mem == comm.order[x]))
+  sums <- sapply(seq_len(kNumComm), function(x) sum(memb == comm.order[x]))
   tmp[which(sums == 1)] <- 0
   for (i in which(sums > 1)) {
-      matches <- which(mem == comm.order[i])
+      matches <- which(memb == comm.order[i])
       tmp[[i]] <- as.vector(E(g)[matches %--% matches])
       newcols[tmp[[i]]] <- cols[i]
   }

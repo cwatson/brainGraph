@@ -31,7 +31,7 @@ within_module_deg_z_score <- function(g, memb) {
   }
   Nv <- length(degs)
   vs <- unname(which(degs > 0))
-  z <- Ki <- vector(length=Nv)
+  z <- Ki <- vector('numeric', length=Nv)
 
   comms <- lapply(seq_len(max(memb)), function(x)
                   induced.subgraph(g, which(memb == x)))

@@ -36,7 +36,7 @@ part.coeff <- function(g, memb) {
   Nc <- max(memb)
   vs <- unname(which(degs > 0))
 
-  PC <- vector(length=Nv)
+  PC <- vector('numeric', length=Nv)
   PC2 <- vector('list', length=length(vs))
 
 

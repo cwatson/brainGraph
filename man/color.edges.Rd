@@ -4,14 +4,14 @@
 \alias{color.edges}
 \title{Color graph edges}
 \usage{
-color.edges(g, comm, lobes = NULL, cols = NULL)
+color.edges(g, memb, order = TRUE, cols = NULL)
 }
 \arguments{
 \item{g}{The graph to get its edges colored}
 
-\item{comm}{An integer vector indicating community membership}
+\item{memb}{An integer vector indicating vertex group membership}
 
-\item{lobes}{An integer vector of the lobe membership for each vertex}
+\item{order}{A logical indicating if groups should be ordered by size}
 
 \item{cols}{A character vector of the colors each vertex group should take}
 }
