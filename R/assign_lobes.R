@@ -12,7 +12,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 assign_lobes <- function(g, atlas.dt) {
-  lobe <- hemi <- NULL
+  lobe <- hemi <- name <- NULL
   atlas <- g$atlas
   vorder <- match(V(g)$name, atlas.dt$name)
   V(g)$lobe <- atlas.dt[vorder, as.numeric(lobe)]
