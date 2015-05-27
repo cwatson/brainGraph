@@ -22,7 +22,7 @@
 edge_asymmetry <- function(g) {
   lh <- length(E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'L')])
   rh <- length(E(g)[which(V(g)$hemi == 'R') %--% which(V(g)$hemi == 'R')])
-  asymm <- (lh - rh) / mean(c(lh, rh))
+  asymm <- (lh - rh) / .Internal(mean(c(lh, rh)))
 
   return(data.table(lh=lh, rh=rh, asymm=asymm))
 }

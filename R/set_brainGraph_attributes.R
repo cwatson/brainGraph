@@ -67,8 +67,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     Ek <- sapply(R, function(x) x$Ek)
     g$rich <- data.frame(R=round(coef, 4), Nk=Nk, Ek=Ek)
   
-    g$asymm <- edge_asymmetry(g)$asymm
-
     if (is.directed(g)) {
       hubs <- hub.score(g)
       g$hub.score <- hubs$value
@@ -93,6 +91,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
       E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
+
+      g$asymm <- edge_asymmetry(g)$asymm
     }
   
     # Add the spatial coordinates for plotting over the brain

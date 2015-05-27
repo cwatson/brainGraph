@@ -17,7 +17,7 @@
 #' "asymmetry index", which is a measure of difference in intra-hemispheric
 #' connection density.
 #'
-#' @param densities A vector of graph densities to loop through
+#' @param density The density of the resultant graphs
 #' @param resids A data.table of the residuals (from \code{\link{get.resid}})
 #' @param num.subjs A vector of length 2 indicating group sizes
 #' @param num.perms The number of permutations to perform (default: 1e3)
@@ -41,7 +41,7 @@
 #' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'vertex')
 #' }
 
-permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
+permute.group <- function(density, resids, num.subjs, num.perms=1e3,
                           level=c('graph', 'vertex', 'lobe', 'asymmetry'),
                           atlas, atlas.dt=NULL) {
   n1 <- as.numeric(num.subjs[1])
@@ -51,63 +51,56 @@ permute.group <- function(densities, resids, num.subjs, num.perms=1e3,
   out <- foreach(i=seq_len(num.perms), .combine='rbind',
                  .packages='plyr', .export='assign_lobes') %dopar% {
     shuffled <- sample(n.all)
-    corrs1 <- lapply(densities, function(x)
-                     corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F],
-                                 density=x))
-    corrs2 <- lapply(densities, function(x)
-                     corr.matrix(resids[shuffled[(n1 +1):n.all]][, !'Group',
-                                 with=F], density=x))
-    g1 <- lapply(corrs1, function(x)
-                 simplify(graph.adjacency(x$r.thresh, mode='undirected')))
-    g2 <- lapply(corrs2, function(x)
-                 simplify(graph.adjacency(x$r.thresh, mode='undirected')))
+    corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F], density=density)
+    corrs2 <- corr.matrix(resids[shuffled[(n1 +1):n.all]][, !'Group', with=F],
+                          density=density)
+    g1 <- simplify(graph.adjacency(corrs1$r.thresh, mode='undirected'))
+    g2 <- simplify(graph.adjacency(corrs2$r.thresh, mode='undirected'))
 
     if (level == 'vertex') {
-      btwn.diff <- mapply(function(x, y) centr_betw(x)$res - centr_betw(y)$res,
-                          g1, g2, SIMPLIFY=T)
-      tmp <- as.data.table(cbind(densities, t(btwn.diff)))
+      btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
+      tmp <- as.data.table(cbind(density, t(btwn.diff)))
 
     } else {
-      g1 <- lapply(g1, set_graph_attr, 'atlas', atlas)
-      g2 <- lapply(g2, set_graph_attr, 'atlas', atlas)
-      g1 <- lapply(g1, assign_lobes, atlas.dt)
-      g2 <- lapply(g2, assign_lobes, atlas.dt)
+      g1$atlas <- g2$atlas <- atlas
+      g1 <- assign_lobes(g1, atlas.dt)
+      g2 <- assign_lobes(g2, atlas.dt)
 
       if (level == 'graph') {
-        mod1 <- sapply(g1, function(x) modularity(cluster_louvain(x)))
-        mod2 <- sapply(g2, function(x) modularity(cluster_louvain(x)))
+        mod1 <- modularity(cluster_louvain(g1))
+        mod2 <- modularity(cluster_louvain(g2))
         mod.diff <- mod1 - mod2
-        Cp1 <- sapply(g1, transitivity, type='localaverage')
-        Cp2 <- sapply(g2, transitivity, type='localaverage')
+        Cp1 <- transitivity(g1, type='localaverage')
+        Cp2 <- transitivity(g2, type='localaverage')
         Cp.diff <- Cp1 - Cp2
-        Lp1 <- sapply(g1, average.path.length)
-        Lp2 <- sapply(g2, average.path.length)
+        Lp1 <- average.path.length(g1)
+        Lp2 <- average.path.length(g2)
         Lp.diff <- Lp1 - Lp2
-        assortativity1 <- sapply(g1, assortativity.degree)
-        assortativity2 <- sapply(g2, assortativity.degree)
+        assortativity1 <- assortativity.degree(g1)
+        assortativity2 <- assortativity.degree(g2)
         assort.diff <- assortativity1 - assortativity2
-        E.global1 <- sapply(g1, graph.efficiency, 'global')
-        E.global2 <- sapply(g2, graph.efficiency, 'global')
+        E.global1 <- graph.efficiency(g1, 'global')
+        E.global2 <- graph.efficiency(g2, 'global')
         E.global.diff <- E.global1 - E.global2
   
-        assort.lobe1 <- sapply(g1, function(x) assortativity_nominal(x, V(x)$lobe))
-        assort.lobe2 <- sapply(g2, function(x) assortativity_nominal(x, V(x)$lobe))
+        assort.lobe1 <- assortativity_nominal(g1, V(g1)$lobe)
+        assort.lobe2 <- assortativity_nominal(g2, V(g2)$lobe)
         assort.lobe.diff <- assort.lobe1 - assort.lobe2
-        tmp <- data.table(density=densities, mod=mod.diff, E.global=E.global.diff,
+        tmp <- data.table(density=density, mod=mod.diff, E.global=E.global.diff,
                    Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
                    assortativity.lobe=assort.lobe.diff)
   
       } else if (level == 'lobe') {
-        t1 <- as.data.table(ldply(g1, count_interlobar, 'Temporal', atlas.dt))
-        t2 <- as.data.table(ldply(g2, count_interlobar, 'Temporal', atlas.dt))
+        t1 <- as.data.table(count_interlobar(g1, 'Temporal', atlas.dt))
+        t2 <- as.data.table(count_interlobar(g2, 'Temporal', atlas.dt))
         tdiff <- t1 - t2
-        tmp <- data.table(density=densities, diff=tdiff)
+        tmp <- data.table(density=density, diff=tdiff)
   
       } else if (level == 'asymmetry') {
-        asymm1 <- ldply(g1, edge_asymmetry)$asymm
-        asymm2 <- ldply(g2, edge_asymmetry)$asymm
+        asymm1 <- edge_asymmetry(g1)$asymm
+        asymm2 <- edge_asymmetry(g2)$asymm
         adiff <- asymm1 - asymm2
-        tmp <- data.table(density=densities, asymm=adiff)
+        tmp <- data.table(density=density, asymm=adiff)
       }
     }
 
