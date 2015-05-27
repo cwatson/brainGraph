@@ -4,11 +4,11 @@
 \alias{permute.group}
 \title{Permutation test for group difference of graph measures}
 \usage{
-permute.group(densities, resids, num.subjs, num.perms = 1000,
+permute.group(density, resids, num.subjs, num.perms = 1000,
   level = c("graph", "vertex", "lobe", "asymmetry"), atlas, atlas.dt = NULL)
 }
 \arguments{
-\item{densities}{A vector of graph densities to loop through}
+\item{density}{The density of the resultant graphs}
 
 \item{resids}{A data.table of the residuals (from \code{\link{get.resid}})}
 
