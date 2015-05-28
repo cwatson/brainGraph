@@ -95,7 +95,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       g$asymm <- edge_asymmetry(g)$asymm
 
       if (atlas == 'destrieux') {
-        V(g)$color.class <- color.vertices(V(g)$class, lobe.cols)
+        V(g)$color.class <- lobe.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
         E(g)$color.class <- color.edges(g, V(g)$class, order=F, cols=lobe.cols)
       }

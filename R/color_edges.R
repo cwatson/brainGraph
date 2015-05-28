@@ -23,7 +23,7 @@ color.edges <- function(g, memb, order=TRUE, cols=NULL) {
   }
 
   tmp <- vector('list', length=kNumComm)
-  newcols <- vector('character', length=ecount(g))
+  newcols <- rep('gray50', length=ecount(g))
 
   sums <- sapply(seq_len(kNumComm), function(x) sum(memb == comm.order[x]))
   tmp[which(sums == 1)] <- 0
