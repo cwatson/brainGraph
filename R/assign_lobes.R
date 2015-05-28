@@ -12,12 +12,16 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 assign_lobes <- function(g, atlas.dt) {
-  lobe <- hemi <- name <- NULL
+  lobe <- hemi <- name <- class <- NULL
   atlas <- g$atlas
   vorder <- match(V(g)$name, atlas.dt$name)
   V(g)$lobe <- atlas.dt[vorder, as.numeric(lobe)]
   V(g)$lobe.hemi <- as.numeric(atlas.dt[vorder, interaction(lobe, hemi)])
   V(g)$hemi <- as.character(atlas.dt[vorder, hemi])
+
+  if (atlas == 'destrieux') {
+    V(g)$class <- atlas.dt[vorder, as.numeric(class)]
+  }
 
   if (atlas %in% c('dkt', 'dk', 'destrieux')) {
     counts <- atlas.dt[, length(name), by=c('lobe', 'hemi')][order(lobe)]$V1

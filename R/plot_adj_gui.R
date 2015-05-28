@@ -326,9 +326,14 @@ plot.adj.gui <- function() {
   
   # Vertex colors based on community membership?
   #---------------------------------------
+  atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
   hboxVcolor <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
+  if (atlas == 'destrieux') {
+    choices <- c(choices, 'Class')
+  }
+
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
    
   #-----------------------------------------------------------------------------
@@ -413,7 +418,6 @@ plot.adj.gui <- function() {
   comboHemi$setActive(0)
 
   # Major lobe number, if applicable
-  atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
   atlas.list <- eval(parse(text=atlas))
   hboxLobe <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxLobe, F, F, 0)

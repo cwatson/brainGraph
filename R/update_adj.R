@@ -274,13 +274,15 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                            'lightblue',
                            V(g)$color.comm,
                            V(g)$color.lobe,
-                           V(g)$color.comp
+                           V(g)$color.comp,
+                           V(g)$color.class
     )
     edge.color <- switch(vertColor$getActive() + 1,
                          'red',
                          E(g)$color.comm,
                          E(g)$color.lobe,
-                         E(g)$color.comp
+                         E(g)$color.comp,
+                         E(g)$color.class
     )
 
     # Make most medial colors more transparent if in sagittal view
@@ -379,10 +381,17 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
       lobes <- sort(unique(V(g)$lobe))
       lobe.names <- levels(atlas.list[, lobe])[lobes]
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
-      kNumLobes <- max(V(g)$lobe)
       legend('topleft',
              lobe.names,
              fill=lobe.cols,
+             bg='black',
+             text.col='white')
+    } else if (vertColor$getActive() + 1 == 5) {
+      classes <- levels(atlas.list[, class])
+      cols <- c('red', 'green', 'blue')
+      legend('topleft',
+             classes,
+             fill=cols,
              bg='black',
              text.col='white')
     }

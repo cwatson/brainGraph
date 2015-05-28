@@ -93,6 +93,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
 
       g$asymm <- edge_asymmetry(g)$asymm
+
+      if (atlas == 'destrieux') {
+        V(g)$color.class <- color.vertices(V(g)$class, lobe.cols)
+        g$assortativity.class <- assortativity_nominal(g, V(g)$class)
+        E(g)$color.class <- color.edges(g, V(g)$class, order=F, cols=lobe.cols)
+      }
     }
   
     # Add the spatial coordinates for plotting over the brain
