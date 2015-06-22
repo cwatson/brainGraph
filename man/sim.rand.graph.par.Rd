@@ -16,7 +16,7 @@ sim.rand.graph.par(g, N, clustering = TRUE, ...)
 \item{...}{Other parameters (passed to \code{\link{sim.rand.graph.clust}})}
 }
 \value{
-A random graph with vertex and graph attributes.
+A list of \emph{N} random graphs with vertex and graph attributes.
 }
 \description{
 This function will simulate N simple random graphs with the same clustering
@@ -24,7 +24,8 @@ and degree sequence as the input. Essentially a wrapper for
 \code{\link{sim.rand.graph.clust}} and
 \code{\link{set.brainGraph.attributes}}. It uses
 \code{\link[foreach]{foreach}} to speed it up. If you do not want to match by
-clustering, then it will do a simple rewiring of the given graph (1e4 times).
+clustering, then it will do a simple rewiring of the given graph (the larger
+of 1e4 and 10 * number of edges).
 }
 \seealso{
 \code{\link{sim.rand.graph.clust}, \link[igraph]{rewire}}

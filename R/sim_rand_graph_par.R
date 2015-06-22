@@ -5,7 +5,8 @@
 #' \code{\link{sim.rand.graph.clust}} and
 #' \code{\link{set.brainGraph.attributes}}. It uses
 #' \code{\link[foreach]{foreach}} to speed it up. If you do not want to match by
-#' clustering, then it will do a simple rewiring of the given graph (1e4 times).
+#' clustering, then it will do a simple rewiring of the given graph (the larger
+#' of 1e4 and 10 * number of edges).
 #'
 #' @param g A graph with the characteristics for simulation of random graphs
 #' @param N The number of iterations
@@ -13,7 +14,7 @@
 #' @param ... Other parameters (passed to \code{\link{sim.rand.graph.clust}})
 #' @export
 #'
-#' @return A random graph with vertex and graph attributes.
+#' @return A list of \emph{N} random graphs with vertex and graph attributes.
 #'
 #' @seealso \code{\link{sim.rand.graph.clust}, \link[igraph]{rewire}}
 
