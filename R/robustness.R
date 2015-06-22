@@ -11,7 +11,7 @@
 #' @param measure A character string; sort by either 'btwn.cent' or 'degree'
 #' @export
 #'
-#' @return A vector representing the percent of maximal component size compared
+#' @return A vector representing the ratio of maximal component size compared
 #' to the graph's original maximal component
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -37,7 +37,7 @@ targeted.attack <- function(g, type=c('vertex', 'edge'),
     max.comp <- vector('integer', length=length(ord)+1)
     max.comp[1] <- g$conn.comp[1, 1]
     for (i in seq_along(ord)) {
-      g <- delete.edges(g, E(g)[V(g)[verts[ord[i], 1]] %--% verts[ord[i], 2]])
+      g <- delete.edges(g, E(g)[verts[ord[i], 1] %--% verts[ord[i], 2]])
       max.comp[i+1] <- max(components(g)$csize)
     }
   }
