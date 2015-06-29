@@ -9,7 +9,7 @@
 #'
 #' @export
 
-plot.adj.gui <- function() {
+plot_brainGraph_gui <- function() {
   window <- gtkWindow('toplevel')
   window['title'] <- 'brainGraph'
   window['icon'] <- gdkPixbuf(filename=system.file('extdata',
@@ -107,7 +107,7 @@ plot.adj.gui <- function() {
   # Callback functions for the "Plot" menu
   #---------------------------------------------------------
   plot_entire_cb <- function(widget, window) {
-    plotFunc <<- plot.adj
+    plotFunc <<- plot_brainGraph
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     kNumChildren <- length(window[[1]]$getChildren())
     if (kNumChildren > 1) {
@@ -528,7 +528,8 @@ plot.adj.gui <- function() {
   vboxMain$add(the.buttons)
   buttonOK <- gtkButtonNewFromStock('gtk-ok')
   gSignalConnect(buttonOK, 'clicked',
-                 function(widget) update_adj(graphname[[1]], graphname[[2]],
+                 function(widget)
+                     update_brainGraph_gui(graphname[[1]], graphname[[2]],
                                    vertLabels, vertSize=comboVsize,
                                    edgeWidth=comboEwidth, edgeDiffs,
                                    vertColor=comboVcolor,

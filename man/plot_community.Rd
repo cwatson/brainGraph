@@ -11,7 +11,7 @@ plot_community(g, n, ...)
 
 \item{n}{The community to be plotted (integer or vector)}
 
-\item{...}{Other parameters (passed to \code{\link{plot.adj}})}
+\item{...}{Other parameters (passed to \code{\link{plot_brainGraph}})}
 }
 \description{
 This function plots a single (or multiple) community, if you want to see e.g.

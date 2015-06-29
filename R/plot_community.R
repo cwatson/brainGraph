@@ -5,7 +5,7 @@
 #'
 #' @param g The graph
 #' @param n The community to be plotted (integer or vector)
-#' @param ... Other parameters (passed to \code{\link{plot.adj}})
+#' @param ... Other parameters (passed to \code{\link{plot_brainGraph}})
 #' @export
 
 plot_community <- function(g, n, ...) {
@@ -58,7 +58,7 @@ plot_community <- function(g, n, ...) {
   }
 
   g.density <- round(graph.density(g), digits=3)
-  plot.adj(g.sub,
+  plot_brainGraph(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,
            edge.color=edge.color, vertex.label=vertex.label,
            vertex.label.cex=vertex.label.cex,

@@ -11,7 +11,7 @@ plot_neighborhood(g, n, ...)
 
 \item{n}{Index (integer) of the vertex whose neighborhood is to be plotted}
 
-\item{...}{Other parameters (passed to \code{\link{plot.adj}})}
+\item{...}{Other parameters (passed to \code{\link{plot_brainGraph}})}
 }
 \description{
 This function plots only the neighborhood of a single given vertex, e.g. if

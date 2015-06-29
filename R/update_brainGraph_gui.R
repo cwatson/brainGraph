@@ -1,7 +1,8 @@
 #' Function to dynamically plot a graph
 #'
-#' This function is called by \link{plot.adj.gui} to update a plot on-the-fly.
-#' It updates both of the plots by calling the helper function "make.plot".
+#' This function is called by \link{plot_brainGraph_gui} to update a plot
+#' on-the-fly. It updates both of the plots by calling the helper function
+#' "make.plot".
 #'
 #' @param graphname1 A GTK entry for the first plotting area
 #' @param graphname2 A GTK entry for the second plotting area
@@ -34,13 +35,13 @@
 #'
 #' @export
 
-update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
+update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
                        edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms=NULL,
-                       comboLobeMult=NULL) {
+                       vertSize.min1, vertSize.min2, edgeWidth.min,
+                       kNumComms=NULL, comboLobeMult=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -134,7 +135,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     #====================================================
     if (orient$getActive() == 0) {
-      plot.over.brain.axial(0)
+      plot_brainGraph_axial(0)
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
@@ -144,7 +145,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Plot the left sagittal only
     #---------------------------------
     } else if (orient$getActive() == 1) {
-      plot.over.brain.sagittal(0, hemi='left', z=30)
+      plot_brainGraph_sagittal(0, hemi='left', z=30)
       V(g)$x <- -V(g)$y.mni
       V(g)$y <- V(g)$z.mni
       xlim.g <- c(-85, 110)
@@ -156,7 +157,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     # Plot the right sagittal only
     #---------------------------------
     } else if (orient$getActive() == 2) {
-      plot.over.brain.sagittal(0, hemi='right', z=30)
+      plot_brainGraph_sagittal(0, hemi='right', z=30)
       V(g)$x <- V(g)$y.mni
       V(g)$y <- V(g)$z.mni
       xlim.g <- c(-125, 85)
@@ -201,9 +202,10 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
         g <- g.sub
         verts <- which(V(g)$name %in% vnames)
         Nv <- vcount(g)
-        plotFunc <- plot.adj
+        plotFunc <- plot_brainGraph
       }
     } else {
+      n <- 1
       verts <- NULL
     }
 
@@ -370,7 +372,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                vertex.color=vertex.color, edge.color=edge.color)
     }
 
-    if (identical(plotFunc, plot.adj)) {
+    if (identical(plotFunc, plot_brainGraph)) {
       if (orient$getActive() == 3) {
         plotFunc <- plot
       }

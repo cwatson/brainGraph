@@ -8,9 +8,9 @@
 #' @param z The z-coordinate of the slice to use (defaults to 46, the center)
 #' @export
 #'
-#' @seealso \code{\link{plot.over.brain.sagittal}}
+#' @seealso \code{\link{plot_brainGraph_sagittal}}
 
-plot.over.brain.axial <- function(save=0, fname=NULL, z=46) {
+plot_brainGraph_axial <- function(save=0, fname=NULL, z=46) {
     if (save==1) {
       png(filename=fname)
     } else {

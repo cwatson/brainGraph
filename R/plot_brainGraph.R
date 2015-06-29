@@ -16,7 +16,8 @@
 #' @param ... Other parameters (passed to \code{\link{plot}}).
 #' @export
 
-plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, main=NULL, ...) {
+plot_brainGraph <- function(g, rescale=F, ylim=c(-1.5, 1.5),
+                            asp=0, main=NULL, ...) {
 
   plot(g, asp=asp, rescale=rescale, ylim=ylim, ...)
 

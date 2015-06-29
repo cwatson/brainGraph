@@ -5,7 +5,7 @@
 #'
 #' @param g The graph to be plotted
 #' @param n Index (integer) of the vertex whose neighborhood is to be plotted
-#' @param ... Other parameters (passed to \code{\link{plot.adj}})
+#' @param ... Other parameters (passed to \code{\link{plot_brainGraph}})
 #' @export
 
 plot_neighborhood <- function(g, n, ...) {
@@ -57,7 +57,7 @@ plot_neighborhood <- function(g, n, ...) {
   }
 
   g.density <- round(graph.density(g), digits=3)
-  plot.adj(g.sub,
+  plot_brainGraph(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,
            edge.color=edge.color, vertex.label=vertex.label, 
            vertex.label.cex=vertex.label.cex, 

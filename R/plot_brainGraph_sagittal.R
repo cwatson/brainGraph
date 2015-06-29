@@ -10,9 +10,9 @@
 #' 'right')
 #' @export
 #'
-#' @seealso \code{\link{plot.over.brain.axial}}
+#' @seealso \code{\link{plot_brainGraph_axial}}
 
-plot.over.brain.sagittal <- function(save=0, fname=NULL, z=50,
+plot_brainGraph_sagittal <- function(save=0, fname=NULL, z=50,
                                      hemi=c('left', 'right')) {
     hemi <- match.arg(hemi)
     if (hemi == 'right') {

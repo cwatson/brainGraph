@@ -28,6 +28,8 @@
 #' }
 
 group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) { 
+  statistic <- p.value <- NULL  # To appease R CHECK
+
   Nv <- vcount(g1[[1]])
   meas1 <- sapply(g1, vertex_attr, measure)
   meas2 <- sapply(g2, vertex_attr, measure)
