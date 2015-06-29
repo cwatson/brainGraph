@@ -12,10 +12,11 @@
 #' @param rescale A logical, whether to rescale the coordinates
 #' @param ylim A vector giving limits for the vertical axis
 #' @param asp A numeric constant for the aspect ratio
+#' @param main Character string for the main title
 #' @param ... Other parameters (passed to \code{\link{plot}}).
 #' @export
 
-plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, ...) {
+plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, main=NULL, ...) {
 
   plot(g, asp=asp, rescale=rescale, ylim=ylim, ...)
 
@@ -25,5 +26,5 @@ plot.adj <- function(g, rescale=F, ylim=c(-1.5, 1.5), asp=0, ...) {
   par(new=T, mar=c(5, 0, 3, 0)+0.1)
   subt <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
                 'Density: ', g.density)
-  title(sub=subt, col.sub='white')
+  title(main=main, sub=subt, col.main='white', col.sub='white')
 }

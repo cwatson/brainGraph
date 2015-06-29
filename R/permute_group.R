@@ -7,28 +7,24 @@
 #'
 #' The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 #' clustering coefficient, average path length, degree assortativity, global
-#' efficiency, and lobe assortativity.
+#' efficiency, lobe assortativity, and asymmetry.
 #'
 #' The \emph{lobe} "level" is intended to test for group differences in
 #' inter-lobar connections, e.g. from the temporal lobe to the rest of the
 #' brain.
 #'
-#' The \emph{asymmetry} "level" is intended to test for group differences in an
-#' "asymmetry index", which is a measure of difference in intra-hemispheric
-#' connection density.
-#'
-#' @param density The density of the resultant graphs
-#' @param resids A data.table of the residuals (from \code{\link{get.resid}})
+#' @param density Numeric; the density of the resultant graphs
+#' @param resids A data table of the residuals (from \code{\link{get.resid}})
 #' @param num.subjs A vector of length 2 indicating group sizes
 #' @param num.perms The number of permutations to perform (default: 1e3)
 #' @param level A character string for the attribute level to calculate
-#' differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'
+#' differences; either 'graph', 'vertex', or 'lobe'
 #' @param atlas Character string of the atlas name
-#' @param atlas.dt Data table containing the specific atlas data
+#' @param atlas.dt A data table containing the specific atlas data
 #' @export
 #'
 #' @return A data table with values for group differences in modularity, global
-#' efficiency, clustering, average path length, and assortativity
+#' efficiency, clustering, average path length, and assortativity (etc.)
 #'
 #' @seealso \code{\link[igraph]{centr_betw}, \link{count_interlobar},
 #' \link{edge_asymmetry}}
@@ -42,7 +38,7 @@
 #' }
 
 permute.group <- function(density, resids, num.subjs, num.perms=1e3,
-                          level=c('graph', 'vertex', 'lobe', 'asymmetry'),
+                          level=c('graph', 'vertex', 'lobe'),
                           atlas, atlas.dt=NULL) {
   n1 <- as.numeric(num.subjs[1])
   n.all <- sum(num.subjs)
@@ -52,7 +48,7 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
                  .packages='plyr', .export='assign_lobes') %dopar% {
     shuffled <- sample(n.all)
     corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F], density=density)
-    corrs2 <- corr.matrix(resids[shuffled[(n1 +1):n.all]][, !'Group', with=F],
+    corrs2 <- corr.matrix(resids[shuffled[(n1+1):n.all]][, !'Group', with=F],
                           density=density)
     g1 <- simplify(graph.adjacency(corrs1$r.thresh, mode='undirected'))
     g2 <- simplify(graph.adjacency(corrs2$r.thresh, mode='undirected'))
@@ -86,9 +82,12 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
         assort.lobe1 <- assortativity_nominal(g1, V(g1)$lobe)
         assort.lobe2 <- assortativity_nominal(g2, V(g2)$lobe)
         assort.lobe.diff <- assort.lobe1 - assort.lobe2
+        asymm1 <- edge_asymmetry(g1)$asymm
+        asymm2 <- edge_asymmetry(g2)$asymm
+        adiff <- asymm1 - asymm2
         tmp <- data.table(density=density, mod=mod.diff, E.global=E.global.diff,
                    Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
-                   assortativity.lobe=assort.lobe.diff)
+                   assortativity.lobe=assort.lobe.diff, asymm=adiff)
   
       } else if (level == 'lobe') {
         t1 <- as.data.table(count_interlobar(g1, 'Temporal', atlas.dt))
@@ -96,11 +95,6 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
         tdiff <- t1 - t2
         tmp <- data.table(density=density, diff=tdiff)
   
-      } else if (level == 'asymmetry') {
-        asymm1 <- edge_asymmetry(g1)$asymm
-        asymm2 <- edge_asymmetry(g2)$asymm
-        adiff <- asymm1 - asymm2
-        tmp <- data.table(density=density, asymm=adiff)
       }
     }
 

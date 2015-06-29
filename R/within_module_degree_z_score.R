@@ -38,9 +38,8 @@ within_module_deg_z_score <- function(g, memb) {
   Ksi <- sapply(comms, function(x) mean(degree(x)))
   sigKsi <- sapply(comms, function(x) sd(degree(x)))
 
-  for (i in vs) {
-    Ki[i] <- degree(comms[[memb[i]]])[V(g)$name[i]]
-  }
+  Ki[vs] <- sapply(vs, function(x)
+                   degree(comms[[memb[x]]])[V(g)$name[x]])
   z[vs] <- (Ki[vs] - Ksi[memb[vs]]) / sigKsi[memb[vs]]
   z <- ifelse(is.na(z) | is.nan(z) | is.infinite(z), 0, z)
   names(z) <- V(g)$name

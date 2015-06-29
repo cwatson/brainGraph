@@ -4,7 +4,8 @@
 \alias{plot.adj}
 \title{Plot a graph with a specific spatial layout}
 \usage{
-\method{plot}{adj}(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0, ...)
+\method{plot}{adj}(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0,
+  main = NULL, ...)
 }
 \arguments{
 \item{g}{The graph to plot}
@@ -14,6 +15,8 @@
 \item{ylim}{A vector giving limits for the vertical axis}
 
 \item{asp}{A numeric constant for the aspect ratio}
+
+\item{main}{Character string for the main title}
 
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }

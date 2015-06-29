@@ -57,8 +57,6 @@ plot_community <- function(g, n, ...) {
     }
   }
 
-  Nv <- vcount(g.sub)
-  Ne <- ecount(g.sub)
   g.density <- round(graph.density(g), digits=3)
   plot.adj(g.sub,
            vertex.size=vertex.size, vertex.color=vertex.color,

@@ -6,23 +6,23 @@
 #' @param g An igraph graph object
 #' @export
 #'
-#' @return An integer vector of the edge ID's connecting homologous regions
+#' @return A named vector of the edge ID's connecting homologous regions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 count_homologous <- function(g) {
   atlas <- g$atlas
-  eids <- vector('integer')
+  Nv <- vcount(g)
   if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite')) {
-    for (i in seq_len(vcount(g) / 2)) {
-      region <- substr(V(g)$name[i], 2, nchar(V(g)$name[i]))
-      region.l <- paste0('l', region)
-      region.r <- paste0('r', region)
-      region.r.num <- which(V(g)$name == region.r)
+    verts <- seq_len(Nv / 2)
+    regions <- substr(V(g)[verts]$name, 2, nchar(V(g)[verts]$name))
+    regions.l <- paste0('l', regions)
+    regions.r <- paste0('r', regions)
 
-      if (length(E(g)[i %--% region.r.num]) == 1) {
-        eids <- c(eids, as.numeric(E(g)[i %--% region.r.num]))
-      }
-    }
+    eids <- unlist(mapply(function(x, y)
+                          as.numeric(E(g)[x %--% y]),
+                          regions.l,
+                          regions.r))
+
   } else if (atlas %in% c('aal90', 'hoa112')) {
     for (i in seq(1, vcount(g), by=2)) {
       if (length(E(g)[i %--% (i+1)]) == 1) {

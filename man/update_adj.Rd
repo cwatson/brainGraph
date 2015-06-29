@@ -8,7 +8,8 @@ update_adj(graphname1, graphname2, vertLabels, vertSize, edgeWidth, edgeDiffs,
   vertColor, firstplot, secondplot, vertSize.const = NULL,
   edgeWidth.const = NULL, plotFunc, comm = NULL, comboNeighb, hemi, lobe,
   orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL,
-  vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms = NULL)
+  vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms = NULL,
+  comboLobeMult = NULL)
 }
 \arguments{
 \item{graphname1}{A GTK entry for the first plotting area}
@@ -63,6 +64,8 @@ graphs}
 \item{edgeWidth.min}{A GTK entry for minimum edge width}
 
 \item{kNumComms}{Integer indicating the number of total communities (optional)}
+
+\item{comboLobeMult}{A GTK entry for joint neighborhoods of multiple vertices}
 }
 \description{
 This function is called by \link{plot.adj.gui} to update a plot on-the-fly.

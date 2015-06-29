@@ -1,8 +1,8 @@
 #' Calculate correlation matrix and threshold
 #'
 #' This function does a column-by-column correlation of a given data frame, and
-#' will threshold r-values based on a given density value; e.g. 0.1 if you want
-#' to keep only the 10\% strongest correlations. It also allows for the exclusion
+#' will threshold r-values based on a given density; e.g. 0.1 if you want to
+#' keep only the 10\% strongest correlations. It also allows for the exclusion
 #' of a set of columns (i.e. regions or nodes), given their indices. Also
 #' returns the p-values. Essentially a wrapper for \code{\link[Hmisc]{rcorr}},
 #' with some added functionality to work with the type of data more easily.
@@ -30,14 +30,13 @@ corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL) {
   r <- corrs$r
   p <- corrs$P
 
-  # Calculate a threshold so that 10% of possible connections are present
-  # Also called 'sparsity'
+  # Calculate a threshold so that "density"% of possible connections are present
   if (hasArg('density')) {
     N <- ncol(r)
     emax <- N  * (N - 1) / 2
   
     thresh <- sort(r[lower.tri(r)])[emax - density * emax]
   }
-  r.thresh <- ifelse(abs(r) > thresh, 1, 0)
+  r.thresh <- ifelse(r > thresh, 1, 0)
   out <- list(R=r, P=p, r.thresh=r.thresh, threshold=thresh)
 }

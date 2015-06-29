@@ -30,6 +30,7 @@
 #' @param vertSize.min2 A GTK entry for minimum vertex size, group 2
 #' @param edgeWidth.min A GTK entry for minimum edge width
 #' @param kNumComms Integer indicating the number of total communities (optional)
+#' @param comboLobeMult A GTK entry for joint neighborhoods of multiple vertices
 #'
 #' @export
 
@@ -38,7 +39,8 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms=NULL) {
+                       vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms=NULL,
+                       comboLobeMult=NULL) {
   #===========================================================================
   #===========================================================================
   # Function that does all the work
@@ -108,7 +110,13 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
         sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
       }
       memb.hemi <- seq_len(Nv)
+    } else if (hemi$getActive() == 4) {
+      # Homologous connections only
+      eids <- count_homologous(g)
+      sg.hemi <- subgraph.edges(g, eids)
+      memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
     }
+
     for (att in graph_attr_names(sg.hemi)) sg.hemi <- delete_graph_attr(sg.hemi, att)
     for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
     for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
@@ -127,14 +135,6 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     if (orient$getActive() == 0) {
       plot.over.brain.axial(0)
-      #layout.g <- matrix(c(atlas.list$brainnet.coords[, 1],
-      #                     atlas.list$brainnet.coords[, 2]),
-      #                   ncol=2, byrow=F)
-      #V(g)$x <- layout.g[, 1]
-      #V(g)$y <- layout.g[, 2]
-      #xlim.g <- c(-100, 100)
-      #ylim.g <- c(-125, 85)
-      #mult <- 100
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
@@ -182,6 +182,30 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     #=======================================================
     #=======================================================
     par(pty='s', mar=rep(0, 4))
+
+
+    # Multiple vertex neighborhoods, if applicable
+    if (identical(plotFunc, plot_neighborhood)) {
+      n <- comboNeighb$getActive()
+      if (n == 0) {
+        splits <- strsplit(comboLobeMult, split=', ')[[1]]
+        if (any(grep('^[[:digit:]]*$', splits))) {  # numeric
+          verts <- as.numeric(splits)
+          vnames <- V(g)[verts]$name
+        } else {
+          verts <- c(splits)
+          vnames <- verts
+        }
+        g.sub <- graph_neighborhood_multiple(g, verts)
+        g.sub <- set.brainGraph.attributes(g.sub, atlas)
+        g <- g.sub
+        verts <- which(V(g)$name %in% vnames)
+        Nv <- vcount(g)
+        plotFunc <- plot.adj
+      }
+    } else {
+      verts <- NULL
+    }
 
     # Vertex sizes
     if (!vertSize.const$getSensitive()) {
@@ -266,12 +290,12 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
       ewidth <- log1p(E(g)$btwn)
     } else if (edgeWidth$getActive() == 2) {
       g <- delete.edges(g, which(E(g)$dist < e.min))
-      ewidth <- 2
+      ewidth <- log1p(E(g)$dist)
     }
 
     # Vertex & edge colors
     vertex.color <- switch(vertColor$getActive() + 1,
-                           'lightblue',
+                           {tmp <- rep('lightblue', Nv); tmp[verts] <- 'yellow'; tmp},
                            V(g)$color.comm,
                            V(g)$color.lobe,
                            V(g)$color.comp,
@@ -332,7 +356,7 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
 
     # Vertex neighborhood, if applicable
     if (identical(plotFunc, plot_neighborhood)) {
-      n <- comboNeighb$getActive() + 1
+      n <- comboNeighb$getActive()
       if (vertColor$getActive() == 0) {
         vertex.color <- V(g)$color <- rep('lightblue', Nv)
         vertex.color[n] <- V(g)[n]$color <- 'yellow'
@@ -358,6 +382,11 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
         curv <- 0
       }
 
+      if (n == 0) {
+        main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
+      } else {
+        main <- NULL
+      }
       plotFunc(g,
                vertex.label=vlabel, vertex.label.cex=vlabel.cex,
                vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
@@ -365,14 +394,14 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                vertex.size=vsize, edge.width=ewidth,
                vertex.color=vertex.color, edge.color=edge.color,
                xlim=xlim.g, ylim=ylim.g,
-               #layout=layout.g,
-               edge.curved=curv)
+               edge.curved=curv, main=main)
+
       if (orient$getActive() == 3) {
         g.density <- round(graph.density(g), digits=3)
         par(new=T, mar=c(5, 0, 3, 0) + 0.1)
         subt <- paste('# vertices: ', vcount(g), '# edges: ', ecount(g), '\n',
                       'Density: ', g.density)
-        title(sub=subt, col.sub='white')
+        title(main=main, sub=subt, col.sub='white')
       }
     }
 
@@ -380,6 +409,10 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
     if (vertColor$getActive() + 1 == 3) {
       lobes <- sort(unique(V(g)$lobe))
       lobe.names <- levels(atlas.list[, lobe])[lobes]
+      nonzero <- V(g)$degree > 0
+      total <- unname(atlas.list[, table(lobe)])[lobes]
+      lobe.names <- paste0(lobe.names, ': ', table(V(g)$lobe[nonzero]),
+                           ' / ', total)
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       legend('topleft',
              lobe.names,
@@ -407,7 +440,6 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                vertex.size=10, edge.width=5,
                vertex.color='deeppink', edge.color='deeppink',
                xlim=xlim.g, ylim=ylim.g,
-               #layout=layout.g[inds, ],
                edge.curved=curv)
     }
 
@@ -419,7 +451,6 @@ update_adj <- function(graphname1, graphname2, vertLabels, vertSize,
                vertex.color='deeppink', edge.color='deeppink', 
                edge.width=5,
                xlim=xlim.g, ylim=ylim.g,
-               #layout=layout.g,
                edge.curved=curv)
     }
   }

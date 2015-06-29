@@ -4,17 +4,17 @@
 \alias{count_interlobar}
 \title{Count number of inter-lobar connections from a given major lobe}
 \usage{
-count_interlobar(g, lobe, atlas.list)
+count_interlobar(g, lobe, atlas.dt)
 }
 \arguments{
 \item{g}{The igraph graph object}
 
 \item{lobe}{A character string indicating the lobe to count from (uppercase)}
 
-\item{atlas.list}{A list with specific atlas data}
+\item{atlas.dt}{A data table with specific atlas data}
 }
 \value{
-An integer of the edge counts
+A data table of total, intra-, and inter-lobar edge counts
 }
 \description{
 This function will count the number of edges between all vertices in one
@@ -22,8 +22,8 @@ major lobe (e.g. Frontal) and all other major lobes.
 }
 \examples{
 \dontrun{
-atlas.list <- eval(parse(text=data(list=g1[[N]]$atlas)))
-g1.frontal <- count_interlobar(g1[[N]], 'Frontal', atlas.list)
+atlas.dt <- eval(parse(text=data(list=g1[[N]]$atlas)))
+g1.frontal <- count_interlobar(g1[[N]], 'Frontal', atlas.dt)
 }
 }
 \author{

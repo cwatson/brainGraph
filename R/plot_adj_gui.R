@@ -17,7 +17,7 @@ plot.adj.gui <- function() {
                                                    package='brainGraph'))
 
   gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
-  graphObj <- slider <- lobe <- NULL
+  graphObj <- slider <- lobe <- comboLobeMult <- NULL
 
   # Function to add an entry 
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
@@ -141,13 +141,14 @@ plot.adj.gui <- function() {
 
     graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
     choicesNeighb <- data.frame(seq_len(vcount(graph1)), V(graph1)$name)
-    choices <- vector('character', nrow(choicesNeighb))
+    choices <- vector('character', length=(nrow(choicesNeighb) + 1))
+    choices[1] <- '[Multiple]'
     for (r in seq_len(nrow(choicesNeighb))) {
-      choices[r] <- paste(sprintf('%02i', choicesNeighb[r, 1]), ': ', '\t',
+      choices[r+1] <- paste(sprintf('%02i', choicesNeighb[r, 1]), ': ', '\t',
                           as.character(choicesNeighb[r, 2]))
     }
     comboNeighb <<- add_combo(hboxNeighb, choices, 'Which vertex?')
-    comboNeighb$setActive(0)
+    comboNeighb$setActive(1)
 
     comboComm <<- NULL
     kNumComms <<- NULL
@@ -156,6 +157,27 @@ plot.adj.gui <- function() {
     gui.params$edgeDiffs$setSensitive(F)
     gui.params$comboHemi$setSensitive(F)
     gui.params$comboLobe$setSensitive(F)
+
+    gSignalConnect(comboNeighb, 'changed', function(comboNeighb, ...) {
+      if (comboNeighb$getActive() == 0) {
+        tempComboWindow <- gtkWindow()
+        tempComboVbox <- gtkVBoxNew(F, 8)
+        tempComboWindow$add(tempComboVbox)
+        tempComboHbox <- gtkHBoxNew(F, 8)
+        tempComboVbox$packStart(tempComboHbox, F, F, 0)
+        tempComboEntry <- add_entry(tempComboHbox,
+          label.text=paste0('Choose vertices: \n(comma-separated list \nof either integers \nor vertex names)'),
+                                    char.width=20)
+        tempComboEntry$setSensitive(T)
+
+        button <- gtkButtonNewFromStock('gtk-ok')
+        gSignalConnect(button, 'clicked', function(widget) {
+                       comboLobeMult <<- tempComboEntry$getText()
+                       tempComboWindow$destroy()
+                       })
+        tempComboVbox$packStart(button, fill=F)
+      }
+    })
   }
 
   #-------------------------------------
@@ -409,27 +431,28 @@ plot.adj.gui <- function() {
   edgeDiffs <- add_check(hbox, 'Show _edge differences?')
 
   #-----------------------------------------------------------------------------
-  # Both, single hemisphere, or inter-hemispheric only?
+  # Both, single hemisphere, inter-hemispheric, or homologous only?
   #---------------------------------------------------------
   hboxHemi <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxHemi, F, F, 0)
-  choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only')
+  choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only',
+               'Homologous only')
   comboHemi <- add_combo(hboxHemi, choices, 'Hemisphere')
   comboHemi$setActive(0)
 
   # Major lobe number, if applicable
-  atlas.list <- eval(parse(text=atlas))
+  atlas.dt <- eval(parse(text=data(list=atlas)))
   hboxLobe <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxLobe, F, F, 0)
 
-  kNumLobes <- nlevels(atlas.list[, lobe])
+  kNumLobes <- nlevels(atlas.dt[, lobe])
   combos <- sapply(seq_len(kNumLobes - 1),
-                   function(x) combn(seq_along(levels(atlas.list[, lobe])), x))
+                   function(x) combn(seq_along(levels(atlas.dt[, lobe])), x))
   lobes <- sapply(2:(kNumLobes-1),
           function(z) apply(t(apply(t(combos[[z]]), 1,
-                function(x) levels(atlas.list[, lobe])[x])), 1, paste, collapse=', '))
+                function(x) levels(atlas.dt[, lobe])[x])), 1, paste, collapse=', '))
   lobes <- do.call('c', lobes)
-  choices <- c('All', levels(atlas.list[, lobe]), lobes)
+  choices <- c('All', levels(atlas.dt[, lobe]), lobes)
 
   comboLobe <- add_combo(hboxLobe, choices, 'Lobe')
   comboLobe$setActive(0)
@@ -437,9 +460,7 @@ plot.adj.gui <- function() {
   #---------------------------------------------------------
   # Create 2 drawing areas for the plotting
   #---------------------------------------------------------
-  graphics <- vector('list', 2)
-  vboxPlot <- vector('list', 2)
-  groupplot <- vector('list', 2)
+  graphics <- vboxPlot <- groupplot <- vector('list', 2)
 
   # Check screen resolution so the plotting window fits
   OS <- .Platform$OS.type
@@ -521,8 +542,8 @@ plot.adj.gui <- function() {
                                    slider1=slider[[1]], slider2=slider[[2]],
                                    vertSize.other, vertSize.min1=vertSize.min[[1]],
                                    vertSize.min2=vertSize.min[[2]], edgeWidth.min,
-                                   kNumComms=kNumComms))
-  buttonRename <- gtkButtonNewWithLabel('Pick new graphs')
+                                   kNumComms=kNumComms, comboLobeMult))
+  buttonRename <- gtkButtonNewWithMnemonic('Pick _new graphs')
   gSignalConnect(buttonRename, 'clicked',
                   function(widget) set.names())
   the.buttons$packStart(buttonOK, expand=T, fill=F)

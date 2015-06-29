@@ -62,9 +62,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   
     # Get the rich club coeff for all possible degree values
     R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
-    phi <- sapply(R, function(x) x$phi)
-    Nk <- sapply(R, function(x) x$Nk)
-    Ek <- sapply(R, function(x) x$Ek)
+    phi <- sapply(R, with, phi)
+    Nk <- sapply(R, with, Nk)
+    Ek <- sapply(R, with, Ek)
     g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
   
     if (is.directed(g)) {
@@ -117,9 +117,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       V(g)$strength <- graph.strength(g)
       R <- lapply(1:max(V(g)$degree),
                   function(x)rich.club.coeff(g, x, weighted=T))
-      phi <- sapply(R, function(x) x$coeff)
-      Nk <- sapply(R, function(x) x$Nk)
-      Ek <- sapply(R, function(x) x$Ek)
+      phi <- sapply(R, with, phi)
+      Nk <- sapply(R, with, Nk)
+      Ek <- sapply(R, with, Ek)
       g$rich.weighted <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
     }
     V(g)$btwn.cent <- centr_betw(g)$res

@@ -10,7 +10,7 @@ count_homologous(g)
 \item{g}{An igraph graph object}
 }
 \value{
-An integer vector of the edge ID's connecting homologous regions
+A named vector of the edge ID's connecting homologous regions
 }
 \description{
 This function will count the number of edges between homologous regions in a

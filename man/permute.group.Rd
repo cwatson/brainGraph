@@ -5,27 +5,27 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(density, resids, num.subjs, num.perms = 1000,
-  level = c("graph", "vertex", "lobe", "asymmetry"), atlas, atlas.dt = NULL)
+  level = c("graph", "vertex", "lobe"), atlas, atlas.dt = NULL)
 }
 \arguments{
-\item{density}{The density of the resultant graphs}
+\item{density}{Numeric; the density of the resultant graphs}
 
-\item{resids}{A data.table of the residuals (from \code{\link{get.resid}})}
+\item{resids}{A data table of the residuals (from \code{\link{get.resid}})}
 
 \item{num.subjs}{A vector of length 2 indicating group sizes}
 
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
 \item{level}{A character string for the attribute level to calculate
-differences; either 'graph', 'vertex', 'lobe', or 'asymmetry'}
+differences; either 'graph', 'vertex', or 'lobe'}
 
 \item{atlas}{Character string of the atlas name}
 
-\item{atlas.dt}{Data table containing the specific atlas data}
+\item{atlas.dt}{A data table containing the specific atlas data}
 }
 \value{
 A data table with values for group differences in modularity, global
-efficiency, clustering, average path length, and assortativity
+efficiency, clustering, average path length, and assortativity (etc.)
 }
 \description{
 This function draws permutations from linear model residuals to determine the
@@ -36,15 +36,11 @@ one graph per group), but is not restricted to that type of data.
 \details{
 The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 clustering coefficient, average path length, degree assortativity, global
-efficiency, and lobe assortativity.
+efficiency, lobe assortativity, and asymmetry.
 
 The \emph{lobe} "level" is intended to test for group differences in
 inter-lobar connections, e.g. from the temporal lobe to the rest of the
 brain.
-
-The \emph{asymmetry} "level" is intended to test for group differences in an
-"asymmetry index", which is a measure of difference in intra-hemispheric
-connection density.
 }
 \examples{
 \dontrun{

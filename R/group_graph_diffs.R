@@ -41,9 +41,9 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   }
 
   g.diffs <- g1[[1]]
-  V(g.diffs)$size2 <- sapply(stats, function(x) x$statistic)
+  V(g.diffs)$size2 <- sapply(stats, with, statistic)
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
-  V(g.diffs)$p <- 1 - sapply(stats, function(x) x$p.value)
+  V(g.diffs)$p <- 1 - sapply(stats, with, p.value)
   V(g.diffs)$p.adj <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
   return(g.diffs)
 }
