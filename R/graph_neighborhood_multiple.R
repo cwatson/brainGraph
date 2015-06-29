@@ -21,7 +21,7 @@
 
 graph_neighborhood_multiple <- function(g, vs) {
 
-  subgs <- make_ego_graph(g, vs=vs, order=1)
+  subgs <- make_ego_graph(g, order=1, nodes=vs)
   if (is.character(vs)) {
     vs <- which(V(g)$name %in% vs)
   }
