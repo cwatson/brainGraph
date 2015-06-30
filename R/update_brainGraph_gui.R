@@ -50,16 +50,16 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
   make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms, vertSize.min, ...) {
     dev.set(dev)
     atlas <- g$atlas
-    atlas.list <- eval(parse(text=atlas))
+    atlas.dt <- eval(parse(text=data(list=atlas)))
     Nv <- vcount(g)
 
     #=======================================================
     # Lobe to plot
     #=======================================================
     if (lobe$getActive() > 0) {
-      kNumLobes <- nlevels(atlas.list[, lobe])
+      kNumLobes <- nlevels(atlas.dt[, lobe])
       combos <- sapply(seq_len(kNumLobes - 1),
-                       function(x) combn(seq_along(levels(atlas.list[, lobe])), x))
+                       function(x) combn(seq_along(levels(atlas.dt[, lobe])), x))
       n <- lobe$getActive()
       if (n <= kNumLobes) {
         ind1 <- 1
@@ -410,9 +410,9 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     # Show a legend for lobe colors
     if (vertColor$getActive() + 1 == 3) {
       lobes <- sort(unique(V(g)$lobe))
-      lobe.names <- levels(atlas.list[, lobe])[lobes]
+      lobe.names <- levels(atlas.dt[, lobe])[lobes]
       nonzero <- V(g)$degree > 0
-      total <- unname(atlas.list[, table(lobe)])[lobes]
+      total <- unname(atlas.dt[, table(lobe)])[lobes]
       lobe.names <- paste0(lobe.names, ': ', table(V(g)$lobe[nonzero]),
                            ' / ', total)
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
@@ -422,7 +422,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
              bg='black',
              text.col='white')
     } else if (vertColor$getActive() + 1 == 5) {
-      classes <- levels(atlas.list[, class])
+      classes <- levels(atlas.dt[, class])
       cols <- c('red', 'green', 'blue')
       legend('topleft',
              classes,

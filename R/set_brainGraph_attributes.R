@@ -51,7 +51,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     g$conn.comp <- data.frame(size=as.numeric(names(comps)),
                               number=unclass(unname(comps)))
     #g$cliques <- table(sapply(cliques(g), length))
-    g$num.tri <- graph.motifs(g)[4]
+    g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g)
   
     g$transitivity <- transitivity(g)
@@ -81,7 +81,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
     if (!is.null(atlas)) {
       g$atlas <- atlas
-      atlas.dt <- eval(parse(text=atlas))
+      atlas.dt <- eval(parse(text=data(list=atlas)))
 
       g <- assign_lobes(g, atlas.dt)
       lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',

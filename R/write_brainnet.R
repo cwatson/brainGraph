@@ -18,7 +18,7 @@ write.brainnet <- function(g, node.color=c('none', 'community', 'lobe'),
                            node.size=c('constant', 'degree')) {
   x.mni <- y.mni <- z.mni <- NULL
 
-  atlas.dt <- eval(parse(text=g$atlas))
+  atlas.dt <- eval(parse(text=data(list=g$atlas)))
   coords.cur <- round(atlas.dt[, matrix(c(x.mni, y.mni, z.mni), ncol=3)])
 
   node.color <- match.arg(node.color)

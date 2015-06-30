@@ -20,7 +20,7 @@ spatial.dist <- function(g) {
                  deparse(substitute(g))))
   }
   name <- index <- NULL
-  atlas.dt <- eval(parse(text=g$atlas))
+  atlas.dt <- eval(parse(text=data(list=g$atlas)))
   coords <- atlas.dt[, c('x.mni', 'y.mni', 'z.mni'), with=F]
   es <- get.edgelist(g)
   dists <- sqrt(rowSums((coords[atlas.dt[name == es[, 2], index], ] -

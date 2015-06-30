@@ -15,6 +15,8 @@
 #' \item{Nk}{The number of vertices in the rich club graph.}
 #' \item{Ek}{The number of edges in the rich club graph.}
 #'
+#' @seealso \code{\link{rich.club.norm}}
+#'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zhou S., Mondragon R.J. (2004) \emph{The rich-club phenomenon
 #' in the internet topology}. IEEE Comm Lett, 8:180-182.
