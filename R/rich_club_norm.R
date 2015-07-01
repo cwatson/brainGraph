@@ -35,7 +35,7 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   }
 
   phi <- plyr::laply(rand, function(x)
-                     sapply(1:max(degree(x)), function(y)
+                     sapply(seq_len(max(V(g)$degree)), function(y)
                             rich.club.coeff(x, y, ...)$phi),
                      .parallel=T)
   phi.norm <- g$rich$phi / colMeans(phi)

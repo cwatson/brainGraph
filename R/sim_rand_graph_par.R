@@ -28,11 +28,13 @@ sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
     }
   } else {
     iters <- max(10*ecount(g), 1e4)
-    r <- foreach(i=seq_len(N),
+    r <- foreach(i=seq_len(N), .combine='rbind',
                  .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- rewire(g, keeping_degseq(loops=F, iters))
       tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
-      tmp
+      DT <- data.table(density=g$density, Cp=tmp$Cp, Lp=tmp$Lp, mod=tmp$mod,
+                       E.global=tmp$E.global)
+      DT
     }
   }
 }

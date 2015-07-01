@@ -34,11 +34,13 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
+
   if (rand == TRUE) {
     g$Cp <- transitivity(g, type='localaverage')
     g$Lp <- average.path.length(g)
     g$mod <- max(multilevel.community(g)$modularity)
     g$E.global <- graph.efficiency(g, 'global')
+
   } else {
     V(g)$degree <- degree(g)
     # Graph-level attributes

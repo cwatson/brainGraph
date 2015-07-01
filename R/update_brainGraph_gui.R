@@ -135,7 +135,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     #====================================================
     #====================================================
     if (orient$getActive() == 0) {
-      plot_brainGraph_axial(0)
+      plot_brainGraph_mni('axial')
       xlim.g <- c(-1, 1)
       ylim.g <- c(-1.5, 1.5)
       mult <- 1
@@ -145,7 +145,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     # Plot the left sagittal only
     #---------------------------------
     } else if (orient$getActive() == 1) {
-      plot_brainGraph_sagittal(0, hemi='left', z=30)
+      plot_brainGraph_mni('sagittal', slice=30, hemi='left')
       V(g)$x <- -V(g)$y.mni
       V(g)$y <- V(g)$z.mni
       xlim.g <- c(-85, 110)
@@ -157,7 +157,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     # Plot the right sagittal only
     #---------------------------------
     } else if (orient$getActive() == 2) {
-      plot_brainGraph_sagittal(0, hemi='right', z=30)
+      plot_brainGraph_mni('sagittal', slice=30, hemi='right')
       V(g)$x <- V(g)$y.mni
       V(g)$y <- V(g)$z.mni
       xlim.g <- c(-125, 85)
