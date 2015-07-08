@@ -15,12 +15,15 @@ small.world(g, rand)
 \value{
 A data frame with the following components:
 \item{density}{The range of density thresholds used.}
+\item{N}{The number of random graphs that were generated.}
 \item{Lp}{The characteristic path length.}
 \item{Cp}{The clustering coefficient.}
 \item{Lp.rand}{The mean characteristic path length of the random graphs with
 the same degree distribution as g.}
 \item{Cp.rand}{The mean clustering coefficient of the random graphs with
 the same degree distribution as g.}
+\item{Lp.norm}{The normalized characteristic path length.}
+\item{Cp.norm}{The normalized clustering coefficient.}
 \item{sigma}{The small-world measure of the graph.}
 }
 \description{

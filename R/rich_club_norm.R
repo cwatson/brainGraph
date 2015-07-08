@@ -16,7 +16,10 @@
 #' @return A list with two elements:
 #' \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
 #' columns, where each row contains the coefficients for a given random graph.}
+#' \item{phi.orig}{A vector of the rich-club coefficients for the original
+#' graph.}
 #' \item{phi.norm}{A named vector of the normalized rich club coefficients.}
+#' \item{p}{The p-value based on the \emph{N} random graphs generated.}
 #'
 #' @seealso \code{\link{rich.club.coeff}, \link{sim.rand.graph.par}}
 #'
@@ -32,12 +35,16 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
     if (!all(sapply(rand, is_igraph))) {
       stop('Argument "rand" must be a list of igraph graph objects!')
     }
+    N <- length(rand)
   }
 
-  phi <- plyr::laply(rand, function(x)
-                     sapply(seq_len(max(V(g)$degree)), function(y)
-                            rich.club.coeff(x, y, ...)$phi),
-                     .parallel=T)
-  phi.norm <- g$rich$phi / colMeans(phi)
-  return(list(phi.rand=phi, phi.norm=phi.norm))
+  max.deg <- max(V(g)$degree)
+  phi.rand <- plyr::laply(rand, function(x)
+                          sapply(seq_len(max.deg), function(y)
+                                 rich.club.coeff(x, y, ...)$phi),
+                          .parallel=T)
+  phi.orig <- g$rich$phi
+  phi.norm <- phi.orig / colMeans(phi.rand)
+  p <- sapply(seq_len(max.deg), function(x) sum(phi.rand[, x] > phi.orig[x]) / N)
+  return(list(phi.rand=phi.rand, phi.orig=phi.orig, phi.norm=phi.norm, p=p))
 }

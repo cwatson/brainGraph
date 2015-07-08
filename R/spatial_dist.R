@@ -19,10 +19,13 @@ spatial.dist <- function(g) {
     stop(sprintf('Error: Input graph "%s" does not have an "atlas" attribute!',
                  deparse(substitute(g))))
   }
-  name <- index <- NULL
+  name <- x.mni <- y.mni <- z.mni <- NULL
   atlas.dt <- eval(parse(text=data(list=g$atlas)))
-  coords <- atlas.dt[, c('x.mni', 'y.mni', 'z.mni'), with=F]
+  coords <- atlas.dt[, list(name, x.mni, y.mni, z.mni)]
+  setkey(coords, name)
   es <- get.edgelist(g)
-  dists <- sqrt(rowSums((coords[atlas.dt[name == es[, 2], index], ] -
-                         coords[atlas.dt[name == es[, 1], index], ])^2))
+  dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -
+                         coords[es[, 1], list(x.mni, y.mni, z.mni)])^2))
+  #dists <- sqrt(rowSums((coords[atlas.dt[name == es[, 2], index], ] -
+  #                       coords[atlas.dt[name == es[, 1], index], ])^2))
 }

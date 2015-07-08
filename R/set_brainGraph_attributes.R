@@ -10,9 +10,9 @@
 #' @export
 #'
 #' @return g A copy of the same graph, with the following attributes:
-#' \item{Graph-level}{Atlas, density, connected component sizes, diameter,
-#' number of triangles, transitivity, average path length, assortativity,
-#' clique sizes, global & local efficiency, modularity, vulnerability, hub score,
+#' \item{Graph-level}{Package version, atlas, density, connected component sizes,
+#' diameter, # of triangles, transitivity, average path length, assortativity,
+#' clique number, global & local efficiency, modularity, vulnerability, hub score,
 #' rich-club coefficient, and edge asymmetry}
 #' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
 #' leverage centralities, transitivity (local), coreness, local & nodal
@@ -23,10 +23,11 @@
 #' betweenness, Euclidean distance (in mm)}
 #'
 #' @seealso \code{\link{components}, \link{graph.motifs}, \link{diameter},
-#' \link{cliques}, \link{centralization.betweenness}, \link{edge.betweenness},
-#' \link{centralization.evcent}, \link{subgraph.centrality}, \link{hub.score},
-#' \link{authority.score}, \link{transitivity}, \link{average.path.length},
-#' \link{assortativity.degree}, \link{graph.efficiency}, \link{rich.club.coeff},
+#' \link[igraph]{clique_num}, \link{centralization.betweenness},
+#' \link{edge.betweenness}, \link{centralization.evcent},
+#' \link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
+#' \link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
+#' \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 #' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
 #' \link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry}}
@@ -35,6 +36,7 @@
 
 set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
 
+  g$version <- packageVersion('brainGraph')
   if (rand == TRUE) {
     g$Cp <- transitivity(g, type='localaverage')
     g$Lp <- average.path.length(g)
@@ -52,7 +54,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     comps <- rev(table(clusts$csize))
     g$conn.comp <- data.frame(size=as.numeric(names(comps)),
                               number=unclass(unname(comps)))
-    #g$cliques <- table(sapply(cliques(g), length))
+    g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g)
   

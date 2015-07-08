@@ -15,6 +15,7 @@ graph_attr_dt <- function(g.list, Group=NULL) {
   glob.meas <- data.table(density=sapply(g.list, function(x) x$density),
     conn.comp=sapply(g.list, function(x) x$conn.comp[1, 1]),
     num.tri=sapply(g.list, function(x) x$num.tri),
+    clique.num=sapply(g.list, function(x) x$clique.num),
     diameter=sapply(g.list, function(x) x$diameter),
     Cp=sapply(g.list, function(x) x$Cp),
     Lp=sapply(g.list, function(x) x$Lp),

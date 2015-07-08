@@ -15,7 +15,8 @@
 vertex_attr_dt <- function(g, Group=NULL) {
   lobe <- name <- NULL
   atlas.dt <- eval(parse(text=data(list=g$atlas)))
-  net.meas <- data.table(region=V(g)$name,
+  net.meas <- data.table(density=g$density,
+                         region=V(g)$name,
                          lobe=atlas.dt[match(V(g)$name, atlas.dt[, name])][, as.character(lobe)],
                          hemi=V(g)$hemi,
                          deg=V(g)$degree,

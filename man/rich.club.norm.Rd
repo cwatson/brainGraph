@@ -20,7 +20,10 @@ been generated (default: NULL)}
 A list with two elements:
 \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
 columns, where each row contains the coefficients for a given random graph.}
+\item{phi.orig}{A vector of the rich-club coefficients for the original
+graph.}
 \item{phi.norm}{A named vector of the normalized rich club coefficients.}
+\item{p}{The p-value based on the \emph{N} random graphs generated.}
 }
 \description{
 This function will generate a number of random graphs, calculate their rich
