@@ -39,7 +39,7 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   }
 
   max.deg <- max(V(g)$degree)
-  phi.rand <- plyr::laply(rand, function(x)
+  phi.rand <- laply(rand, function(x)
                           sapply(seq_len(max.deg), function(y)
                                  rich.club.coeff(x, y, ...)$phi),
                           .parallel=T)

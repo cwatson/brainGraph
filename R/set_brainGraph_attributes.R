@@ -42,6 +42,13 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     g$Lp <- average.path.length(g)
     g$mod <- max(multilevel.community(g)$modularity)
     g$E.global <- graph.efficiency(g, 'global')
+    # Get the rich club coeff for all possible degree values
+    R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
+    phi <- sapply(R, with, phi)
+    Nk <- sapply(R, with, Nk)
+    Ek <- sapply(R, with, Ek)
+    g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+
 
   } else {
     V(g)$degree <- degree(g)

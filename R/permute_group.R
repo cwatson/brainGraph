@@ -45,7 +45,7 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
 
   level <- match.arg(level)
   out <- foreach(i=seq_len(num.perms), .combine='rbind',
-                 .packages='plyr', .export='assign_lobes') %dopar% {
+                 .export='assign_lobes') %dopar% {
     shuffled <- sample(n.all)
     corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F], density=density)
     corrs2 <- corr.matrix(resids[shuffled[(n1+1):n.all]][, !'Group', with=F],

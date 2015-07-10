@@ -8,7 +8,7 @@
 #' @param Group A character string indicating group membership (default:NULL)
 #' @export
 #'
-#' @return A data table with 14 columns and row number equal to the number of
+#' @return A data table with 16-17 columns and row number equal to the number of
 #' vertices in the graph
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
 
@@ -29,7 +29,8 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          E.local=V(g)$E.local,
                          E.nodal=V(g)$E.nodal,
                          PC=V(g)$PC,
-                         z=V(g)$z.score)
+                         z=V(g)$z.score,
+                         vulnerability=V(g)$vulnerability)
 
   if (!is.null(Group)) {
     net.meas$Group <- Group

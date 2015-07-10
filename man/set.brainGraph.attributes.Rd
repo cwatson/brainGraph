@@ -15,8 +15,8 @@ set.brainGraph.attributes(g, atlas = NULL, rand = FALSE)
 }
 \value{
 g A copy of the same graph, with the following attributes:
-\item{Graph-level}{Atlas, density, connected component sizes, diameter,
-number of triangles, transitivity, average path length, assortativity,
+\item{Graph-level}{Package version, atlas, density, connected component sizes,
+diameter, # of triangles, transitivity, average path length, assortativity,
 clique number, global & local efficiency, modularity, vulnerability, hub score,
 rich-club coefficient, and edge asymmetry}
 \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and

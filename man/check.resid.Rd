@@ -2,7 +2,7 @@
 % Please edit documentation in R/check_resid.R
 \name{check.resid}
 \alias{check.resid}
-\title{Check model residuals for each brain region.}
+\title{Check model residuals for each brain region}
 \usage{
 check.resid(resids)
 }
@@ -11,7 +11,8 @@ check.resid(resids)
 }
 \description{
 This function checks the model residuals for each brain region in the
-analysis. It simply does a qqplot of the studentized residuals.
+analysis. It simply does a qqplot of the studentized residuals (but uses
+\code{ggplot2} functions).
 }
 \seealso{
 \code{\link[stats]{qqnorm}}

@@ -12,7 +12,7 @@ vertex_attr_dt(g, Group = NULL)
 \item{Group}{A character string indicating group membership (default:NULL)}
 }
 \value{
-A data table with 14 columns and row number equal to the number of
+A data table with 16-17 columns and row number equal to the number of
 vertices in the graph
 }
 \description{
