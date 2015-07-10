@@ -10,6 +10,7 @@
 #' @seealso \code{\link[stats]{qqnorm}}
 
 check.resid <- function(resids) {
+  region <- x <- ysort <- NULL
   if (!'Group' %in% names(resids)) resids$Group <- 'Group 1'
   resids.melted <- melt(resids, id.vars='Group', variable.name='region',
                       value.name='resid')
