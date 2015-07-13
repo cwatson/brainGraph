@@ -223,50 +223,26 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     }
     v.min <- eval(parse(text=vertSize.min$getText()))
 
-    if (vertSize$getActive() == 0) {
+    i <- vertSize$getActive()
+    vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
+                    'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
+                    'z.score', 'hub.score', 'vulnerability')
+    if (i == 0) {
       vsize <- mult * const
-    } else if (vertSize$getActive() == 1) {
-      vsize <- mult * vec.transform(V(g)$degree, 0, 15)
-      g <- delete.vertices(g, V(g)$degree < v.min)
-    } else if (vertSize$getActive() == 2) {
-      g <- delete.vertices(g, V(g)$ev.cent < v.min)
-      vsize <- mult * 15 * V(g)$ev.cent
-    } else if (vertSize$getActive() == 3) {
-      g <- delete.vertices(g, V(g)$btwn.cent < v.min)
-      vsize <- mult * 3 * log1p(V(g)$btwn.cent)
-    } else if (vertSize$getActive() == 4) {
-      g <- delete.vertices(g, V(g)$subgraph.cent < v.min)
-      vsize <- mult * 2 * log1p(V(g)$subgraph.cent)
-    } else if (vertSize$getActive() == 5) {
-      g <- delete.vertices(g, V(g)$coreness < v.min)
-      vsize <- mult * V(g)$coreness
-    } else if (vertSize$getActive() == 6) {
-      g <- delete.vertices(g, V(g)$transitivity < v.min)
-      vsize <- mult * 20 * V(g)$transitivity
-    } else if (vertSize$getActive() == 7) {
-      g <- delete.vertices(g, V(g)$PC < v.min)
-      vsize <- mult * 25 * V(g)$PC
-    } else if (vertSize$getActive() == 8) {
-      g <- delete.vertices(g, V(g)$E.local < v.min)
-      vsize <- mult * 15 * V(g)$E.local
-    } else if (vertSize$getActive() == 9) {
-      g <- delete.vertices(g, V(g)$E.nodal < v.min)
-      vsize <- mult * 30 * V(g)$E.nodal
-    } else if (vertSize$getActive() == 10) {
-      g <- delete.vertices(g, V(g)$z.score < v.min)
-      vsize <- mult*ifelse(V(g)$z.score == 0, 0,
-                           vec.transform(V(g)$z.score, 0, 15))
-    } else if (vertSize$getActive() == 11) {
-      if (is.directed(g)) {
-        g <- delete.vertices(g, V(g)$hub.score < v.min)
-        vsize <- mult * 10 * sqrt(V(g)$hub.score)
-      } else {
-        g <- delete.vertices(g, V(g)$ev.cent < v.min)
-        vsize <- mult * 15 * V(g)$ev.cent
-      }
-    } else if (vertSize$getActive() == 12) {
-      g <- delete.vertices(g, V(g)$vulnerability < v.min)
-      vsize <- mult * vec.transform(V(g)$vulnerability, 0, 15)
+    } else {
+      if (i < 13) {
+        if (i == 11 && !is.directed(g)) {
+          i <- 2
+        }
+        g <- delete.vertices(g, which(vertex_attr(g,
+                                vsize.opts[i + 1]) < v.min))
+        vnum <- vertex_attr(g, vsize.opts[i + 1])
+        if (vcount(g) %in% c(0, 1)) {
+          vsize <- vnum
+        } else {
+          vsize <- mult * vec.transform(vnum, 0, 15)
+        }
+
     } else if (vertSize$getActive() == 13) {
       g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
       if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
@@ -274,7 +250,8 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
       } else {
         vsize <- mult * vertex_attr(g, v.attr)
       }
-      #TODO: add lev.cent; same problem as w/ z.score though 
+      #TODO: add lev.cent; same problem as w/ z.score though
+    }
     }
 
     # Edge width
@@ -450,7 +427,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
       g.diff12 <- graph.difference(g, g2)
       plotFunc(g.diff12, add=T,
                vertex.label=NA, vertex.size=degree(g.diff12),
-               vertex.color='deeppink', edge.color='deeppink', 
+               vertex.color='deeppink', edge.color='deeppink',
                edge.width=5,
                xlim=xlim.g, ylim=ylim.g,
                edge.curved=curv)
@@ -462,7 +439,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
   if (!is.igraph(graph1)) {
     stop(sprintf('%s is not a graph object.', graphname1$getText()))
   }
-  
+
   make.plot(dev=firstplot, g=graph1, g2=graph2, orient=orient1,
             comm, vertLabels, vertSize, edgeWidth,
             vertColor, vertSize.const=NULL, hemi, the.slider=slider1,

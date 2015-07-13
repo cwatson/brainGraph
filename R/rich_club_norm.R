@@ -39,10 +39,14 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   }
 
   max.deg <- max(V(g)$degree)
-  phi.rand <- laply(rand, function(x)
-                          sapply(seq_len(max.deg), function(y)
-                                 rich.club.coeff(x, y, ...)$phi),
-                          .parallel=T)
+  if (all(sapply(rand, function(x) 'rich' %in% graph_attr_names(x)))) {
+    phi.rand <- aaply(rand, .margins=1, function(x) x$rich$phi)
+  } else {
+    phi.rand <- laply(rand, function(x)
+                            sapply(seq_len(max.deg), function(y)
+                                   rich.club.coeff(x, y, ...)$phi),
+                            .parallel=T)
+  }
   phi.orig <- g$rich$phi
   phi.norm <- phi.orig / colMeans(phi.rand)
   p <- sapply(seq_len(max.deg), function(x) sum(phi.rand[, x] > phi.orig[x]) / N)

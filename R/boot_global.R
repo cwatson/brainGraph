@@ -50,11 +50,29 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
     return(res)
   }
 
+  # Show a progress bar so you aren't left in the dark
+  intfun <- function(data, indices, measure) {
+    curVal <- get('counter', envir=env) + ncpus
+    assign('counter', curVal, envir=env)
+    setTxtProgressBar(get('progbar', envir=env), curVal)
+    flush.console()
+    statfun(data, indices, measure)
+  }
+
+  ncpus <- detectCores()
+  env <- environment()
+  counter <- 0
+  progbar <- txtProgressBar(min=0, max=num.reps, style=3)
+
   kNumDensities <- length(densities)
-  boot1 <- boot(resids[groups[1]][, !'Group', with=F], statfun, measure=measure,
-                R=num.reps, parallel='multicore', ncpus=detectCores())
-  boot2 <- boot(resids[groups[2]][, !'Group', with=F], statfun, measure=measure,
-                R=num.reps, parallel='multicore', ncpus=detectCores())
+  boot1 <- boot(resids[groups[1], !'Group', with=F], intfun, measure=measure,
+                R=num.reps, parallel='multicore', ncpus=ncpus)
+  close(progbar)
+  counter <- 0
+  progbar <- txtProgressBar(min=0, max=num.reps, style=3)
+  boot2 <- boot(resids[groups[2], !'Group', with=F], intfun, measure=measure,
+                R=num.reps, parallel='multicore', ncpus=ncpus)
+  close(progbar)
   boot.dt <- data.table(density=rep(densities, 2),
                         meas=c(boot1$t0, boot2$t0),
                         se=c(apply(boot1$t, 2, sd), apply(boot2$t, 2, sd)),

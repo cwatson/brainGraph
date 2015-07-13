@@ -47,7 +47,8 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
   out <- foreach(i=seq_len(num.perms), .combine='rbind',
                  .export='assign_lobes') %dopar% {
     shuffled <- sample(n.all)
-    corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F], density=density)
+    corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F],
+                          density=density)
     corrs2 <- corr.matrix(resids[shuffled[(n1+1):n.all]][, !'Group', with=F],
                           density=density)
     g1 <- simplify(graph.adjacency(corrs1$r.thresh, mode='undirected'))
@@ -78,7 +79,7 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
         E.global1 <- graph.efficiency(g1, 'global')
         E.global2 <- graph.efficiency(g2, 'global')
         E.global.diff <- E.global1 - E.global2
-  
+
         assort.lobe1 <- assortativity_nominal(g1, V(g1)$lobe)
         assort.lobe2 <- assortativity_nominal(g2, V(g2)$lobe)
         assort.lobe.diff <- assort.lobe1 - assort.lobe2
@@ -88,13 +89,13 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
         tmp <- data.table(density=density, mod=mod.diff, E.global=E.global.diff,
                    Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
                    assortativity.lobe=assort.lobe.diff, asymm=adiff)
-  
+
       } else if (level == 'lobe') {
         t1 <- as.data.table(count_interlobar(g1, 'Temporal', atlas.dt))
         t2 <- as.data.table(count_interlobar(g2, 'Temporal', atlas.dt))
         tdiff <- t1 - t2
         tmp <- data.table(density=density, diff=tdiff)
-  
+
       }
     }
 
