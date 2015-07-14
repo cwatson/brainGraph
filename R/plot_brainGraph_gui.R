@@ -19,7 +19,7 @@ plot_brainGraph_gui <- function() {
   gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
   graphObj <- slider <- lobe <- comboLobeMult <- NULL
 
-  # Function to add an entry 
+  # Function to add an entry
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
     if (!is.null(label.text)) {
       label <- gtkLabelNewWithMnemonic(label.text)
@@ -196,7 +196,7 @@ plot_brainGraph_gui <- function() {
 
     hboxComm <- gtkHBoxNew(F, 8)
     hboxMain[[1]][[1]][[1]]$packStart(hboxComm, F, F, 0)
-  
+
     # Check if the text in the boxes represent igraph objects
     if (!gui.params$graphname[[1]]$getText() == '') {
       graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
@@ -271,7 +271,7 @@ plot_brainGraph_gui <- function() {
   vboxMainMenu$packStart(menubar, F, F)
   #=============================================================================
   #=============================================================================
-  
+
   # Temporary window to get graph object names
   set.names <- function() {
     graphObj <<- vector('list', length=2)
@@ -310,7 +310,7 @@ plot_brainGraph_gui <- function() {
   #---------------------------------------------------------
   frame <- gtkFrameNew('Specify plotting parameters')
   vboxMain$add(frame)
-  
+
   vbox <- gtkVBoxNew(F, 6)
   vbox$setBorderWidth(5)
   frame$add(vbox)
@@ -345,7 +345,7 @@ plot_brainGraph_gui <- function() {
   hbox <- gtkHBoxNew(F, 8)
   vbox$packStart(hbox, F, F, 0)
   vertLabels <- add_check(hbox, 'Display vertex _labels?')
-  
+
   # Vertex colors based on community membership?
   #---------------------------------------
   atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
@@ -357,16 +357,16 @@ plot_brainGraph_gui <- function() {
   }
 
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
-   
+
   #-----------------------------------------------------------------------------
   # Vertex size?
   hboxVsize <- gtkHBoxNew(F, 8)
   vbox$packStart(hboxVsize, F, F, 0)
-  choices <- c('Constant', 'Degree', 'EV centrality', 'Bwtn centrality',
+  choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
                'Subgraph centrality', 'Coreness',
                'Clustering coeff.', 'Part. coeff.', 'Loc. eff.', 'Nodal eff.',
                'Within-module degree z-score', 'Hub score', 'Vulnerability',
-               'Other')
+               'NN degree', 'Other')
   comboVsize <- add_combo(hboxVsize, choices, 'Vertex _size')
 
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')

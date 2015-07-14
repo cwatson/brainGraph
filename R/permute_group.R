@@ -51,8 +51,8 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
                           density=density)
     corrs2 <- corr.matrix(resids[shuffled[(n1+1):n.all]][, !'Group', with=F],
                           density=density)
-    g1 <- simplify(graph.adjacency(corrs1$r.thresh, mode='undirected'))
-    g2 <- simplify(graph.adjacency(corrs2$r.thresh, mode='undirected'))
+    g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
+    g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)
 
     if (level == 'vertex') {
       btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
@@ -60,8 +60,8 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
 
     } else {
       g1$atlas <- g2$atlas <- atlas
-      g1 <- assign_lobes(g1, atlas.dt)
-      g2 <- assign_lobes(g2, atlas.dt)
+      g1 <- assign_lobes(g1, atlas.dt, rand=T)
+      g2 <- assign_lobes(g2, atlas.dt, rand=T)
 
       if (level == 'graph') {
         mod1 <- modularity(cluster_louvain(g1))

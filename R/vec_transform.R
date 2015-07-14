@@ -10,5 +10,5 @@
 #' @return A vector of the transformed input.
 
 vec.transform <- function(x, min.val=0, max.val=1) {
-  ((x - min(x)) * (max.val - min.val) / diff(range(x))) + min.val
+  ((x - min(x, na.rm=T)) * (max.val - min.val) / diff(range(x, na.rm=T))) + min.val
 }

@@ -203,6 +203,8 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
         verts <- which(V(g)$name %in% vnames)
         Nv <- vcount(g)
         plotFunc <- plot_brainGraph
+      } else {
+        verts <- NULL
       }
     } else {
       n <- 1
@@ -210,6 +212,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     }
 
     # Vertex sizes
+    #-----------------------------------
     if (!vertSize.const$getSensitive()) {
       const <- NULL
       if (!vertSize.other$getSensitive()) {
@@ -226,32 +229,34 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     i <- vertSize$getActive()
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
                     'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
-                    'z.score', 'hub.score', 'vulnerability')
+                    'z.score', 'hub.score', 'vulnerability', 'knn')
     if (i == 0) {
       vsize <- mult * const
     } else {
-      if (i < 13) {
+      if (i < 14) {
         if (i == 11 && !is.directed(g)) {
           i <- 2
         }
-        g <- delete.vertices(g, which(vertex_attr(g,
-                                vsize.opts[i + 1]) < v.min))
         vnum <- vertex_attr(g, vsize.opts[i + 1])
+        removed <- union(which(vnum < v.min), which(!is.finite(vnum)))
+        g <- delete.vertices(g, removed)
         if (vcount(g) %in% c(0, 1)) {
-          vsize <- vnum
+          vsize <- vnum[-removed]
         } else {
           vsize <- mult * vec.transform(vnum, 0, 15)
+          if (length(removed) > 0) vsize <- vsize[-removed]
+          vsize <- vsize[!is.nan(vsize)]
         }
 
-    } else if (vertSize$getActive() == 13) {
-      g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
-      if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
-        vsize <- mult * 15 * vertex_attr(g, v.attr)
-      } else {
-        vsize <- mult * vertex_attr(g, v.attr)
+      } else if (vertSize$getActive() == 14) {
+        g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
+        if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
+          vsize <- mult * 15 * vertex_attr(g, v.attr)
+        } else {
+          vsize <- mult * vertex_attr(g, v.attr)
+        }
+        #TODO: add lev.cent; same problem as w/ z.score though
       }
-      #TODO: add lev.cent; same problem as w/ z.score though
-    }
     }
 
     # Edge width

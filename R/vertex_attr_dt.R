@@ -20,6 +20,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          lobe=atlas.dt[match(V(g)$name, atlas.dt[, name])][, as.character(lobe)],
                          hemi=V(g)$hemi,
                          deg=V(g)$degree,
+                         knn=V(g)$knn,
                          btwn.cent=V(g)$btwn.cent,
                          ev.cent=V(g)$ev.cent,
                          subg.cent=V(g)$subgraph.cent,

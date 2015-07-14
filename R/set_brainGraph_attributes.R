@@ -30,7 +30,8 @@
 #' \link{graph.efficiency}, \link{rich.club.coeff},
 #' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 #' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-#' \link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry}}
+#' \link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry},
+#' \link[igraph]{graph.knn}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -133,6 +134,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       Ek <- sapply(R, with, Ek)
       g$rich.weighted <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
     }
+    V(g)$knn <- graph.knn(g)$knn
     V(g)$btwn.cent <- centr_betw(g)$res
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$subgraph.cent <- subgraph.centrality(g)

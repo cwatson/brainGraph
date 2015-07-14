@@ -43,6 +43,7 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 \link{graph.efficiency}, \link{rich.club.coeff},
 \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
 \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-\link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry}}
+\link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry},
+\link[igraph]{graph.knn}}
 }
 

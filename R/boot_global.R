@@ -64,7 +64,6 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
   counter <- 0
   progbar <- txtProgressBar(min=0, max=num.reps, style=3)
 
-  kNumDensities <- length(densities)
   boot1 <- boot(resids[groups[1], !'Group', with=F], intfun, measure=measure,
                 R=num.reps, parallel='multicore', ncpus=ncpus)
   close(progbar)
@@ -73,6 +72,9 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
   boot2 <- boot(resids[groups[2], !'Group', with=F], intfun, measure=measure,
                 R=num.reps, parallel='multicore', ncpus=ncpus)
   close(progbar)
+
+  # Get everything into a data.table
+  kNumDensities <- length(densities)
   boot.dt <- data.table(density=rep(densities, 2),
                         meas=c(boot1$t0, boot2$t0),
                         se=c(apply(boot1$t, 2, sd), apply(boot2$t, 2, sd)),

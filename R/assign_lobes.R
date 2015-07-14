@@ -6,12 +6,14 @@
 #'
 #' @param g An igraph graph object
 #' @param atlas.dt A data table for a specific atlas
+#' @param rand A character string indicating whether this function is being run
+#' for a random graph or a "graph of interest" (default:FALSE)
 #'
 #' @return An igraph graph object with additional vertex attributes \emph{lobe},
 #' \emph{lobe.hemi}, and \emph{circle.layout}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-assign_lobes <- function(g, atlas.dt) {
+assign_lobes <- function(g, atlas.dt, rand=FALSE) {
   lobe <- hemi <- name <- class <- NULL
   atlas <- g$atlas
   vorder <- match(V(g)$name, atlas.dt$name)
@@ -23,35 +25,37 @@ assign_lobes <- function(g, atlas.dt) {
     V(g)$class <- atlas.dt[vorder, as.numeric(class)]
   }
 
-  if (atlas %in% c('dkt', 'dk', 'destrieux')) {
-    counts <- atlas.dt[, length(name), by=c('lobe', 'hemi')][order(lobe)]$V1
-    V(g)$circle.layout <-
-      c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 6 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 3 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 2 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 4 & V(g)$hemi == 'L'),
-        which(V(g)$lobe == 4 & V(g)$hemi == 'R'),
-        which(V(g)$lobe == 2 & V(g)$hemi == 'R'),
-        which(V(g)$lobe == 3 & V(g)$hemi == 'R'),
-        which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
-        which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
-        which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
+  if (!isTRUE(rand)) {
+    if (atlas %in% c('dkt', 'dk', 'destrieux')) {
+      counts <- atlas.dt[, length(name), by=c('lobe', 'hemi')][order(lobe)]$V1
+      V(g)$circle.layout <-
+        c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 6 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 3 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 2 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 4 & V(g)$hemi == 'L'),
+          which(V(g)$lobe == 4 & V(g)$hemi == 'R'),
+          which(V(g)$lobe == 2 & V(g)$hemi == 'R'),
+          which(V(g)$lobe == 3 & V(g)$hemi == 'R'),
+          which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
+          which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
+          which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
+      
+    } else if (atlas == 'aal90') {
+      V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, limbic.lh,
+                                               scgm.lh, temporal.lh, parietal.lh,
+                                               occipital.lh, occipital.rh,
+                                               parietal.rh, temporal.rh, scgm.rh,
+                                               limbic.rh, insula.rh, frontal.rh))
     
-  } else if (atlas == 'aal90') {
-    V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, limbic.lh,
-                                             scgm.lh, temporal.lh, parietal.lh,
-                                             occipital.lh, occipital.rh,
-                                             parietal.rh, temporal.rh, scgm.rh,
-                                             limbic.rh, insula.rh, frontal.rh))
-  
-  } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
-    V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, cingulate.lh,
-                                             scgm.lh, temporal.lh, parietal.lh,
-                                             occipital.lh, occipital.rh,
-                                             parietal.rh, temporal.rh, scgm.rh,
-                                             cingulate.rh, insula.rh, frontal.rh))
+    } else if (atlas %in% c('lpba40', 'hoa112', 'brainsuite')) {
+      V(g)$circle.layout <- with(atlas.dt, c(frontal.lh, insula.lh, cingulate.lh,
+                                               scgm.lh, temporal.lh, parietal.lh,
+                                               occipital.lh, occipital.rh,
+                                               parietal.rh, temporal.rh, scgm.rh,
+                                               cingulate.rh, insula.rh, frontal.rh))
+    }
   }
 
   g
