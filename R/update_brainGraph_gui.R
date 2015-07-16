@@ -29,9 +29,12 @@
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
 #' @param vertSize.min1 A GTK entry for minimum vertex size, group 1
 #' @param vertSize.min2 A GTK entry for minimum vertex size, group 2
-#' @param edgeWidth.min A GTK entry for minimum edge width
+#' @param edgeWidth.min1 A GTK entry for minimum edge width
+#' @param edgeWidth.min2 A GTK entry for minimum edge width
 #' @param kNumComms Integer indicating the number of total communities (optional)
-#' @param comboLobeMult A GTK entry for joint neighborhoods of multiple vertices
+#' @param comboNeighbMult A GTK entry for joint neighborhoods of multiple vertices
+#' @param vertSize.eqn1 A GTK entry for equations to exclude vertices
+#' @param vertSize.eqn2 A GTK entry for equations to exclude vertices
 #'
 #' @export
 
@@ -40,14 +43,18 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
                        vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
                        comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
                        showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min1, vertSize.min2, edgeWidth.min,
-                       kNumComms=NULL, comboLobeMult=NULL) {
+                       vertSize.min1, vertSize.min2,
+                       edgeWidth.min1, edgeWidth.min2,
+                       kNumComms=NULL, comboNeighbMult=NULL,
+                       vertSize.eqn1=NULL, vertSize.eqn2=NULL) {
+
   #===========================================================================
   #===========================================================================
   # Function that does all the work
   #===========================================================================
   #===========================================================================
-  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms, vertSize.min, ...) {
+  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms,
+                        vertSize.min, edgeWidth.min, vertSize.eqn, ...) {
     dev.set(dev)
     atlas <- g$atlas
     atlas.dt <- eval(parse(text=data(list=atlas)))
@@ -185,11 +192,11 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     par(pty='s', mar=rep(0, 4))
 
 
-    # Multiple vertex neighborhoods, if applicable
-    if (identical(plotFunc, plot_neighborhood)) {
+    # Vertex neighborhoods, if applicable
+    if (!is.function(plotFunc) && plotFunc == 'plot_neighborhood') {
       n <- comboNeighb$getActive()
       if (n == 0) {
-        splits <- strsplit(comboLobeMult, split=', ')[[1]]
+        splits <- strsplit(comboNeighbMult, split=', ')[[1]]
         if (any(grep('^[[:digit:]]*$', splits))) {  # numeric
           verts <- as.numeric(splits)
           vnames <- V(g)[verts]$name
@@ -197,20 +204,60 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
           verts <- c(splits)
           vnames <- verts
         }
+      } else {
+        verts <- n
+        vnames <- V(g)[verts]$name
+      }
         g.sub <- graph_neighborhood_multiple(g, verts)
         g.sub <- set.brainGraph.attributes(g.sub, atlas)
         g <- g.sub
         verts <- which(V(g)$name %in% vnames)
         Nv <- vcount(g)
         plotFunc <- plot_brainGraph
-      } else {
-        verts <- NULL
-      }
     } else {
       n <- 1
       verts <- NULL
     }
 
+    # Community number, if applicable
+    if (!is.function(plotFunc) && plotFunc == 'plot_community') {
+      cNum <- comm$getActive() + 1
+      combos <- sapply(seq_len(kNumComms), function(x)
+                       combn(seq_len(kNumComms), x))
+      if (cNum <= kNumComms) {
+        ind1 <- 1
+        ind2 <- cNum
+      } else if (cNum > kNumComms && cNum < 2*kNumComms) {
+        ind1 <- 2
+        ind2 <- cNum - kNumComms
+      } else {
+        ind1 <- which(cumsum(sapply(combos, ncol)) %/% cNum >= 1)[1]
+        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% cNum)[ind1]
+      }
+      cNums <- combos[[ind1]][, ind2]
+      comms <- as.numeric(names(rev(sort(table(V(g)$comm)))[cNums]))
+      memb <- which(V(g)$comm %in% comms)
+      g.sub <- induced.subgraph(g, memb)
+      lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
+                     'lightgreen', 'lightblue', 'lightyellow')
+      vcomms <- V(g.sub)$comm
+      eids <- sapply(seq_along(comms),
+        function(x) as.numeric(E(g.sub)[which(vcomms == comms[x]) %--% which(vcomms == comms[x])]))
+      if (length(cNums) == 1) {
+        ecols <- rep(lobe.cols[cNums], length=ecount(g.sub))
+      } else {
+        listcols <- as.list(lobe.cols[cNums])
+        ecols <- rep('gray50', length=ecount(g.sub))
+        for (i in seq_along(eids)) {
+          ecols[eids[[i]]] <- listcols[[i]]
+        }
+      }
+      g <- g.sub
+      E(g)$color.comm <- ecols
+      plotFunc <- plot_brainGraph
+    }
+
+    #-----------------------------------
     # Vertex sizes
     #-----------------------------------
     if (!vertSize.const$getSensitive()) {
@@ -255,7 +302,13 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
-        #TODO: add lev.cent; same problem as w/ z.score though
+      } else if (vertSize$getActive() == 15) {  # equation
+        x <- vertSize.eqn$getText()
+        subs <- strsplit(x, split='&')[[1]]
+        subs <- gsub('^\\s+|\\s+$', '', subs)
+        cond <- eval(parse(text=paste0('V(g)$', subs, collapse='&')))
+        g <- delete.vertices(g, setdiff(seq_len(vcount(g)), which(cond)))
+        vsize <- mult * 7.5
       }
     }
 
@@ -311,47 +364,6 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
       vlabel.dist <- ifelse(vsize >= 10, 0, 0.75)
       vlabel.color <- ifelse(vertex.color %in% c('red', 'blue'), 'white', 'blue')
       vlabel.font <- 2
-    }
-
-
-    # Community number, if applicable
-    if (identical(plotFunc, plot_community)) {
-      cNum <- comm$getActive() + 1
-      combos <- sapply(seq_len(kNumComms), function(x)
-                       combn(seq_len(kNumComms), x))
-      if (cNum <= kNumComms) {
-        ind1 <- 1
-        ind2 <- cNum
-      } else if (cNum > kNumComms && cNum < 2*kNumComms) {
-        ind1 <- 2
-        ind2 <- cNum - kNumComms
-      } else {
-        ind1 <- which(cumsum(sapply(combos, ncol)) %/% cNum >= 1)[1]
-        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% cNum)[ind1]
-      }
-      cNum <- combos[[ind1]][, ind2]
-      plotFunc(g, n=cNum,
-               vertex.label=vlabel, vertex.label.cex=vlabel.cex,
-               vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
-               vertex.label.color=vlabel.color,
-               vertex.size=vsize, edge.width=ewidth,
-               vertex.color=vertex.color, edge.color=edge.color)
-    }
-
-    # Vertex neighborhood, if applicable
-    if (identical(plotFunc, plot_neighborhood)) {
-      n <- comboNeighb$getActive()
-      if (vertColor$getActive() == 0) {
-        vertex.color <- V(g)$color <- rep('lightblue', Nv)
-        vertex.color[n] <- V(g)[n]$color <- 'yellow'
-        edge.color <- E(g)$color <- 'red'
-      }
-      plotFunc(g, n=n,
-               vertex.label=vlabel, vertex.label.cex=vlabel.cex,
-               vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
-               vertex.label.color=vlabel.color,
-               vertex.size=vsize, edge.width=ewidth,
-               vertex.color=vertex.color, edge.color=edge.color)
     }
 
     if (identical(plotFunc, plot_brainGraph)) {
@@ -419,7 +431,6 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
       es <- get.edge.ids(g, combn(inds, 2))
       es <- es[which(es != 0)]
       g.sub <- subgraph.edges(g, es)
-      #g.sub <- induced.subgraph(g, inds)
       plotFunc(g.sub, add=T, vertex.label=NA,
                vertex.size=10, edge.width=5,
                vertex.color='deeppink', edge.color='deeppink',
@@ -448,7 +459,9 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
   make.plot(dev=firstplot, g=graph1, g2=graph2, orient=orient1,
             comm, vertLabels, vertSize, edgeWidth,
             vertColor, vertSize.const=NULL, hemi, the.slider=slider1,
-            kNumComms=kNumComms, vertSize.min=vertSize.min1)
+            kNumComms=kNumComms, vertSize.min=vertSize.min1,
+            edgeWidth.min=edgeWidth.min1,
+            vertSize.eqn=vertSize.eqn1)
 
   if (nchar(graphname2$getText()) > 0) {
     if (!is.igraph(graph2)) {
@@ -457,6 +470,8 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     make.plot(dev=secondplot, g=graph2, g2=graph1, orient=orient2,
               comm, vertLabels, vertSize, edgeWidth,
               vertColor, vertSize.const=NULL, hemi, the.slider=slider2,
-              kNumComms=kNumComms, vertSize.min=vertSize.min2)
+              kNumComms=kNumComms, vertSize.min=vertSize.min2,
+            edgeWidth.min=edgeWidth.min2,
+              vertSize.eqn=vertSize.eqn2)
   }
 }

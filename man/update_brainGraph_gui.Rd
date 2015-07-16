@@ -8,8 +8,9 @@ update_brainGraph_gui(graphname1, graphname2, vertLabels, vertSize, edgeWidth,
   edgeDiffs, vertColor, firstplot, secondplot, vertSize.const = NULL,
   edgeWidth.const = NULL, plotFunc, comm = NULL, comboNeighb, hemi, lobe,
   orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL,
-  vertSize.min1, vertSize.min2, edgeWidth.min, kNumComms = NULL,
-  comboLobeMult = NULL)
+  vertSize.min1, vertSize.min2, edgeWidth.min1, edgeWidth.min2,
+  kNumComms = NULL, comboNeighbMult = NULL, vertSize.eqn1 = NULL,
+  vertSize.eqn2 = NULL)
 }
 \arguments{
 \item{graphname1}{A GTK entry for the first plotting area}
@@ -61,11 +62,17 @@ graphs}
 
 \item{vertSize.min2}{A GTK entry for minimum vertex size, group 2}
 
-\item{edgeWidth.min}{A GTK entry for minimum edge width}
+\item{edgeWidth.min1}{A GTK entry for minimum edge width}
+
+\item{edgeWidth.min2}{A GTK entry for minimum edge width}
 
 \item{kNumComms}{Integer indicating the number of total communities (optional)}
 
-\item{comboLobeMult}{A GTK entry for joint neighborhoods of multiple vertices}
+\item{comboNeighbMult}{A GTK entry for joint neighborhoods of multiple vertices}
+
+\item{vertSize.eqn1}{A GTK entry for equations to exclude vertices}
+
+\item{vertSize.eqn2}{A GTK entry for equations to exclude vertices}
 }
 \description{
 This function is called by \link{plot_brainGraph_gui} to update a plot

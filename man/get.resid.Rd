@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_resid.R
 \name{get.resid}
 \alias{get.resid}
-\title{Linear models of data frame and model residuals}
+\title{Linear models of columns of a data frame}
 \usage{
 get.resid(thicknesses, covars)
 }
@@ -10,7 +10,8 @@ get.resid(thicknesses, covars)
 \item{thicknesses}{Data frame of all thickness data. First column must be
 subject ID (or something similar)}
 
-\item{covars}{Data frame of covariates for the linear model}
+\item{covars}{Data frame of covariates for the linear model. Must share a
+subject ID column with \emph{thicknesses}}
 }
 \value{
 A list with components:

@@ -4,12 +4,15 @@
 #' a global graph measure (e.g. modularity). It will output a list containing a
 #' data table with standard errors and 95\% confidence intervals at each density
 #' for each group, and 2 ggplot objects for plotting. This function is intended
-#' for cortical thickness networks (in which there is only one graph per group).
+#' for cortical thickness networks (in which there is only one graph per group),
+#' but will obviously work in other scenarios.
+#'
+#' The 95\% confidence intervals are calculated using the normal approximation.
 #'
 #' @param densities A vector of graph densities to loop through
 #' @param resids A data.table of the residuals (from \code{\link{get.resid}})
 #' @param groups A character vector indicating group names
-#' @param num.reps The number of bootstrap replicates (default: 1e3)
+#' @param R The number of bootstrap replicates (default: 1e3)
 #' @param measure Character string of the measure to test (default: 'mod')
 #' @export
 #'
@@ -27,7 +30,7 @@
 #' boot.res <- boot_global(densities, m$resids, groups, 1e3, 'E.global')
 #' }
 
-boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') {
+boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
 
   meas <- Group <- se <- ci.low <- ci.high <- NULL
   # 'statistic' function for the bootstrapping process
@@ -62,15 +65,15 @@ boot_global <- function(densities, resids, groups, num.reps=1e3, measure='mod') 
   ncpus <- detectCores()
   env <- environment()
   counter <- 0
-  progbar <- txtProgressBar(min=0, max=num.reps, style=3)
+  progbar <- txtProgressBar(min=0, max=R, style=3)
 
   boot1 <- boot(resids[groups[1], !'Group', with=F], intfun, measure=measure,
-                R=num.reps, parallel='multicore', ncpus=ncpus)
+                R=R, parallel='multicore', ncpus=ncpus)
   close(progbar)
   counter <- 0
-  progbar <- txtProgressBar(min=0, max=num.reps, style=3)
+  progbar <- txtProgressBar(min=0, max=R, style=3)
   boot2 <- boot(resids[groups[2], !'Group', with=F], intfun, measure=measure,
-                R=num.reps, parallel='multicore', ncpus=ncpus)
+                R=R, parallel='multicore', ncpus=ncpus)
   close(progbar)
 
   # Get everything into a data.table

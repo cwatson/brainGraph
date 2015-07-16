@@ -24,7 +24,7 @@
 #' this should be 'NA'
 #' @export
 #'
-#' @return A vector of the local efficiencies for each node of the graph (if 
+#' @return A vector of the local efficiencies for each vertex of the graph (if
 #' \emph{type} is 'local|nodal') or a number (if \emph{type} is 'global').
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -53,12 +53,12 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
   if (type == 'local') {
     eff <- numeric(length(degs))
     nodes <- which(degs > 1)
-  
+
     eff[nodes] <- simplify2array(mclapply(nodes, function(x) {
       neighbs <- neighbors(g, v=x)
       g.sub <- induced.subgraph(g, neighbs)
       Nv <- vcount(g.sub)
-  
+
       paths <- shortest.paths(g.sub, weights=weights)
       paths <- paths[upper.tri(paths)]
       2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])

@@ -16,7 +16,7 @@ has edge attribute 'weight', then that will be used. To avoid using weights,
 this should be 'NA'}
 }
 \value{
-A vector of the local efficiencies for each node of the graph (if
+A vector of the local efficiencies for each vertex of the graph (if
 \emph{type} is 'local|nodal') or a number (if \emph{type} is 'global').
 }
 \description{

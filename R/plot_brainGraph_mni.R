@@ -11,6 +11,7 @@
 #' (default: FALSE)
 #' @param fname The name of the file to be saved
 #' @export
+#' @seealso \code{\link[oro.nifti]{image.nifti}}
 
 plot_brainGraph_mni <- function(plane=c('axial', 'sagittal'), slice,
                                 hemi=c('left', 'right'),

@@ -1,4 +1,4 @@
-#' Linear models of data frame and model residuals
+#' Linear models of columns of a data frame
 #'
 #' This function runs linear models on the columns of the input data frame (e.g.
 #' cortical thickness data for each region), in order to adjust for relevant
@@ -6,7 +6,8 @@
 #'
 #' @param thicknesses Data frame of all thickness data. First column must be
 #' subject ID (or something similar)
-#' @param covars Data frame of covariates for the linear model
+#' @param covars Data frame of covariates for the linear model. Must share a
+#' subject ID column with \emph{thicknesses}
 #' @export
 #'
 #' @return A list with components:

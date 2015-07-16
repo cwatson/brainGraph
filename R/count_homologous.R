@@ -10,6 +10,10 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 count_homologous <- function(g) {
+  if (!'atlas' %in% graph_attr_names(g)) {
+    stop(sprintf('Graph "%s" must have an "atlas" attribute!',
+                 deparse(substitute(g))))
+  }
   atlas <- g$atlas
   Nv <- vcount(g)
   if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite')) {
@@ -35,6 +39,8 @@ count_homologous <- function(g) {
         eids <- c(eids, as.numeric(E(g)[i %--% (i+1)]))
       }
     }
+  } else {
+    stop(sprintf('Atlas "%s" is not a valid name!', atlas))
   }
   return(eids)
 }

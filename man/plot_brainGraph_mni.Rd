@@ -24,4 +24,7 @@ This function draws an axial or sagittal slice from the MNI152 T1 image, to
 plot the vertices of a graph over it. It will optionally write to a filename
 for output.
 }
+\seealso{
+\code{\link[oro.nifti]{image.nifti}}
+}
 

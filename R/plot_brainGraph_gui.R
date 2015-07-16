@@ -17,7 +17,7 @@ plot_brainGraph_gui <- function() {
                                                    package='brainGraph'))
 
   gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
-  graphObj <- slider <- lobe <- comboLobeMult <- NULL
+  graphObj <- slider <- lobe <- comboNeighbMult <- NULL
 
   # Function to add an entry
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
@@ -95,8 +95,8 @@ plot_brainGraph_gui <- function() {
   # Create a "GtkAction" class
   file.actions <- list(
     list('FileMenu', NULL, '_File'),
-    list('Save1', 'gtk-save', 'Save_1', '<control>1', 'Save plot 1?', save_cb1),
-    list('Save2', 'gtk-save', 'Save_2', '<control>2', 'Save plot 2?', save_cb2),
+    list('Save1', 'gtk-save', 'Save plot _1', '<control>1', 'Save plot 1?', save_cb1),
+    list('Save2', 'gtk-save', 'Save plot _2', '<control>2', 'Save plot 2?', save_cb2),
     list('Quit', 'gtk-quit', '_Quit', '<control>Q', 'Quit the application',
          quit_cb)
   )
@@ -126,7 +126,7 @@ plot_brainGraph_gui <- function() {
   # Plot neighborhood of individual vertices
   #-------------------------------------
   plot_neighb_cb <- function(widget, window) {
-    plotFunc <<- plot_neighborhood
+    plotFunc <<- 'plot_neighborhood'
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     kNumChildren <- length(window[[1]]$getChildren())
     if (kNumChildren > 1) {
@@ -165,14 +165,18 @@ plot_brainGraph_gui <- function() {
         tempComboWindow$add(tempComboVbox)
         tempComboHbox <- gtkHBoxNew(F, 8)
         tempComboVbox$packStart(tempComboHbox, F, F, 0)
-        tempComboEntry <- add_entry(tempComboHbox,
-          label.text=paste0('Choose vertices: \n(comma-separated list \nof either integers \nor vertex names)'),
-                                    char.width=20)
+        helpText <- sprintf('%s\n\n%s\n%s',
+                            'Choose vertices (comma-separated list)',
+                            'Example A: 24, 58',
+                            'Example B: lPCUN, rPCUN')
+        tempLabel <- gtkLabelNew(helpText)
+        tempComboVbox$packStart(tempLabel, F, F, 0)
+        tempComboEntry <- add_entry(tempComboVbox, char.width=25)
         tempComboEntry$setSensitive(T)
 
         button <- gtkButtonNewFromStock('gtk-ok')
         gSignalConnect(button, 'clicked', function(widget) {
-                       comboLobeMult <<- tempComboEntry$getText()
+                       comboNeighbMult <<- tempComboEntry$getText()
                        tempComboWindow$destroy()
                        })
         tempComboVbox$packStart(button, fill=F)
@@ -184,7 +188,7 @@ plot_brainGraph_gui <- function() {
   # Plot individual communities
   #-------------------------------------
   plot_comm_cb <- function(widget, window) {
-    plotFunc <<- plot_community
+    plotFunc <<- 'plot_community'
     # Get number of children of vboxMainMenu and kill all but 'menubar'
     if (length(window[[1]]$getChildren()) > 1) {
       kNumChildren <- length(window[[1]]$getChildren())
@@ -275,9 +279,12 @@ plot_brainGraph_gui <- function() {
   # Temporary window to get graph object names
   set.names <- function() {
     graphObj <<- vector('list', length=2)
-    tempWindow <- gtkWindow()
-    tempVbox <- gtkVBoxNew(F, 8)
-    tempWindow$add(tempVbox)
+    dialog <- gtkDialogNewWithButtons(title='Choose graph objects',
+                                      parent=window, flags='destroy-with-parent',
+                                      'gtk-ok', GtkResponseType['ok'],
+                                      'gtk-cancel', GtkResponseType['cancel'],
+                                      show=FALSE)
+    tempVbox <- dialog$getContentArea()
     label <- graphObjEntry <- tempHbox <- vector('list', length=2)
     for (i in 1:2) {
       tempHbox[[i]] <- gtkHBoxNew(F, 8)
@@ -287,13 +294,34 @@ plot_brainGraph_gui <- function() {
                                       char.width=20)
       graphObjEntry[[i]]$setSensitive(T)
     }
-    button <- gtkButtonNewFromStock('gtk-ok')
-    gSignalConnect(button, 'clicked', function(widget) {
-                   graphObj[[1]] <<- graphObjEntry[[1]]$getText()
-                   graphObj[[2]] <<- graphObjEntry[[2]]$getText()
-                   tempWindow$destroy()
-                   })
-    tempVbox$packStart(button, fill=F)
+    gSignalConnect(dialog, 'response', function(dialog, response, user.data) {
+        if (response == GtkResponseType['ok']) {
+          graphObj[[1]] <<- graphObjEntry[[1]]$getText()
+          graphObj[[2]] <<- graphObjEntry[[2]]$getText()
+
+          if (!is.igraph(eval(parse(text=graphObj[[1]])))) {
+            warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                           type='error', buttons='close',
+                                           'Error: Not an igraph object!')
+            response <- warnDialog$run()
+            if (response == GtkResponseType['close']) warnDialog$destroy()
+          } else {
+            if (nchar(graphObj[[2]]) > 0 & !is.igraph(eval(parse(text=graphObj[[2]])))) {
+              warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                             type='error', buttons='close',
+                                             'Error: Not an igraph object!')
+              response <- warnDialog$run()
+              if (response == GtkResponseType['close']) warnDialog$destroy()
+            } else {
+              dialog$Destroy()
+            }
+          }
+        } else {
+          window$destroy()
+        }
+    })
+    dialog$showAll()
+    dialog$setModal(TRUE)
   }
   set.names()
 
@@ -360,42 +388,100 @@ plot_brainGraph_gui <- function() {
 
   #-----------------------------------------------------------------------------
   # Vertex size?
-  hboxVsize <- gtkHBoxNew(F, 8)
-  vbox$packStart(hboxVsize, F, F, 0)
-  choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
-               'Subgraph centrality', 'Coreness',
-               'Clustering coeff.', 'Part. coeff.', 'Loc. eff.', 'Nodal eff.',
-               'Within-module degree z-score', 'Hub score', 'Vulnerability',
-               'NN degree', 'Other')
-  comboVsize <- add_combo(hboxVsize, choices, 'Vertex _size')
+  #-----------------------------------------------------------------------------
+  frameVsize <- gtkFrameNew('Vertex size')
+  vbox$add(frameVsize)
 
+  vboxVsize <- gtkVBoxNew(F, 8)
+  frameVsize$add(vboxVsize)
+
+  hboxVsize <- gtkHBoxNew(F, 8)
+  vboxVsize$packStart(hboxVsize, F, F, 0)
+  choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
+               'Subgraph centrality', 'Coreness', 'Clustering coeff.', 'PC',
+               'E.local', 'E.nodal', 'Within-module degree z-score', 'Hub score',
+               'Vulnerability', 'NN degree', 'Other', 'Equation')
+  comboVsize <- add_combo(hboxVsize, choices, 'Attribute')
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
 
   hboxVsizeOther <- gtkHBoxNew(F, 8)
-  vbox$packStart(hboxVsizeOther, F, F, 0)
-  vertSize.other <- add_entry(hboxVsizeOther, label.text=paste0('\t\t', 'Other:'),
+  vboxVsize$packStart(hboxVsizeOther, F, F, 0)
+  vertSize.other <- add_entry(hboxVsizeOther, label.text=paste0('\t', 'Other:'),
                               char.width=10)
-
   # Have 2 boxes to allow for different minimums for 2 groups
   hboxVsizeMin <- vertSize.min <- vector('list', 2)
   for (i in 1:2) {
     hboxVsizeMin[[i]] <- gtkHBoxNew(F, 8)
     hboxVsizeOther$packStart(hboxVsizeMin[[i]], F, F, 0)
-    vertSize.min[[i]] <- add_entry(hboxVsizeMin[[i]], label.text=sprintf('Min%i:', i), char.width=3,
-                              entry.text='0')
+    vertSize.min[[i]] <- add_entry(hboxVsizeMin[[i]],
+                                   label.text=sprintf('Min. %i:', i),
+                                   char.width=6, entry.text='0')
     vertSize.min[[i]]$setSensitive(T)
   }
 
-  gSignalConnect(comboVsize, 'changed', function(comboVsize, ...) {
-      if (comboVsize$getActive() == 0) {
+  # Create 2 entries for entering a more complicated eqn
+  hboxVsizeEqnMain <- gtkHBoxNew(F, 8)
+  vboxVsize$packStart(hboxVsizeEqnMain, F, F, 0)
+  vboxVsizeEqnMain <- gtkVBoxNew(F, 8)
+  hboxVsizeEqnMain$packStart(vboxVsizeEqnMain, F, F, 0)
+  hboxVsizeEqn <- vertSizeEqn <- vector('list', 2)
+  for (i in 1:2) {
+    hboxVsizeEqn[[i]] <- gtkHBoxNew(F, 8)
+    vboxVsizeEqnMain$packStart(hboxVsizeEqn[[i]], F, F, 0)
+    vertSizeEqn[[i]] <- add_entry(hboxVsizeEqn[[i]],
+                                  label.text=sprintf('Eqn. %i', i),
+                                  char.width=40)
+  }
+
+  vertSizeHelp <- gtkButtonNewWithLabel('?')
+  hboxVsizeEqnMain$packStart(vertSizeHelp, F, F, 0)
+  gSignalConnect(vertSizeHelp, 'clicked', function(widget, ...) {
+    helpWin <- gtkWindow()
+    helpVbox <- gtkVBoxNew(F, 8)
+    helpWin$add(helpVbox)
+    helpHbox <- gtkHBoxNew(F, 8)
+    helpVbox$packStart(helpHbox, F, F, 0)
+    helpText <- sprintf('%s\n\n\n%s',
+                        'Instructions: enter simple logical expressions
+                        separated by a single ampersand (&)
+                        The vertex attributes must already exist.',
+                        'Example: degree > 23 & btwn.cent > 50')
+    helpLabel <- gtkLabelNew(helpText)
+    helpVbox$packStart(helpLabel, F, F, 0)
+    helpButton <- gtkButtonNewFromStock('gtk-ok')
+    gSignalConnect(helpButton, 'clicked', function(widget) helpWin$destroy())
+    helpVbox$packStart(helpButton, fill=F)
+                                  }
+  )
+
+  gSignalConnect(comboVsize, 'changed', function(widget, ...) {
+      if (widget$getActive() == 0) {  # 'Constant'
         vertSize.const$setSensitive(T)
         vertSize.other$setSensitive(F)
-      } else if (comboVsize$getActive() == 13) {
+        vertSize.min[[1]]$setSensitive(F)
+        vertSize.min[[2]]$setSensitive(F)
+        vertSizeEqn[[1]]$setSensitive(F)
+        vertSizeEqn[[2]]$setSensitive(F)
+      } else if (widget$getActive() == 14) {  # 'Other'
         vertSize.const$setSensitive(F)
         vertSize.other$setSensitive(T)
+        vertSizeEqn[[1]]$setSensitive(F)
+        vertSizeEqn[[2]]$setSensitive(F)
+        vertSize.min[[1]]$setSensitive(T)
+        vertSize.min[[2]]$setSensitive(T)
+      } else if (widget$getActive() == 15) {  # equation
+        vertSize.const$setSensitive(F)
+        vertSizeEqn[[1]]$setSensitive(T)
+        vertSizeEqn[[2]]$setSensitive(T)
+        vertSize.min[[1]]$setSensitive(F)
+        vertSize.min[[2]]$setSensitive(F)
       } else {
         vertSize.const$setSensitive(F)
         vertSize.other$setSensitive(F)
+        vertSizeEqn[[1]]$setSensitive(F)
+        vertSizeEqn[[2]]$setSensitive(F)
+        vertSize.min[[1]]$setSensitive(T)
+        vertSize.min[[2]]$setSensitive(T)
       }
     })
   #-----------------------------------------------------------------------------
@@ -407,17 +493,28 @@ plot_brainGraph_gui <- function() {
 
   edgeWidth.const <- add_entry(hboxEwidth, char.width=3, entry.text='1')
 
-  hboxEwidthMin <- gtkHBoxNew(F, 8)
-  vbox$packStart(hboxEwidthMin, F, F, 0)
-  edgeWidth.min <- add_entry(hboxEwidthMin, label.text=paste0('\t\t', 'Min:'),
-                             char.width=3, entry.text='0')
-  edgeWidth.min$setSensitive(T)
+  # Have 2 entries to allow for min's of 2 groups
+  hboxEwidthOther <- gtkHBoxNew(F, 8)
+  vbox$packStart(hboxEwidthOther, F, F, 0)
+  hboxEwidthMin <- edgeWidth.min <- vector('list', 2)
+  for (i in 1:2) {
+    hboxEwidthMin[[i]] <- gtkHBoxNew(F, 8)
+    hboxEwidthOther$packStart(hboxEwidthMin[[i]], F, F, 0)
+    edgeWidth.min[[i]] <- add_entry(hboxEwidthMin[[i]],
+                                    label.text=sprintf('\t\tMin. %i:', i),
+                                    char.width=6, entry.text='0')
+    edgeWidth.min[[i]]$setSensitive(T)
+  }
 
   gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
       if (widget$getActive() == 0) {
         edgeWidth.const$setSensitive(T)
+        edgeWidth.min[[1]]$setSensitive(F)
+        edgeWidth.min[[2]]$setSensitive(F)
       } else {
         edgeWidth.const$setSensitive(F)
+        edgeWidth.min[[1]]$setSensitive(T)
+        edgeWidth.min[[2]]$setSensitive(T)
       }
     })
   #-----------------------------------------------------------------------------
@@ -439,6 +536,15 @@ plot_brainGraph_gui <- function() {
                'Homologous only')
   comboHemi <- add_combo(hboxHemi, choices, 'Hemisphere')
   comboHemi$setActive(0)
+  gSignalConnect(comboHemi, 'changed', function(widget, ...) {
+      if (widget$getActive() == 0) {
+        showDiameter$setSensitive(T)
+        edgeDiffs$setSensitive(T)
+      } else {
+        showDiameter$setSensitive(F)
+        edgeDiffs$setSensitive(F)
+      }
+  })
 
   # Major lobe number, if applicable
   atlas.dt <- eval(parse(text=data(list=atlas)))
@@ -456,6 +562,13 @@ plot_brainGraph_gui <- function() {
 
   comboLobe <- add_combo(hboxLobe, choices, 'Lobe')
   comboLobe$setActive(0)
+  gSignalConnect(comboLobe, 'changed', function(widget, ...) {
+      if (widget$getActive() == 0) {
+        showDiameter$setSensitive(T)
+      } else {
+        showDiameter$setSensitive(F)
+      }
+  })
 
   #---------------------------------------------------------
   # Create 2 drawing areas for the plotting
@@ -542,8 +655,12 @@ plot_brainGraph_gui <- function() {
                                    showDiameter=showDiameter,
                                    slider1=slider[[1]], slider2=slider[[2]],
                                    vertSize.other, vertSize.min1=vertSize.min[[1]],
-                                   vertSize.min2=vertSize.min[[2]], edgeWidth.min,
-                                   kNumComms=kNumComms, comboLobeMult))
+                                   vertSize.min2=vertSize.min[[2]],
+                                   edgeWidth.min1=edgeWidth.min[[1]],
+                                   edgeWidth.min2=edgeWidth.min[[2]],
+                                   kNumComms=kNumComms, comboNeighbMult,
+                                   vertSize.eqn1=vertSizeEqn[[1]],
+                                   vertSize.eqn2=vertSizeEqn[[2]]))
   buttonRename <- gtkButtonNewWithMnemonic('Pick _new graphs')
   gSignalConnect(buttonRename, 'clicked',
                   function(widget) set.names())

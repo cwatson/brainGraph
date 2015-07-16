@@ -1,31 +1,35 @@
 #' Calculate correlation matrix and threshold
 #'
 #' This function does a column-by-column correlation of a given data frame, and
-#' will threshold r-values based on a given density; e.g. 0.1 if you want to
-#' keep only the 10\% strongest correlations. It also allows for the exclusion
-#' of a set of columns (i.e. regions or nodes), given their indices. Also
-#' returns the p-values. Essentially a wrapper for \code{\link[Hmisc]{rcorr}},
-#' with some added functionality to work with the type of data more easily.
+#' will threshold the matrix based on a given density; e.g. 0.1 if you want to
+#' keep only the 10\% strongest correlations.
+#'
+#' If you wish to exclude regions from your analysis, you can give the indices
+#' of their columns. Also returns the p-values. Essentially a wrapper for
+#' \code{\link[Hmisc]{rcorr}}, with some added functionality to work with this
+#' type of data more easily. By default, the Pearson correlation coefficients
+#' are calculated, but can return Spearman by passing an additional argument.
 #'
 #' @param dat Matrix or data frame of the columns to correlate
 #' @param thresh Absolute correlation value to threshold by
-#' @param density Keeps the top X\% of correlations
+#' @param density Keeps the top \emph{X}\% of correlations
 #' @param exclusions Vector of indices (columns) to exclude (optional)
+#' @param ... Other arguments to be passed to \code{\link[Hmisc]{rcorr}}
 #' @export
 #'
 #' @return A list with the following components:
-#' \item{R}{Pearson correlation coefficients.}
+#' \item{R}{Correlation coefficients (default: Pearson).}
 #' \item{P}{Associated p-values.}
 #' \item{r.thresh}{Binary matrix indicating correlations that are above a
 #' certain threshold.}
 #' \item{threshold}{The threshold used.}
 #' @seealso \code{\link[Hmisc]{rcorr}}
 
-corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL) {
+corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
   if (length(exclusions) == 0) {
-    corrs <- rcorr(as.matrix(dat))
+    corrs <- rcorr(as.matrix(dat), ...)
   } else {
-    corrs <- rcorr(as.matrix(dat[, -exclusions]))
+    corrs <- rcorr(as.matrix(dat[, -exclusions]), ...)
   }
   r <- corrs$r
   p <- corrs$P

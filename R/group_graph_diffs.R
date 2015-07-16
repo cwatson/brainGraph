@@ -17,7 +17,7 @@
 #' \item{size}{\emph{size2} transformed to be positive values (for
 #' visualization purposes)}
 #' \item{p}{Equal to \eqn{1-p}}
-#' \item{p.adj}{Equal to \eqn{1-} the FDR-adjusted p-value}
+#' \item{p.adj}{Equal to \eqn{1-p_{FDR}} (the FDR-adjusted p-value)}
 #'
 #' @seealso \code{\link[stats]{t.test}, \link[stats]{wilcox.test},
 #' \link[stats]{p.adjust}, \link{vec.transform}}
@@ -34,6 +34,7 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   meas1 <- sapply(g1, vertex_attr, measure)
   meas2 <- sapply(g2, vertex_attr, measure)
 
+  test <- match.arg(test)
   if (test == 't.test') {
     stats <- mapply(function(x, y) t.test(meas1[x, ], meas2[y, ]),
                       seq_len(Nv), seq_len(Nv), SIMPLIFY=F)

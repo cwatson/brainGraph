@@ -4,7 +4,7 @@
 \alias{boot_global}
 \title{Bootstrapping for global graph measures}
 \usage{
-boot_global(densities, resids, groups, num.reps = 1000, measure = "mod")
+boot_global(densities, resids, groups, R = 1000, measure = "mod")
 }
 \arguments{
 \item{densities}{A vector of graph densities to loop through}
@@ -13,7 +13,7 @@ boot_global(densities, resids, groups, num.reps = 1000, measure = "mod")
 
 \item{groups}{A character vector indicating group names}
 
-\item{num.reps}{The number of bootstrap replicates (default: 1e3)}
+\item{R}{The number of bootstrap replicates (default: 1e3)}
 
 \item{measure}{Character string of the measure to test (default: 'mod')}
 }
@@ -30,7 +30,11 @@ This function performs bootstrapping to get group standard error estimates of
 a global graph measure (e.g. modularity). It will output a list containing a
 data table with standard errors and 95\% confidence intervals at each density
 for each group, and 2 ggplot objects for plotting. This function is intended
-for cortical thickness networks (in which there is only one graph per group).
+for cortical thickness networks (in which there is only one graph per group),
+but will obviously work in other scenarios.
+}
+\details{
+The 95\% confidence intervals are calculated using the normal approximation.
 }
 \examples{
 \dontrun{

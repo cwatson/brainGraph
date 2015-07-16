@@ -20,6 +20,10 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 edge_asymmetry <- function(g) {
+  if (!'hemi' %in% vertex_attr_names(g)) {
+    stop(sprintf('Graph "%s" does not have vertex attribute "hemi"!',
+                 deparse(substitute(g))))
+  }
   lh <- length(E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'L')])
   rh <- length(E(g)[which(V(g)$hemi == 'R') %--% which(V(g)$hemi == 'R')])
   asymm <- (lh - rh) / .Internal(mean(c(lh, rh)))
