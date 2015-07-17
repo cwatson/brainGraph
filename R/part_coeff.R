@@ -32,15 +32,11 @@ part.coeff <- function(g, memb) {
     degs <- degree(g)
   }
   edges <- E(g)
-  Nv <- length(degs)
   Nc <- max(memb)
-  vs <- unname(which(degs > 0))
+  vs <- which(degs > 0)
 
-  PC <- vector('numeric', length=Nv)
-  PC2 <- vector('list', length=length(vs))
-
-
-  PC2 <- foreach (i=seq_along(vs)) %dopar% {
+  PC <- rep(0, length(degs))
+  PC[vs] <- foreach (i=seq_along(vs), .combine='c') %dopar% {
     Kis <- vapply(seq_len(Nc), function(x)
                   length(edges[vs[i] %--% which(memb==x)]),
                   integer(1))
@@ -48,8 +44,5 @@ part.coeff <- function(g, memb) {
     1 - sum((Kis/Ki)^2)
   }
 
-  PC[vs] <- unlist(PC2)
-  PC <- ifelse(is.nan(PC), 0, PC)
-  names(PC) <- V(g)$name
   return(PC)
 }

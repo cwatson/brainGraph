@@ -41,7 +41,7 @@ small.world <- function(g, rand) {
     Cp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Cp'), numeric(1)))
     N <- length(rand)
   } else {
-    if (length(rand[[1]]) == 1) {   # If there's 1 rand graph / density
+    if (length(rand[[1]]) == 1) {  # If there's 1 rand graph for each density
       Lp.rand <- vapply(rand,
         function(x) vapply(x,
             function(y) graph_attr(y, 'Lp'), numeric(1)),

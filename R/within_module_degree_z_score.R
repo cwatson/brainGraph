@@ -29,19 +29,17 @@ within_module_deg_z_score <- function(g, memb) {
   } else {
     degs <- degree(g)
   }
-  Nv <- length(degs)
-  vs <- unname(which(degs > 0))
-  z <- Ki <- vector('numeric', length=Nv)
+  vs <- which(degs > 0)
+  z <- Ki <- rep(0, length(degs))
 
   comms <- lapply(seq_len(max(memb)), function(x)
                   induced.subgraph(g, which(memb == x)))
-  Ksi <- sapply(comms, function(x) mean(degree(x)))
-  sigKsi <- sapply(comms, function(x) sd(degree(x)))
+  Ksi <- vapply(comms, function(x) mean(degree(x)), numeric(1))
+  sigKsi <- vapply(comms, function(x) sd(degree(x)), numeric(1))
 
-  Ki[vs] <- sapply(vs, function(x)
-                   degree(comms[[memb[x]]])[V(g)$name[x]])
+  Ki[vs] <- vapply(vs, function(x)
+                   degree(comms[[memb[x]]])[V(g)$name[x]], numeric(1))
   z[vs] <- (Ki[vs] - Ksi[memb[vs]]) / sigKsi[memb[vs]]
-  z <- ifelse(is.na(z) | is.nan(z) | is.infinite(z), 0, z)
-  names(z) <- V(g)$name
+  z <- ifelse(!is.finite(z), 0, z)
   return(z)
 }

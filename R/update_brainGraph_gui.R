@@ -318,16 +318,17 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     } else {
       e.const <- eval(parse(text=edgeWidth.const$getText()))
     }
-    e.min <- eval(parse(text=edgeWidth.min$getText()))
 
     if (edgeWidth$getActive() == 0) {
       ewidth <- e.const
     } else if (edgeWidth$getActive() == 1) {
+      e.min <- eval(parse(text=edgeWidth.min$getText()))
       g <- delete.edges(g, which(E(g)$btwn < e.min))
       ewidth <- log1p(E(g)$btwn)
     } else if (edgeWidth$getActive() == 2) {
+      e.min <- eval(parse(text=edgeWidth.min$getText()))
       g <- delete.edges(g, which(E(g)$dist < e.min))
-      ewidth <- log1p(E(g)$dist)
+      ewidth <- vec.transform(E(g)$dist, 0.1, 5)
     }
 
     # Vertex & edge colors

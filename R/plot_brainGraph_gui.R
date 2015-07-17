@@ -270,7 +270,7 @@ plot_brainGraph_gui <- function() {
   menubar <- ui_manager$getWidget('/menubar')
   window$addAccelGroup(ui_manager$getAccelGroup())
 
-  vboxMainMenu <- gtkVBoxNew(F, 8)
+  vboxMainMenu <- gtkVBoxNew(F, 2)
   window$add(vboxMainMenu)
   vboxMainMenu$packStart(menubar, F, F)
   #=============================================================================
@@ -330,7 +330,7 @@ plot_brainGraph_gui <- function() {
   #=============================================================================
   # Create main (left side) vertical container
   #=============================================================================
-  vboxMain <- gtkVBoxNew(F, 8)
+  vboxMain <- gtkVBoxNew(F, 2)
   container$add(vboxMain)
 
   #---------------------------------------------------------
@@ -339,7 +339,7 @@ plot_brainGraph_gui <- function() {
   frame <- gtkFrameNew('Specify plotting parameters')
   vboxMain$add(frame)
 
-  vbox <- gtkVBoxNew(F, 6)
+  vbox <- gtkVBoxNew(F, 2)
   vbox$setBorderWidth(5)
   frame$add(vbox)
 
@@ -350,17 +350,17 @@ plot_brainGraph_gui <- function() {
     frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
 
-    vboxG[[i]] <- gtkVBoxNew(F, 8)
+    vboxG[[i]] <- gtkVBoxNew(F, 2)
     vboxG[[i]]$setBorderWidth(10)
     frameG[[i]]$add(vboxG[[i]])
 
-    hbox <- gtkHBoxNew(F, 8)
+    hbox <- gtkHBoxNew(F, 6)
     vboxG[[i]]$packStart(hbox, expand=F, fill=F, padding=0)
 
     graphname[[i]] <- add_entry(hbox, label.text='Name:', char.width=20,
                                 entry.text=graphObj[[i]])
 
-    hboxOrient[[i]] <- gtkHBoxNew(F, 8)
+    hboxOrient[[i]] <- gtkHBoxNew(F, 6)
     vboxG[[i]]$add(hboxOrient[[i]])
     choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)', 'Circular')
     comboOrient[[i]] <- add_combo(hboxOrient[[i]], choices, 'Orientation')
@@ -370,14 +370,14 @@ plot_brainGraph_gui <- function() {
 
   # Should vertex labels be displayed?
   #---------------------------------------
-  hbox <- gtkHBoxNew(F, 8)
+  hbox <- gtkHBoxNew(F, 6)
   vbox$packStart(hbox, F, F, 0)
   vertLabels <- add_check(hbox, 'Display vertex _labels?')
 
   # Vertex colors based on community membership?
   #---------------------------------------
   atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
-  hboxVcolor <- gtkHBoxNew(F, 8)
+  hboxVcolor <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
   if (atlas == 'destrieux') {
@@ -392,10 +392,10 @@ plot_brainGraph_gui <- function() {
   frameVsize <- gtkFrameNew('Vertex size')
   vbox$add(frameVsize)
 
-  vboxVsize <- gtkVBoxNew(F, 8)
+  vboxVsize <- gtkVBoxNew(F, 2)
   frameVsize$add(vboxVsize)
 
-  hboxVsize <- gtkHBoxNew(F, 8)
+  hboxVsize <- gtkHBoxNew(F, 4)
   vboxVsize$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
                'Subgraph centrality', 'Coreness', 'Clustering coeff.', 'PC',
@@ -404,14 +404,14 @@ plot_brainGraph_gui <- function() {
   comboVsize <- add_combo(hboxVsize, choices, 'Attribute')
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
 
-  hboxVsizeOther <- gtkHBoxNew(F, 8)
+  hboxVsizeOther <- gtkHBoxNew(F, 6)
   vboxVsize$packStart(hboxVsizeOther, F, F, 0)
   vertSize.other <- add_entry(hboxVsizeOther, label.text=paste0('\t', 'Other:'),
                               char.width=10)
   # Have 2 boxes to allow for different minimums for 2 groups
   hboxVsizeMin <- vertSize.min <- vector('list', 2)
   for (i in 1:2) {
-    hboxVsizeMin[[i]] <- gtkHBoxNew(F, 8)
+    hboxVsizeMin[[i]] <- gtkHBoxNew(F, 6)
     hboxVsizeOther$packStart(hboxVsizeMin[[i]], F, F, 0)
     vertSize.min[[i]] <- add_entry(hboxVsizeMin[[i]],
                                    label.text=sprintf('Min. %i:', i),
@@ -420,13 +420,13 @@ plot_brainGraph_gui <- function() {
   }
 
   # Create 2 entries for entering a more complicated eqn
-  hboxVsizeEqnMain <- gtkHBoxNew(F, 8)
+  hboxVsizeEqnMain <- gtkHBoxNew(F, 6)
   vboxVsize$packStart(hboxVsizeEqnMain, F, F, 0)
-  vboxVsizeEqnMain <- gtkVBoxNew(F, 8)
+  vboxVsizeEqnMain <- gtkVBoxNew(F, 2)
   hboxVsizeEqnMain$packStart(vboxVsizeEqnMain, F, F, 0)
   hboxVsizeEqn <- vertSizeEqn <- vector('list', 2)
   for (i in 1:2) {
-    hboxVsizeEqn[[i]] <- gtkHBoxNew(F, 8)
+    hboxVsizeEqn[[i]] <- gtkHBoxNew(F, 6)
     vboxVsizeEqnMain$packStart(hboxVsizeEqn[[i]], F, F, 0)
     vertSizeEqn[[i]] <- add_entry(hboxVsizeEqn[[i]],
                                   label.text=sprintf('Eqn. %i', i),
@@ -486,7 +486,7 @@ plot_brainGraph_gui <- function() {
     })
   #-----------------------------------------------------------------------------
   # Edge width?
-  hboxEwidth <- gtkHBoxNew(F, 8)
+  hboxEwidth <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxEwidth, F, F, 0)
   choices <- c('Constant', 'Edge betweenness', 'Distance')
   comboEwidth <- add_combo(hboxEwidth, choices, 'Edge width')
@@ -494,11 +494,11 @@ plot_brainGraph_gui <- function() {
   edgeWidth.const <- add_entry(hboxEwidth, char.width=3, entry.text='1')
 
   # Have 2 entries to allow for min's of 2 groups
-  hboxEwidthOther <- gtkHBoxNew(F, 8)
+  hboxEwidthOther <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxEwidthOther, F, F, 0)
   hboxEwidthMin <- edgeWidth.min <- vector('list', 2)
   for (i in 1:2) {
-    hboxEwidthMin[[i]] <- gtkHBoxNew(F, 8)
+    hboxEwidthMin[[i]] <- gtkHBoxNew(F, 6)
     hboxEwidthOther$packStart(hboxEwidthMin[[i]], F, F, 0)
     edgeWidth.min[[i]] <- add_entry(hboxEwidthMin[[i]],
                                     label.text=sprintf('\t\tMin. %i:', i),
@@ -520,7 +520,7 @@ plot_brainGraph_gui <- function() {
   #-----------------------------------------------------------------------------
 
   # Highlight the diameter of each graph?
-  hbox <- gtkHBoxNew(F, 8)
+  hbox <- gtkHBoxNew(F, 6)
   vbox$packStart(hbox, F, F, 0)
   showDiameter <- add_check(hbox, 'Show _diameter?')
 
@@ -530,7 +530,7 @@ plot_brainGraph_gui <- function() {
   #-----------------------------------------------------------------------------
   # Both, single hemisphere, inter-hemispheric, or homologous only?
   #---------------------------------------------------------
-  hboxHemi <- gtkHBoxNew(F, 8)
+  hboxHemi <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxHemi, F, F, 0)
   choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only',
                'Homologous only')
@@ -548,7 +548,7 @@ plot_brainGraph_gui <- function() {
 
   # Major lobe number, if applicable
   atlas.dt <- eval(parse(text=data(list=atlas)))
-  hboxLobe <- gtkHBoxNew(F, 8)
+  hboxLobe <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxLobe, F, F, 0)
 
   kNumLobes <- nlevels(atlas.dt[, lobe])

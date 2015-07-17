@@ -21,6 +21,8 @@
 #' differences; either 'graph', 'vertex', or 'lobe'
 #' @param atlas Character string of the atlas name
 #' @param atlas.dt A data table containing the specific atlas data
+#' @param measure A character string, either 'btwn.cent' or 'vulnerability'
+#' (specific to the vertex \emph{level})
 #' @export
 #'
 #' @return A data table with values for group differences in modularity, global
@@ -39,11 +41,12 @@
 
 permute.group <- function(density, resids, num.subjs, num.perms=1e3,
                           level=c('graph', 'vertex', 'lobe'),
-                          atlas, atlas.dt=NULL) {
+                          atlas, atlas.dt=NULL, measure=c('btwn.cent', 'vulnerability')) {
   n1 <- as.numeric(num.subjs[1])
   n.all <- sum(num.subjs)
 
   level <- match.arg(level)
+  measure <- match.arg(measure)
   out <- foreach(i=seq_len(num.perms), .combine='rbind',
                  .export='assign_lobes') %dopar% {
     shuffled <- sample(n.all)
@@ -55,8 +58,17 @@ permute.group <- function(density, resids, num.subjs, num.perms=1e3,
     g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)
 
     if (level == 'vertex') {
-      btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
-      tmp <- as.data.table(cbind(density, t(btwn.diff)))
+      if (measure == 'vulnerability') {
+        g1$E.global <- graph.efficiency(g1, 'global')
+        g2$E.global <- graph.efficiency(g2, 'global')
+        V(g1)$degree <- degree(g1)
+        V(g2)$degree <- degree(g2)
+        vuln.diff <- max(vulnerability(g1), .parallel=F) - max(vulnerability(g2), .parallel=F)
+        tmp <- data.table(density=density, vulnerability=vuln.diff)
+      } else {
+        btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
+        tmp <- as.data.table(cbind(density, t(btwn.diff)))
+      }
 
     } else {
       g1$atlas <- g2$atlas <- atlas

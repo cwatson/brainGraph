@@ -5,7 +5,8 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(density, resids, num.subjs, num.perms = 1000,
-  level = c("graph", "vertex", "lobe"), atlas, atlas.dt = NULL)
+  level = c("graph", "vertex", "lobe"), atlas, atlas.dt = NULL,
+  measure = c("btwn.cent", "vulnerability"))
 }
 \arguments{
 \item{density}{Numeric; the density of the resultant graphs}
@@ -22,6 +23,9 @@ differences; either 'graph', 'vertex', or 'lobe'}
 \item{atlas}{Character string of the atlas name}
 
 \item{atlas.dt}{A data table containing the specific atlas data}
+
+\item{measure}{A character string, either 'btwn.cent' or 'vulnerability'
+(specific to the vertex \emph{level})}
 }
 \value{
 A data table with values for group differences in modularity, global
