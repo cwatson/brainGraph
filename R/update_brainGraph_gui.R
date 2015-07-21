@@ -1,60 +1,50 @@
 #' Function to dynamically plot a graph
 #'
 #' This function is called by \link{plot_brainGraph_gui} to update a plot
-#' on-the-fly. It updates both of the plots by calling the helper function
-#' "make.plot".
+#' on-the-fly. It updates by calling the helper function \code{make.plot}.
 #'
-#' @param graphname1 A GTK entry for the first plotting area
-#' @param graphname2 A GTK entry for the second plotting area
-#' @param vertLabels A GTK check button for showing vertex labels
+#' @param plotDev A Cairo device for the plotting area
+#' @param graph1 An igraph graph object for the first plotting area
+#' @param graph2 An igraph graph object for the  second plotting area
+#' @param plotFunc A function specifying which type of plot to use
 #' @param vertSize A GTK combo box for scaling vertex size
 #' @param edgeWidth A GTK entry for changing edge width
-#' @param edgeDiffs A GTK check button for showing edge differences between
-#' graphs
 #' @param vertColor A GTK combo box for changing vertex colors
-#' @param firstplot A Cairo device for the first plotting area
-#' @param secondplot A Cairo device for the second plotting area
-#' @param vertSize.const A GTK entry for constant vertex size
-#' @param edgeWidth.const A GTK entry for constant width
-#' @param plotFunc A function specifying which type of plot to use
-#' @param comm A GTK combo box for plotting individual communities
-#' @param comboNeighb A GTK combo box for plotting individual neighborhoods
 #' @param hemi A GTK combo box for plotting individual hemispheres
 #' @param lobe A GTK combo box for plotting individual lobes
-#' @param orient1 A GTK combo box for plotting a specific orientation
-#' @param orient2 A GTK combo box for plotting a specific orientation
-#' @param showDiameter A GTK check button for showing the graph's diameter
-#' @param slider1 A GTK horizontal slider widget for changing edge curvature
-#' @param slider2 A GTK horizontal slider widget for changing edge curvature
-#' @param vertSize.other A GTK entry for vertex size (other attributes)
-#' @param vertSize.min1 A GTK entry for minimum vertex size, group 1
-#' @param vertSize.min2 A GTK entry for minimum vertex size, group 2
-#' @param edgeWidth.min1 A GTK entry for minimum edge width
-#' @param edgeWidth.min2 A GTK entry for minimum edge width
+#' @param orient A GTK combo box for plotting a specific orientation
+#' @param vertSize.min A GTK spin button for minimum vertex size
+#' @param edgeWidth.min A GTK spin button for minimum edge width
+#' @param vertSize.const A GTK entry for constant vertex size
+#' @param edgeWidth.const A GTK entry for constant width
+#' @param vertLabels A GTK check button for showing vertex labels
+#' @param comm A GTK combo box for plotting individual communities
 #' @param kNumComms Integer indicating the number of total communities (optional)
-#' @param comboNeighbMult A GTK entry for joint neighborhoods of multiple vertices
-#' @param vertSize.eqn1 A GTK entry for equations to exclude vertices
-#' @param vertSize.eqn2 A GTK entry for equations to exclude vertices
+#' @param neighb A GTK combo box for plotting individual neighborhoods
+#' @param neighbMult A GTK entry for joint neighborhoods of multiple vertices
+#' @param slider A GTK horizontal slider widget for changing edge curvature
+#' @param vertSize.other A GTK entry for vertex size (other attributes)
+#' @param vertSize.eqn A GTK entry for equations to exclude vertices
+#' @param showDiameter A GTK check button for showing the graph's diameter
+#' @param edgeDiffs A GTK check button for showing edge diffs between graphs
 #'
-#' @export
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
-                       edgeWidth, edgeDiffs, vertColor, firstplot, secondplot,
-                       vertSize.const=NULL, edgeWidth.const=NULL, plotFunc,
-                       comm=NULL, comboNeighb, hemi, lobe, orient1, orient2,
-                       showDiameter, slider1, slider2, vertSize.other=NULL,
-                       vertSize.min1, vertSize.min2,
-                       edgeWidth.min1, edgeWidth.min2,
-                       kNumComms=NULL, comboNeighbMult=NULL,
-                       vertSize.eqn1=NULL, vertSize.eqn2=NULL) {
+update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
+                       edgeWidth, vertColor, hemi, lobe, orient, vertSize.min,
+                       edgeWidth.min, vertSize.const=NULL, edgeWidth.const=NULL,
+                       vertLabels=NULL, comm=NULL, kNumComms=NULL, neighb=NULL,
+                       neighbMult=NULL, slider=NULL, vertSize.other=NULL,
+                       vertSize.eqn=NULL, showDiameter=NULL, edgeDiffs=NULL) {
 
   #===========================================================================
   #===========================================================================
   # Function that does all the work
   #===========================================================================
   #===========================================================================
-  make.plot <- function(dev, g, g2, orient, comm=NULL, the.slider, kNumComms,
-                        vertSize.min, edgeWidth.min, vertSize.eqn, ...) {
+  make.plot <- function(dev, g, g2, orient, vertSize.min, edgeWidth.min,
+                        vertSize.const=NULL, vertSize.eqn=NULL, the.slider=NULL,
+                        kNumComms=NULL, comm=NULL, ...) {
     dev.set(dev)
     atlas <- g$atlas
     atlas.dt <- eval(parse(text=data(list=atlas)))
@@ -194,9 +184,9 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
 
     # Vertex neighborhoods, if applicable
     if (!is.function(plotFunc) && plotFunc == 'plot_neighborhood') {
-      n <- comboNeighb$getActive()
+      n <- neighb$getActive()
       if (n == 0) {
-        splits <- strsplit(comboNeighbMult, split=', ')[[1]]
+        splits <- strsplit(neighbMult, split=', ')[[1]]
         if (any(grep('^[[:digit:]]*$', splits))) {  # numeric
           verts <- as.numeric(splits)
           vnames <- V(g)[verts]$name
@@ -271,7 +261,7 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
       const <- eval(parse(text=vertSize.const$getText()))
       v.attr <- NULL
     }
-    v.min <- eval(parse(text=vertSize.min$getText()))
+    v.min <- vertSize.min$getValue()
 
     i <- vertSize$getActive()
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
@@ -304,10 +294,12 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
         }
       } else if (vertSize$getActive() == 15) {  # equation
         x <- vertSize.eqn$getText()
-        subs <- strsplit(x, split='&')[[1]]
-        subs <- gsub('^\\s+|\\s+$', '', subs)
-        cond <- eval(parse(text=paste0('V(g)$', subs, collapse='&')))
-        g <- delete.vertices(g, setdiff(seq_len(vcount(g)), which(cond)))
+        if (nchar(x) > 0) {
+          subs <- strsplit(x, split='&')[[1]]
+          subs <- gsub('^\\s+|\\s+$', '', subs)
+          cond <- eval(parse(text=paste0('V(g)$', subs, collapse='&')))
+          g <- delete.vertices(g, setdiff(seq_len(vcount(g)), which(cond)))
+        }
         vsize <- mult * 7.5
       }
     }
@@ -322,11 +314,11 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     if (edgeWidth$getActive() == 0) {
       ewidth <- e.const
     } else if (edgeWidth$getActive() == 1) {
-      e.min <- eval(parse(text=edgeWidth.min$getText()))
+      e.min <- edgeWidth.min$getValue()
       g <- delete.edges(g, which(E(g)$btwn < e.min))
       ewidth <- log1p(E(g)$btwn)
     } else if (edgeWidth$getActive() == 2) {
-      e.min <- eval(parse(text=edgeWidth.min$getText()))
+      e.min <- edgeWidth.min$getValue()
       g <- delete.edges(g, which(E(g)$dist < e.min))
       ewidth <- vec.transform(E(g)$dist, 0.1, 5)
     }
@@ -451,28 +443,12 @@ update_brainGraph_gui <- function(graphname1, graphname2, vertLabels, vertSize,
     }
   }
   #=============================================================================
-  graph1 <- eval(parse(text=graphname1$getText()))
-  graph2 <- eval(parse(text=graphname2$getText()))
   if (!is.igraph(graph1)) {
-    stop(sprintf('%s is not a graph object.', graphname1$getText()))
+    stop(sprintf('%s is not a graph object.', deparse(substitute(graph1))))
   }
 
-  make.plot(dev=firstplot, g=graph1, g2=graph2, orient=orient1,
-            comm, vertLabels, vertSize, edgeWidth,
-            vertColor, vertSize.const=NULL, hemi, the.slider=slider1,
-            kNumComms=kNumComms, vertSize.min=vertSize.min1,
-            edgeWidth.min=edgeWidth.min1,
-            vertSize.eqn=vertSize.eqn1)
-
-  if (nchar(graphname2$getText()) > 0) {
-    if (!is.igraph(graph2)) {
-      stop(sprintf('%s is not a graph object.', graphname2$getText()))
-    }
-    make.plot(dev=secondplot, g=graph2, g2=graph1, orient=orient2,
-              comm, vertLabels, vertSize, edgeWidth,
-              vertColor, vertSize.const=NULL, hemi, the.slider=slider2,
-              kNumComms=kNumComms, vertSize.min=vertSize.min2,
-            edgeWidth.min=edgeWidth.min2,
-              vertSize.eqn=vertSize.eqn2)
-  }
+  make.plot(dev=plotDev, g=graph1, g2=graph2, orient, vertSize.min,
+            edgeWidth.min, vertLabels, vertSize, edgeWidth,
+            vertColor, vertSize.const=vertSize.const, vertSize.eqn=vertSize.eqn,
+            hemi, the.slider=slider, kNumComms=kNumComms, comm=comm)
 }

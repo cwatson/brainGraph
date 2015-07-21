@@ -29,7 +29,6 @@ plot_brainGraph_gui <- function() {
     entry$setWidthChars(char.width)
     if (!is.null(entry.text)) entry$setText(entry.text)
     container$packStart(entry, F, F, 0)
-    entry$setSensitive(F)
     return(entry)
   }
 
@@ -49,7 +48,7 @@ plot_brainGraph_gui <- function() {
     combo <- gtkComboBoxNewText()
     combo$show()
     for (choice in choices) combo$appendText(choice)
-    combo$setActive(1)
+    combo$setActive(0)
     label <- gtkLabelNewWithMnemonic(label.text)
     container$packStart(label, F, F, 0)
     container$add(combo)
@@ -67,7 +66,7 @@ plot_brainGraph_gui <- function() {
                                    'gtk-cancel', GtkResponseType['cancel'],
                                    'gtk-save', GtkResponseType['accept'])
     gSignalConnect(dialog, 'response', function(dialog, response) {
-                   if(response == GtkResponseType['accept']) {
+                   if (response == GtkResponseType['accept']) {
                      fname <- dialog$getFilename()
                      dev.set(plot.dev)
                      dev.copy(png, fname)
@@ -81,7 +80,7 @@ plot_brainGraph_gui <- function() {
                                    'gtk-cancel', GtkResponseType['cancel'],
                                    'gtk-save', GtkResponseType['accept'])
     gSignalConnect(dialog, 'response', function(dialog, response) {
-                   if(response == GtkResponseType['accept']) {
+                   if (response == GtkResponseType['accept']) {
                      fname <- dialog$getFilename()
                      dev.set(plot.dev)
                      dev.copy(png, fname)
@@ -120,6 +119,7 @@ plot_brainGraph_gui <- function() {
     comboComm <<- NULL
     kNumComms <<- NULL
     comboNeighb <<- NULL
+    comboNeighbMult <<- NULL
   }
 
   #-------------------------------------
@@ -172,7 +172,6 @@ plot_brainGraph_gui <- function() {
         tempLabel <- gtkLabelNew(helpText)
         tempComboVbox$packStart(tempLabel, F, F, 0)
         tempComboEntry <- add_entry(tempComboVbox, char.width=25)
-        tempComboEntry$setSensitive(T)
 
         button <- gtkButtonNewFromStock('gtk-ok')
         gSignalConnect(button, 'clicked', function(widget) {
@@ -180,6 +179,8 @@ plot_brainGraph_gui <- function() {
                        tempComboWindow$destroy()
                        })
         tempComboVbox$packStart(button, fill=F)
+      } else {
+        comboNeighbMult <<- NULL
       }
     })
   }
@@ -203,7 +204,7 @@ plot_brainGraph_gui <- function() {
 
     # Check if the text in the boxes represent igraph objects
     if (!gui.params$graphname[[1]]$getText() == '') {
-      graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
+      graph1 <<- eval(parse(text=gui.params$graphname[[1]]$getText()))
       c1 <- which(rev(sort(table(V(graph1)$comm))) > 2)
       if (!gui.params$graphname[[2]]$getText() == '') {
         graph2 <- eval(parse(text=gui.params$graphname[[2]]$getText()))
@@ -222,9 +223,9 @@ plot_brainGraph_gui <- function() {
     comms <- do.call('c', comms)
     choices <- c(as.character(all.comms), comms)
     comboComm <<- add_combo(hboxComm, choices, 'Which community? (ordered by size)')
-    comboComm$setActive(0)
 
     comboNeighb <<- NULL
+    comboNeighbMult <<- NULL
     gui.params$comboVcolor$setActive(1)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
@@ -292,9 +293,8 @@ plot_brainGraph_gui <- function() {
       graphObjEntry[[i]] <- add_entry(tempHbox[[i]],
                                       label.text=paste0('Graph ', i, ' name:'),
                                       char.width=20)
-      graphObjEntry[[i]]$setSensitive(T)
     }
-    gSignalConnect(dialog, 'response', function(dialog, response, user.data) {
+    gSignalConnect(dialog, 'response', function(dialog, response) {
         if (response == GtkResponseType['ok']) {
           graphObj[[1]] <<- graphObjEntry[[1]]$getText()
           graphObj[[2]] <<- graphObjEntry[[2]]$getText()
@@ -345,7 +345,10 @@ plot_brainGraph_gui <- function() {
 
   # Create a frame for each plot area
   #---------------------------------------------------------
-  frameG <- vboxG <- hboxOrient <- comboOrient <- graphname <- vector('list', 2)
+  frameG <- vboxG <- hboxOrient <- comboOrient <- graphname <- graphs <-
+  hboxVsizeMin <- vertSize.adj <- vertSize.spin <- hboxVsizeEqn <-
+  vertSizeEqn <- hboxEwidthMin <- edgeWidth.adj <- edgeWidth.spin <-
+  graphics <- vboxPlot <- groupplot <- vector('list', 2)
   for (i in 1:2) {
     frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
@@ -356,16 +359,19 @@ plot_brainGraph_gui <- function() {
 
     hbox <- gtkHBoxNew(F, 6)
     vboxG[[i]]$packStart(hbox, expand=F, fill=F, padding=0)
-
     graphname[[i]] <- add_entry(hbox, label.text='Name:', char.width=20,
                                 entry.text=graphObj[[i]])
+    graphname[[i]]$setSensitive(F)
 
     hboxOrient[[i]] <- gtkHBoxNew(F, 6)
     vboxG[[i]]$add(hboxOrient[[i]])
     choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)', 'Circular')
     comboOrient[[i]] <- add_combo(hboxOrient[[i]], choices, 'Orientation')
-    comboOrient[[i]]$setActive(0)
+    if (nchar(graphname[[i]]$getText()) > 0) {
+      graphs[[i]] <- eval(parse(text=graphname[[i]]$getText()))
+    }
   }
+  kNumGroups <<- sum(sapply(graphname, function(x) nchar(x$getText()) > 0))
   #---------------------------------------------------------
 
   # Should vertex labels be displayed?
@@ -376,7 +382,7 @@ plot_brainGraph_gui <- function() {
 
   # Vertex colors based on community membership?
   #---------------------------------------
-  atlas <- eval(parse(text=graphname[[1]]$getText()))$atlas
+  atlas <- graphs[[1]]$atlas
   hboxVcolor <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
@@ -408,15 +414,19 @@ plot_brainGraph_gui <- function() {
   vboxVsize$packStart(hboxVsizeOther, F, F, 0)
   vertSize.other <- add_entry(hboxVsizeOther, label.text=paste0('\t', 'Other:'),
                               char.width=10)
+  vertSize.other$setSensitive(F)
+
   # Have 2 boxes to allow for different minimums for 2 groups
-  hboxVsizeMin <- vertSize.min <- vector('list', 2)
   for (i in 1:2) {
     hboxVsizeMin[[i]] <- gtkHBoxNew(F, 6)
     hboxVsizeOther$packStart(hboxVsizeMin[[i]], F, F, 0)
-    vertSize.min[[i]] <- add_entry(hboxVsizeMin[[i]],
-                                   label.text=sprintf('Min. %i:', i),
-                                   char.width=6, entry.text='0')
-    vertSize.min[[i]]$setSensitive(T)
+    labelMin <- gtkLabelNew(sprintf('Min. %i:', i))
+    hboxVsizeMin[[i]]$packStart(labelMin, F, F, 0)
+    #vertSize.adj[[i]] <- gtkAdjustmentNew(value=0, lower=0, upper=10, step.incr=1)
+    #vertSize.spin[[i]] <- gtkSpinButtonNew(vertSize.adj[[i]], climb.rate=1, digits=0)
+    vertSize.spin[[i]] <- gtkSpinButtonNewWithRange(min=0, max=10, step=1)
+    hboxVsizeMin[[i]]$packStart(vertSize.spin[[i]], F, F, 0)
+    vertSize.spin[[i]]$setSensitive(F)
   }
 
   # Create 2 entries for entering a more complicated eqn
@@ -424,13 +434,13 @@ plot_brainGraph_gui <- function() {
   vboxVsize$packStart(hboxVsizeEqnMain, F, F, 0)
   vboxVsizeEqnMain <- gtkVBoxNew(F, 2)
   hboxVsizeEqnMain$packStart(vboxVsizeEqnMain, F, F, 0)
-  hboxVsizeEqn <- vertSizeEqn <- vector('list', 2)
   for (i in 1:2) {
     hboxVsizeEqn[[i]] <- gtkHBoxNew(F, 6)
     vboxVsizeEqnMain$packStart(hboxVsizeEqn[[i]], F, F, 0)
     vertSizeEqn[[i]] <- add_entry(hboxVsizeEqn[[i]],
                                   label.text=sprintf('Eqn. %i', i),
                                   char.width=40)
+    vertSizeEqn[[i]]$setSensitive(F)
   }
 
   vertSizeHelp <- gtkButtonNewWithLabel('?')
@@ -451,39 +461,54 @@ plot_brainGraph_gui <- function() {
     helpButton <- gtkButtonNewFromStock('gtk-ok')
     gSignalConnect(helpButton, 'clicked', function(widget) helpWin$destroy())
     helpVbox$packStart(helpButton, fill=F)
-                                  }
-  )
+  })
 
+  vsize.opts <<- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
+                  'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
+                  'z.score', 'hub.score', 'vulnerability', 'knn')
   gSignalConnect(comboVsize, 'changed', function(widget, ...) {
-      if (widget$getActive() == 0) {  # 'Constant'
+      i <- widget$getActive()
+      if (i == 0) {  # 'Constant'
         vertSize.const$setSensitive(T)
         vertSize.other$setSensitive(F)
-        vertSize.min[[1]]$setSensitive(F)
-        vertSize.min[[2]]$setSensitive(F)
-        vertSizeEqn[[1]]$setSensitive(F)
-        vertSizeEqn[[2]]$setSensitive(F)
-      } else if (widget$getActive() == 14) {  # 'Other'
-        vertSize.const$setSensitive(F)
-        vertSize.other$setSensitive(T)
-        vertSizeEqn[[1]]$setSensitive(F)
-        vertSizeEqn[[2]]$setSensitive(F)
-        vertSize.min[[1]]$setSensitive(T)
-        vertSize.min[[2]]$setSensitive(T)
-      } else if (widget$getActive() == 15) {  # equation
-        vertSize.const$setSensitive(F)
-        vertSizeEqn[[1]]$setSensitive(T)
-        vertSizeEqn[[2]]$setSensitive(T)
-        vertSize.min[[1]]$setSensitive(F)
-        vertSize.min[[2]]$setSensitive(F)
+        lapply(vertSize.spin, function(x) x$setSensitive(F))
+        lapply(vertSizeEqn, function(x) x$setSensitive(F))
       } else {
         vertSize.const$setSensitive(F)
         vertSize.other$setSensitive(F)
-        vertSizeEqn[[1]]$setSensitive(F)
-        vertSizeEqn[[2]]$setSensitive(F)
-        vertSize.min[[1]]$setSensitive(T)
-        vertSize.min[[2]]$setSensitive(T)
+        lapply(vertSize.spin, function(x) x$setSensitive(T))
+        lapply(vertSizeEqn, function(x) x$setSensitive(F))
+        if (i < 14) {
+          if (i == 11 && !is.directed(graphs[[1]])) i <- 2
+          for (j in seq_len(kNumGroups)) {
+            rangeX <- range(vertex_attr(graphs[[j]], vsize.opts[i + 1]), na.rm=T)
+            newMin <- rangeX[1]
+            newMax <- rangeX[2]
+            newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
+                              ifelse(diff(rangeX) < 1, 0.01, 0.1))
+            newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
+            #gtkAdjustmentConfigure(vertSize.adj[[j]], value=newMin, lower=newMin, upper=newMax,
+            #                       step.increment=newStep, page.increment=0, page.size=0)
+            #gtkSpinButtonConfigure(vertSize.spin[[j]], vertSize.adj[[j]],
+            #                       climb.rate=newStep, digits=newDigits)
+            gtkSpinButtonSetDigits(vertSize.spin[[j]], newDigits)
+            gtkSpinButtonSetIncrements(vertSize.spin[[j]], step=newStep, page=0)
+            gtkSpinButtonSetRange(vertSize.spin[[j]], min=newMin, max=newMax)
+            gtkSpinButtonSetValue(vertSize.spin[[j]], newMin)
+          }
+        } else if (i == 14) {  # 'Other'
+          vertSize.other$setSensitive(T)
+          lapply(vertSizeEqn, function(x) x$setSensitive(F))
+          lapply(vertSize.spin, function(x) x$setSensitive(T))
+        } else if (i == 15) {  # equation
+          lapply(vertSizeEqn, function(x) x$setSensitive(T))
+          lapply(vertSize.spin, function(x) x$setSensitive(F))
+        }
       }
-    })
+  })
+  # Commented out b/c clicks were causing spin value to change multiple times
+  #gSignalConnect(vertSize.spin[[1]], 'value-changed', function(x) updateFun(1))
+  #gSignalConnect(vertSize.spin[[2]], 'value-changed', function(x) updateFun(2))
   #-----------------------------------------------------------------------------
   # Edge width?
   hboxEwidth <- gtkHBoxNew(F, 6)
@@ -496,27 +521,36 @@ plot_brainGraph_gui <- function() {
   # Have 2 entries to allow for min's of 2 groups
   hboxEwidthOther <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxEwidthOther, F, F, 0)
-  hboxEwidthMin <- edgeWidth.min <- vector('list', 2)
   for (i in 1:2) {
     hboxEwidthMin[[i]] <- gtkHBoxNew(F, 6)
-    hboxEwidthOther$packStart(hboxEwidthMin[[i]], F, F, 0)
-    edgeWidth.min[[i]] <- add_entry(hboxEwidthMin[[i]],
-                                    label.text=sprintf('\t\tMin. %i:', i),
-                                    char.width=6, entry.text='0')
-    edgeWidth.min[[i]]$setSensitive(T)
+    hboxEwidthOther$packStart(hboxEwidthMin[[i]], T, F, 0)
+    labelMin <- gtkLabelNew(sprintf('Min. %i:', i))
+    hboxEwidthMin[[i]]$packStart(labelMin, F, F, 0)
+    edgeWidth.adj[[i]] <- gtkAdjustmentNew(value=0, lower=0, upper=100, step.incr=1)
+    edgeWidth.spin[[i]] <- gtkSpinButtonNew(edgeWidth.adj[[i]], climb.rate=1, digits=0)
+    hboxEwidthMin[[i]]$packStart(edgeWidth.spin[[i]], F, F, 0)
+    edgeWidth.spin[[i]]$setSensitive(F)
   }
 
+  ewidth.opts <<- c('const', 'btwn', 'dist')
   gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
-      if (widget$getActive() == 0) {
-        edgeWidth.const$setSensitive(T)
-        edgeWidth.min[[1]]$setSensitive(F)
-        edgeWidth.min[[2]]$setSensitive(F)
-      } else {
-        edgeWidth.const$setSensitive(F)
-        edgeWidth.min[[1]]$setSensitive(T)
-        edgeWidth.min[[2]]$setSensitive(T)
+    i <- widget$getActive()
+    if (i == 0) {  # 'Constant'
+      edgeWidth.const$setSensitive(T)
+      lapply(edgeWidth.spin, function(x) x$setSensitive(F))
+    } else {
+      edgeWidth.const$setSensitive(F)
+      lapply(edgeWidth.spin, function(x) x$setSensitive(T))
+      for (j in seq_len(kNumGroups)) {
+        rangeX <- range(edge_attr(graphs[[j]], ewidth.opts[i + 1]), na.rm=T)
+        gtkAdjustmentConfigure(edgeWidth.adj[[j]], value=rangeX[1],
+                               lower=rangeX[1], upper=rangeX[2],
+                               step.increment=1, page.increment=0, page.size=0)
+        gtkSpinButtonConfigure(edgeWidth.spin[[j]], edgeWidth.adj[[j]],
+                               climb.rate=1, digits=0)
       }
-    })
+    }
+  })
   #-----------------------------------------------------------------------------
 
   # Highlight the diameter of each graph?
@@ -526,6 +560,7 @@ plot_brainGraph_gui <- function() {
 
   # Show edge set differences?
   edgeDiffs <- add_check(hbox, 'Show _edge differences?')
+  if (kNumGroups <= 1) edgeDiffs$setSensitive(F)
 
   #-----------------------------------------------------------------------------
   # Both, single hemisphere, inter-hemispheric, or homologous only?
@@ -535,7 +570,6 @@ plot_brainGraph_gui <- function() {
   choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only',
                'Homologous only')
   comboHemi <- add_combo(hboxHemi, choices, 'Hemisphere')
-  comboHemi$setActive(0)
   gSignalConnect(comboHemi, 'changed', function(widget, ...) {
       if (widget$getActive() == 0) {
         showDiameter$setSensitive(T)
@@ -561,7 +595,6 @@ plot_brainGraph_gui <- function() {
   choices <- c('All', levels(atlas.dt[, lobe]), lobes)
 
   comboLobe <- add_combo(hboxLobe, choices, 'Lobe')
-  comboLobe$setActive(0)
   gSignalConnect(comboLobe, 'changed', function(widget, ...) {
       if (widget$getActive() == 0) {
         showDiameter$setSensitive(T)
@@ -573,11 +606,8 @@ plot_brainGraph_gui <- function() {
   #---------------------------------------------------------
   # Create 2 drawing areas for the plotting
   #---------------------------------------------------------
-  graphics <- vboxPlot <- groupplot <- vector('list', 2)
-
   # Check screen resolution so the plotting window fits
-  OS <- .Platform$OS.type
-  if (OS == 'windows') {
+  if (.Platform$OS.type == 'windows') {
     screen.x <- 1600
   } else {
   display.size <- system('xdpyinfo | grep dimensions', intern=T)
@@ -607,14 +637,48 @@ plot_brainGraph_gui <- function() {
     groupplot[[i]] <- dev.cur()
   }
 
-  # Slider for curvature of edges in circle plots
+  #-----------------------------------------------------------------------------
+  # Add buttons
+  the.buttons <- gtkHButtonBoxNew()
+  the.buttons$setBorderWidth(5)
+  vboxMain$add(the.buttons)
+  btnOK <- gtkButtonNewFromStock('gtk-ok')
+  buttonRename <- gtkButtonNewWithMnemonic('Pick _new graphs')
+  the.buttons$packStart(btnOK, expand=T, fill=F)
+  the.buttons$packStart(buttonRename, expand=T, fill=F)
+  container$showAll()
+
+  # Callback functions
+  updateFun <- function(j) {
+    other.ind <- setdiff(seq_len(kNumGroups), j)
+    update_brainGraph_gui(plotDev=groupplot[[j]], graph1=graphs[[j]],
+                          graph2=graphs[[other.ind]], plotFunc=plotFunc,
+                          vertSize=comboVsize, edgeWidth=comboEwidth,
+                          vertColor=comboVcolor, hemi=comboHemi, lobe=comboLobe,
+                          orient=comboOrient[[j]], vertSize.min=vertSize.spin[[j]],
+                          edgeWidth.min=edgeWidth.spin[[j]],
+                          vertSize.const=vertSize.const, edgeWidth.const=edgeWidth.const,
+                          vertLabels, comm=comboComm, kNumComms=kNumComms,
+                          neighb=comboNeighb, neighbMult=comboNeighbMult,
+                          slider=slider[[j]], vertSize.other,
+                          vertSize.eqn=vertSizeEqn[[j]], showDiameter=showDiameter, edgeDiffs)
+  }
+  gSignalConnect(btnOK, 'clicked', function(widget) {
+                 updateFun(1)
+                 if (kNumGroups > 1) updateFun(2)
+  })
+  gSignalConnect(buttonRename, 'clicked', function(widget) set.names())
+
+  # Horizontal slider for edge curvature in circle plots
   slider <<- vector('list', length=2)
   orient_cb <- function(widget, ind) {
     if (widget$getActive() == 3) {
       comboHemi$setSensitive(T)
-      slider[[ind]] <<- gtkHScale(min=-1, max=1, step=0.05)
+      slider[[ind]] <<- gtkHScaleNewWithRange(min=-1, max=1, step=0.05)
       vboxPlot[[ind]]$packStart(slider[[ind]], F, F, 0)
       slider[[ind]]$setValue(0.25)
+      gSignalConnect(slider[[ind]], 'value-changed',
+                     function(widget) updateFun(ind))
     } else {
       kNumChildren <- length(vboxPlot[[ind]]$getChildren())
       if (kNumChildren > 1) {
@@ -633,41 +697,6 @@ plot_brainGraph_gui <- function() {
   }
   gSignalConnect(comboOrient[[1]], 'changed', orient_cb, 1)
   gSignalConnect(comboOrient[[2]], 'changed', orient_cb, 2)
-
-  #-----------------------------------------------------------------------------
-  # Add buttons
-  the.buttons <- gtkHButtonBoxNew()
-  the.buttons$setBorderWidth(5)
-  vboxMain$add(the.buttons)
-  buttonOK <- gtkButtonNewFromStock('gtk-ok')
-  gSignalConnect(buttonOK, 'clicked',
-                 function(widget)
-                     update_brainGraph_gui(graphname[[1]], graphname[[2]],
-                                   vertLabels, vertSize=comboVsize,
-                                   edgeWidth=comboEwidth, edgeDiffs,
-                                   vertColor=comboVcolor,
-                                   firstplot=groupplot[[1]],
-                                   secondplot=groupplot[[2]],
-                                   vertSize.const, edgeWidth.const, plotFunc,
-                                   comboNeighb=comboNeighb, hemi=comboHemi,
-                                   lobe=comboLobe, orient1=comboOrient[[1]],
-                                   orient2=comboOrient[[2]], comm=comboComm,
-                                   showDiameter=showDiameter,
-                                   slider1=slider[[1]], slider2=slider[[2]],
-                                   vertSize.other, vertSize.min1=vertSize.min[[1]],
-                                   vertSize.min2=vertSize.min[[2]],
-                                   edgeWidth.min1=edgeWidth.min[[1]],
-                                   edgeWidth.min2=edgeWidth.min[[2]],
-                                   kNumComms=kNumComms, comboNeighbMult,
-                                   vertSize.eqn1=vertSizeEqn[[1]],
-                                   vertSize.eqn2=vertSizeEqn[[2]]))
-  buttonRename <- gtkButtonNewWithMnemonic('Pick _new graphs')
-  gSignalConnect(buttonRename, 'clicked',
-                  function(widget) set.names())
-  the.buttons$packStart(buttonOK, expand=T, fill=F)
-  the.buttons$packStart(buttonRename, expand=T, fill=F)
-
-  container$showAll()
 
   list(plot1=groupplot[[1]], plot2=groupplot[[2]], graphname=graphname,
        comboVcolor=comboVcolor, showDiameter=showDiameter, edgeDiffs=edgeDiffs,

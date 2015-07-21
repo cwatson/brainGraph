@@ -39,20 +39,18 @@
 #' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'vertex')
 #' }
 
-permute.group <- function(density, resids, num.subjs, num.perms=1e3,
+permute.group <- function(permSet, density, resids, groups, num.perms=1e3,
                           level=c('graph', 'vertex', 'lobe'),
                           atlas, atlas.dt=NULL, measure=c('btwn.cent', 'vulnerability')) {
-  n1 <- as.numeric(num.subjs[1])
-  n.all <- sum(num.subjs)
-
   level <- match.arg(level)
   measure <- match.arg(measure)
+
+  groups <- as.numeric(groups)
   out <- foreach(i=seq_len(num.perms), .combine='rbind',
                  .export='assign_lobes') %dopar% {
-    shuffled <- sample(n.all)
-    corrs1 <- corr.matrix(resids[shuffled[1:n1]][, !'Group', with=F],
+    corrs1 <- corr.matrix(resids[which(groups[permSet[i, ]] == 1)][, !'Group', with=F],
                           density=density)
-    corrs2 <- corr.matrix(resids[shuffled[(n1+1):n.all]][, !'Group', with=F],
+    corrs2 <- corr.matrix(resids[which(groups[permSet[i, ]] == 2)][, !'Group', with=F],
                           density=density)
     g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
     g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)

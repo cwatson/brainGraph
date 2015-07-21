@@ -146,6 +146,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     V(g)$E.local <- graph.efficiency(g, type='local')
     V(g)$E.nodal <- graph.efficiency(g, type='nodal')
     g$E.local <- mean(V(g)$E.local)
+
+    V(g)$vulnerability <- vulnerability(g)
+    g$vulnerability <- max(V(g)$vulnerability)
   
     # Community stuff
     comm <- cluster_louvain(g)

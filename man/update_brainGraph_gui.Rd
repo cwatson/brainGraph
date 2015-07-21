@@ -4,79 +4,67 @@
 \alias{update_brainGraph_gui}
 \title{Function to dynamically plot a graph}
 \usage{
-update_brainGraph_gui(graphname1, graphname2, vertLabels, vertSize, edgeWidth,
-  edgeDiffs, vertColor, firstplot, secondplot, vertSize.const = NULL,
-  edgeWidth.const = NULL, plotFunc, comm = NULL, comboNeighb, hemi, lobe,
-  orient1, orient2, showDiameter, slider1, slider2, vertSize.other = NULL,
-  vertSize.min1, vertSize.min2, edgeWidth.min1, edgeWidth.min2,
-  kNumComms = NULL, comboNeighbMult = NULL, vertSize.eqn1 = NULL,
-  vertSize.eqn2 = NULL)
+update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
+  vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min,
+  vertSize.const = NULL, edgeWidth.const = NULL, vertLabels = NULL,
+  comm = NULL, kNumComms = NULL, neighb = NULL, neighbMult = NULL,
+  slider = NULL, vertSize.other = NULL, vertSize.eqn = NULL,
+  showDiameter = NULL, edgeDiffs = NULL)
 }
 \arguments{
-\item{graphname1}{A GTK entry for the first plotting area}
+\item{plotDev}{A Cairo device for the plotting area}
 
-\item{graphname2}{A GTK entry for the second plotting area}
+\item{graph1}{An igraph graph object for the first plotting area}
 
-\item{vertLabels}{A GTK check button for showing vertex labels}
+\item{graph2}{An igraph graph object for the  second plotting area}
+
+\item{plotFunc}{A function specifying which type of plot to use}
 
 \item{vertSize}{A GTK combo box for scaling vertex size}
 
 \item{edgeWidth}{A GTK entry for changing edge width}
 
-\item{edgeDiffs}{A GTK check button for showing edge differences between
-graphs}
-
 \item{vertColor}{A GTK combo box for changing vertex colors}
-
-\item{firstplot}{A Cairo device for the first plotting area}
-
-\item{secondplot}{A Cairo device for the second plotting area}
-
-\item{vertSize.const}{A GTK entry for constant vertex size}
-
-\item{edgeWidth.const}{A GTK entry for constant width}
-
-\item{plotFunc}{A function specifying which type of plot to use}
-
-\item{comm}{A GTK combo box for plotting individual communities}
-
-\item{comboNeighb}{A GTK combo box for plotting individual neighborhoods}
 
 \item{hemi}{A GTK combo box for plotting individual hemispheres}
 
 \item{lobe}{A GTK combo box for plotting individual lobes}
 
-\item{orient1}{A GTK combo box for plotting a specific orientation}
+\item{orient}{A GTK combo box for plotting a specific orientation}
 
-\item{orient2}{A GTK combo box for plotting a specific orientation}
+\item{vertSize.min}{A GTK spin button for minimum vertex size}
 
-\item{showDiameter}{A GTK check button for showing the graph's diameter}
+\item{edgeWidth.min}{A GTK spin button for minimum edge width}
 
-\item{slider1}{A GTK horizontal slider widget for changing edge curvature}
+\item{vertSize.const}{A GTK entry for constant vertex size}
 
-\item{slider2}{A GTK horizontal slider widget for changing edge curvature}
+\item{edgeWidth.const}{A GTK entry for constant width}
 
-\item{vertSize.other}{A GTK entry for vertex size (other attributes)}
+\item{vertLabels}{A GTK check button for showing vertex labels}
 
-\item{vertSize.min1}{A GTK entry for minimum vertex size, group 1}
-
-\item{vertSize.min2}{A GTK entry for minimum vertex size, group 2}
-
-\item{edgeWidth.min1}{A GTK entry for minimum edge width}
-
-\item{edgeWidth.min2}{A GTK entry for minimum edge width}
+\item{comm}{A GTK combo box for plotting individual communities}
 
 \item{kNumComms}{Integer indicating the number of total communities (optional)}
 
-\item{comboNeighbMult}{A GTK entry for joint neighborhoods of multiple vertices}
+\item{neighb}{A GTK combo box for plotting individual neighborhoods}
 
-\item{vertSize.eqn1}{A GTK entry for equations to exclude vertices}
+\item{neighbMult}{A GTK entry for joint neighborhoods of multiple vertices}
 
-\item{vertSize.eqn2}{A GTK entry for equations to exclude vertices}
+\item{slider}{A GTK horizontal slider widget for changing edge curvature}
+
+\item{vertSize.other}{A GTK entry for vertex size (other attributes)}
+
+\item{vertSize.eqn}{A GTK entry for equations to exclude vertices}
+
+\item{showDiameter}{A GTK check button for showing the graph's diameter}
+
+\item{edgeDiffs}{A GTK check button for showing edge diffs between graphs}
 }
 \description{
 This function is called by \link{plot_brainGraph_gui} to update a plot
-on-the-fly. It updates both of the plots by calling the helper function
-"make.plot".
+on-the-fly. It updates by calling the helper function \code{make.plot}.
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 

@@ -4,7 +4,7 @@
 \alias{permute.group}
 \title{Permutation test for group difference of graph measures}
 \usage{
-permute.group(density, resids, num.subjs, num.perms = 1000,
+permute.group(permSet, density, resids, groups, num.perms = 1000,
   level = c("graph", "vertex", "lobe"), atlas, atlas.dt = NULL,
   measure = c("btwn.cent", "vulnerability"))
 }
@@ -12,8 +12,6 @@ permute.group(density, resids, num.subjs, num.perms = 1000,
 \item{density}{Numeric; the density of the resultant graphs}
 
 \item{resids}{A data table of the residuals (from \code{\link{get.resid}})}
-
-\item{num.subjs}{A vector of length 2 indicating group sizes}
 
 \item{num.perms}{The number of permutations to perform (default: 1e3)}
 
@@ -26,6 +24,8 @@ differences; either 'graph', 'vertex', or 'lobe'}
 
 \item{measure}{A character string, either 'btwn.cent' or 'vulnerability'
 (specific to the vertex \emph{level})}
+
+\item{num.subjs}{A vector of length 2 indicating group sizes}
 }
 \value{
 A data table with values for group differences in modularity, global
