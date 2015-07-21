@@ -8,9 +8,10 @@
 #' @param Group A character string indicating group membership (default:NULL)
 #' @export
 #'
-#' @return A data table with 16-17 columns and row number equal to the number of
+#' @return A data table with 18-19 columns and row number equal to the number of
 #' vertices in the graph
-#' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
+#' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
+#' \link[igraph]{as_data_frame}}
 
 vertex_attr_dt <- function(g, Group=NULL) {
   lobe <- name <- NULL
@@ -19,7 +20,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          region=V(g)$name,
                          lobe=atlas.dt[match(V(g)$name, atlas.dt[, name])][, as.character(lobe)],
                          hemi=V(g)$hemi,
-                         deg=V(g)$degree,
+                         degree=V(g)$degree,
                          knn=V(g)$knn,
                          btwn.cent=V(g)$btwn.cent,
                          ev.cent=V(g)$ev.cent,
@@ -31,7 +32,8 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          E.nodal=V(g)$E.nodal,
                          PC=V(g)$PC,
                          z=V(g)$z.score,
-                         vulnerability=V(g)$vulnerability)
+                         vulnerability=V(g)$vulnerability,
+                         asymm=V(g)$asymm)
 
   if (!is.null(Group)) {
     net.meas$Group <- Group

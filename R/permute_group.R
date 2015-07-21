@@ -13,9 +13,11 @@
 #' inter-lobar connections, e.g. from the temporal lobe to the rest of the
 #' brain.
 #'
+#' @param permSet The set of permutations to loop through (obtained from
+#' \code{\link[permute]{shuffleSet}})
 #' @param density Numeric; the density of the resultant graphs
 #' @param resids A data table of the residuals (from \code{\link{get.resid}})
-#' @param num.subjs A vector of length 2 indicating group sizes
+#' @param groups A vector of group membership (can be factor or numeric)
 #' @param num.perms The number of permutations to perform (default: 1e3)
 #' @param level A character string for the attribute level to calculate
 #' differences; either 'graph', 'vertex', or 'lobe'
@@ -34,14 +36,16 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'graph',
+#' myPerms <- shuffleSet(n=nrow(m$resids), nset=1e3)
+#' out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'graph',
 #'   atlas='dk', atlas.dt)
-#' out <- permute.group(densities, m$resids, summary(covars$Group), 1e3, 'vertex')
+#' out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'vertex')
 #' }
 
 permute.group <- function(permSet, density, resids, groups, num.perms=1e3,
                           level=c('graph', 'vertex', 'lobe'),
                           atlas, atlas.dt=NULL, measure=c('btwn.cent', 'vulnerability')) {
+  i <- NULL
   level <- match.arg(level)
   measure <- match.arg(measure)
 

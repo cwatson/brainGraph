@@ -4,10 +4,13 @@
 \alias{centr_lev}
 \title{Calculate a vertex's leverage centrality}
 \usage{
-centr_lev(g)
+centr_lev(g, .parallel = TRUE)
 }
 \arguments{
 \item{g}{The igraph graph object}
+
+\item{.parallel}{Logical indicating whether or not to use \emph{foreach}
+(default: TRUE)}
 }
 \value{
 A vector of the leverage centrality for all vertices.

@@ -25,7 +25,7 @@ color.edges <- function(g, memb, order=TRUE, cols=NULL) {
   tmp <- vector('list', length=kNumComm)
   newcols <- rep('gray50', length=ecount(g))
 
-  sums <- sapply(seq_len(kNumComm), function(x) sum(memb == comm.order[x]))
+  sums <- vapply(seq_len(kNumComm), function(x) sum(memb == comm.order[x]), integer(1))
   tmp[which(sums == 1)] <- 0
   for (i in which(sums > 1)) {
       matches <- which(memb == comm.order[i])
@@ -34,4 +34,5 @@ color.edges <- function(g, memb, order=TRUE, cols=NULL) {
   }
 
   newcols <- ifelse(newcols=='', 'gray50', newcols)
+  return(newcols)
 }

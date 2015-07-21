@@ -31,8 +31,8 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   statistic <- p.value <- NULL  # To appease R CHECK
 
   Nv <- vcount(g1[[1]])
-  meas1 <- sapply(g1, vertex_attr, measure)
-  meas2 <- sapply(g2, vertex_attr, measure)
+  meas1 <- vapply(g1, vertex_attr, numeric(Nv), measure)
+  meas2 <- vapply(g2, vertex_attr, numeric(Nv), measure)
 
   test <- match.arg(test)
   if (test == 't.test') {
@@ -44,9 +44,9 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   }
 
   g.diffs <- g1[[1]]
-  V(g.diffs)$size2 <- sapply(stats, with, statistic)
+  V(g.diffs)$size2 <- vapply(stats, with, numeric(1), statistic)
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
-  V(g.diffs)$p <- 1 - sapply(stats, with, p.value)
+  V(g.diffs)$p <- 1 - vapply(stats, with, numeric(1), p.value)
   V(g.diffs)$p.adj <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
   return(g.diffs)
 }

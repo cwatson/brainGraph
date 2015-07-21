@@ -46,7 +46,7 @@ permute.vertex <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
   p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (num.perms + 1)
   thresh <- sort(max.rand)[(1 - alpha) * num.perms]
   Nv <- vcount(g.diffs)
-  V(g.diffs)$p.perm <- 1 - sapply(seq_len(Nv), function(x)
-                                  sum(max.rand >= V(g.diffs)$size2[x]) / num.perms)
+  V(g.diffs)$p.perm <- 1 - vapply(seq_len(Nv), function(x)
+                                  sum(max.rand >= V(g.diffs)$size2[x]) / num.perms, numeric(1))
   return(list(g=g.diffs, p.max=p.max, thresh=thresh))
 }

@@ -55,7 +55,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     #=======================================================
     if (lobe$getActive() > 0) {
       kNumLobes <- nlevels(atlas.dt[, lobe])
-      combos <- sapply(seq_len(kNumLobes - 1),
+      combos <- lapply(seq_len(kNumLobes - 1),
                        function(x) combn(seq_along(levels(atlas.dt[, lobe])), x))
       n <- lobe$getActive()
       if (n <= kNumLobes) {
@@ -65,11 +65,11 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         ind1 <- 2
         ind2 <- n - kNumLobes
       } else {
-        ind1 <- which(cumsum(sapply(combos, ncol)) %/% n >= 1)[1]
-        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% n)[ind1]
+        ind1 <- which(cumsum(vapply(combos, ncol, integer(1))) %/% n >= 1)[1]
+        ind2 <- ncol(combos[[ind1]]) - (cumsum(vapply(combos, ncol, integer(1))) %% n)[ind1]
       }
-      memb.lobe <- apply(sapply(combos[[ind1]][, ind2],
-                           function(x) V(g)$lobe == x), 1, any)
+      memb.lobe <- apply(vapply(combos[[ind1]][, ind2],
+                           function(x) V(g)$lobe == x, logical(Nv)), 1, any)
       sg.lobe <- induced.subgraph(g, memb.lobe)
     } else {
       memb.lobe <- rep(TRUE, Nv)
@@ -212,7 +212,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     # Community number, if applicable
     if (!is.function(plotFunc) && plotFunc == 'plot_community') {
       cNum <- comm$getActive() + 1
-      combos <- sapply(seq_len(kNumComms), function(x)
+      combos <- lapply(seq_len(kNumComms), function(x)
                        combn(seq_len(kNumComms), x))
       if (cNum <= kNumComms) {
         ind1 <- 1
@@ -221,8 +221,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         ind1 <- 2
         ind2 <- cNum - kNumComms
       } else {
-        ind1 <- which(cumsum(sapply(combos, ncol)) %/% cNum >= 1)[1]
-        ind2 <- ncol(combos[[ind1]]) - (cumsum(sapply(combos, ncol)) %% cNum)[ind1]
+        ind1 <- which(cumsum(vapply(combos, ncol, integer(1))) %/% cNum >= 1)[1]
+        ind2 <- ncol(combos[[ind1]]) - (cumsum(vapply(combos, ncol, integer(1))) %% cNum)[ind1]
       }
       cNums <- combos[[ind1]][, ind2]
       comms <- as.numeric(names(rev(sort(table(V(g)$comm)))[cNums]))
@@ -231,7 +231,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
                      'lightgreen', 'lightblue', 'lightyellow')
       vcomms <- V(g.sub)$comm
-      eids <- sapply(seq_along(comms),
+      eids <- lapply(seq_along(comms),
         function(x) as.numeric(E(g.sub)[which(vcomms == comms[x]) %--% which(vcomms == comms[x])]))
       if (length(cNums) == 1) {
         ecols <- rep(lobe.cols[cNums], length=ecount(g.sub))
@@ -266,11 +266,11 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     i <- vertSize$getActive()
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
                     'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
-                    'z.score', 'hub.score', 'vulnerability', 'knn')
+                    'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm')
     if (i == 0) {
       vsize <- mult * const
     } else {
-      if (i < 14) {
+      if (i < 15) {
         if (i == 11 && !is.directed(g)) {
           i <- 2
         }
@@ -285,14 +285,14 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
           vsize <- vsize[!is.nan(vsize)]
         }
 
-      } else if (vertSize$getActive() == 14) {
+      } else if (vertSize$getActive() == 15) {
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
         if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
           vsize <- mult * 15 * vertex_attr(g, v.attr)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
-      } else if (vertSize$getActive() == 15) {  # equation
+      } else if (vertSize$getActive() == 16) {  # equation
         x <- vertSize.eqn$getText()
         if (nchar(x) > 0) {
           subs <- strsplit(x, split='&')[[1]]

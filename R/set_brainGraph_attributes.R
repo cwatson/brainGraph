@@ -45,9 +45,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     g$E.global <- graph.efficiency(g, 'global')
     # Get the rich club coeff for all possible degree values
     R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
-    phi <- sapply(R, with, phi)
-    Nk <- sapply(R, with, Nk)
-    Ek <- sapply(R, with, Ek)
+    phi <- vapply(R, with, numeric(1), phi)
+    Nk <- vapply(R, with, numeric(1), Nk)
+    Ek <- vapply(R, with, numeric(1), Ek)
     g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
 
 
@@ -74,10 +74,20 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   
     # Get the rich club coeff for all possible degree values
     R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
-    phi <- sapply(R, with, phi)
-    Nk <- sapply(R, with, Nk)
-    Ek <- sapply(R, with, Ek)
+    phi <- vapply(R, with, numeric(1), phi)
+    Nk <- vapply(R, with, numeric(1), Nk)
+    Ek <- vapply(R, with, numeric(1), Ek)
     g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+
+    if (is.weighted(g)) {
+      V(g)$strength <- graph.strength(g)
+      R <- lapply(1:max(V(g)$degree),
+                  function(x)rich.club.coeff(g, x, weighted=T))
+      phi <- vapply(R, with, numeric(1), phi)
+      Nk <- vapply(R, with, numeric(1), Nk)
+      Ek <- vapply(R, with, numeric(1), Ek)
+      g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+    }
   
     if (is.directed(g)) {
       hubs <- hub.score(g)
@@ -105,48 +115,37 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
 
       g$asymm <- edge_asymmetry(g)$asymm
+      V(g)$asymm <- edge_asymmetry(g, 'vertex')$asymm
 
       if (atlas == 'destrieux') {
         V(g)$color.class <- lobe.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
         E(g)$color.class <- color.edges(g, V(g)$class, order=F, cols=lobe.cols)
       }
+  
+      # Add the spatial coordinates for plotting over the brain
+      if ('name' %in% vertex_attr_names(g)) {
+        x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+        vorder <- match(V(g)$name, atlas.dt$name)
+        V(g)$x <- atlas.dt[vorder, x]
+        V(g)$y <- atlas.dt[vorder, y]
+        V(g)$z <- atlas.dt[vorder, z]
+        V(g)$x.mni <- atlas.dt[vorder, x.mni]
+        V(g)$y.mni <- atlas.dt[vorder, y.mni]
+        V(g)$z.mni <- atlas.dt[vorder, z.mni]
+      }
     }
   
-    # Add the spatial coordinates for plotting over the brain
-    if ('name' %in% vertex_attr_names(g)) {
-      x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
-      vorder <- match(V(g)$name, atlas.dt$name)
-      V(g)$x <- atlas.dt[vorder, x]
-      V(g)$y <- atlas.dt[vorder, y]
-      V(g)$z <- atlas.dt[vorder, z]
-      V(g)$x.mni <- atlas.dt[vorder, x.mni]
-      V(g)$y.mni <- atlas.dt[vorder, y.mni]
-      V(g)$z.mni <- atlas.dt[vorder, z.mni]
-    }
-  
-    if (is.weighted(g)) {
-      V(g)$strength <- graph.strength(g)
-      R <- lapply(1:max(V(g)$degree),
-                  function(x)rich.club.coeff(g, x, weighted=T))
-      phi <- sapply(R, with, phi)
-      Nk <- sapply(R, with, Nk)
-      Ek <- sapply(R, with, Ek)
-      g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
-    }
     V(g)$knn <- graph.knn(g)$knn
     V(g)$btwn.cent <- centr_betw(g)$res
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$subgraph.cent <- subgraph.centrality(g)
     V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- graph.coreness(g)
-  
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
-  
     V(g)$E.local <- graph.efficiency(g, type='local')
     V(g)$E.nodal <- graph.efficiency(g, type='nodal')
     g$E.local <- mean(V(g)$E.local)
-
     V(g)$vulnerability <- vulnerability(g)
     g$vulnerability <- max(V(g)$vulnerability)
   

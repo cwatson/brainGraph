@@ -18,12 +18,12 @@ graph.contract.brain <- function(g) {
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)
   E(g.sub)$weight <- 1
   g.sub <- simplify(g.sub)
-  V(g.sub)$x <- sapply(1:max(V(g)$lobe.hemi),
-                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$x))
-  V(g.sub)$y <- sapply(1:max(V(g)$lobe.hemi),
-                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$y))
-  V(g.sub)$size <- sapply(1:max(V(g)$lobe.hemi),
-                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$degree))
+  V(g.sub)$x <- vapply(1:max(V(g)$lobe.hemi),
+                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$x), numeric(1))
+  V(g.sub)$y <- vapply(1:max(V(g)$lobe.hemi),
+                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$y), numeric(1))
+  V(g.sub)$size <- vapply(1:max(V(g)$lobe.hemi),
+                      function(m) mean(V(g)[V(g)$lobe.hemi==m]$degree), numeric(1))
   vcols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
   vcols <- rep(vcols, each=2)
   V(g.sub)$color <- vcols

@@ -26,7 +26,7 @@ graph_neighborhood_multiple <- function(g, vs) {
     vs <- which(V(g)$name %in% vs)
   }
 
-  inds <- unique(c(vs, unlist(sapply(vs, function(x) neighbors(g, x)))))
+  inds <- unique(c(vs, unlist(lapply(vs, function(x) neighbors(g, x)))))
 
   for (i in seq_along(vs)) {
     for (att in graph_attr_names(subgs[[i]])) {

@@ -26,6 +26,4 @@ spatial.dist <- function(g) {
   es <- get.edgelist(g)
   dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -
                          coords[es[, 1], list(x.mni, y.mni, z.mni)])^2))
-  #dists <- sqrt(rowSums((coords[atlas.dt[name == es[, 2], index], ] -
-  #                       coords[atlas.dt[name == es[, 1], index], ])^2))
 }

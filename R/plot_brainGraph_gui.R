@@ -16,8 +16,9 @@ plot_brainGraph_gui <- function() {
                                                    'brainGraph_icon.png',
                                                    package='brainGraph'))
 
-  gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <- NULL
-  graphObj <- slider <- lobe <- comboNeighbMult <- NULL
+  gui.params <- plotFunc <- comboComm <- kNumComms <- comboNeighb <-
+  graphObj <- slider <- lobe <- comboNeighbMult <- graph1 <- kNumGroups <-
+  vsize.opts <- ewidth.opts <- NULL
 
   # Function to add an entry
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
@@ -215,9 +216,9 @@ plot_brainGraph_gui <- function() {
       }
     }
     kNumComms <<- length(all.comms)
-    combos <- sapply(seq_len(kNumComms), function(x)
+    combos <- lapply(seq_len(kNumComms), function(x)
                      combn(seq_len(kNumComms), x))
-    comms <- sapply(2:(kNumComms), function(z)
+    comms <- lapply(2:kNumComms, function(z)
                     apply(t(apply(t(combos[[z]]), 1, function(x)
                                   all.comms[x])), 1, paste, collapse=', '))
     comms <- do.call('c', comms)
@@ -371,7 +372,7 @@ plot_brainGraph_gui <- function() {
       graphs[[i]] <- eval(parse(text=graphname[[i]]$getText()))
     }
   }
-  kNumGroups <<- sum(sapply(graphname, function(x) nchar(x$getText()) > 0))
+  kNumGroups <<- sum(vapply(graphname, function(x) nchar(x$getText()) > 0, logical(1)))
   #---------------------------------------------------------
 
   # Should vertex labels be displayed?
@@ -406,7 +407,7 @@ plot_brainGraph_gui <- function() {
   choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
                'Subgraph centrality', 'Coreness', 'Clustering coeff.', 'PC',
                'E.local', 'E.nodal', 'Within-module degree z-score', 'Hub score',
-               'Vulnerability', 'NN degree', 'Other', 'Equation')
+               'Vulnerability', 'NN degree', 'Asymmetry', 'Other', 'Equation')
   comboVsize <- add_combo(hboxVsize, choices, 'Attribute')
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
 
@@ -465,7 +466,7 @@ plot_brainGraph_gui <- function() {
 
   vsize.opts <<- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
                   'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
-                  'z.score', 'hub.score', 'vulnerability', 'knn')
+                  'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm')
   gSignalConnect(comboVsize, 'changed', function(widget, ...) {
       i <- widget$getActive()
       if (i == 0) {  # 'Constant'
@@ -478,7 +479,7 @@ plot_brainGraph_gui <- function() {
         vertSize.other$setSensitive(F)
         lapply(vertSize.spin, function(x) x$setSensitive(T))
         lapply(vertSizeEqn, function(x) x$setSensitive(F))
-        if (i < 14) {
+        if (i < 15) {
           if (i == 11 && !is.directed(graphs[[1]])) i <- 2
           for (j in seq_len(kNumGroups)) {
             rangeX <- range(vertex_attr(graphs[[j]], vsize.opts[i + 1]), na.rm=T)
@@ -496,11 +497,11 @@ plot_brainGraph_gui <- function() {
             gtkSpinButtonSetRange(vertSize.spin[[j]], min=newMin, max=newMax)
             gtkSpinButtonSetValue(vertSize.spin[[j]], newMin)
           }
-        } else if (i == 14) {  # 'Other'
+        } else if (i == 15) {  # 'Other'
           vertSize.other$setSensitive(T)
           lapply(vertSizeEqn, function(x) x$setSensitive(F))
           lapply(vertSize.spin, function(x) x$setSensitive(T))
-        } else if (i == 15) {  # equation
+        } else if (i == 16) {  # equation
           lapply(vertSizeEqn, function(x) x$setSensitive(T))
           lapply(vertSize.spin, function(x) x$setSensitive(F))
         }
@@ -586,9 +587,9 @@ plot_brainGraph_gui <- function() {
   vbox$packStart(hboxLobe, F, F, 0)
 
   kNumLobes <- nlevels(atlas.dt[, lobe])
-  combos <- sapply(seq_len(kNumLobes - 1),
+  combos <- lapply(seq_len(kNumLobes - 1),
                    function(x) combn(seq_along(levels(atlas.dt[, lobe])), x))
-  lobes <- sapply(2:(kNumLobes-1),
+  lobes <- lapply(2:(kNumLobes-1),
           function(z) apply(t(apply(t(combos[[z]]), 1,
                 function(x) levels(atlas.dt[, lobe])[x])), 1, paste, collapse=', '))
   lobes <- do.call('c', lobes)

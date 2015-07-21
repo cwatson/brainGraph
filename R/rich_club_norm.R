@@ -32,23 +32,23 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   if (is.null(rand)) {
     rand <- sim.rand.graph.par(g, N, clustering=F)
   } else {
-    if (!all(sapply(rand, is_igraph))) {
+    if (!all(vapply(rand, is_igraph, logical(1)))) {
       stop('Argument "rand" must be a list of igraph graph objects!')
     }
     N <- length(rand)
   }
 
   max.deg <- max(V(g)$degree)
-  if (all(sapply(rand, function(x) 'rich' %in% graph_attr_names(x)))) {
+  if (all(vapply(rand, function(x) 'rich' %in% graph_attr_names(x), logical(1)))) {
     phi.rand <- aaply(rand, .margins=1, function(x) x$rich$phi)
   } else {
     phi.rand <- laply(rand, function(x)
-                            sapply(seq_len(max.deg), function(y)
-                                   rich.club.coeff(x, y, ...)$phi),
+                            vapply(seq_len(max.deg), function(y)
+                                   rich.club.coeff(x, y, ...)$phi, numeric(1)),
                             .parallel=T)
   }
   phi.orig <- g$rich$phi
   phi.norm <- phi.orig / colMeans(phi.rand)
-  p <- sapply(seq_len(max.deg), function(x) sum(phi.rand[, x] > phi.orig[x]) / N)
+  p <- vapply(seq_len(max.deg), function(x) sum(phi.rand[, x] > phi.orig[x]) / N, numeric(1))
   return(list(phi.rand=phi.rand, phi.orig=phi.orig, phi.norm=phi.norm, p=p))
 }

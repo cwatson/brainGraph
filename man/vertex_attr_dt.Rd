@@ -12,7 +12,7 @@ vertex_attr_dt(g, Group = NULL)
 \item{Group}{A character string indicating group membership (default:NULL)}
 }
 \value{
-A data table with 16-17 columns and row number equal to the number of
+A data table with 18-19 columns and row number equal to the number of
 vertices in the graph
 }
 \description{
@@ -21,6 +21,7 @@ a vertex and each column is a different network measure (degree, centrality,
 etc.).
 }
 \seealso{
-\code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names}}
+\code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
+\link[igraph]{as_data_frame}}
 }
 

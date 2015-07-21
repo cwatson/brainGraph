@@ -4,26 +4,35 @@
 \alias{edge_asymmetry}
 \title{Calculate an asymmetry index based on edge counts}
 \usage{
-edge_asymmetry(g)
+edge_asymmetry(g, level = c("hemi", "vertex"), .parallel = T)
 }
 \arguments{
 \item{g}{The igraph graph object}
+
+\item{level}{A character string indicating whether to calculate asymmetry for
+each region, or the hemisphere as a whole (default: 'hemi')}
+
+\item{.parallel}{Logical indicating whether or not to use \emph{foreach}
+(default: TRUE)}
 }
 \value{
 A data table with edge counts for both hemispheres and the asymmetry
-index
+index; if \emph{level} is 'vertex', the data table will have \emph{vcount(g)}
+rows.
 }
 \description{
 This function will calculate an asymmetry index that is a measure of whether
-or not more edges are present in the left or right hemisphere of an igraph
-graph object for brain MRI data.
+or not more edges are present in the left or right hemisphere of a graph for
+brain MRI data. You can choose a value for each vertex, or for the whole
+hemisphere.
 }
 \details{
 The equation is:
 \deqn{A = \frac{E_{lh} - E_{rh}}{0.5 \times (E_{lh} + E_{rh})}}
 where \emph{lh} and \emph{rh} are left and right hemispheres, respectively.
-The range of this measure is \eqn{[-1, 1]}, with negative numbers
-indicating more edges in the left hemisphere, and a value of 0 indicating
+The range of this measure is \eqn{[-2, 2]} (although the limits will only be
+reached if all edges are in one hemisphere), with negative numbers
+indicating more edges in the right hemisphere, and a value of 0 indicating
 equal number of edges in each hemisphere.
 }
 \author{

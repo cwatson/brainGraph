@@ -40,15 +40,15 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     g.boot <- lapply(corrs, function(x)
                      simplify(graph.adjacency(x$r.thresh, mode='undirected')))
     if (measure == 'mod') {
-      res <- sapply(g.boot, function(x) modularity(cluster_louvain(x)))
+      res <- vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1))
     } else if (measure == 'E.global') {
-      res <- sapply(g.boot, graph.efficiency, 'global')
+      res <- vapply(g.boot, graph.efficiency, numeric(1), 'global')
     } else if (measure == 'Cp') {
-      res <- sapply(g.boot, transitivity, type='localaverage')
+      res <- vapply(g.boot, transitivity, numeric(1), type='localaverage')
     } else if (measure == 'Lp') {
-      res <- sapply(g.boot, average.path.length)
+      res <- vapply(g.boot, average.path.length, numeric(1))
     } else if (measure == 'assortativity') {
-      res <- sapply(g.boot, assortativity.degree)
+      res <- vapply(g.boot, assortativity.degree, numeric(1))
     }
     return(res)
   }
@@ -88,12 +88,14 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     ylab(measure)
 
   # Use the estimated normal 95% CI instead of se
-  ci1 <- sapply(seq_len(kNumDensities), function(x) boot.ci(boot1, type='norm',
-                                                           index=x)$normal[2:3])
-  ci2 <- sapply(seq_len(kNumDensities), function(x) boot.ci(boot2, type='norm',
-                                                           index=x)$normal[2:3])
-  boot.dt$ci.low <- c(ci1[1, ], ci2[1, ])
-  boot.dt$ci.high <- c(ci1[2, ], ci2[2, ])
+  ci1 <- vapply(seq_along(densities), function(x)
+                boot.ci(boot1, type='norm', index=x)$normal[2:3],
+                numeric(2))
+  ci2 <- vapply(seq_along(densities), function(x)
+                boot.ci(boot2, type='norm', index=x)$normal[2:3],
+                numeric(2))
+  boot.dt$ci.low <- cbind(ci1, ci2)[1, ]
+  boot.dt$ci.high <- cbind(ci1, ci2)[2, ]
   bootplot.ci <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() + geom_point() +
     geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3) +
