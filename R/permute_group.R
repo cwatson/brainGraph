@@ -1,13 +1,18 @@
 #' Permutation test for group difference of graph measures
 #'
 #' This function draws permutations from linear model residuals to determine the
-#' significance of between-group differences of a global graph measure. This
-#' function is intended for cortical thickness networks (in which there is only
-#' one graph per group), but is not restricted to that type of data.
+#' significance of between-group differences of a global or vertex-wise graph
+#' measure. This function is intended for cortical thickness networks (in which
+#' there is only one graph per group), but is not restricted to that type of
+#' data.
 #'
 #' The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 #' clustering coefficient, average path length, degree assortativity, global
-#' efficiency, lobe assortativity, and asymmetry.
+#' efficiency, lobe assortativity, and edge asymmetry.
+#'
+#' The \emph{vertex} "level" will calculate either betweenness centrality or
+#' vulnerability (of which only the maximum is taken, thus making this
+#' technically a \emph{graph} level measure).
 #'
 #' The \emph{lobe} "level" is intended to test for group differences in
 #' inter-lobar connections, e.g. from the temporal lobe to the rest of the
@@ -17,8 +22,6 @@
 #' \code{\link[permute]{shuffleSet}})
 #' @param density Numeric; the density of the resultant graphs
 #' @param resids A data table of the residuals (from \code{\link{get.resid}})
-#' @param groups A vector of group membership (can be factor or numeric)
-#' @param num.perms The number of permutations to perform (default: 1e3)
 #' @param level A character string for the attribute level to calculate
 #' differences; either 'graph', 'vertex', or 'lobe'
 #' @param atlas Character string of the atlas name
@@ -36,25 +39,26 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
+#' m <- get.resid(all.thick, covars)
 #' myPerms <- shuffleSet(n=nrow(m$resids), nset=1e3)
-#' out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'graph',
-#'   atlas='dk', atlas.dt)
-#' out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'vertex')
+#' out <- permute.group(myPerms, densities, m$resids, 1e3, 'graph', atlas='dk',
+#'    atlas.dt)
+#' out <- permute.group(myPerms, densities, m$resids, 1e3, 'vertex')
 #' }
 
-permute.group <- function(permSet, density, resids, groups, num.perms=1e3,
+permute.group <- function(permSet, density, resids,
                           level=c('graph', 'vertex', 'lobe'),
                           atlas, atlas.dt=NULL, measure=c('btwn.cent', 'vulnerability')) {
   i <- NULL
   level <- match.arg(level)
   measure <- match.arg(measure)
 
-  groups <- as.numeric(groups)
-  out <- foreach(i=seq_len(num.perms), .combine='rbind',
+  groups <- as.numeric(resids$Group)
+  out <- foreach(i=seq_len(nrow(permSet)), .combine='rbind',
                  .export='assign_lobes') %dopar% {
-    corrs1 <- corr.matrix(resids[which(groups[permSet[i, ]] == 1)][, !'Group', with=F],
+    corrs1 <- corr.matrix(resids[which(groups[permSet[i, ]] == 1), !'Group', with=F],
                           density=density)
-    corrs2 <- corr.matrix(resids[which(groups[permSet[i, ]] == 2)][, !'Group', with=F],
+    corrs2 <- corr.matrix(resids[which(groups[permSet[i, ]] == 2), !'Group', with=F],
                           density=density)
     g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
     g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)

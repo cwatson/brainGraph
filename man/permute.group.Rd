@@ -4,9 +4,8 @@
 \alias{permute.group}
 \title{Permutation test for group difference of graph measures}
 \usage{
-permute.group(permSet, density, resids, groups, num.perms = 1000,
-  level = c("graph", "vertex", "lobe"), atlas, atlas.dt = NULL,
-  measure = c("btwn.cent", "vulnerability"))
+permute.group(permSet, density, resids, level = c("graph", "vertex", "lobe"),
+  atlas, atlas.dt = NULL, measure = c("btwn.cent", "vulnerability"))
 }
 \arguments{
 \item{permSet}{The set of permutations to loop through (obtained from
@@ -15,10 +14,6 @@ permute.group(permSet, density, resids, groups, num.perms = 1000,
 \item{density}{Numeric; the density of the resultant graphs}
 
 \item{resids}{A data table of the residuals (from \code{\link{get.resid}})}
-
-\item{groups}{A vector of group membership (can be factor or numeric)}
-
-\item{num.perms}{The number of permutations to perform (default: 1e3)}
 
 \item{level}{A character string for the attribute level to calculate
 differences; either 'graph', 'vertex', or 'lobe'}
@@ -36,14 +31,19 @@ efficiency, clustering, average path length, and assortativity (etc.)
 }
 \description{
 This function draws permutations from linear model residuals to determine the
-significance of between-group differences of a global graph measure. This
-function is intended for cortical thickness networks (in which there is only
-one graph per group), but is not restricted to that type of data.
+significance of between-group differences of a global or vertex-wise graph
+measure. This function is intended for cortical thickness networks (in which
+there is only one graph per group), but is not restricted to that type of
+data.
 }
 \details{
 The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 clustering coefficient, average path length, degree assortativity, global
-efficiency, lobe assortativity, and asymmetry.
+efficiency, lobe assortativity, and edge asymmetry.
+
+The \emph{vertex} "level" will calculate either betweenness centrality or
+vulnerability (of which only the maximum is taken, thus making this
+technically a \emph{graph} level measure).
 
 The \emph{lobe} "level" is intended to test for group differences in
 inter-lobar connections, e.g. from the temporal lobe to the rest of the
@@ -51,10 +51,11 @@ brain.
 }
 \examples{
 \dontrun{
+m <- get.resid(all.thick, covars)
 myPerms <- shuffleSet(n=nrow(m$resids), nset=1e3)
-out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'graph',
-  atlas='dk', atlas.dt)
-out <- permute.group(myPerms, densities, m$resids, covars$Group, 1e3, 'vertex')
+out <- permute.group(myPerms, densities, m$resids, 1e3, 'graph', atlas='dk',
+   atlas.dt)
+out <- permute.group(myPerms, densities, m$resids, 1e3, 'vertex')
 }
 }
 \author{

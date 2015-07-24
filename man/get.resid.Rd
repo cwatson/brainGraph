@@ -16,11 +16,15 @@ subject ID column with \emph{thicknesses}}
 \value{
 A list with components:
 \item{models}{The \code{\link[stats]{lm}} objects for each brain region.}
-\item{resids}{Data table of residuals for all subjects and brain regions.}
+\item{resids}{Data table of studentized residuals for all subjects and brain
+regions.}
 }
 \description{
 This function runs linear models on the columns of the input data frame (e.g.
 cortical thickness data for each region), in order to adjust for relevant
 variables (e.g. age, sex, group, etc.).
+}
+\seealso{
+\code{\link{rstudent}}
 }
 

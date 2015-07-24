@@ -29,7 +29,7 @@ corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
   if (length(exclusions) == 0) {
     corrs <- rcorr(as.matrix(dat), ...)
   } else {
-    corrs <- rcorr(as.matrix(dat[, -exclusions]), ...)
+    corrs <- rcorr(as.matrix(dat[, -exclusions, with=F]), ...)
   }
   r <- corrs$r
   p <- corrs$P

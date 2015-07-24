@@ -16,4 +16,5 @@ This should install all of the dependencies needed along with the package
 itself.
 
 # Usage
-Stay tuned for the addition of the *brainGraph* User Guide.
+To see the *User Guide*, please use
+[this link.](https://www.dropbox.com/s/j831n3q9muyz1go/brainGraph_UserGuide.pdf?dl=0)

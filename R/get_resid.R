@@ -12,7 +12,9 @@
 #'
 #' @return A list with components:
 #' \item{models}{The \code{\link[stats]{lm}} objects for each brain region.}
-#' \item{resids}{Data table of residuals for all subjects and brain regions.}
+#' \item{resids}{Data table of studentized residuals for all subjects and brain
+#' regions.}
+#' @seealso \code{\link{rstudent}}
 
 get.resid <- function(thicknesses, covars) {
   Group <- NULL
