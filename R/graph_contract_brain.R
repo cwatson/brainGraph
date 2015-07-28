@@ -15,6 +15,8 @@
 #' @seealso \code{\link[igraph]{contract.vertices}}
 
 graph.contract.brain <- function(g) {
+  atlas <- g$atlas
+  atlas.dt <- eval(parse(text=data(list=atlas)))
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)
   E(g.sub)$weight <- 1
   g.sub <- simplify(g.sub)
@@ -25,7 +27,11 @@ graph.contract.brain <- function(g) {
   V(g.sub)$size <- vapply(1:max(V(g)$lobe.hemi),
                       function(m) mean(V(g)[V(g)$lobe.hemi==m]$degree), numeric(1))
   vcols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
-  vcols <- rep(vcols, each=2)
+  vcols <- rep(vcols, 2)
   V(g.sub)$color <- vcols
+  V(g.sub)$lobe <- rep(sort(unique(V(g)$lobe)), 2)
+  lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
+                 'lightgreen', 'lightblue', 'lightyellow')
+  E(g.sub)$color.lobe <- color.edges(g.sub, V(g.sub)$lobe, order=F, cols=lobe.cols)
   g.sub
 }

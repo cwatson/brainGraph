@@ -214,8 +214,9 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         verts <- n
         vnames <- V(g)[verts]$name
       }
-        if (V(g)[n]$degree < 2) {
+        if (n > 0 && V(g)[n]$degree < 2) {
           g.sub <- make_ego_graph(g, order=1, nodes=n)[[1]]
+          n <- 0
         } else {
           g.sub <- graph_neighborhood_multiple(g, verts)
           g.sub <- set.brainGraph.attributes(g.sub, atlas)

@@ -39,6 +39,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
 
   g$version <- packageVersion('brainGraph')
   if (rand == TRUE) {
+    if (!'degree' %in% graph_attr_names(g)) {
+      V(g)$degree <- degree(g)
+    }
     g$Cp <- transitivity(g, type='localaverage')
     g$Lp <- mean_distance(g)
     g$mod <- max(cluster_louvain(g)$modularity)

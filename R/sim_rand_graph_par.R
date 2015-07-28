@@ -27,12 +27,20 @@ sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
       tmp
     }
   } else {
-    iters <- max(10*ecount(g), 1e4)
-    r <- foreach(i=seq_len(N),
-                 .packages=c('igraph', 'brainGraph')) %dopar% {
-      tmp <- rewire(g, keeping_degseq(loops=F, iters))
-      tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
-      tmp
+    if (is_connected(g)) {
+      r <- foreach(i=seq_len(N)) %dopar% {
+        tmp <- sample_degseq(V(g)$degree, method='vl')
+        tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
+        tmp
+      }
+    } else {
+      iters <- max(10*ecount(g), 1e4)
+      r <- foreach(i=seq_len(N),
+                   .packages=c('igraph', 'brainGraph')) %dopar% {
+        tmp <- rewire(g, keeping_degseq(loops=F, iters))
+        tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
+        tmp
+      }
     }
   }
 }

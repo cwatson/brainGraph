@@ -33,11 +33,11 @@ plot_thickness <- function(dat, cur.region, type=c('histogram', 'violin')) {
                      aes(y=..density.., fill=Group)) +
       geom_vline(data=meandt, aes(xintercept=avg, col=Group), lty=2, size=0.5) +
       geom_density(aes(col=Group), size=0.8) + 
-      ggtitle(cur.region)
+      ggtitle(cur.region) + xlab('Cortical thickness (mm)')
   } else if (type == 'violin') {
     ggplot(dat[region == cur.region], aes(x=Group, y=thickness, fill=Group)) +
       geom_violin() +
       geom_boxplot(width=0.1) +
-      ggtitle(cur.region)
+      ggtitle(cur.region) + ylab('Cortical thickness (mm)')
   }
 }
