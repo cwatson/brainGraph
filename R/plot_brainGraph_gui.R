@@ -156,7 +156,7 @@ plot_brainGraph_gui <- function() {
     gui.params$comboVcolor$setActive(0)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
-    gui.params$comboHemi$setSensitive(F)
+    lapply(gui.params$comboHemi, function(x) x$setSensitive(F))
     gui.params$comboLobe$setSensitive(F)
 
     gSignalConnect(comboNeighb, 'changed', function(comboNeighb, ...) {
@@ -230,7 +230,7 @@ plot_brainGraph_gui <- function() {
     gui.params$comboVcolor$setActive(1)
     gui.params$showDiameter$setSensitive(F)
     gui.params$edgeDiffs$setSensitive(F)
-    gui.params$comboHemi$setSensitive(F)
+    lapply(gui.params$comboHemi, function(x) x$setSensitive(F))
     gui.params$comboLobe$setSensitive(F)
   }
 
@@ -349,7 +349,7 @@ plot_brainGraph_gui <- function() {
   frameG <- vboxG <- hboxOrient <- comboOrient <- graphname <- graphs <-
   hboxVsizeMin <- vertSize.adj <- vertSize.spin <- hboxVsizeEqn <-
   vertSizeEqn <- hboxEwidthMin <- edgeWidth.adj <- edgeWidth.spin <-
-  graphics <- vboxPlot <- groupplot <- vector('list', 2)
+  graphics <- vboxPlot <- groupplot <- comboHemi <- vector('list', 2)
   for (i in 1:2) {
     frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
@@ -371,6 +371,15 @@ plot_brainGraph_gui <- function() {
     if (nchar(graphname[[i]]$getText()) > 0) {
       graphs[[i]] <- eval(parse(text=graphname[[i]]$getText()))
     }
+    #-----------------------------------------------------------------------------
+    # Both, single hemi, inter-hemi, homologous, inter/intra community/lobe?
+    #-----------------------------------------------------------------------------
+    hboxHemi <- gtkHBoxNew(F, 6)
+    vboxG[[i]]$packStart(hboxHemi, F, F, 0)
+    choices <- c('Both hemispheres', 'Left only', 'Right only',
+                 'Interhemispheric only', 'Homologous only', 'Inter-community only',
+                 'Intra-community only', 'Inter-lobular only', 'Intra-lobular only')
+    comboHemi[[i]] <- add_combo(hboxHemi, choices, 'Hemi/edges')
   }
   kNumGroups <<- sum(vapply(graphname, function(x) nchar(x$getText()) > 0, logical(1)))
   #---------------------------------------------------------
@@ -563,24 +572,6 @@ plot_brainGraph_gui <- function() {
   edgeDiffs <- add_check(hbox, 'Show _edge differences?')
   if (kNumGroups <= 1) edgeDiffs$setSensitive(F)
 
-  #-----------------------------------------------------------------------------
-  # Both, single hemisphere, inter-hemispheric, or homologous only?
-  #---------------------------------------------------------
-  hboxHemi <- gtkHBoxNew(F, 6)
-  vbox$packStart(hboxHemi, F, F, 0)
-  choices <- c('Both', 'Left only', 'Right only', 'Interhemispheric only',
-               'Homologous only')
-  comboHemi <- add_combo(hboxHemi, choices, 'Hemisphere')
-  gSignalConnect(comboHemi, 'changed', function(widget, ...) {
-      if (widget$getActive() == 0) {
-        showDiameter$setSensitive(T)
-        edgeDiffs$setSensitive(T)
-      } else {
-        showDiameter$setSensitive(F)
-        edgeDiffs$setSensitive(F)
-      }
-  })
-
   # Major lobe number, if applicable
   atlas.dt <- eval(parse(text=data(list=atlas)))
   hboxLobe <- gtkHBoxNew(F, 6)
@@ -655,7 +646,7 @@ plot_brainGraph_gui <- function() {
     update_brainGraph_gui(plotDev=groupplot[[j]], graph1=graphs[[j]],
                           graph2=graphs[[other.ind]], plotFunc=plotFunc,
                           vertSize=comboVsize, edgeWidth=comboEwidth,
-                          vertColor=comboVcolor, hemi=comboHemi, lobe=comboLobe,
+                          vertColor=comboVcolor, hemi=comboHemi[[j]], lobe=comboLobe,
                           orient=comboOrient[[j]], vertSize.min=vertSize.spin[[j]],
                           edgeWidth.min=edgeWidth.spin[[j]],
                           vertSize.const=vertSize.const, edgeWidth.const=edgeWidth.const,
@@ -674,7 +665,7 @@ plot_brainGraph_gui <- function() {
   slider <<- vector('list', length=2)
   orient_cb <- function(widget, ind) {
     if (widget$getActive() == 3) {
-      comboHemi$setSensitive(T)
+      comboHemi[[ind]]$setSensitive(T)
       slider[[ind]] <<- gtkHScaleNewWithRange(min=-1, max=1, step=0.05)
       vboxPlot[[ind]]$packStart(slider[[ind]], F, F, 0)
       slider[[ind]]$setValue(0.25)
@@ -686,15 +677,16 @@ plot_brainGraph_gui <- function() {
         for (i in 2:kNumChildren) vboxPlot[[ind]][[i]]$destroy()
       }
       if (widget$getActive() == 1) {
-        comboHemi$setActive(1)
-        comboHemi$setSensitive(F)
+        comboHemi[[ind]]$setActive(1)
+        comboHemi[[ind]]$setSensitive(F)
       } else if (widget$getActive() == 2) {
-        comboHemi$setActive(2)
-        comboHemi$setSensitive(F)
+        comboHemi[[ind]]$setActive(2)
+        comboHemi[[ind]]$setSensitive(F)
       } else {
-        comboHemi$setSensitive(T)
+        comboHemi[[ind]]$setSensitive(T)
       }
     }
+    updateFun(ind)
   }
   gSignalConnect(comboOrient[[1]], 'changed', orient_cb, 1)
   gSignalConnect(comboOrient[[2]], 'changed', orient_cb, 2)

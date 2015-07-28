@@ -26,15 +26,10 @@
 #' 'small-world' networks}. Nature, 393:440-442.
 
 small.world <- function(g, rand) {
-  if (is.igraph(g)) {
-    Lp <- g$Lp
-    Cp <- g$Cp
-    densities <- g$density
-  } else {
-    Lp <- vapply(g, function(x) graph_attr(x, 'Lp'), numeric(1))
-    Cp <- vapply(g, function(x) graph_attr(x, 'Cp'), numeric(1))
-    densities <- vapply(g, function(x) graph_attr(x, 'density'), numeric(1))
-  }
+  if (is.igraph(g)) g <- list(g)  # Single graph at a single density
+  Lp <- vapply(g, function(x) graph_attr(x, 'Lp'), numeric(1))
+  Cp <- vapply(g, function(x) graph_attr(x, 'Cp'), numeric(1))
+  densities <- vapply(g, function(x) graph_attr(x, 'density'), numeric(1))
 
   if (is.igraph(rand[[1]])) {
     Lp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Lp'), numeric(1)))
@@ -66,7 +61,6 @@ small.world <- function(g, rand) {
   Cp.norm <- Cp / Cp.rand
   Lp.norm <- Lp / Lp.rand
   sigma <- Cp.norm / Lp.norm
-  return(data.table(density=densities, N=N, Lp=Lp, Cp=Cp, Lp.rand=Lp.rand,
-                    Cp.rand=Cp.rand, Lp.norm=Lp.norm, Cp.norm=Cp.norm,
-                    sigma=sigma))
+  return(data.table(density=densities, N, Lp, Cp, Lp.rand, Cp.rand, Lp.norm,
+                    Cp.norm, sigma))
 }

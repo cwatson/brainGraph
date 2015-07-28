@@ -16,7 +16,7 @@ set.brainGraph.attributes(g, atlas = NULL, rand = FALSE)
 \value{
 g A copy of the same graph, with the following attributes:
 \item{Graph-level}{Package version, atlas, density, connected component sizes,
-diameter, # of triangles, transitivity, average path length, assortativity,
+diameter, \# of triangles, transitivity, average path length, assortativity,
 clique number, global & local efficiency, modularity, vulnerability, hub score,
 rich-club coefficient, and edge asymmetry}
 \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
@@ -35,15 +35,15 @@ given igraph object.
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
-\code{\link{components}, \link{graph.motifs}, \link{diameter},
-\link[igraph]{clique_num}, \link{centralization.betweenness},
-\link{edge.betweenness}, \link{centralization.evcent},
-\link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
-\link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
-\link{graph.efficiency}, \link{rich.club.coeff},
-\link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-\link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-\link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry},
-\link[igraph]{graph.knn}}
+\code{\link[igraph]{components}, \link[igraph]{diameter},
+\link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part.coeff},
+\link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
+\link[igraph]{subgraph.centrality}, \link[igraph]{hub.score},
+\link[igraph]{authority.score}, \link[igraph]{transitivity},
+\link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
+\link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},
+\link{rich.club.coeff}, \link{within_module_deg_z_score},
+\link[igraph]{coreness}, \link{spatial.dist}, \link{vulnerability},
+\link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn}}
 }
 

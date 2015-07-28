@@ -22,7 +22,7 @@ count_homologous <- function(g) {
     regions.l <- paste0('l', regions)
     regions.r <- paste0('r', regions)
 
-    eids <- unlist(mapply(function(x, y)
+    eids <- unlist(Map(function(x, y)
                           as.numeric(E(g)[x %--% y]),
                           regions.l,
                           regions.r))

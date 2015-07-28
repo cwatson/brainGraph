@@ -85,32 +85,48 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     #=======================================================
     # Hemisphere to plot
     #=======================================================
-    if (hemi$getActive() == 0) {
-      # Both hemispheres
+    if (hemi$getActive() == 0) {  # Both hemispheres
       sg.hemi <- g
       memb.hemi <- seq_len(Nv)
 
-    } else if (hemi$getActive() == 1) {
-      # LH only
+    } else if (hemi$getActive() == 1) {  # LH only
       memb.hemi <- which(V(g)$hemi == 'L')
       sg.hemi <- induced.subgraph(g, memb.hemi)
 
-    } else if (hemi$getActive() == 2) {
-      # RH only
+    } else if (hemi$getActive() == 2) {  # RH only
       memb.hemi <- which(V(g)$hemi == 'R')
       sg.hemi <- induced.subgraph(g, memb.hemi)
 
-    } else if (hemi$getActive() == 3) {
-      # Interhemispheric only
+    } else if (hemi$getActive() == 3) {  # Interhemispheric only
       if (atlas %in% c('aal90', 'lpba40', 'hoa112')) {
         sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[seq(1, Nv, 2) %--% seq(2, Nv, 2)])
       } else {
         sg.hemi <- g - E(g) + subgraph.edges(g, E(g)[1:(Nv/2) %--% (Nv/2 + 1):Nv])
       }
       memb.hemi <- seq_len(Nv)
-    } else if (hemi$getActive() == 4) {
-      # Homologous connections only
+    } else if (hemi$getActive() == 4) {  # Homologous connections only
       eids <- count_homologous(g)
+      sg.hemi <- subgraph.edges(g, eids)
+      memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
+    } else if (hemi$getActive() > 4) {
+      groups <- switch(hemi$getActive() - 4,
+                       seq_len(max(V(g)$comm)),
+                       seq_len(max(V(g)$comm)),
+                       sort(unique(V(g)$lobe)),
+                       sort(unique(V(g)$lobe)))
+      eids <- switch(hemi$getActive() - 4,
+                     unique(unlist(sapply(groups, function(x)
+                                          as.numeric(E(g)[which(V(g)$comm == x) %--%
+                                                     which(V(g)$comm %in% groups[-x])])))),
+                     unique(unlist(sapply(groups, function(x)
+                                          as.numeric(E(g)[which(V(g)$comm == x) %--%
+                                                     which(V(g)$comm == x)])))),
+                     unique(unlist(sapply(groups, function(x)
+                                          as.numeric(E(g)[which(V(g)$lobe == x) %--%
+                                                     which(V(g)$lobe %in% groups[-x])])))),
+                     unique(unlist(sapply(groups, function(x)
+                                          as.numeric(E(g)[which(V(g)$lobe == x) %--%
+                                                     which(V(g)$lobe == x)])))))
       sg.hemi <- subgraph.edges(g, eids)
       memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
     }
@@ -198,8 +214,12 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         verts <- n
         vnames <- V(g)[verts]$name
       }
-        g.sub <- graph_neighborhood_multiple(g, verts)
-        g.sub <- set.brainGraph.attributes(g.sub, atlas)
+        if (V(g)[n]$degree < 2) {
+          g.sub <- make_ego_graph(g, order=1, nodes=n)[[1]]
+        } else {
+          g.sub <- graph_neighborhood_multiple(g, verts)
+          g.sub <- set.brainGraph.attributes(g.sub, atlas)
+        }
         g <- g.sub
         verts <- which(V(g)$name %in% vnames)
         Nv <- vcount(g)
@@ -311,13 +331,13 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       e.const <- eval(parse(text=edgeWidth.const$getText()))
     }
 
-    if (edgeWidth$getActive() == 0) {
+    if (edgeWidth$getActive() == 0) {  # Constant
       ewidth <- e.const
-    } else if (edgeWidth$getActive() == 1) {
+    } else if (edgeWidth$getActive() == 1) {  # Edge betweenness
       e.min <- edgeWidth.min$getValue()
       g <- delete.edges(g, which(E(g)$btwn < e.min))
       ewidth <- log1p(E(g)$btwn)
-    } else if (edgeWidth$getActive() == 2) {
+    } else if (edgeWidth$getActive() == 2) {  # Euclidean distance
       e.min <- edgeWidth.min$getValue()
       g <- delete.edges(g, which(E(g)$dist < e.min))
       ewidth <- vec.transform(E(g)$dist, 0.1, 5)
@@ -332,7 +352,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                            V(g)$color.class
     )
     edge.color <- switch(vertColor$getActive() + 1,
-                         'red',
+                         rep('red', ecount(g)),
                          E(g)$color.comm,
                          E(g)$color.lobe,
                          E(g)$color.comp,

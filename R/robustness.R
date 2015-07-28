@@ -44,17 +44,17 @@ robustness <- function(g, type=c('vertex', 'edge'),
     }
 
   } else {
+    m <- ecount(g)
     if (measure == 'degree') {
       stop('For edge attacks, must choose "btwn.cent" or "random"!')
     } else if (measure == 'random') {
-      m <- ecount(g)
       ord <- sample(m)
     } else {
       ord <- order(E(g)$btwn, decreasing=T)
     }
 
     verts <- as_edgelist(g)[ord, ]
-    max.comp <- vector('integer', length=length(ord)+1)
+    max.comp <- vector('integer', length=m+1)
     max.comp[1] <- g$conn.comp[1, 1]
     for (i in seq_along(ord)) {
       g <- delete.edges(g, E(g)[verts[ord[i], 1] %--% verts[ord[i], 2]])

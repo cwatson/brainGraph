@@ -11,7 +11,7 @@
 #'
 #' @return g A copy of the same graph, with the following attributes:
 #' \item{Graph-level}{Package version, atlas, density, connected component sizes,
-#' diameter, # of triangles, transitivity, average path length, assortativity,
+#' diameter, \# of triangles, transitivity, average path length, assortativity,
 #' clique number, global & local efficiency, modularity, vulnerability, hub score,
 #' rich-club coefficient, and edge asymmetry}
 #' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
@@ -22,16 +22,16 @@
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
 #' betweenness, Euclidean distance (in mm)}
 #'
-#' @seealso \code{\link{components}, \link{graph.motifs}, \link{diameter},
-#' \link[igraph]{clique_num}, \link{centralization.betweenness},
-#' \link{edge.betweenness}, \link{centralization.evcent},
-#' \link{subgraph.centrality}, \link{hub.score}, \link{authority.score},
-#' \link{transitivity}, \link{average.path.length}, \link{assortativity.degree},
-#' \link{graph.efficiency}, \link{rich.club.coeff},
-#' \link{edge.betweenness.community}, \link{color.edges}, \link{part.coeff},
-#' \link{within_module_deg_z_score},\link{graph.coreness},\link{spatial.dist},
-#' \link{vulnerability}, \link{centr_lev}, \link{edge_asymmetry},
-#' \link[igraph]{graph.knn}}
+#' @seealso \code{\link[igraph]{components}, \link[igraph]{diameter},
+#' \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part.coeff},
+#' \link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
+#' \link[igraph]{subgraph.centrality}, \link[igraph]{hub.score},
+#' \link[igraph]{authority.score}, \link[igraph]{transitivity},
+#' \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
+#' \link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},
+#' \link{rich.club.coeff}, \link{within_module_deg_z_score},
+#' \link[igraph]{coreness}, \link{spatial.dist}, \link{vulnerability},
+#' \link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -40,8 +40,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
   g$version <- packageVersion('brainGraph')
   if (rand == TRUE) {
     g$Cp <- transitivity(g, type='localaverage')
-    g$Lp <- average.path.length(g)
-    g$mod <- max(multilevel.community(g)$modularity)
+    g$Lp <- mean_distance(g)
+    g$mod <- max(cluster_louvain(g)$modularity)
     g$E.global <- graph.efficiency(g, 'global')
     # Get the rich club coeff for all possible degree values
     R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
@@ -56,7 +56,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     # Graph-level attributes
     #-----------------------------------------------------------------------------
     g$density <- round(graph.density(g), digits=3)
-  
+
     # Connected components
     clusts <- components(g)
     comps <- rev(table(clusts$csize))
@@ -65,13 +65,13 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g)
-  
+
     g$transitivity <- transitivity(g)
     g$Cp <- transitivity(g, type='localaverage')
-    g$Lp <- average.path.length(g)
+    g$Lp <- mean_distance(g)
     g$assortativity <- assortativity.degree(g)
     g$E.global <- graph.efficiency(g, type='global')
-  
+
     # Get the rich club coeff for all possible degree values
     R <- lapply(1:max(V(g)$degree), function(x) rich.club.coeff(g, x))
     phi <- vapply(R, with, numeric(1), phi)
@@ -88,7 +88,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       Ek <- vapply(R, with, numeric(1), Ek)
       g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
     }
-  
+
     if (is.directed(g)) {
       hubs <- hub.score(g)
       g$hub.score <- hubs$value
@@ -97,7 +97,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       V(g)$hub.score <- hubs$vector
       V(g)$authority.score <- authorities$vector
     }
-  
+
     # Vertex-level attributes
     #-----------------------------------------------------------------------------
     # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
@@ -109,7 +109,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
                      'lightgreen', 'lightblue', 'lightyellow')
       V(g)$color.lobe <- lobe.cols[V(g)$lobe]
-  
+
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
       E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
@@ -122,7 +122,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
         E(g)$color.class <- color.edges(g, V(g)$class, order=F, cols=lobe.cols)
       }
-  
+
       # Add the spatial coordinates for plotting over the brain
       if ('name' %in% vertex_attr_names(g)) {
         x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
@@ -135,7 +135,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
         V(g)$z.mni <- atlas.dt[vorder, z.mni]
       }
     }
-  
+
     V(g)$knn <- graph.knn(g)$knn
     V(g)$btwn.cent <- centr_betw(g)$res
     V(g)$ev.cent <- centr_eigen(g)$vector
@@ -148,24 +148,24 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g)
     g$vulnerability <- max(V(g)$vulnerability)
-  
+
     # Community stuff
     comm <- cluster_louvain(g)
     V(g)$comm <- comm$membership
     vcolors <- color.vertices(V(g)$comm, lobe.cols)
     V(g)$color.comm <- vcolors[V(g)$comm]
     E(g)$color.comm <- color.edges(g, V(g)$comm, cols=lobe.cols)
-  
+
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
-  
+
     V(g)$PC <- part.coeff(g, V(g)$comm)
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
     g$mod <- max(comm$modularity)
-  
+
     V(g)$comp <- clusts$membership
     vcolors <- color.vertices(clusts$membership, lobe.cols)
     V(g)$color.comp <- vcolors[clusts$membership]
-  
+
     # Edge attributes
     #-----------------------------------------------------------------------------
     E(g)$color.comp <- color.edges(g, clusts$membership, cols=lobe.cols)

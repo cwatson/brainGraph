@@ -70,7 +70,7 @@ permute.group <- function(permSet, density, resids,
         V(g1)$degree <- degree(g1)
         V(g2)$degree <- degree(g2)
         vuln.diff <- max(vulnerability(g1), .parallel=F) - max(vulnerability(g2), .parallel=F)
-        tmp <- data.table(density=density, vulnerability=vuln.diff)
+        tmp <- c(density, vuln.diff)
       } else {
         btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
         tmp <- as.data.table(cbind(density, t(btwn.diff)))

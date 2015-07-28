@@ -36,11 +36,11 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
 
   test <- match.arg(test)
   if (test == 't.test') {
-    stats <- mapply(function(x, y) t.test(meas1[x, ], meas2[y, ]),
-                      seq_len(Nv), seq_len(Nv), SIMPLIFY=F)
+    stats <- Map(function(x, y) t.test(meas1[x, ], meas2[y, ]),
+                      seq_len(Nv), seq_len(Nv))
   } else if (test == 'wilcox.test') {
-    stats <- mapply(function(x, y) wilcox.test(meas1[x, ], meas2[y, ]),
-                      seq_len(Nv), seq_len(Nv), SIMPLIFY=F)
+    stats <- Map(function(x, y) wilcox.test(meas1[x, ], meas2[y, ]),
+                      seq_len(Nv), seq_len(Nv))
   }
 
   g.diffs <- g1[[1]]

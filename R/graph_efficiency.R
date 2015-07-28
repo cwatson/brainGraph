@@ -51,7 +51,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
 
   type <- match.arg(type)
   if (type == 'local') {
-    eff <- numeric(length(degs))
+    eff <- rep(0, length(degs))
     nodes <- which(degs > 1)
 
     eff[nodes] <- simplify2array(mclapply(nodes, function(x) {
@@ -64,21 +64,11 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
       2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
       }, mc.cores=detectCores())
     )
-  } else if (type == 'nodal') {
-    Nv <- length(degs)
-    paths <- shortest.paths(g, weights=weights)
-    eff <- simplify2array(mclapply(seq_len(Nv), function(x) {
-      path <- paths[x, ]
-      eff <- sum(1 / path[path != 0]) / (Nv - 1)
-      }, mc.cores=detectCores())
-    )
   } else {
     Nv <- length(degs)
-    nodes <- V(g)[degs != 0]
-    paths <- shortest.paths(g, v=nodes, to=nodes, weights=weights)
-    paths <- paths[upper.tri(paths)]
-
-    eff <- 2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
+    eff <- apply(shortest.paths(g, weights=weights), 2, function(x)
+                 sum(1 / x[x != 0]) / (Nv - 1))
+    if (type == 'global') eff <- mean(eff)
   }
   return(eff)
 }
