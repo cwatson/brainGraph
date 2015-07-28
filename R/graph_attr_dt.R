@@ -25,6 +25,7 @@ graph_attr_dt <- function(g.list, Group=NULL) {
     E.global=vapply(g.list, function(x) x$E.global, numeric(1)),
     E.local=vapply(g.list, function(x) x$E.local, numeric(1)),
     mod=vapply(g.list, function(x) x$mod, numeric(1)),
+    num.hubs=vapply(g.list, function(x) x$num.hubs, numeric(1)),
     asymm=vapply(g.list, function(x) x$asymm, numeric(1)),
     vulnerability=vapply(g.list, function(x) x$vulnerability, numeric(1)))
 

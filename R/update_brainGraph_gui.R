@@ -306,14 +306,14 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
           vsize <- vsize[!is.nan(vsize)]
         }
 
-      } else if (vertSize$getActive() == 15) {
+      } else if (i == 15) {  # Other
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
-        if (v.attr %in% c('p', 'p.adj', 'p.perm')) {
+        if (v.attr %in% c('p', 'p.adj', 'p.perm', 'hubs')) {
           vsize <- mult * 15 * vertex_attr(g, v.attr)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
-      } else if (vertSize$getActive() == 16) {  # equation
+      } else if (i == 16) {  # equation
         x <- vertSize.eqn$getText()
         if (nchar(x) > 0) {
           subs <- strsplit(x, split='&')[[1]]

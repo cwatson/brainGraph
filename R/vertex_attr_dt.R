@@ -23,6 +23,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          degree=V(g)$degree,
                          knn=V(g)$knn,
                          btwn.cent=V(g)$btwn.cent,
+                         hubs=V(g)$hubs,
                          ev.cent=V(g)$ev.cent,
                          subg.cent=V(g)$subgraph.cent,
                          lev.cent=V(g)$lev.cent,

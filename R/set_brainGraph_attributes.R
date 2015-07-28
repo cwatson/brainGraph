@@ -13,9 +13,9 @@
 #' \item{Graph-level}{Package version, atlas, density, connected component sizes,
 #' diameter, \# of triangles, transitivity, average path length, assortativity,
 #' clique number, global & local efficiency, modularity, vulnerability, hub score,
-#' rich-club coefficient, and edge asymmetry}
+#' rich-club coefficient, \# of hubs, and edge asymmetry}
 #' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
-#' leverage centralities, transitivity (local), coreness, local & nodal
+#' leverage centralities, hubs, transitivity (local), coreness, local & nodal
 #' efficiency, color (community), color (lobe), color (component), membership
 #' (community), membership (component), participation coefficient, within-module
 #' degree z-score, vulnerability, and coordinates (x, y, and z)}
@@ -141,6 +141,10 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
 
     V(g)$knn <- graph.knn(g)$knn
     V(g)$btwn.cent <- centr_betw(g)$res
+    # I define hubs as vertices w/ btwn.cent > mean + sd
+    V(g)$hubs <- 0
+    V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
+    g$num.hubs <- sum(V(g)$hubs)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$subgraph.cent <- subgraph.centrality(g)
     V(g)$lev.cent <- centr_lev(g)
