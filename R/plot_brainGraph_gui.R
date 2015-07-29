@@ -396,9 +396,7 @@ plot_brainGraph_gui <- function() {
   hboxVcolor <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
-  if (atlas == 'destrieux') {
-    choices <- c(choices, 'Class')
-  }
+  if (atlas == 'destrieux') choices <- c(choices, 'Class')
 
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
 
@@ -497,10 +495,6 @@ plot_brainGraph_gui <- function() {
             newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
                               ifelse(diff(rangeX) < 1, 0.01, 0.1))
             newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
-            #gtkAdjustmentConfigure(vertSize.adj[[j]], value=newMin, lower=newMin, upper=newMax,
-            #                       step.increment=newStep, page.increment=0, page.size=0)
-            #gtkSpinButtonConfigure(vertSize.spin[[j]], vertSize.adj[[j]],
-            #                       climb.rate=newStep, digits=newDigits)
             gtkSpinButtonSetDigits(vertSize.spin[[j]], newDigits)
             gtkSpinButtonSetIncrements(vertSize.spin[[j]], step=newStep, page=0)
             gtkSpinButtonSetRange(vertSize.spin[[j]], min=newMin, max=newMax)
@@ -524,6 +518,7 @@ plot_brainGraph_gui <- function() {
   hboxEwidth <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxEwidth, F, F, 0)
   choices <- c('Constant', 'Edge betweenness', 'Distance')
+  if ('weight' %in% edge_attr_names(graphs[[1]])) choices <- c(choices, 'Weight')
   comboEwidth <- add_combo(hboxEwidth, choices, 'Edge width')
 
   edgeWidth.const <- add_entry(hboxEwidth, char.width=3, entry.text='1')
@@ -542,7 +537,7 @@ plot_brainGraph_gui <- function() {
     edgeWidth.spin[[i]]$setSensitive(F)
   }
 
-  ewidth.opts <<- c('const', 'btwn', 'dist')
+  ewidth.opts <<- c('const', 'btwn', 'dist', 'weight')
   gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
     i <- widget$getActive()
     if (i == 0) {  # 'Constant'
@@ -553,11 +548,15 @@ plot_brainGraph_gui <- function() {
       lapply(edgeWidth.spin, function(x) x$setSensitive(T))
       for (j in seq_len(kNumGroups)) {
         rangeX <- range(edge_attr(graphs[[j]], ewidth.opts[i + 1]), na.rm=T)
-        gtkAdjustmentConfigure(edgeWidth.adj[[j]], value=rangeX[1],
-                               lower=rangeX[1], upper=rangeX[2],
-                               step.increment=1, page.increment=0, page.size=0)
-        gtkSpinButtonConfigure(edgeWidth.spin[[j]], edgeWidth.adj[[j]],
-                               climb.rate=1, digits=0)
+        newMin <- rangeX[1]
+        newMax <- rangeX[2]
+        newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
+                          ifelse(diff(rangeX) < 1, 0.01, 0.1))
+        newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
+        gtkSpinButtonSetDigits(edgeWidth.spin[[j]], newDigits)
+        gtkSpinButtonSetIncrements(edgeWidth.spin[[j]], step=newStep, page=0)
+        gtkSpinButtonSetRange(edgeWidth.spin[[j]], min=newMin, max=newMax)
+        gtkSpinButtonSetValue(edgeWidth.spin[[j]], newMin)
       }
     }
   })

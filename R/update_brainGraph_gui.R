@@ -342,6 +342,10 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       e.min <- edgeWidth.min$getValue()
       g <- delete.edges(g, which(E(g)$dist < e.min))
       ewidth <- vec.transform(E(g)$dist, 0.1, 5)
+    } else if (edgeWidth$getActive() == 3) {  # Edge weight
+      e.min <- edgeWidth.min$getValue()
+      g <- delete.edges(g, which(E(g)$weight < e.min))
+      ewidth <- vec.transform(E(g)$weight, min(E(g)$weight), 5)
     }
 
     # Vertex & edge colors

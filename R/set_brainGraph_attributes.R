@@ -85,7 +85,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     if (is.weighted(g)) {
       V(g)$strength <- graph.strength(g)
       R <- lapply(1:max(V(g)$degree),
-                  function(x)rich.club.coeff(g, x, weighted=T))
+                  function(x) rich.club.coeff(g, x, weighted=T))
       phi <- vapply(R, with, numeric(1), phi)
       Nk <- vapply(R, with, numeric(1), Nk)
       Ek <- vapply(R, with, numeric(1), Ek)
