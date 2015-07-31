@@ -158,7 +158,11 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     comm <- cluster_louvain(g)
     x <- comm$membership
     tab <- sort(table(x), decreasing=TRUE)
-    V(g)$comm <- as.integer(names(tab))[x]
+    x.new <- rep(0, length(x))
+    for (i in seq_along(tab)) {
+      x.new[which(x == as.integer(names(tab))[i])] <- i
+    }
+    V(g)$comm <- x.new#as.integer(names(tab))[x]
     vcolors <- color.vertices(V(g)$comm)
     V(g)$color.comm <- vcolors[V(g)$comm]
     E(g)$color.comm <- color.edges(g, V(g)$comm)
@@ -171,7 +175,11 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
 
     x <- clusts$membership
     tab <- sort(table(x), decreasing=TRUE)
-    V(g)$comp <- as.integer(names(tab))[x]
+    x.new <- rep(0, length(x))
+    for (i in seq_along(tab)) {
+      x.new[which(x == as.integer(names(tab))[i])] <- i
+    }
+    V(g)$comp <- x.new#as.integer(names(tab))[x]
     vcolors <- color.vertices(V(g)$comp)
     V(g)$color.comp <- vcolors[clusts$membership]
     E(g)$color.comp <- color.edges(g, V(g)$comp)

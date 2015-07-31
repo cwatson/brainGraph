@@ -39,7 +39,7 @@ plot_corr_mat <- function(c1, c2, ordered=TRUE, type=c('comm', 'lobe'), g1,
         memb <- vertex_attr(graph, v.attr)
         if (v.attr == 'comm') {
           tab <- table(memb)
-          group.nums <- as.integer(names(tab[rev(order(tab))]))
+          group.nums <- as.integer(names(tab))
           group.max <- length(group.nums)
           group.nums <- c(group.nums, group.max + 1, group.max + 2)
           new.order <- order(match(memb, group.nums))
