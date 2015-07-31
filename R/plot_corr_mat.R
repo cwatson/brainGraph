@@ -64,35 +64,35 @@ plot_corr_mat <- function(c1, c2, ordered=TRUE, type=c('comm', 'lobe'), g1,
         if (v.attr == 'comm') {
           dat.m[, memb := factor(memb, levels=seq_len(max(memb)))]
         } else {
+          dat.m[, memb1 := factor(memb1, levels=group.nums)]
           dat.m[, memb := factor(memb, levels=group.nums)]
         }
         dat.m[, legend.t := legend.title]
         cols.new <- c(cols[seq_len(nlevels(dat.m$memb) - 2)], 'gray50', 'white')
         dat.m[, color := cols.new[as.numeric(memb)]]
         dat.m[, color := factor(color, levels=cols.new)]
-        dat.m[, color.text := cols.new[as.numeric(memb1)]]
+        dat.m[, color.text := cols[as.numeric(memb1)]]
         return(dat.m)
       }
       c1.m <- create.dt(c1, g1, type)
       c2.m <- create.dt(c2, g2, type)
-      #cols.list <- list(c(cols[seq_len(nlevels(c1.m$memb) - 2)], 'gray50', 'white'),
-      #                  c(cols[seq_len(nlevels(c2.m$memb) - 2)], 'gray50', 'white'))
 
-      mats <- Map(function(w, y) {#, z) {
+      mats <- Map(function(w, y) {
         w$Group <- y
-        browser()
         ggplot(w, aes(Var1, Var2, fill=memb)) +
         geom_tile() +
         scale_fill_manual(values=w[, levels(color)]) +
         ggtitle(y) +
         theme(axis.ticks=element_blank(),
-             axis.text.x=element_text(size=0.7*base_size, angle=45, color=w[1:68, color.text]),
+             axis.text.x=element_text(size=0.7*base_size, angle=45,
+                                      color=w[1:68, color.text]),
              axis.title.x=element_blank(),
-             axis.text.y=element_text(size=0.7*base_size, color=w[rev(1:68), color.text]),
+             axis.text.y=element_text(size=0.7*base_size,
+                                      color=w[rev(1:68), color.text]),
              axis.title.y=element_blank()) +
         labs(fill=w[, unique(legend.t)]) +
         ylim(rev(levels(w$Var2)))},
-        list(c1.m, c2.m), as.list(groups))#, cols.list)
+        list(c1.m, c2.m), as.list(groups))
 
     return(list(g1=mats[[1]], g2=mats[[2]]))
   }

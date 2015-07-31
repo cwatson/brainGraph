@@ -247,7 +247,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       }
       cNums <- combos[[ind1]][, ind2]
       #comms <- as.numeric(names(rev(sort(table(V(g)$comm)))[cNums]))
-      comms <- seq_len(max(V(g)$comm))
+      comms <- seq_len(max(V(g)$comm))[cNums]
       memb <- which(V(g)$comm %in% comms)
       g.sub <- induced.subgraph(g, memb)
       lobe.cols <- group.cols

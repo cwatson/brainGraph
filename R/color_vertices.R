@@ -2,7 +2,8 @@
 #'
 #' This function takes an integer vector (representing membership of a community
 #' or component) and creates a character vector of colors for each
-#' community/module, component, etc.
+#' community/module, component, etc. This only assigns a color to groups with at
+#' least 2 members; isolated vertices will be colored 'gray'.
 #'
 #' @param memb An integer vector representing membership of e.g. a community
 #'
@@ -10,17 +11,10 @@
 #' lobes, components, etc.
 
 color.vertices <- function(memb) {
-  cols <- group.cols
-
-  # Find out how many communities exist that have >= 2 members
-  mod.sizes <- as.integer(table(memb))
-  big.modules <- which(mod.sizes >= 2)
-  big.mod.sizes <- mod.sizes[big.modules]
+  big.modules <- which(as.integer(table(memb)) > 1)
 
   mod.colors.memb <- rep('gray', length=max(memb))
-  for (i in seq_along(big.modules)) {
-    mod.colors.memb[big.modules[i]] <- cols[i]
-  }
+  mod.colors.memb[big.modules] <- group.cols[big.modules]
 
   return(mod.colors.memb)
 }

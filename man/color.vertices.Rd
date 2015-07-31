@@ -16,6 +16,7 @@ lobes, components, etc.
 \description{
 This function takes an integer vector (representing membership of a community
 or component) and creates a character vector of colors for each
-community/module, component, etc.
+community/module, component, etc. This only assigns a color to groups with at
+least 2 members; isolated vertices will be colored 'gray'.
 }
 
