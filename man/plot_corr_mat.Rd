@@ -4,8 +4,8 @@
 \alias{plot_corr_mat}
 \title{Plot correlation matrices}
 \usage{
-plot_corr_mat(c1, c2, ordered = TRUE, type = c("comm", "lobe"), g1 = NULL,
-  g2 = NULL, groups = c("Group 1", "Group 2"))
+plot_corr_mat(c1, c2, ordered = TRUE, type = c("comm", "lobe"), g1, g2,
+  groups = c("Group 1", "Group 2"))
 }
 \arguments{
 \item{c1}{The correlation matrix for group 1}

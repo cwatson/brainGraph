@@ -4,16 +4,12 @@
 \alias{color.edges}
 \title{Color graph edges}
 \usage{
-color.edges(g, memb, order = TRUE, cols = NULL)
+color.edges(g, memb)
 }
 \arguments{
 \item{g}{The graph to get its edges colored}
 
 \item{memb}{An integer vector indicating vertex group membership}
-
-\item{order}{A logical indicating if groups should be ordered by size}
-
-\item{cols}{A character vector of the colors each vertex group should take}
 }
 \value{
 A character vector of colors for each edge in the graph
@@ -21,9 +17,8 @@ A character vector of colors for each edge in the graph
 \description{
 This function takes the community membership of a given graph, and assigns
 to the edges a specific color (the same as the vertex membership colors).
-Currently only works for up to 9 communities (colored: red, green, blue,
-yellow, magenta, orange, lightgreen, lightblue, lightyellow). Edges that
-connect two different communities are colored gray. Also works for the major
-lobes of the brain (plus insula).
+Edges that connect vertices of two different groups are colored gray. Also
+works for the major lobes of the brain, plus insula, subcortical gray matter,
+cingulate, limbic lobe (if included in the specific brain atlas).
 }
 

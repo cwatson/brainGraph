@@ -30,8 +30,6 @@ graph.contract.brain <- function(g) {
   vcols <- rep(vcols, 2)
   V(g.sub)$color <- vcols
   V(g.sub)$lobe <- rep(sort(unique(V(g)$lobe)), 2)
-  lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-                 'lightgreen', 'lightblue', 'lightyellow')
-  E(g.sub)$color.lobe <- color.edges(g.sub, V(g.sub)$lobe, order=F, cols=lobe.cols)
+  E(g.sub)$color.lobe <- color.edges(g.sub, V(g.sub)$lobe)
   g.sub
 }

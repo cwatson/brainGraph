@@ -4,12 +4,10 @@
 \alias{color.vertices}
 \title{Color graph vertices}
 \usage{
-color.vertices(memb, cols)
+color.vertices(memb)
 }
 \arguments{
 \item{memb}{An integer vector representing membership of e.g. a community}
-
-\item{cols}{A character vector of the colors each vertex group should take}
 }
 \value{
 A character vector with length equal to the number of communities,

@@ -2,25 +2,19 @@
 #'
 #' This function takes the community membership of a given graph, and assigns
 #' to the edges a specific color (the same as the vertex membership colors).
-#' Currently only works for up to 9 communities (colored: red, green, blue,
-#' yellow, magenta, orange, lightgreen, lightblue, lightyellow). Edges that
-#' connect two different communities are colored gray. Also works for the major
-#' lobes of the brain (plus insula).
+#' Edges that connect vertices of two different groups are colored gray. Also
+#' works for the major lobes of the brain, plus insula, subcortical gray matter,
+#' cingulate, limbic lobe (if included in the specific brain atlas).
 #'
 #' @param g The graph to get its edges colored
 #' @param memb An integer vector indicating vertex group membership
-#' @param order A logical indicating if groups should be ordered by size
-#' @param cols A character vector of the colors each vertex group should take
 #'
 #' @return A character vector of colors for each edge in the graph
 
-color.edges <- function(g, memb, order=TRUE, cols=NULL) {
+color.edges <- function(g, memb) {
   kNumComm <- max(memb)
-  if (isTRUE(order)) {
-    comm.order <- rev(order(as.integer(table(memb))))
-  } else {
-    comm.order <- seq_len(kNumComm)
-  }
+  comm.order <- seq_len(kNumComm)
+  cols <- group.cols
 
   tmp <- vector('list', length=kNumComm)
   newcols <- rep('gray50', length=ecount(g))
@@ -33,6 +27,5 @@ color.edges <- function(g, memb, order=TRUE, cols=NULL) {
       newcols[tmp[[i]]] <- cols[i]
   }
 
-  newcols <- ifelse(newcols=='', 'gray50', newcols)
   return(newcols)
 }

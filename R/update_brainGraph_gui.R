@@ -249,8 +249,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       comms <- as.numeric(names(rev(sort(table(V(g)$comm)))[cNums]))
       memb <- which(V(g)$comm %in% comms)
       g.sub <- induced.subgraph(g, memb)
-      lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-                     'lightgreen', 'lightblue', 'lightyellow')
+      lobe.cols <- group.cols
       vcomms <- V(g.sub)$comm
       eids <- lapply(seq_along(comms),
         function(x) as.numeric(E(g.sub)[which(vcomms == comms[x]) %--% which(vcomms == comms[x])]))

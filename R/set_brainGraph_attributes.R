@@ -109,21 +109,19 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
       atlas.dt <- eval(parse(text=data(list=atlas)))
 
       g <- assign_lobes(g, atlas.dt)
-      lobe.cols <- c('red', 'green', 'blue', 'magenta', 'yellow', 'orange',
-                     'lightgreen', 'lightblue', 'lightyellow')
-      V(g)$color.lobe <- lobe.cols[V(g)$lobe]
+      V(g)$color.lobe <- group.cols[V(g)$lobe]
 
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
-      E(g)$color.lobe <- color.edges(g, V(g)$lobe, order=F, cols=lobe.cols)
+      E(g)$color.lobe <- color.edges(g, V(g)$lobe)
 
       g$asymm <- edge_asymmetry(g)$asymm
       V(g)$asymm <- edge_asymmetry(g, 'vertex')$asymm
 
       if (atlas == 'destrieux') {
-        V(g)$color.class <- lobe.cols[V(g)$class]
+        V(g)$color.class <- group.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
-        E(g)$color.class <- color.edges(g, V(g)$class, order=F, cols=lobe.cols)
+        E(g)$color.class <- color.edges(g, V(g)$class)
       }
 
       # Add the spatial coordinates for plotting over the brain
@@ -158,10 +156,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
 
     # Community stuff
     comm <- cluster_louvain(g)
-    V(g)$comm <- comm$membership
-    vcolors <- color.vertices(V(g)$comm, lobe.cols)
+    x <- comm$membership
+    tab <- sort(table(x), decreasing=TRUE)
+    V(g)$comm <- as.integer(names(tab))[x]
+    vcolors <- color.vertices(V(g)$comm)
     V(g)$color.comm <- vcolors[V(g)$comm]
-    E(g)$color.comm <- color.edges(g, V(g)$comm, cols=lobe.cols)
+    E(g)$color.comm <- color.edges(g, V(g)$comm)
 
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
 
@@ -169,13 +169,15 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
     g$mod <- max(comm$modularity)
 
-    V(g)$comp <- clusts$membership
-    vcolors <- color.vertices(clusts$membership, lobe.cols)
+    x <- clusts$membership
+    tab <- sort(table(x), decreasing=TRUE)
+    V(g)$comp <- as.integer(names(tab))[x]
+    vcolors <- color.vertices(V(g)$comp)
     V(g)$color.comp <- vcolors[clusts$membership]
+    E(g)$color.comp <- color.edges(g, V(g)$comp)
 
     # Edge attributes
     #-----------------------------------------------------------------------------
-    E(g)$color.comp <- color.edges(g, clusts$membership, cols=lobe.cols)
     E(g)$btwn <- edge.betweenness(g)
     E(g)$dist <- spatial.dist(g)
   }
