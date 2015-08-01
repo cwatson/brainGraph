@@ -12,8 +12,8 @@ graph_attr_dt(g.list, Group = NULL)
 \item{Group}{A character string indicating group membership (default:NULL)}
 }
 \value{
-A data table with 14-15 columns and row number equal to the number of
-graphs in the input list
+A data table with several columns (equal to the number of graph
+attributes) and row number equal to the number of graphs in the input list
 }
 \description{
 This is just a helper function that takes a list of graphs and creates a data

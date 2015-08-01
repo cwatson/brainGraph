@@ -37,7 +37,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=T)]
     }
     max.comp <- vector('integer', length=n+1)
-    max.comp[1] <- g$conn.comp[1, 1]
+    max.comp[1] <- g$max.comp
     for (i in seq_len(n - 1)) {
       g <- delete.vertices(g, ord[i])
       max.comp[i+1] <- max(components(g)$csize)
@@ -55,7 +55,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
 
     verts <- as_edgelist(g)[ord, ]
     max.comp <- vector('integer', length=m+1)
-    max.comp[1] <- g$conn.comp[1, 1]
+    max.comp[1] <- g$max.comp
     for (i in seq_along(ord)) {
       g <- delete.edges(g, E(g)[verts[ord[i], 1] %--% verts[ord[i], 2]])
       max.comp[i+1] <- max(components(g)$csize)

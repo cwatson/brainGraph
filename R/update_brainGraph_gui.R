@@ -450,7 +450,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       es <- es[which(es != 0)]
       g.sub <- subgraph.edges(g, es)
       plotFunc(g.sub, add=T, vertex.label=NA,
-               vertex.size=10, edge.width=5,
+               vertex.shape='none', edge.width=5,
                vertex.color='deeppink', edge.color='deeppink',
                xlim=xlim.g, ylim=ylim.g,
                edge.curved=curv)
@@ -460,7 +460,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     if (edgeDiffs$active == TRUE) {
       g.diff12 <- graph.difference(g, g2)
       plotFunc(g.diff12, add=T,
-               vertex.label=NA, vertex.size=degree(g.diff12),
+               vertex.label=NA, vertex.shape='none',
                vertex.color='deeppink', edge.color='deeppink',
                edge.width=5,
                xlim=xlim.g, ylim=ylim.g,

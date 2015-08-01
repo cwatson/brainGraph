@@ -62,6 +62,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     comps <- rev(table(clusts$csize))
     g$conn.comp <- data.frame(size=as.integer(names(comps)),
                               number=unname(comps))
+    g$max.comp <- g$conn.comp[1, 1]
     g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g)

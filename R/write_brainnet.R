@@ -3,11 +3,22 @@
 #' This function will write the 'node' and 'edge' files necessary for
 #' visualization with the BrainNet Viewer software (see Reference below).
 #'
+#' @details For the \emph{node} file, there are 6 columns:
+#' \itemize{
+#' \item \emph{Column 1}: x-coordinates
+#' \item \emph{Column 2}: y-coordinates
+#' \item \emph{Column 3}: z-coordinates
+#' \item \emph{Column 4}: Vertex color
+#' \item \emph{Column 5}: Vertex size
+#' \item \emph{Column 6}: Vertex label
+#' }
+#' The \emph{edge} file is the graph's associated adjacency matrix.
+#'
 #' @param g A graph
 #' @param node.color Character string indicating whether to color the nodes or
 #' not; can be 'none', 'lobe', or 'community'
 #' @param node.size Character string indicating what size the nodes should be;
-#' can be any vertex-level attribute or 'constant'
+#' can be any vertex-level attribute (default: 'constant')
 #' @export
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -15,7 +26,7 @@
 #' visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
 
 write.brainnet <- function(g, node.color=c('none', 'community', 'lobe'),
-                           node.size=c('constant', 'degree')) {
+                           node.size='constant') {
   x.mni <- y.mni <- z.mni <- NULL
 
   atlas.dt <- eval(parse(text=data(list=g$atlas)))
@@ -37,13 +48,6 @@ write.brainnet <- function(g, node.color=c('none', 'community', 'lobe'),
     size <- vertex_attr(g, node.size)
   }
 
-  # Write the 'node' and 'edge' files
-  #------------------------------------------------------------------------------
-  # For the 'node' file, there are 6 columns:
-  # Columns 1-3 are coordinates
-  # Column 4 is node color
-  # Column 5 is node size
-  # Column 6 is node label
   write.table(cbind(coords.cur,
                     color,
                     size,
