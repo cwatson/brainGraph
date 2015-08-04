@@ -28,16 +28,16 @@ plot_thickness <- function(dat, cur.region, type=c('histogram', 'violin')) {
   type <- match.arg(type)
   if (type == 'histogram') {
     meandt <- dat[region == cur.region, list(avg=mean(thickness)), by=Group]
-    ggplot(dat[region == cur.region], aes(x=thickness)) +
+    thick.plot <- ggplot(dat[region == cur.region], aes(x=thickness)) +
       geom_histogram(binwidth=0.05, alpha=0.4, position='dodge',
                      aes(y=..density.., fill=Group)) +
       geom_vline(data=meandt, aes(xintercept=avg, col=Group), lty=2, size=0.5) +
-      geom_density(aes(col=Group), size=0.8) + 
-      ggtitle(cur.region) + xlab('Cortical thickness (mm)')
+      geom_density(aes(col=Group), size=0.8)
   } else if (type == 'violin') {
-    ggplot(dat[region == cur.region], aes(x=Group, y=thickness, fill=Group)) +
+    thick.plot <- ggplot(dat[region == cur.region],
+                         aes(x=Group, y=thickness, fill=Group)) +
       geom_violin() +
-      geom_boxplot(width=0.1) +
-      ggtitle(cur.region) + ylab('Cortical thickness (mm)')
+      geom_boxplot(width=0.1)
   }
+  thick.plot <- thick.plot + ggtitle(cur.region) + xlab('Cortical thickness (mm)')
 }

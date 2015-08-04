@@ -5,6 +5,8 @@
 #'
 #' @param g An igraph object
 #' @param atlas A character vector indicating which atlas was used for the nodes
+#' @param modality A character vector indicating imaging modality (e.g. 'dti')
+#' @param subject A character vector indicating subject ID (default: NULL)
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
 #'
 #' @export
@@ -13,7 +15,7 @@
 #' \item{Graph-level}{Package version, atlas, density, connected component sizes,
 #' diameter, \# of triangles, transitivity, average path length, assortativity,
 #' clique number, global & local efficiency, modularity, vulnerability, hub score,
-#' rich-club coefficient, \# of hubs, and edge asymmetry}
+#' rich-club coefficient, \# of hubs, edge asymmetry, and modality}
 #' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
 #' leverage centralities, hubs, transitivity (local), coreness, local & nodal
 #' efficiency, color (community), color (lobe), color (component), membership
@@ -35,7 +37,10 @@
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
+set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
+                                      subject=NULL, rand=FALSE) {
+  if (!is.null(subject)) g$name <- subject
+  if (!is.null(modality)) g$modality <- modality
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)
@@ -94,6 +99,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, rand=FALSE) {
     if (!is.null(atlas)) {
       g$atlas <- atlas
       atlas.dt <- eval(parse(text=data(list=atlas)))
+      if (!'name' %in% vertex_attr_names(g)) V(g)$name <- atlas.dt[, name]
 
       g <- assign_lobes(g, atlas.dt)
       V(g)$color.lobe <- group.cols[V(g)$lobe]

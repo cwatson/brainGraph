@@ -4,12 +4,17 @@
 \alias{set.brainGraph.attributes}
 \title{Set a number of graph and vertex attributes useful in MRI analyses}
 \usage{
-set.brainGraph.attributes(g, atlas = NULL, rand = FALSE)
+set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
+  subject = NULL, rand = FALSE)
 }
 \arguments{
 \item{g}{An igraph object}
 
 \item{atlas}{A character vector indicating which atlas was used for the nodes}
+
+\item{modality}{A character vector indicating imaging modality (e.g. 'dti')}
+
+\item{subject}{A character vector indicating subject ID (default: NULL)}
 
 \item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
 }
@@ -18,7 +23,7 @@ g A copy of the same graph, with the following attributes:
 \item{Graph-level}{Package version, atlas, density, connected component sizes,
 diameter, \# of triangles, transitivity, average path length, assortativity,
 clique number, global & local efficiency, modularity, vulnerability, hub score,
-rich-club coefficient, \# of hubs, and edge asymmetry}
+rich-club coefficient, \# of hubs, edge asymmetry, and modality}
 \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
 leverage centralities, hubs, transitivity (local), coreness, local & nodal
 efficiency, color (community), color (lobe), color (component), membership

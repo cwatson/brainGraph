@@ -4,7 +4,8 @@
 \alias{plot_vertex_measures}
 \title{Plot vertex-level graph measures at a single density}
 \usage{
-plot_vertex_measures(dat, cur.density = 0.1, measure = "btwn.cent")
+plot_vertex_measures(dat, cur.density = 0.1, measure = "btwn.cent",
+  ylabel = NULL)
 }
 \arguments{
 \item{dat}{A ``tidied'' data table of vertex-level graph measures}
@@ -13,6 +14,8 @@ plot_vertex_measures(dat, cur.density = 0.1, measure = "btwn.cent")
 
 \item{measure}{A character string of the graph measure to plot (default:
 'btwn.cent')}
+
+\item{ylabel}{A character string for the y-axis label}
 }
 \value{
 A \code{ggplot} object

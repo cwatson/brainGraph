@@ -12,11 +12,15 @@
 #' @seealso \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 
 graph_attr_dt <- function(g.list, Group=NULL) {
-  g.attr.names <- graph_attr_names(g.list[[1]])[-c(1, 4, 8, 15)]
+  inds <- which(sapply(graph_attr(g.list[[1]]), class) %in% c('numeric', 'integer'))
+  g.attr.names <- graph_attr_names(g.list[[1]])[inds]
   g.dt <- as.data.table(sapply(g.attr.names, function(x)
                                sapply(g.list, function(y)
                                       round(graph_attr(y, x), 4))))
 
+  if ('name' %in% graph_attr_names(g.list[[1]])) {
+    g.dt$subject <- sapply(g.list, function(x) x$name)
+  }
   if (!is.null(Group)) {
     g.dt$Group <- Group
     setkey(g.dt, Group, density)

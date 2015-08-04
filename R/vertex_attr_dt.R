@@ -36,6 +36,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          vulnerability=V(g)$vulnerability,
                          asymm=V(g)$asymm)
 
+  if ('name' %in% graph_attr_names(g)) net.meas$subject <- g$name
   if (!is.null(Group)) {
     net.meas$Group <- Group
     setkey(net.meas, 'region', 'lobe', 'hemi', Group)
