@@ -28,7 +28,7 @@ check.resid <- function(resids) {
       geom_point() +
       geom_line(aes(x=x, y=x)) +
       xlab('Theoretical Quantiles') + ylab('Sample Quantiles') +
-      facet_wrap( ~ region, nrow=3, ncol=3)
+      facet_wrap( ~ region, nrow=3, ncol=3, scales='free')
     return(p)
   }
     

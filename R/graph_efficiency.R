@@ -54,16 +54,18 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
     eff <- rep(0, length(degs))
     nodes <- which(degs > 1)
 
-    eff[nodes] <- simplify2array(mclapply(nodes, function(x) {
-      neighbs <- neighbors(g, v=x)
-      g.sub <- induced.subgraph(g, neighbs)
-      Nv <- vcount(g.sub)
-
-      paths <- shortest.paths(g.sub, weights=weights)
-      paths <- paths[upper.tri(paths)]
-      2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
-      }, mc.cores=detectCores())
-    )
+    if (length(nodes) > 0) {
+      eff[nodes] <- simplify2array(mclapply(nodes, function(x) {
+        neighbs <- neighbors(g, v=x)
+        g.sub <- induced.subgraph(g, neighbs)
+        Nv <- vcount(g.sub)
+  
+        paths <- shortest.paths(g.sub, weights=weights)
+        paths <- paths[upper.tri(paths)]
+        2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
+        }, mc.cores=detectCores())
+      )
+    }
   } else {
     Nv <- length(degs)
     eff <- apply(shortest.paths(g, weights=weights), 2, function(x)

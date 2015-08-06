@@ -12,13 +12,20 @@
 #' @return A character vector of colors for each edge in the graph
 
 color.edges <- function(g, memb) {
-  big.modules <- which(as.integer(table(memb)) > 1)
+  big.modules <- as.integer(names(which(table(memb) > 1)))
 
   newcols <- rep('gray50', length=ecount(g))
-  tmp <- lapply(sapply(big.modules, function(x) which(memb == x)), function(y)
-                as.vector(E(g)[y %--% y]))
+  tmp <- vector('list', length=max(big.modules))
+  for (i in big.modules) {
+    x <- which(memb == i)
+    tmp[[i]] <- as.vector(E(g)[x %--% x])
+  }
 
-  for (i in big.modules) newcols[tmp[[i]]] <- group.cols[i]
+  for (i in big.modules) {
+    if (!is.null(tmp[[i]])) {
+      newcols[tmp[[i]]] <- group.cols[i]
+    }
+  }
 
   return(newcols)
 }
