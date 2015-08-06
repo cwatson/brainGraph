@@ -17,30 +17,25 @@ count_homologous <- function(g) {
   atlas <- g$atlas
   Nv <- vcount(g)
   if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite')) {
-    verts <- seq_len(Nv / 2)
-    regions <- substr(V(g)[verts]$name, 2, nchar(V(g)[verts]$name))
-    regions.l <- paste0('l', regions)
-    regions.r <- paste0('r', regions)
-
-    eids <- unlist(Map(function(x, y)
-                          as.numeric(E(g)[x %--% y]),
-                          regions.l,
-                          regions.r))
+    half <- Nv / 2
+    regions.l <- V(g)$name[seq_len(half)]
+    regions.r <- V(g)$name[(half + 1):Nv]
 
   } else if (atlas %in% c('aal90', 'hoa112')) {
-    for (i in seq(1, vcount(g), by=2)) {
-      if (length(E(g)[i %--% (i+1)]) == 1) {
-        eids <- c(eids, as.numeric(E(g)[i %--% (i+1)]))
-      }
-    }
+    regions.l <- V(g)$name[seq(1, Nv, by=2)]
+    regions.r <- V(g)$name[seq(2, Nv, by=2)]
+
   } else if (atlas == 'lpba40') {
-    for (i in seq(1, vcount(g) - 2, by=2)) {
-      if (length(E(g)[i %--% (i+1)]) == 1) {
-        eids <- c(eids, as.numeric(E(g)[i %--% (i+1)]))
-      }
-    }
+    regions.l <- V(g)$name[seq(1, Nv - 2, by=2)]
+    regions.r <- V(g)$name[seq(2, Nv - 2, by=2)]
+
   } else {
     stop(sprintf('Atlas "%s" is not a valid name!', atlas))
   }
+
+  eids <- unlist(Map(function(x, y)
+                        as.numeric(E(g)[x %--% y]),
+                        regions.l,
+                        regions.r))
   return(eids)
 }
