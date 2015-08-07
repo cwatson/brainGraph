@@ -378,7 +378,7 @@ plot_brainGraph_gui <- function() {
     vboxG[[i]]$packStart(hboxHemi, F, F, 0)
     choices <- c('Both hemispheres', 'Left only', 'Right only',
                  'Interhemispheric only', 'Homologous only', 'Inter-community only',
-                 'Intra-community only', 'Inter-lobular only', 'Intra-lobular only')
+                 'Intra-community only', 'Inter-lobar only', 'Intra-lobar only')
     comboHemi[[i]] <- add_combo(hboxHemi, choices, 'Hemi/edges')
   }
   kNumGroups <<- sum(vapply(graphname, function(x) nchar(x$getText()) > 0, logical(1)))

@@ -32,6 +32,7 @@ plot_corr_mat <- function(c1, c2, ordered=TRUE, type=c('comm', 'lobe'), g1,
     if (is.null(g1) | is.null(g2)) {
       stop('You must provide graph objects for vertex ordering!')
     }
+    Nv <- nrow(c1)
     cols <- group.cols
 
     type <- match.arg(type)
@@ -85,10 +86,10 @@ plot_corr_mat <- function(c1, c2, ordered=TRUE, type=c('comm', 'lobe'), g1,
         ggtitle(y) +
         theme(axis.ticks=element_blank(),
              axis.text.x=element_text(size=0.7*base_size, angle=45,
-                                      color=w[1:68, color.text]),
+                                      color=w[1:Nv, color.text]),
              axis.title.x=element_blank(),
              axis.text.y=element_text(size=0.7*base_size,
-                                      color=w[rev(1:68), color.text]),
+                                      color=w[rev(1:Nv), color.text]),
              axis.title.y=element_blank()) +
         labs(fill=w[, unique(legend.t)]) +
         ylim(rev(levels(w$Var2)))},
