@@ -3,7 +3,7 @@
 #' This function draws permutations from linear model residuals to determine the
 #' significance of between-group differences of a global or vertex-wise graph
 #' measure. This function is intended for cortical thickness networks (in which
-#' there is only one graph per group), but is not restricted to that type of
+#' there is only one graph per group), but can be extended to other types of
 #' data.
 #'
 #' The \emph{graph} "level" will calculate modularity (Louvain algorithm),
@@ -14,43 +14,58 @@
 #' vulnerability (of which only the maximum is taken, thus making this
 #' technically a \emph{graph} level measure).
 #'
-#' The \emph{lobe} "level" is intended to test for group differences in
-#' inter-lobar connections, e.g. from the temporal lobe to the rest of the
+#' The \emph{lobe} "level" is intended to test for group differences in number
+#' of inter-lobar connections, e.g. from the temporal lobe to the rest of the
 #' brain.
+#'
+#' The \emph{other} "level" allows you to pass your own function to do
+#' permutations with. This is useful if you want to calculate something that I
+#' haven't hard-coded (e.g. number of hubs between groups). It must take as its
+#' own arguments: "g1", "g2", and "density".
 #'
 #' @param permSet The set of permutations to loop through (obtained from
 #' \code{\link[permute]{shuffleSet}})
 #' @param density Numeric; the density of the resultant graphs
 #' @param resids A data table of the residuals (from \code{\link{get.resid}})
 #' @param level A character string for the attribute level to calculate
-#' differences; either 'graph', 'vertex', or 'lobe'
+#' differences; either 'graph', 'vertex', 'lobe', or 'other'
 #' @param atlas Character string of the atlas name
 #' @param atlas.dt A data table containing the specific atlas data
 #' @param measure A character string, either 'btwn.cent' or 'vulnerability'
 #' (specific to the vertex \emph{level})
+#' @param .function A custom function you can pass (if \emph{level} is 'other')
 #' @export
 #'
 #' @return A data table with values for group differences in modularity, global
 #' efficiency, clustering, average path length, and assortativity (etc.)
 #'
-#' @seealso \code{\link[igraph]{centr_betw}, \link{count_interlobar},
-#' \link{edge_asymmetry}}
+#' @seealso \code{\link[igraph]{centr_betw}, \link{vulnerability},
+#' \link{count_interlobar}, \link{edge_asymmetry}, \link{graph.efficiency}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' m <- get.resid(all.thick, covars)
 #' myPerms <- shuffleSet(n=nrow(m$resids), nset=1e3)
-#' out <- permute.group(myPerms, densities, m$resids, 1e3, 'graph', atlas='dk',
-#'    atlas.dt)
-#' out <- permute.group(myPerms, densities, m$resids, 1e3, 'vertex')
+#' out <- permute.group(myPerms, densities[N], m$resids, 'graph', atlas='dk',
+#'   atlas.dt)
+#' out <- permute.group(myPerms, densities[N], m$resids, 'vertex')
+#' out <- permute.group(myPerms, densities[N], m$resids, 'other',
+#'   .function=myFun)
 #' }
 
 permute.group <- function(permSet, density, resids,
-                          level=c('graph', 'vertex', 'lobe'),
-                          atlas, atlas.dt=NULL, measure=c('btwn.cent', 'vulnerability')) {
+                          level=c('graph', 'vertex', 'lobe', 'other'),
+                          atlas, atlas.dt=NULL,
+                          measure=c('btwn.cent', 'vulnerability'),
+                          .function=NULL) {
   i <- NULL
   level <- match.arg(level)
+  if (level == 'other') {
+    if (is.null(.function) | !is.function(.function)) {
+      stop(paste('Argument ".function" must be a function!'))
+    }
+  }
   measure <- match.arg(measure)
 
   groups <- as.numeric(resids$Group)
@@ -69,12 +84,16 @@ permute.group <- function(permSet, density, resids,
         g2$E.global <- graph.efficiency(g2, 'global')
         V(g1)$degree <- degree(g1)
         V(g2)$degree <- degree(g2)
-        vuln.diff <- max(vulnerability(g1), .parallel=F) - max(vulnerability(g2), .parallel=F)
+        vuln.diff <- max(vulnerability(g1), .parallel=F) -
+          max(vulnerability(g2), .parallel=F)
         tmp <- c(density, vuln.diff)
       } else {
         btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
         tmp <- as.data.table(cbind(density, t(btwn.diff)))
       }
+
+    } else if (level == 'other') {
+      tmp <- .function(g1, g2, density)
 
     } else {
       g1$atlas <- g2$atlas <- atlas
