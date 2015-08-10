@@ -5,7 +5,7 @@
 \title{Analysis of network robustness}
 \usage{
 robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent", "degree",
-  "random"))
+  "random"), N = 1000)
 }
 \arguments{
 \item{g}{The igraph graph object of interest}
@@ -14,6 +14,8 @@ robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent", "degree",
 
 \item{measure}{A character string; sort by either 'btwn.cent' or 'degree', or
 choose 'random'}
+
+\item{N}{Integer; the number of iterations if \emph{random} is chosen}
 }
 \value{
 A vector representing the ratio of maximal component size after each

@@ -4,17 +4,22 @@
 \alias{plot_thickness}
 \title{Plot group distributions of cortical thickness for a given brain region}
 \usage{
-plot_thickness(dat, cur.region, type = c("histogram", "violin"))
+plot_thickness(dat, regions, type = c("histogram", "violin"),
+  all.vals = TRUE)
 }
 \arguments{
 \item{dat}{A data table of cortical thicknesses; needs columns for 'Group',
 'region', and 'thickness'}
 
-\item{cur.region}{A character string or integer of the brain region to plot;
-if integer, the region is chosen from the data table based on the index}
+\item{regions}{A vector of character strings or integers of the brain
+region(s) to plot; if integer, the region(s) is/are chosen from the atlas
+data table based on the index}
 
 \item{type}{A character string indicating the plot type; either 'histogram'
 or 'violin'}
+
+\item{all.vals}{A logical indicating whether or not to plot horizontal lines
+for all observations (only valid for 'violin' plots) (default: TRUE)}
 }
 \value{
 A ggplot object

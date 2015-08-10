@@ -17,7 +17,7 @@
 #' \item{size}{\emph{size2} transformed to be positive values (for
 #' visualization purposes)}
 #' \item{p}{Equal to \eqn{1-p}}
-#' \item{p.adj}{Equal to \eqn{1-p_{FDR}} (the FDR-adjusted p-value)}
+#' \item{p.fdr}{Equal to \eqn{1-p_{FDR}} (the FDR-adjusted p-value)}
 #'
 #' @seealso \code{\link[stats]{t.test}, \link[stats]{wilcox.test},
 #' \link[stats]{p.adjust}, \link{vec.transform}}
@@ -47,6 +47,6 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   V(g.diffs)$size2 <- vapply(stats, with, numeric(1), statistic)
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
   V(g.diffs)$p <- 1 - vapply(stats, with, numeric(1), p.value)
-  V(g.diffs)$p.adj <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
+  V(g.diffs)$p.fdr <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
   return(g.diffs)
 }

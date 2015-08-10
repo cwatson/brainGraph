@@ -7,7 +7,7 @@
 #' @param g1 A list of igraph graph objects for group 1
 #' @param g2 A list of igraph graph objects for group 2
 #' @param alpha The significance level (default: 0.05)
-#' @param num.perms The number of permutations (default: 1e3)
+#' @param N The number of permutations (default: 1e3)
 #' @param measure A character string of the measure to test
 #' @export
 #'
@@ -28,14 +28,14 @@
 #' g.diff <- permute.groups(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
 #' }
 
-permute.vertex <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
+permute.vertex <- function(g1, g2, alpha=0.05, N=1e3, measure) {
   combined <- c(g1, g2)
   g.diffs <- group.graph.diffs(g1, g2, measure)
   max.observed <- max(V(g.diffs)$size2)
 
   n1 <- length(g1)
   n.all <- length(combined)
-  max.rand <- foreach(i=seq_len(num.perms), .combine='c') %dopar% {
+  max.rand <- foreach(i=seq_len(N), .combine='c') %dopar% {
     shuffled <- sample(n.all)
     g1.rand <- combined[shuffled[1:n1]]
     g2.rand <- combined[shuffled[(n1 + 1):n.all]]
@@ -43,10 +43,11 @@ permute.vertex <- function(g1, g2, alpha=0.05, num.perms=1e3, measure) {
     max(V(group.graph.diffs(g1.rand, g2.rand, measure))$size2)
   }
 
-  p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (num.perms + 1)
-  thresh <- sort(max.rand)[(1 - alpha) * num.perms]
+  p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (N + 1)
+  thresh <- sort(max.rand)[(1 - alpha) * N]
   Nv <- vcount(g.diffs)
   V(g.diffs)$p.perm <- 1 - vapply(seq_len(Nv), function(x)
-                                  sum(max.rand >= V(g.diffs)$size2[x]) / num.perms, numeric(1))
+                                  sum(max.rand >= V(g.diffs)$size2[x]) / N,
+                                  numeric(1))
   return(list(g=g.diffs, p.max=p.max, thresh=thresh))
 }

@@ -4,7 +4,7 @@
 \alias{permute.vertex}
 \title{Permutation test for group difference of graph vertex measures}
 \usage{
-permute.vertex(g1, g2, alpha = 0.05, num.perms = 1000, measure)
+permute.vertex(g1, g2, alpha = 0.05, N = 1000, measure)
 }
 \arguments{
 \item{g1}{A list of igraph graph objects for group 1}
@@ -13,7 +13,7 @@ permute.vertex(g1, g2, alpha = 0.05, num.perms = 1000, measure)
 
 \item{alpha}{The significance level (default: 0.05)}
 
-\item{num.perms}{The number of permutations (default: 1e3)}
+\item{N}{The number of permutations (default: 1e3)}
 
 \item{measure}{A character string of the measure to test}
 }
