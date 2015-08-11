@@ -5,8 +5,7 @@
 #' which edges will be re-wired.
 #'
 #' @param graph The graph from which null graphs are simulated
-#' @param d The degree sequence
-#' @param cl The clustering measure (clustering coeff, transitivity, etc.)
+#' @param cl The clustering measure (default: transitivity)
 #' @param max.iters The maximum number of iterations to perform (default: 100)
 #' @export
 #'
@@ -18,15 +17,14 @@
 #' @seealso \code{\link{choose.edges}, \link[igraph]{rewire},
 #' \link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
 
-sim.rand.graph.clust <- function(graph, d, cl, max.iters=100) {
+sim.rand.graph.clust <- function(graph, cl=graph$transitivity, max.iters=100) {
   g <- rewire(graph, keeping_degseq(loops=F, 1e4))
 
   #g.all <- vector('list')
 
-  cur.iters <- 0
-  cl.all <- vector(length=length(max.iters))
-  loop.time <- vector(length=length(max.iters))
-  while ((transitivity(g) < cl) & (cur.iters < max.iters)) {
+  cur.iter <- 0
+  cl.all <- loop.time <- vector(length=length(max.iters))
+  while ((transitivity(g) < cl) & (cur.iter < max.iters)) {
     start.time <- Sys.time()
     repeat {
       g.cand <- g
@@ -57,11 +55,11 @@ sim.rand.graph.clust <- function(graph, d, cl, max.iters=100) {
       }
     }
 
-    cur.iters <- cur.iters + 1
-    cl.all[cur.iters] <- transitivity(g.cand)
+    cur.iter <- cur.iter + 1
+    cl.all[cur.iter] <- transitivity(g.cand)
     g <- g.cand
-    loop.time[cur.iters] <- as.numeric(Sys.time() - start.time)
+    loop.time[cur.iter] <- as.numeric(Sys.time() - start.time)
   }
 
-  return(list(g=g, iters=cur.iters, cl=cl.all, time=loop.time))#, g.all))
+  return(list(g=g, iters=cur.iter, cl=cl.all, time=loop.time))#, g.all))
 }

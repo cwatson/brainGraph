@@ -4,14 +4,12 @@
 \alias{sim.rand.graph.clust}
 \title{Simulate a random graph with given degree sequence and clustering.}
 \usage{
-sim.rand.graph.clust(graph, d, cl, max.iters = 100)
+sim.rand.graph.clust(graph, cl = graph$transitivity, max.iters = 100)
 }
 \arguments{
 \item{graph}{The graph from which null graphs are simulated}
 
-\item{d}{The degree sequence}
-
-\item{cl}{The clustering measure (clustering coeff, transitivity, etc.)}
+\item{cl}{The clustering measure (default: transitivity)}
 
 \item{max.iters}{The maximum number of iterations to perform (default: 100)}
 }
