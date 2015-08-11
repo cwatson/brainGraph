@@ -16,7 +16,7 @@ count_homologous <- function(g) {
   }
   atlas <- g$atlas
   Nv <- vcount(g)
-  if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite')) {
+  if (atlas %in% c('dkt', 'dk', 'destrieux', 'brainsuite', 'dk.scgm', 'dkt.scgm')) {
     half <- Nv / 2
     regions.l <- V(g)$name[seq_len(half)]
     regions.r <- V(g)$name[(half + 1):Nv]
