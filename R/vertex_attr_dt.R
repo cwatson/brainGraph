@@ -34,7 +34,8 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          PC=V(g)$PC,
                          z=V(g)$z.score,
                          vulnerability=V(g)$vulnerability,
-                         asymm=V(g)$asymm)
+                         asymm=V(g)$asymm,
+                         eccentricity=V(g)$eccentricity)
 
   if ('name' %in% graph_attr_names(g)) net.meas$subject <- g$name
   if (!is.null(Group)) {

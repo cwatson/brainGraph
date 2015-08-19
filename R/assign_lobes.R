@@ -40,8 +40,8 @@ assign_lobes <- function(g, atlas.dt, rand=FALSE) {
           which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
 
-    } else if (atlas %in% c('aal90', 'lpba40', 'hoa112', 'brainsuite', 'dk.scgm',
-                            'dkt.scgm')) {
+    } else if (atlas %in% c('aal90', 'lpba40', 'hoa112', 'brainsuite',
+                            'dk.scgm', 'dkt.scgm')) {
       counts <- atlas.dt[order(lobe), .N, by=.(lobe, hemi)]$N
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),

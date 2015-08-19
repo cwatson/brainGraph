@@ -4,7 +4,7 @@
 \alias{plot_thickness}
 \title{Plot group distributions of cortical thickness for a given brain region}
 \usage{
-plot_thickness(dat, regions, type = c("histogram", "violin"),
+plot_thickness(dat, regions, type = c("violin", "histogram"),
   all.vals = TRUE)
 }
 \arguments{

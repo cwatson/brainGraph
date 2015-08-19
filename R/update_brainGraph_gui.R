@@ -243,17 +243,18 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         ind2 <- cNum - kNumComms
       } else {
         ind1 <- which(cumsum(vapply(combos, ncol, integer(1))) %/% cNum >= 1)[1]
-        ind2 <- ncol(combos[[ind1]]) - (cumsum(vapply(combos, ncol, integer(1))) %% cNum)[ind1]
+        ind2 <- ncol(combos[[ind1]]) -
+            (cumsum(vapply(combos, ncol, integer(1))) %% cNum)[ind1]
       }
       cNums <- combos[[ind1]][, ind2]
-      #comms <- as.numeric(names(rev(sort(table(V(g)$comm)))[cNums]))
       comms <- seq_len(max(V(g)$comm))[cNums]
       memb <- which(V(g)$comm %in% comms)
       g.sub <- induced.subgraph(g, memb)
       lobe.cols <- group.cols
       vcomms <- V(g.sub)$comm
-      eids <- lapply(seq_along(comms),
-        function(x) as.numeric(E(g.sub)[which(vcomms == comms[x]) %--% which(vcomms == comms[x])]))
+      eids <- lapply(seq_along(comms), function(x)
+                     as.numeric(E(g.sub)[which(vcomms == comms[x]) %--%
+                                         which(vcomms == comms[x])]))
       if (length(cNums) == 1) {
         ecols <- rep(lobe.cols[cNums], length=ecount(g.sub))
       } else {
@@ -287,11 +288,12 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     i <- vertSize$getActive()
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent', 'subgraph.cent',
                     'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
-                    'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm')
+                    'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
+                    'eccentricity')
     if (i == 0) {
       vsize <- mult * const
     } else {
-      if (i < 15) {
+      if (i < 16) {
         if (i == 11 && !is.directed(g)) {
           i <- 2
         }
@@ -306,14 +308,14 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
           vsize <- vsize[!is.nan(vsize)]
         }
 
-      } else if (i == 15) {  # Other
+      } else if (i == 16) {  # Other
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
         if (v.attr %in% c('p', 'p.adj', 'p.perm', 'hubs')) {
           vsize <- mult * 15 * vertex_attr(g, v.attr)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
-      } else if (i == 16) {  # equation
+      } else if (i == 17) {  # equation
         x <- vertSize.eqn$getText()
         if (nchar(x) > 0) {
           subs <- strsplit(x, split='&')[[1]]

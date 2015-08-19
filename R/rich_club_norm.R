@@ -49,6 +49,8 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   }
   phi.orig <- g$rich$phi
   phi.norm <- phi.orig / colMeans(phi.rand)
-  p <- vapply(seq_len(max.deg), function(x) sum(phi.rand[, x] > phi.orig[x]) / N, numeric(1))
+  p <- vapply(seq_len(max.deg), function(x)
+              (sum(phi.rand[, x] > phi.orig[x]) + 1) / (N + 1),
+              numeric(1))
   return(list(phi.rand=phi.rand, phi.orig=phi.orig, phi.norm=phi.norm, p=p))
 }

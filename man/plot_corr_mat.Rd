@@ -2,40 +2,35 @@
 % Please edit documentation in R/plot_corr_mat.R
 \name{plot_corr_mat}
 \alias{plot_corr_mat}
-\title{Plot correlation matrices}
+\title{Plot a correlation matrix}
 \usage{
-plot_corr_mat(c1, c2, ordered = TRUE, type = c("comm", "lobe"), g1, g2,
-  groups = c("Group 1", "Group 2"))
+plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "lobe"), g = NULL,
+  group = NULL)
 }
 \arguments{
-\item{c1}{The correlation matrix for group 1}
-
-\item{c2}{The correlation matrix for group 2}
+\item{corrs}{The correlation matrix}
 
 \item{ordered}{A logical indicating whether or not to order vertices
 (default:TRUE)}
 
 \item{type}{Character string, either 'comm' or 'lobe'}
 
-\item{g1}{An igraph graph object; not required if \emph{ordered} is FALSE}
+\item{g}{An igraph graph object; not required if \emph{ordered} is FALSE}
 
-\item{g2}{An igraph graph object; not required if \emph{ordered} is FALSE}
-
-\item{groups}{A character vector of group names}
+\item{group}{A character vector of the group name (default: NULL)}
 }
 \value{
-A list of ggplot objects
+A ggplot object
 }
 \description{
-This function will plot correlation matrices in the form of a ``heatmap''. It
-will work for to two groups, and you have the choice to plot the vertices in
-an order based on either community or lobe membership.
+This function will plot a correlation matrix in the form of a ``heatmap''.
+You have the choice to plot the vertices in an order based on either
+community or lobe membership, and they will be colored accordingly.
 }
 \examples{
 \dontrun{
-mat.plots <- plot_corr_mat(corrs.group1[[N]]$r.thresh,
-                           corrs.group2[[N]]$r.thresh, g1=g1[[N]],
-                           g2=g2[[N]], groups=groups)
+matplot1 <- plot_corr_mat(corrs[[1]][[N]]$r.thresh, g=g[[1]][[N]],
+                           group=groups[1])
 }
 }
 \author{

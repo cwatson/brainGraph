@@ -39,8 +39,6 @@
 
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
                                       subject=NULL, rand=FALSE) {
-  if (!is.null(subject)) g$name <- subject
-  if (!is.null(modality)) g$modality <- modality
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)
@@ -57,6 +55,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
+    if (!is.null(subject)) g$name <- subject
+    if (!is.null(modality)) g$modality <- modality
 
     # Graph-level attributes
     #-----------------------------------------------------------------------------
@@ -144,6 +144,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g)
     g$vulnerability <- max(V(g)$vulnerability)
+    V(g)$eccentricity <- eccentricity(g)
 
     # Community stuff
     x <- comm$membership

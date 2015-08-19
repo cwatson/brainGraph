@@ -17,8 +17,7 @@
 #' @export
 #'
 #' @return A list with the following elements:
-#' \item{g1}{The \code{\link[boot]{boot}} object for group 1}
-#' \item{g2}{The \code{\link[boot]{boot}} object for group 2}
+#' \item{g}{A list of \code{\link[boot]{boot}} objects}
 #' \item{dt}{A data table with length \emph{# densities * # groups}}
 #' \item{p1}{A ggplot object with ribbon representing standard error}
 #' \item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
@@ -33,12 +32,15 @@
 boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
 
   meas <- Group <- se <- ci.low <- ci.high <- NULL
+  kNumGroups <- length(groups)
+  kNumDensities <- length(densities)
   # 'statistic' function for the bootstrapping process
   statfun <- function(x, i, measure) {
     group <- x[i]
     corrs <- lapply(densities, function(x) corr.matrix(group, density=x))
     g.boot <- lapply(corrs, function(x)
-                     simplify(graph.adjacency(x$r.thresh, mode='undirected')))
+                     graph_from_adjacency_matrix(x$r.thresh, mode='undirected',
+                                                 diag=F))
     if (measure == 'mod') {
       res <- vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1))
     } else if (measure == 'E.global') {
@@ -64,23 +66,20 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
 
   ncpus <- detectCores()
   env <- environment()
-  counter <- 0
-  progbar <- txtProgressBar(min=0, max=R, style=3)
+  my.boot <- vector('list', length=kNumGroups)
+  for (i in seq_len(kNumGroups)) {
+    counter <- 0
+    progbar <- txtProgressBar(min=0, max=R, style=3)
 
-  boot1 <- boot(resids[groups[1], !'Group', with=F], intfun, measure=measure,
-                R=R, parallel='multicore', ncpus=ncpus)
-  close(progbar)
-  counter <- 0
-  progbar <- txtProgressBar(min=0, max=R, style=3)
-  boot2 <- boot(resids[groups[2], !'Group', with=F], intfun, measure=measure,
-                R=R, parallel='multicore', ncpus=ncpus)
-  close(progbar)
+    my.boot[[i]] <- boot(resids[groups[i], !'Group', with=F], intfun,
+                       measure=measure, R=R, parallel='multicore', ncpus=ncpus)
+    close(progbar)
+  }
 
   # Get everything into a data.table
-  kNumDensities <- length(densities)
-  boot.dt <- data.table(density=rep(densities, 2),
-                        meas=c(boot1$t0, boot2$t0),
-                        se=c(apply(boot1$t, 2, sd), apply(boot2$t, 2, sd)),
+  boot.dt <- data.table(density=rep(densities, kNumGroups),
+                        meas=c(sapply(my.boot, with, t0)),
+                        se=c(sapply(my.boot, function(x) apply(x$t, 2, sd))),
                         Group=rep(groups, each=kNumDensities))
   bootplot <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() +
@@ -88,18 +87,16 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     ylab(measure)
 
   # Use the estimated normal 95% CI instead of se
-  ci1 <- vapply(seq_along(densities), function(x)
-                boot.ci(boot1, type='norm', index=x)$normal[2:3],
-                numeric(2))
-  ci2 <- vapply(seq_along(densities), function(x)
-                boot.ci(boot2, type='norm', index=x)$normal[2:3],
-                numeric(2))
-  boot.dt$ci.low <- cbind(ci1, ci2)[1, ]
-  boot.dt$ci.high <- cbind(ci1, ci2)[2, ]
+  ci <- vapply(seq_along(densities), function(x)
+               sapply(my.boot, function(y)
+                      boot.ci(y, type='norm', index=x)$normal[2:3]),
+               numeric(kNumGroups * 2))
+  boot.dt$ci.low <- c(t(ci[2 * (seq_along(groups) - 1) + 1, ]))
+  boot.dt$ci.high <- c(t(ci[2 * (seq_along(groups) - 1) + 2, ]))
   bootplot.ci <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() + geom_point() +
     geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3) +
     ylab(measure)
 
-  return(list(g1=boot1, g2=boot2, dt=boot.dt, p1=bootplot, p2=bootplot.ci))
+  return(list(g=my.boot, dt=boot.dt, p1=bootplot, p2=bootplot.ci))
 }

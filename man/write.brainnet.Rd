@@ -5,7 +5,7 @@
 \title{Write files to be used for visualization with BrainNet Viewer}
 \usage{
 write.brainnet(g, node.color = c("none", "community", "lobe"),
-  node.size = "constant")
+  node.size = "constant", file.prefix = "")
 }
 \arguments{
 \item{g}{A graph}
@@ -15,13 +15,16 @@ not; can be 'none', 'lobe', or 'community'}
 
 \item{node.size}{Character string indicating what size the nodes should be;
 can be any vertex-level attribute (default: 'constant')}
+
+\item{file.prefix}{Character string for the basename of the \emph{.node} and
+\emph{.edge} files that are written}
 }
 \description{
-This function will write the 'node' and 'edge' files necessary for
-visualization with the BrainNet Viewer software (see Reference below).
+This function will write the \emph{.node} and \emph{.edge} files necessary
+for visualization with the BrainNet Viewer software (see Reference below).
 }
 \details{
-For the \emph{node} file, there are 6 columns:
+For the \emph{.node} file, there are 6 columns:
 \itemize{
 \item \emph{Column 1}: x-coordinates
 \item \emph{Column 2}: y-coordinates
@@ -30,7 +33,7 @@ For the \emph{node} file, there are 6 columns:
 \item \emph{Column 5}: Vertex size
 \item \emph{Column 6}: Vertex label
 }
-The \emph{edge} file is the graph's associated adjacency matrix.
+The \emph{.edge} file is the graph's associated adjacency matrix.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
