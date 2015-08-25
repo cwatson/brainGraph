@@ -27,7 +27,7 @@
 #' g.diffs.btwn <- group.graph.diffs(g1, g2, 'btwn.cent', test='wilcox.test')
 #' }
 
-group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) { 
+group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) {
   statistic <- p.value <- NULL  # To appease R CHECK
 
   Nv <- vcount(g1[[1]])
@@ -48,5 +48,6 @@ group.graph.diffs <- function(g1, g2, measure, test=c('t.test', 'wilcox.test')) 
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
   V(g.diffs)$p <- 1 - vapply(stats, with, numeric(1), p.value)
   V(g.diffs)$p.fdr <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
+  V(g.diffs)$meas.diff <- rowMeans(meas1) - rowMeans(meas2)
   return(g.diffs)
 }

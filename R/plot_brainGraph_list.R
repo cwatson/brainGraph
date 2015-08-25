@@ -53,8 +53,10 @@ plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE,
           ecols <- E(g.diff)$color.lobe
         } else if (cols == 'comm') {
           ecols <- E(g.diff)$color.comm
+        } else {
+          ecols <- 'deeppink'
         }
-        ewidth <- ifelse(E(g.diff)$color.lobe == 'gray50', 5, 10)
+        ewidth <- 5
         plot_brainGraph(g.diff, add=T, vertex.label=NA, vertex.shape='none',
                         edge.width=ewidth, edge.color=ecols)
       }

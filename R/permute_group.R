@@ -10,9 +10,9 @@
 #' clustering coefficient, average path length, degree assortativity, global
 #' efficiency, lobe assortativity, and edge asymmetry.
 #'
-#' The \emph{vertex} "level" will calculate either betweenness centrality or
-#' vulnerability (of which only the maximum is taken, thus making this
-#' technically a \emph{graph} level measure).
+#' The \emph{vertex} "level" will calculate a vertex-wise measure. Currently,
+#' you can choose betweenness centrality, degree, nodal efficiency, k-nearest
+#' neighbor degree, transitivity, or vulnerability.
 #'
 #' The \emph{lobe} "level" is intended to test for group differences in number
 #' of inter-lobar connections, e.g. from the temporal lobe to the rest of the
@@ -31,8 +31,8 @@
 #' differences; either 'graph', 'vertex', 'lobe', or 'other'
 #' @param atlas Character string of the atlas name
 #' @param atlas.dt A data table containing the specific atlas data
-#' @param measure A character string, either 'btwn.cent' or 'vulnerability'
-#' (specific to the vertex \emph{level})
+#' @param measure A character string, either 'btwn.cent', 'degree', 'E.nodal',
+#' 'knn', or 'transitivity', 'vulnerability' (specific to the vertex \emph{level})
 #' @param .function A custom function you can pass (if \emph{level} is 'other')
 #' @export
 #'
@@ -57,7 +57,8 @@
 permute.group <- function(permSet, density, resids,
                           level=c('graph', 'vertex', 'lobe', 'other'),
                           atlas, atlas.dt=NULL,
-                          measure=c('btwn.cent', 'vulnerability'),
+                          measure=c('btwn.cent', 'degree', 'E.nodal',
+                                    'knn', 'transitivity', 'vulnerability'),
                           .function=NULL) {
   i <- NULL
   level <- match.arg(level)
@@ -78,20 +79,42 @@ permute.group <- function(permSet, density, resids,
     g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
     g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)
 
+    # Vertex-level
+    #-----------------------------------
     if (level == 'vertex') {
       if (measure == 'vulnerability') {
         g1$E.global <- graph.efficiency(g1, 'global')
         g2$E.global <- graph.efficiency(g2, 'global')
         V(g1)$degree <- degree(g1)
         V(g2)$degree <- degree(g2)
-        vuln.diff <- max(vulnerability(g1), .parallel=F) -
-          max(vulnerability(g2), .parallel=F)
-        tmp <- c(density, vuln.diff)
+        vuln.diff <- vulnerability(g1, .parallel=F) -
+          vulnerability(g2, .parallel=F)
+        tmp <- as.data.table(cbind(density, t(vuln.diff)))
+
+      } else if (measure == 'degree') {
+        deg.diff <- degree(g1) - degree(g2)
+        tmp <- as.data.table(cbind(density, t(deg.diff)))
+
+      } else if (measure == 'E.nodal') {
+        E.nodal.diff <- graph.efficiency(g1, 'nodal') - graph.efficiency(g2, 'nodal')
+        tmp <- as.data.table(cbind(density, t(E.nodal.diff)))
+
+      } else if (measure == 'knn') {
+        knn.diff <- graph.knn(g1)$knn - graph.knn(g2)$knn
+        tmp <- as.data.table(cbind(density, t(knn.diff)))
+      
+      } else if (measure == 'transitivity') {
+        transitivity.diff <- transitivity(g1, type='local', isolates='zero') -
+          transitivity(g2, type='local', isolates='zero')
+        tmp <- as.data.table(cbind(density, t(transitivity.diff)))
+
       } else {
         btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
         tmp <- as.data.table(cbind(density, t(btwn.diff)))
       }
 
+    # Custom function
+    #-----------------------------------
     } else if (level == 'other') {
       tmp <- .function(g1, g2, density)
 
@@ -100,6 +123,8 @@ permute.group <- function(permSet, density, resids,
       g1 <- assign_lobes(g1, atlas.dt, rand=T)
       g2 <- assign_lobes(g2, atlas.dt, rand=T)
 
+      # Graph-level
+      #-----------------------------------
       if (level == 'graph') {
         mod1 <- modularity(cluster_louvain(g1))
         mod2 <- modularity(cluster_louvain(g2))
@@ -127,12 +152,13 @@ permute.group <- function(permSet, density, resids,
                    Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
                    assortativity.lobe=assort.lobe.diff, asymm=adiff)
 
+      # "Lobe" level
+      #-----------------------------------
       } else if (level == 'lobe') {
         t1 <- as.data.table(count_interlobar(g1, 'Temporal', atlas.dt))
         t2 <- as.data.table(count_interlobar(g2, 'Temporal', atlas.dt))
         tdiff <- t1 - t2
         tmp <- data.table(density=density, diff=tdiff)
-
       }
     }
 

@@ -310,7 +310,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
       } else if (i == 16) {  # Other
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
-        if (v.attr %in% c('p', 'p.adj', 'p.perm', 'hubs')) {
+        if (v.attr %in% c('p', 'p.adj', 'p.fdr', 'p.perm', 'hubs')) {
           vsize <- mult * 15 * vertex_attr(g, v.attr)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)

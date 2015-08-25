@@ -37,6 +37,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          asymm=V(g)$asymm,
                          eccentricity=V(g)$eccentricity)
 
+  if ('strength' %in% vertex_attr_names(g)) net.meas$strength <- V(g)$strength
   if ('name' %in% graph_attr_names(g)) net.meas$subject <- g$name
   if (!is.null(Group)) {
     net.meas$Group <- Group

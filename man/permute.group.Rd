@@ -5,8 +5,8 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(permSet, density, resids, level = c("graph", "vertex", "lobe",
-  "other"), atlas, atlas.dt = NULL, measure = c("btwn.cent",
-  "vulnerability"), .function = NULL)
+  "other"), atlas, atlas.dt = NULL, measure = c("btwn.cent", "degree",
+  "E.nodal", "knn", "transitivity", "vulnerability"), .function = NULL)
 }
 \arguments{
 \item{permSet}{The set of permutations to loop through (obtained from
@@ -23,8 +23,8 @@ differences; either 'graph', 'vertex', 'lobe', or 'other'}
 
 \item{atlas.dt}{A data table containing the specific atlas data}
 
-\item{measure}{A character string, either 'btwn.cent' or 'vulnerability'
-(specific to the vertex \emph{level})}
+\item{measure}{A character string, either 'btwn.cent', 'degree', 'E.nodal',
+'knn', or 'transitivity', 'vulnerability' (specific to the vertex \emph{level})}
 
 \item{.function}{A custom function you can pass (if \emph{level} is 'other')}
 }
@@ -44,9 +44,9 @@ The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 clustering coefficient, average path length, degree assortativity, global
 efficiency, lobe assortativity, and edge asymmetry.
 
-The \emph{vertex} "level" will calculate either betweenness centrality or
-vulnerability (of which only the maximum is taken, thus making this
-technically a \emph{graph} level measure).
+The \emph{vertex} "level" will calculate a vertex-wise measure. Currently,
+you can choose betweenness centrality, degree, nodal efficiency, k-nearest
+neighbor degree, transitivity, or vulnerability.
 
 The \emph{lobe} "level" is intended to test for group differences in number
 of inter-lobar connections, e.g. from the temporal lobe to the rest of the
