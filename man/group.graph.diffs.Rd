@@ -17,8 +17,14 @@ group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
 \item{test}{A character string for the test to use, either 't.test' (default)
 or 'wilcox.test'}
 
+\item{covars}{A data frame of covariates; only needed if using \emph{lm}
+(default: NULL)}
+
 \item{permute}{Logical; should be \emph{TRUE} if being called from
 \code{\link{permute.vertex}} (default: FALSE)}
+
+\item{perm.order}{A vector indicating the order that permuted subjects are
+in; only necessary if being called from \code{\link{permute.vertex}}}
 }
 \value{
 A graph with vertex attributes:

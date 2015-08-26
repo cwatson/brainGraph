@@ -26,7 +26,7 @@ vertices in the graph.
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \references{
-Ma A. Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
+Ma A \& Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
 One, 10(3): e0119678. doi:10.1371/journal.pone.0119678
 }
 \seealso{

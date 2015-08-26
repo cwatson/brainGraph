@@ -17,8 +17,12 @@
 #' @param measure A character string of the measure to test
 #' @param test A character string for the test to use, either 't.test' (default)
 #' or 'wilcox.test'
+#' @param covars A data frame of covariates; only needed if using \emph{lm}
+#' (default: NULL)
 #' @param permute Logical; should be \emph{TRUE} if being called from
 #' \code{\link{permute.vertex}} (default: FALSE)
+#' @param perm.order A vector indicating the order that permuted subjects are
+#' in; only necessary if being called from \code{\link{permute.vertex}}
 #' @export
 #'
 #' @return A graph with vertex attributes:
