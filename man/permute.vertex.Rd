@@ -4,18 +4,24 @@
 \alias{permute.vertex}
 \title{Permutation test for group difference of graph vertex measures}
 \usage{
-permute.vertex(g1, g2, alpha = 0.05, N = 1000, measure)
+permute.vertex(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
+  alpha = 0.05, N = 1000, ...)
 }
 \arguments{
 \item{g1}{A list of igraph graph objects for group 1}
 
 \item{g2}{A list of igraph graph objects for group 2}
 
+\item{measure}{A character string of the measure to test}
+
+\item{test}{Character string for the test to use (passed to
+\code{\link{group.graph.diffs}}); one of 't.test', 'wilcox.test', or 'lm'}
+
 \item{alpha}{The significance level (default: 0.05)}
 
 \item{N}{The number of permutations (default: 1e3)}
 
-\item{measure}{A character string of the measure to test}
+\item{...}{Other arguments passed to \code{\link{group.graph.diffs}}}
 }
 \value{
 A list with the following elements:
@@ -30,9 +36,16 @@ This function performs a permutation test looking at the max t-statistic for
 a given vertex-level graph attribute (e.g. degree). This is the same
 principle as that of Nichols & Holmes (2001) used in voxelwise MRI analysis.
 }
+\details{
+By default, a t-test is used when calling \code{\link{group.graph.diffs}}; if
+you would like to do e.g. a linear model, then see that function's help
+section and pass the appropriate arguments.
+}
 \examples{
 \dontrun{
-g.diff <- permute.groups(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
+g.diff <- permute.vertex(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
+g.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
+    test='lm', covars=covars.dti)
 }
 }
 \author{

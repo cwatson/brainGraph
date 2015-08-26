@@ -4,7 +4,8 @@
 \alias{group.graph.diffs}
 \title{Do between-group tests at each vertex for a given graph measure}
 \usage{
-group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test"))
+group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
+  covars = NULL, permute = FALSE, perm.order = NULL)
 }
 \arguments{
 \item{g1}{A list of igraph graph objects for group 1}
@@ -15,6 +16,9 @@ group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test"))
 
 \item{test}{A character string for the test to use, either 't.test' (default)
 or 'wilcox.test'}
+
+\item{permute}{Logical; should be \emph{TRUE} if being called from
+\code{\link{permute.vertex}} (default: FALSE)}
 }
 \value{
 A graph with vertex attributes:
@@ -26,13 +30,23 @@ visualization purposes)}
 }
 \description{
 This function takes two lists of graphs (the length of each equaling the
-number of subjects per group) and performs either a 2-sample t-test or
-2-sample Wilcoxon test at each vertex for a given network measure (e.g.
-vertex degree).
+number of subjects per group) and performs either a linear model, 2-sample
+t-test, or 2-sample Wilcoxon test at each vertex for a given network measure
+(e.g. vertex degree).
+}
+\details{
+The linear model choice is currently pretty inflexible. You will need to
+provide a data frame of covariates, of which \emph{Study.ID} and \emph{Group}
+need to be column names. Additionally, all graphs must have a \emph{name}
+attribute (at the graph level) which matches the \emph{Study.ID} for a given
+subject. This function will then return the p-value, t-statistic, and
+parameter estimate related to the \emph{Group} covariate.
 }
 \examples{
 \dontrun{
 g.diffs.btwn <- group.graph.diffs(g1, g2, 'btwn.cent', test='wilcox.test')
+g.diffs.btwn <- group.graph.diffs(g.way[[1]][[5]], g.way[[2]][[5]], 'btwn.cent',
+                                  test='lm', covars=covars.dti)
 }
 }
 \author{

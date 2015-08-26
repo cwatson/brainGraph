@@ -4,11 +4,18 @@
 #' a given vertex-level graph attribute (e.g. degree). This is the same
 #' principle as that of Nichols & Holmes (2001) used in voxelwise MRI analysis.
 #'
+#' By default, a t-test is used when calling \code{\link{group.graph.diffs}}; if
+#' you would like to do e.g. a linear model, then see that function's help
+#' section and pass the appropriate arguments.
+#'
 #' @param g1 A list of igraph graph objects for group 1
 #' @param g2 A list of igraph graph objects for group 2
+#' @param measure A character string of the measure to test
+#' @param test Character string for the test to use (passed to
+#' \code{\link{group.graph.diffs}}); one of 't.test', 'wilcox.test', or 'lm'
 #' @param alpha The significance level (default: 0.05)
 #' @param N The number of permutations (default: 1e3)
-#' @param measure A character string of the measure to test
+#' @param ... Other arguments passed to \code{\link{group.graph.diffs}}
 #' @export
 #'
 #' @return A list with the following elements:
@@ -25,10 +32,13 @@
 #' Mapping, 15(1):1-25.
 #' @examples
 #' \dontrun{
-#' g.diff <- permute.groups(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
+#' g.diff <- permute.vertex(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
+#' g.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
+#'     test='lm', covars=covars.dti)
 #' }
 
-permute.vertex <- function(g1, g2, alpha=0.05, N=1e3, measure) {
+permute.vertex <- function(g1, g2, measure, test=c('t.test', 'wilcox.test', 'lm'),
+                           alpha=0.05, N=1e3, ...) {
   combined <- c(g1, g2)
   g.diffs <- group.graph.diffs(g1, g2, measure)
   max.observed <- max(V(g.diffs)$size2)
@@ -40,7 +50,14 @@ permute.vertex <- function(g1, g2, alpha=0.05, N=1e3, measure) {
     g1.rand <- combined[shuffled[1:n1]]
     g2.rand <- combined[shuffled[(n1 + 1):n.all]]
 
-    max(V(group.graph.diffs(g1.rand, g2.rand, measure))$size2)
+    if (test == 'lm') {
+      max(V(group.graph.diffs(g1.rand, g2.rand, measure=measure, test=test,
+                              permute=TRUE, perm.order=shuffled, ...))$size2,
+          na.rm=T)
+    } else {
+      max(V(group.graph.diffs(g1.rand, g2.rand, measure, test, ...))$size2,
+          na.rm=T)
+    }
   }
 
   p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (N + 1)
