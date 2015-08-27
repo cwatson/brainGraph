@@ -412,7 +412,7 @@ plot_brainGraph_gui <- function() {
   hboxVsize <- gtkHBoxNew(F, 4)
   vboxVsize$packStart(hboxVsize, F, F, 0)
   choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
-               'Subgraph centrality', 'Coreness', 'Clustering coeff.', 'PC',
+               'Coreness', 'Clustering coeff.', 'PC',
                'E.local', 'E.nodal', 'Within-module degree z-score', 'Hub score',
                'Vulnerability', 'NN degree', 'Asymmetry', 'Eccentricity',
                'Other', 'Equation')
