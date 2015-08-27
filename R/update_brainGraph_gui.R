@@ -434,7 +434,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
              lobe.names,
              fill=lobe.cols,
              bg='black',
-             text.col='white')
+             text.col='white',
+             cex=0.75)
     } else if (vertColor$getActive() + 1 == 5) {
       classes <- levels(atlas.dt[, class])
       cols <- c('red', 'green', 'blue')
@@ -442,7 +443,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
              classes,
              fill=cols,
              bg='black',
-             text.col='white')
+             text.col='white',
+             cex=0.75)
     }
 
     # Show the diameter of each graph?
