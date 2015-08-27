@@ -23,6 +23,7 @@
 
 plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
                           group=NULL) {
+  Var1 <- Var2 <- memb <- color <- color.test <- legend.t <- value <- color.text <- NULL
   base_size <- ifelse(nrow(corrs) > 90, 7.5, 9)
 
   if (isTRUE(ordered)) {
@@ -34,6 +35,7 @@ plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
 
     type <- match.arg(type)
     create.dt <- function(dat, graph, v.attr) {
+      lobe <- memb1 <- memb2 <- Var1 <- Var2 <- value <- legend.t <- color <- color.text <- NULL
       memb <- vertex_attr(graph, v.attr)
       if (v.attr == 'comm') {
         tab <- table(memb)

@@ -40,6 +40,7 @@
 
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
                                       subject=NULL, group=NULL, rand=FALSE) {
+  name <- NULL
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)

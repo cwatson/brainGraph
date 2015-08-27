@@ -20,7 +20,7 @@
 
 plot_thickness <- function(dat, regions, type=c('violin', 'histogram'),
                            all.vals=TRUE) {
-  region <- thickness <- Group <- ..density.. <- avg <- NULL
+  region <- thickness <- Group <- ..density.. <- avg <- mean.thickness <- NULL
   if(!is.character(regions)) {
     regions <- dat[, unique(region)][regions]
   } else {

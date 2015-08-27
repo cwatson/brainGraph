@@ -45,7 +45,7 @@
 group.graph.diffs <- function(g1, g2, measure,
                               test=c('t.test', 'wilcox.test', 'lm'),
                               covars=NULL, permute=FALSE, perm.order=NULL) {
-  statistic <- p.value <- NULL  # To appease R CHECK
+  statistic <- p.value <- Study.ID <- Group <- region <- NULL  # To appease R CHECK
 
   Nv <- vcount(g1[[1]])
   meas1 <- vapply(g1, vertex_attr, numeric(Nv), measure)

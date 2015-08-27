@@ -21,6 +21,7 @@
 
 plot_vertex_measures <- function(dat, cur.density=0.1, measure='btwn.cent',
                                  ylabel=NULL) {
+  variable <- Group <- value <- NULL
 
   if (is.null(ylabel)) {
     ylabel <- measure
