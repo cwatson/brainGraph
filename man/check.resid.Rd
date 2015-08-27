@@ -4,10 +4,12 @@
 \alias{check.resid}
 \title{Check model residuals for each brain region}
 \usage{
-check.resid(resids)
+check.resid(resids, cols = FALSE)
 }
 \arguments{
 \item{resids}{Data table of model residuals for all brain regions}
+
+\item{cols}{Logical indicating whether to color by group (default: FALSE)}
 }
 \description{
 This function checks the model residuals for each brain region in the
