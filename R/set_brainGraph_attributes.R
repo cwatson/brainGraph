@@ -7,6 +7,7 @@
 #' @param atlas A character vector indicating which atlas was used for the nodes
 #' @param modality A character vector indicating imaging modality (e.g. 'dti')
 #' @param subject A character vector indicating subject ID (default: NULL)
+#' @param group A character vector indicating group membership (default: NULL)
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
 #'
 #' @export
@@ -16,18 +17,18 @@
 #' diameter, \# of triangles, transitivity, average path length, assortativity,
 #' clique number, global & local efficiency, modularity, vulnerability, hub score,
 #' rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-#' \item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
-#' leverage centralities, hubs, transitivity (local), coreness, local & nodal
-#' efficiency, color (community), color (lobe), color (component), membership
-#' (community), membership (component), participation coefficient, within-module
-#' degree z-score, vulnerability, and coordinates (x, y, and z)}
+#' \item{Vertex-level}{Degree, strength, betweenness/eigenvector and leverage
+#' centralities, hubs, transitivity (local), coreness, local & nodal efficiency,
+#' color (community), color (lobe), color (component), membership (community),
+#' membership (component), participation coefficient, within-module degree
+#' z-score, vulnerability, and coordinates (x, y, and z)}
 #' \item{Edge-level}{Color (community), color (lobe), color (component), edge
 #' betweenness, Euclidean distance (in mm)}
 #'
 #' @seealso \code{\link[igraph]{components}, \link[igraph]{diameter},
 #' \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part.coeff},
 #' \link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
-#' \link[igraph]{subgraph.centrality}, \link[igraph]{hub.score},
+#' \link[igraph]{hub.score},
 #' \link[igraph]{authority.score}, \link[igraph]{transitivity},
 #' \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 #' \link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},
@@ -38,7 +39,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
-                                      subject=NULL, rand=FALSE) {
+                                      subject=NULL, group=NULL, rand=FALSE) {
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)
@@ -50,11 +51,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
   Nk <- vapply(R, with, numeric(1), Nk)
   Ek <- vapply(R, with, numeric(1), Ek)
   g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
-  g$E.global <- graph.efficiency(g, 'global')
+  g$E.global <- graph.efficiency(g, 'global', weights=NA)
   comm <- cluster_louvain(g)
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
+    if (!is.null(group)) g$group <- group
     if (!is.null(subject)) g$name <- subject
     if (!is.null(modality)) g$modality <- modality
 
@@ -70,12 +72,18 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     g$max.comp <- g$conn.comp[1, 1]
     g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
-    g$diameter <- diameter(g)
+    g$diameter <- diameter(g, weights=NA)
     g$transitivity <- transitivity(g)
     g$assortativity <- assortativity.degree(g)
 
     if (is.weighted(g)) {
       V(g)$strength <- graph.strength(g)
+      V(g)$knn.wt <- graph.knn(g)$knn
+      V(g)$E.local.wt <- graph.efficiency(g, type='local')
+      g$E.local.wt <- mean(V(g)$E.local.wt)
+      V(g)$E.nodal.wt <- graph.efficiency(g, 'nodal')
+      g$E.global.wt <- mean(V(g)$E.nodal.wt)
+      g$diameter.wt <- diameter(g)
       R <- lapply(1:max(V(g)$degree),
                   function(x) rich.club.coeff(g, x, weighted=T))
       phi <- vapply(R, with, numeric(1), phi)
@@ -129,18 +137,17 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       }
     }
 
-    V(g)$knn <- graph.knn(g)$knn
+    V(g)$knn <- graph.knn(g, weights=NA)$knn
     V(g)$btwn.cent <- centr_betw(g)$res
     V(g)$hubs <- 0  # I define hubs as vertices w/ btwn.cent > mean + sd
     V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
     g$num.hubs <- sum(V(g)$hubs)
     V(g)$ev.cent <- centr_eigen(g)$vector
-    V(g)$subgraph.cent <- subgraph.centrality(g)
     V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- graph.coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
-    V(g)$E.local <- graph.efficiency(g, type='local')
-    V(g)$E.nodal <- graph.efficiency(g, type='nodal')
+    V(g)$E.local <- graph.efficiency(g, type='local', weights=NA)
+    V(g)$E.nodal <- graph.efficiency(g, type='nodal', weights=NA)
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g)
     g$vulnerability <- max(V(g)$vulnerability)

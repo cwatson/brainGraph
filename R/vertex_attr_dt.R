@@ -25,7 +25,6 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          btwn.cent=V(g)$btwn.cent,
                          hubs=V(g)$hubs,
                          ev.cent=V(g)$ev.cent,
-                         subg.cent=V(g)$subgraph.cent,
                          lev.cent=V(g)$lev.cent,
                          coreness=V(g)$coreness,
                          trans=V(g)$transitivity,
@@ -38,7 +37,7 @@ vertex_attr_dt <- function(g, Group=NULL) {
                          eccentricity=V(g)$eccentricity)
 
   if ('strength' %in% vertex_attr_names(g)) net.meas$strength <- V(g)$strength
-  if ('name' %in% graph_attr_names(g)) net.meas$subject <- g$name
+  if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
   if (!is.null(Group)) {
     net.meas$Group <- Group
     setkey(net.meas, 'region', 'lobe', 'hemi', Group)

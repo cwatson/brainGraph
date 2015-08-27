@@ -5,7 +5,7 @@
 \title{Set a number of graph and vertex attributes useful in MRI analyses}
 \usage{
 set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
-  subject = NULL, rand = FALSE)
+  subject = NULL, group = NULL, rand = FALSE)
 }
 \arguments{
 \item{g}{An igraph object}
@@ -16,6 +16,8 @@ set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
 
 \item{subject}{A character vector indicating subject ID (default: NULL)}
 
+\item{group}{A character vector indicating group membership (default: NULL)}
+
 \item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
 }
 \value{
@@ -24,11 +26,11 @@ g A copy of the same graph, with the following attributes:
 diameter, \# of triangles, transitivity, average path length, assortativity,
 clique number, global & local efficiency, modularity, vulnerability, hub score,
 rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-\item{Vertex-level}{Degree, strength, betweenness/eigenvector/subgraph and
-leverage centralities, hubs, transitivity (local), coreness, local & nodal
-efficiency, color (community), color (lobe), color (component), membership
-(community), membership (component), participation coefficient, within-module
-degree z-score, vulnerability, and coordinates (x, y, and z)}
+\item{Vertex-level}{Degree, strength, betweenness/eigenvector and leverage
+centralities, hubs, transitivity (local), coreness, local & nodal efficiency,
+color (community), color (lobe), color (component), membership (community),
+membership (component), participation coefficient, within-module degree
+z-score, vulnerability, and coordinates (x, y, and z)}
 \item{Edge-level}{Color (community), color (lobe), color (component), edge
 betweenness, Euclidean distance (in mm)}
 }
@@ -43,7 +45,7 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 \code{\link[igraph]{components}, \link[igraph]{diameter},
 \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part.coeff},
 \link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
-\link[igraph]{subgraph.centrality}, \link[igraph]{hub.score},
+\link[igraph]{hub.score},
 \link[igraph]{authority.score}, \link[igraph]{transitivity},
 \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 \link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},

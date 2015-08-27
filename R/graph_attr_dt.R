@@ -19,7 +19,7 @@ graph_attr_dt <- function(g.list, Group=NULL) {
                                       round(graph_attr(y, x), 4))))
 
   if ('name' %in% graph_attr_names(g.list[[1]])) {
-    g.dt$subject <- sapply(g.list, function(x) x$name)
+    g.dt$Study.ID <- sapply(g.list, function(x) x$name)
   }
   if (!is.null(Group)) {
     g.dt$Group <- Group
