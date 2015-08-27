@@ -417,7 +417,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         par(new=T, mar=c(5, 0, 3, 0) + 0.1)
         subt <- paste('# vertices: ', vcount(g), '# edges: ', ecount(g), '\n',
                       'Density: ', g.density)
-        title(main=main, sub=subt, col.sub='white')
+        title(main=main, col.main='white', sub=subt, col.sub='white')
       }
     }
 
