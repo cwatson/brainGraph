@@ -80,7 +80,7 @@ dti_create_mats <- function(A.files, Nv,
       R <- array(apply(div, 3, function(x)
                        cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
                  dim=dim(A))
-      A.norm <- 2 * A / (5e3 * R)
+      A.norm <- 2 * A / (5e3 * R)   #TODO: should not be hard-coded as 5e3
 
     } else if (divisor == 'rowSums') {
       A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))

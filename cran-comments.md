@@ -1,6 +1,6 @@
 ## Test environments
-* local 64-bit CentOS 6.6 install, R 3.1.2
-* local 64-bit CentOS 6.6 install, R 3.1.1
+* local 64-bit CentOS 6.7 install, R 3.2.2
+* local 64-bit CentOS 6.7 install, R 3.2.2
 * local 32-bit Windows 7 install, R 3.1.0
 * local 32-bit Windows 7 install, R-devel 3.2.0 (r67580)
 

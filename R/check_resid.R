@@ -8,7 +8,14 @@
 #' @param cols Logical indicating whether to color by group (default: FALSE)
 #' @export
 #'
+#' @return A list of \code{\link{ggplot2}} objects
 #' @seealso \code{\link[stats]{qqnorm}}
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' p.resids <- check.resid(resids.all)
+#' lapply(p.resids, function(x) {dev.new(); print(x)})
+#' }
 
 check.resid <- function(resids, cols=FALSE) {
   region <- x <- ysort <- ind <- mark <- NULL
@@ -31,14 +38,14 @@ check.resid <- function(resids, cols=FALSE) {
     Group <- NULL
     if (isTRUE(cols)) {
       p <- ggplot(R, aes(x=x, y=resid)) +
-      geom_text(aes(x=x, y=resid+0.3, label=ind, col=Group), size=3) +
-      geom_line(aes(x=x, y=x), col='gray50') +
-      geom_point(aes(col=Group, shape=mark, size=mark)) +
-      xlab('Theoretical Quantiles') + ylab('Sample Quantiles') +
-      facet_wrap( ~ region, nrow=3, ncol=3, scales='free') +
-      scale_shape_manual(values=c(20, 8)) +
-      scale_size_manual(values=c(1.5, 3)) +
-      theme(legend.position='none')
+        geom_text(aes(x=x, y=resid+0.3, label=ind, col=Group), size=3) +
+        geom_line(aes(x=x, y=x), col='gray50') +
+        geom_point(aes(col=Group, shape=mark, size=mark)) +
+        xlab('Theoretical Quantiles') + ylab('Sample Quantiles') +
+        facet_wrap( ~ region, nrow=3, ncol=3, scales='free') +
+        scale_shape_manual(values=c(20, 8)) +
+        scale_size_manual(values=c(1.5, 3)) +
+        theme(legend.position='none')
     } else {
       p <- ggplot(R, aes(x=x, y=resid)) +
         geom_point() +
@@ -49,15 +56,15 @@ check.resid <- function(resids, cols=FALSE) {
     return(p)
   }
 
+  all.p <- vector('list', length=(a + (!b == 0)))
   for (j in seq_len(a)) {
-    dev.new()
     N1 <- 9 * (j - 1) + 1
     N2 <- min(N1 + 8, kNumRegions)
-    print(ggQQ(resids.m[levels(region)[N1:N2]], cols))
+    all.p[[j]] <- ggQQ(resids.m[levels(region)[N1:N2]], cols)
   }
 
   if (kNumRegions > 9 & ! b == 0) {
-    dev.new()
-    print(ggQQ(resids.m[levels(region)[(N2+1):kNumRegions]], cols))
+    all.p[[j+1]] <- ggQQ(resids.m[levels(region)[(N2+1):kNumRegions]], cols)
   }
+  return(all.p)
 }

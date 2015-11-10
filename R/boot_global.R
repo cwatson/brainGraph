@@ -31,7 +31,7 @@
 
 boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
 
-  meas <- Group <- se <- ci.low <- ci.high <- NULL
+  meas <- Group <- se <- ci.low <- ci.high <- t0 <- NULL
   kNumGroups <- length(groups)
   kNumDensities <- length(densities)
   # 'statistic' function for the bootstrapping process

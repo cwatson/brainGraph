@@ -1,30 +1,29 @@
 Package: brainGraph
 Type: Package
-Version: 0.46.1
-Date: 2015-08-27
-Title: Graph theory analysis of brain MRI data
-Author: Chris Watson <cgwatson@bu.edu>
-Maintainer: Chris Watson <cgwatson@bu.edu>
-Description: brainGraph is a set of functions that performs graph theory
-    analyses of brain MRI data. It is best suited to data from a
-    Freesurfer analysis (for now), but can work with more. If using data from a
-    Freesurfer atlas, there are also functions for graph visualization
-    (rudimentary).
+Version: 0.46.2
+Date: 2015-11-08
+Title: Graph Theory Analysis of Brain MRI Data
+Author: Christopher G. Watson <cgwatson@bu.edu>
+Maintainer: Christopher G. Watson <cgwatson@bu.edu>
+Description: 'brainGraph' contains functions that perform graph theory analyses
+    of brain MRI data. It is best suited to data from a Freesurfer analysis (for
+    now), but can work with more. If using data from a Freesurfer atlas, there
+    are also functions for graph visualization (rudimentary).
 URL: https://github.com/cwatson/brainGraph
 BugReports: https://groups.google.com/forum/?hl=en#!forum/brainGraph-help
 Depends:
     R (>= 3.0.0),
-    igraph,
+    igraph (>= 1.0.0),
     RGtk2,
-    cairoDevice,
+    cairoDevice
 Imports:
-    Hmisc,
-    foreach,
-    parallel,
-    oro.nifti,
-    data.table,
-    ggplot2,
+    abind,
     boot,
-    plyr,
-    abind
+    data.table,
+    foreach,
+    ggplot2,
+    Hmisc,
+    oro.nifti,
+    parallel,
+    plyr
 License: GPL-3
