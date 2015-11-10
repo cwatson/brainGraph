@@ -62,7 +62,9 @@ group.graph.diffs <- function(g1, g2, measure,
     id1 <- vapply(g1, graph_attr, character(1), 'name')
     id2 <- vapply(g2, graph_attr, character(1), 'name')
     id.all <- c(id1, id2)
-    meas.id.dt <- data.table(cbind(Study.ID=id.all, t(cbind(meas1, meas2))))
+    meas.id.dt <- data.table(Study.ID=id.all)
+    meas.id.dt <- cbind(meas.id.dt, t(cbind(meas1, meas2)))
+    setnames(meas.id.dt, 2:(nrow(meas1) + 1), V(g.diffs)$name)
     setkey(meas.id.dt, Study.ID)
 
     if (isTRUE(permute)) {
@@ -78,8 +80,6 @@ group.graph.diffs <- function(g1, g2, measure,
     } else {
       DT <- merge(covars, meas.id.dt)
     }
-      setnames(DT, (ncol(covars)+1):ncol(DT),
-               V(g1[[1]])$name)
       DT.tidy <- melt(DT, id.vars=names(covars),
                                    variable.name='region', value.name='measure')
       myLM <- paste('measure ~',
