@@ -24,7 +24,7 @@ assign_lobes <- function(g, atlas.dt, rand=FALSE) {
   nonmatches <- !V(g)$name %in% atlas.dt[, name]
   if (any(nonmatches)) {
     stop(paste('Check the following vertex names: ',
-               paste(V(g)$names[nonmatches], collapse=' ')))
+               paste(V(g)$name[nonmatches], collapse=' ')))
   }
   vorder <- match(V(g)$name, atlas.dt$name)
 
