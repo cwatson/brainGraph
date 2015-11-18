@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 0.46.2
-Date: 2015-11-08
+Version: 0.47.0
+Date: 2015-11-18
 Title: Graph Theory Analysis of Brain MRI Data
 Author: Christopher G. Watson <cgwatson@bu.edu>
 Maintainer: Christopher G. Watson <cgwatson@bu.edu>
@@ -11,6 +11,7 @@ Description: 'brainGraph' contains functions that perform graph theory analyses
     are also functions for graph visualization (rudimentary).
 URL: https://github.com/cwatson/brainGraph
 BugReports: https://groups.google.com/forum/?hl=en#!forum/brainGraph-help
+LazyData: true
 Depends:
     R (>= 3.0.0),
     igraph (>= 1.0.0),

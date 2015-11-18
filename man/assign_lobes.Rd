@@ -18,7 +18,7 @@ for a random graph or a "graph of interest" (default: FALSE).}
 An \emph{igraph} graph object with additional vertex attributes:
   \item{lobe}{Character string indicating the lobe}
   \item{lobe.hemi}{Integer vector indicating the lobe and hemisphere}
-  \item{circle.layout}{Integer vector for ordering the vectors for circle
+  \item{circle.layout}{Integer vector for ordering the vertices for circle
     plots}
 }
 \description{

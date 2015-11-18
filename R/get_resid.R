@@ -22,7 +22,7 @@ get.resid <- function(thicknesses, covars) {
   regions <- 2:ncol(thicknesses)
   m <- lapply(names(thicknesses)[regions],
               function(x) lm(as.formula(paste0(x, '~',
-                              paste(names(covars)[2:ncol(covars)],
+                              paste(names(covars[, -1, with=F]),
                                     collapse='+'))),
                              data=dat))
 
