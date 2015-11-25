@@ -6,7 +6,7 @@
 \usage{
 brainGraph_init(atlas = c("aal116", "aal90", "brainsuite", "destrieux", "dk",
   "dk.scgm", "dkt", "dkt.scgm", "hoa112", "lpba40"), densities, datadir,
-  modality = c("thickness", "volume", "lgi"), use.mean = FALSE,
+  modality = c("thickness", "volume", "lgi", "area"), use.mean = FALSE,
   exclude.subs = NULL)
 }
 \arguments{
@@ -20,7 +20,7 @@ files}
 
 \item{modality}{A character string indicating the volumetric MRI
 modality/measure you are using to create the graphs ('thickness', 'volume',
-or 'lgi')}
+'lgi', or 'area')}
 
 \item{use.mean}{A logical indicating whether or not you would like to
 calculate the mean hemispheric volumetric measure (for later use in linear

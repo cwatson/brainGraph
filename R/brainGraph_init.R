@@ -18,7 +18,7 @@
 #' files
 #' @param modality A character string indicating the volumetric MRI
 #' modality/measure you are using to create the graphs ('thickness', 'volume',
-#' or 'lgi')
+#' 'lgi', or 'area')
 #' @param use.mean A logical indicating whether or not you would like to
 #' calculate the mean hemispheric volumetric measure (for later use in linear
 #' models) (default: FALSE)
@@ -49,7 +49,7 @@
 brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux',
                                     'dk', 'dk.scgm', 'dkt', 'dkt.scgm', 'hoa112',
                                     'lpba40'), densities, datadir,
-                            modality=c('thickness', 'volume', 'lgi'),
+                            modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, exclude.subs=NULL) {
 
   kNumDensities <- length(densities)
