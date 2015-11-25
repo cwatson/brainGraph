@@ -57,7 +57,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
-    if (!is.null(group)) g$group <- group
+    if (!is.null(group)) g$Group <- group
     if (!is.null(subject)) g$name <- subject
     if (!is.null(modality)) g$modality <- modality
 

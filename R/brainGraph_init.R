@@ -7,9 +7,9 @@
 #'
 #' The file containing covariates should be names \code{covars.csv}. The files
 #' containing volumetric data should include hemisphere, atlas, and modality,
-#' e.g. \texttt{lh_dkt_thickness.csv}. If you would like to include subcortical
-#' gray matter, then you will need files \texttt{covars.scgm.csv} and
-#' \texttt{scgm.csv}.
+#' e.g. \code{lh_dkt_thickness.csv}. If you would like to include subcortical
+#' gray matter, then you will need files \code{covars.scgm.csv} and
+#' \code{scgm.csv}.
 #'
 #' @param atlas A character string indicating which brain atlas you are using
 #' @param densities A numeric vector of the graph densities you would like to
@@ -52,6 +52,7 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, exclude.subs=NULL) {
 
+  Group <- Study.ID <- hemi <- name <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas)
   atlas.dt <- eval(parse(text=data(list=atlas)))

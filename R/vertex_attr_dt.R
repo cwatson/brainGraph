@@ -5,7 +5,7 @@
 #' etc.).
 #'
 #' @param g An igraph graph object
-#' @param Group A character string indicating group membership (default:NULL)
+#' @param group A character string indicating group membership (default:NULL)
 #' @export
 #'
 #' @return A data table with 18-19 columns and row number equal to the number of
@@ -13,7 +13,7 @@
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
 #' \link[igraph]{as_data_frame}}
 
-vertex_attr_dt <- function(g, Group=NULL) {
+vertex_attr_dt <- function(g, group=NULL) {
   lobe <- name <- NULL
   atlas.dt <- eval(parse(text=data(list=g$atlas)))
   net.meas <- data.table(density=g$density,
@@ -38,11 +38,15 @@ vertex_attr_dt <- function(g, Group=NULL) {
 
   if ('strength' %in% vertex_attr_names(g)) net.meas$strength <- V(g)$strength
   if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
-  if (!is.null(Group)) {
-    net.meas$Group <- Group
-    setkey(net.meas, 'region', 'lobe', 'hemi', Group)
-  } else {
+  if (is.null(group)) {
     setkey(net.meas, 'region', 'lobe', 'hemi')
+  } else {
+    if ('Group' %in% graph_attr_names(g)) {
+      net.meas$Group <- g$Group
+    } else {
+      net.meas$Group <- group
+    }
+    setkey(net.meas, 'region', 'lobe', 'hemi', Group)
   }
 
   return(net.meas)
