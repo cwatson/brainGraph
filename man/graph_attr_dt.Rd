@@ -4,12 +4,12 @@
 \alias{graph_attr_dt}
 \title{Create a data table with graph global measures}
 \usage{
-graph_attr_dt(g.list, Group = NULL)
+graph_attr_dt(g.list, group = NULL)
 }
 \arguments{
 \item{g.list}{A list of igraph graph objects}
 
-\item{Group}{A character string indicating group membership (default:NULL)}
+\item{group}{A character string indicating group membership (default:NULL)}
 }
 \value{
 A data table with several columns (equal to the number of graph

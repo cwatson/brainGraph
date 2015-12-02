@@ -4,12 +4,12 @@
 \alias{vertex_attr_dt}
 \title{Create a data table with graph vertex measures}
 \usage{
-vertex_attr_dt(g, Group = NULL)
+vertex_attr_dt(g, group = NULL)
 }
 \arguments{
 \item{g}{An igraph graph object}
 
-\item{Group}{A character string indicating group membership (default:NULL)}
+\item{group}{A character string indicating group membership (default:NULL)}
 }
 \value{
 A data table with 18-19 columns and row number equal to the number of

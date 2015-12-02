@@ -51,9 +51,9 @@ returning them as data tables.
 \details{
 The file containing covariates should be names \code{covars.csv}. The files
 containing volumetric data should include hemisphere, atlas, and modality,
-e.g. \texttt{lh_dkt_thickness.csv}. If you would like to include subcortical
-gray matter, then you will need files \texttt{covars.scgm.csv} and
-\texttt{scgm.csv}.
+e.g. \code{lh_dkt_thickness.csv}. If you would like to include subcortical
+gray matter, then you will need files \code{covars.scgm.csv} and
+\code{scgm.csv}.
 }
 \examples{
 \dontrun{

@@ -38,16 +38,17 @@ vertex_attr_dt <- function(g, group=NULL) {
 
   if ('strength' %in% vertex_attr_names(g)) net.meas$strength <- V(g)$strength
   if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
+  if ('modality' %in% graph_attr_names(g)) net.meas$modality <- g$modality
+
   if (is.null(group)) {
-    setkey(net.meas, 'region', 'lobe', 'hemi')
-  } else {
     if ('Group' %in% graph_attr_names(g)) {
       net.meas$Group <- g$Group
-    } else {
-      net.meas$Group <- group
+      setkey(net.meas, 'region', 'lobe', 'hemi', Group)
     }
+    setkey(net.meas, 'region', 'lobe', 'hemi')
+  } else {
+    net.meas$Group <- group
     setkey(net.meas, 'region', 'lobe', 'hemi', Group)
   }
-
   return(net.meas)
 }

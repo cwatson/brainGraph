@@ -25,13 +25,13 @@ graph_attr_dt <- function(g.list, group=NULL) {
     g.dt$modality <- sapply(g.list, function(x) x$modality)
   }
   if (is.null(group)) {
-    setkey(g.dt, density)
-  } else {
     if ('Group' %in% graph_attr_names(g.list[[1]])) {
       g.dt$Group <- sapply(g.list, function(x) x$Group)
-    } else {
-      g.dt$Group <- group
+      setkey(g.dt, Group, density)
     }
+    setkey(g.dt, density)
+  } else {
+    g.dt$Group <- group
     setkey(g.dt, Group, density)
   }
 

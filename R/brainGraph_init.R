@@ -37,6 +37,7 @@
 #' \item{kNumVertices}{An integer; the number of vertices in the graphs}
 #' \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
 #' data}
+#' \item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
@@ -78,14 +79,19 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   }
 
   # Calculate hemispheric means, if desired
+  all.dat <- merge(covars, lhrh)
   if (isTRUE(use.mean)) {
-    covars$mean.lh <- lhrh[, rowMeans(.SD),
-                           .SDcols=atlas.dt[hemi == 'L', name],
-                           by=Study.ID]$V1
-    covars$mean.rh <- lhrh[, rowMeans(.SD),
-                           .SDcols=atlas.dt[hemi == 'R', name],
-                           by=Study.ID]$V1
+    all.dat[, mean.lh := rowMeans(.SD),
+            .SDcols=atlas.dt[hemi == 'L', name],
+            by=Study.ID]$V1
+    all.dat[, mean.rh := rowMeans(.SD),
+            .SDcols=atlas.dt[hemi == 'R', name],
+            by=Study.ID]$V1
+    covars <- subset(all.dat, select=c(names(covars), 'mean.lh', 'mean.rh'))
+  } else {
+    covars <- subset(all.dat, select=names(covars))
   }
+  lhrh <- subset(all.dat, select=names(lhrh))
 
   # Get SCGM and its covariates, if included
   if (isTRUE(grepl('scgm', atlas))) {
@@ -98,5 +104,6 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
 
   return(list(atlas=atlas, densities=densities, modality=modality,
               kNumDensities=kNumDensities, covars=covars, groups=groups,
-              kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh))
+              kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh,
+              all.dat=all.dat))
 }

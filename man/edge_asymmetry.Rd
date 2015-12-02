@@ -4,7 +4,7 @@
 \alias{edge_asymmetry}
 \title{Calculate an asymmetry index based on edge counts}
 \usage{
-edge_asymmetry(g, level = c("hemi", "vertex"), .parallel = T)
+edge_asymmetry(g, level = c("hemi", "vertex"), .parallel = TRUE)
 }
 \arguments{
 \item{g}{The igraph graph object}
