@@ -48,16 +48,27 @@ plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
 
   type <- match.arg(type)
   if (type == 'histogram') {
+    # Allow for variable bin widths
+    groups <- subDT[, levels(Group)]
+    setkey(subDT, region, Group)
+    breaksdt <- subDT[, .(breaks=pretty(range(value), n=nclass.FD(value))),
+                      by=.(Group, region)]
+    breaksdt[, bwidth := .SD[1:2, diff(breaks)], by=.(Group, region)]
+    subDT[, bwidth := rep(breaksdt[, .SD[, min(bwidth)], by=.(region)]$V1,
+                          times=subDT[, .N, by=.(region)]$N)]
+    my.df <- subDT[, ggplot2:::bin(value, binwidth=unique(bwidth)), by=.(Group, region)]
+
     meandt <- subDT[, .(avg=mean(value)), by=.(Group, region)]
-    vol.plot <- ggplot(subDT, aes(x=value)) +
-      geom_histogram(binwidth=0.05, alpha=0.4, position='dodge',
-                     aes(y=..density.., fill=Group)) +
+    vol.plot <- ggplot(my.df) +
+      geom_histogram(aes(x, y=density, width=width, fill=Group),
+                     alpha=0.6, position='dodge', stat='identity') +
       geom_vline(data=meandt, aes(xintercept=avg, col=Group), lty=2, size=0.5) +
-      geom_density(aes(col=Group), size=0.8) +
+      geom_density(data=subDT, aes(x=value, col=Group), size=0.8) +
       facet_wrap(~ region, scales='free') +
       theme(legend.position=c(1, 1), legend.justification=c(1, 1),
             legend.background=element_rect(size=0.5)) +
       xlab(ax.lab)
+
   } else if (type == 'violin') {
     vol.plot <- ggplot(subDT, aes(x=Group, y=value, fill=Group)) +
       geom_violin(trim=FALSE) +

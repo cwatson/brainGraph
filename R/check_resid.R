@@ -31,8 +31,8 @@ check.resid <- function(resids, cols=FALSE) {
   setkey(resids.m, region, resid)
   resids.m[, x := qnorm(ppoints(resid)), by=region]
   resids.m[, mark := ifelse(abs(resid) < mean(resid) + 2*sd(resid), 0, 1), by=region]
-  resids.m[, mark := as.factor(mark)]
   resids.m[mark == 0, ind := '']
+  resids.m[, mark := as.factor(mark)]
 
   ggQQ <- function(R, cols) {
     Group <- NULL
