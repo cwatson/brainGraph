@@ -36,7 +36,7 @@ assign_lobes <- function(g, atlas.dt, rand=FALSE) {
 
   if (!isTRUE(rand)) {
     if (atlas %in% c('dkt', 'dk', 'destrieux')) {
-      counts <- atlas.dt[order(lobe), .N, by=.(lobe, hemi)]$N
+      counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
@@ -53,7 +53,7 @@ assign_lobes <- function(g, atlas.dt, rand=FALSE) {
 
     } else if (atlas %in% c('aal90', 'lpba40', 'hoa112', 'brainsuite',
                             'dk.scgm', 'dkt.scgm')) {
-      counts <- atlas.dt[order(lobe), .N, by=.(lobe, hemi)]$N
+      counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'L'),

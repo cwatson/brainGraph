@@ -52,14 +52,33 @@ plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
     # Allow for variable bin widths
     groups <- subDT[, levels(Group)]
     setkey(subDT, region, Group)
-    breaksdt <- subDT[, .(breaks=pretty(range(value), n=nclass.FD(value))),
-                      by=.(Group, region)]
-    breaksdt[, bwidth := .SD[1:2, diff(breaks)], by=.(Group, region)]
-    subDT[, bwidth := rep(breaksdt[, .SD[, min(bwidth)], by=.(region)]$V1,
-                          times=subDT[, .N, by=.(region)]$N)]
-    my.df <- subDT[, ggplot2:::bin(value, binwidth=unique(bwidth)), by=.(Group, region)]
+    breaksdt <- subDT[, list(breaks=pretty(range(value), n=nclass.FD(value))),
+                      by=list(Group, region)]
+    breaksdt[, bwidth := .SD[1:2, diff(breaks)], by=list(Group, region)]
+    subDT[, bwidth := rep(breaksdt[, .SD[, min(bwidth)], by=region]$V1,
+                          times=subDT[, .N, by=region]$N)]
+    # A partial recreation of Hadley's ggplot2:::bin function
+    create_bins <- function(x, binwidth) {
+      breaks <- sort(scales::fullseq(range(x), binwidth, pad=TRUE))
+      bins <- cut(x, breaks, include.lowest=TRUE, right=FALSE)
+      left <- breaks[-length(breaks)]
+      right <- breaks[-1]
+      x <- (left + right) / 2
+      width <- diff(breaks)
 
-    meandt <- subDT[, .(avg=mean(value)), by=.(Group, region)]
+      out <- data.frame(count=as.numeric(tapply(rep(1, length(bins)), bins, sum,
+                                                na.rm=T)),
+                        x=x,
+                        width=width)
+      out$count[is.na(out$count)] <- 0
+      out$density <- out$count / out$width / sum(abs(out$count), na.rm=T)
+      out$ndensity <- out$density / max(abs(out$density), na.rm=T)
+      out$ncount <- out$count / max(abs(out$count), na.rm=T)
+      return(out)
+    }
+    my.df <- subDT[, create_bins(value, unique(bwidth)), by=list(Group, region)]
+
+    meandt <- subDT[, list(avg=mean(value)), by=list(Group, region)]
     vol.plot <- ggplot(my.df) +
       geom_histogram(aes(x, y=density, width=width, fill=Group),
                      alpha=0.6, position='dodge', stat='identity') +

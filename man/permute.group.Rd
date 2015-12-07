@@ -9,8 +9,9 @@ permute.group(permSet, density, resids, level = c("graph", "vertex", "lobe",
   "E.nodal", "knn", "transitivity", "vulnerability"), .function = NULL)
 }
 \arguments{
-\item{permSet}{The set of permutations to loop through (obtained from
-\code{\link[permute]{shuffleSet}})}
+\item{permSet}{A matrix of the set of permutations to loop through; the
+number of rows equals the desired number of permutations and the number of
+columns equals the total number of subjects across groups}
 
 \item{density}{Numeric; the density of the resultant graphs}
 

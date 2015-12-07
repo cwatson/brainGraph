@@ -23,8 +23,9 @@
 #' haven't hard-coded (e.g. number of hubs between groups). It must take as its
 #' own arguments: "g1", "g2", and "density".
 #'
-#' @param permSet The set of permutations to loop through (obtained from
-#' \code{\link[permute]{shuffleSet}})
+#' @param permSet A matrix of the set of permutations to loop through; the
+#' number of rows equals the desired number of permutations and the number of
+#' columns equals the total number of subjects across groups
 #' @param density Numeric; the density of the resultant graphs
 #' @param resids A data table of the residuals (from \code{\link{get.resid}})
 #' @param level A character string for the attribute level to calculate
@@ -102,7 +103,7 @@ permute.group <- function(permSet, density, resids,
       } else if (measure == 'knn') {
         knn.diff <- graph.knn(g1)$knn - graph.knn(g2)$knn
         tmp <- as.data.table(cbind(density, t(knn.diff)))
-      
+
       } else if (measure == 'transitivity') {
         transitivity.diff <- transitivity(g1, type='local', isolates='zero') -
           transitivity(g2, type='local', isolates='zero')
