@@ -4,9 +4,19 @@ language: r
 warnings_are_errors: true
 sudo: required
 
+r_binary_packages:
+  - igraph
+  - RGtk2
+  - cairoDevice
+
+addons:
+  apt:
+    packages:
+      -  libcairo2-dev
+
 env:
  global:
-   - CRAN: http://cran.rstudio.com
+  - CRAN: http://cran.rstudio.com
 
 before_script:
   - "export DISPLAY=:99.0"
