@@ -13,7 +13,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' atlas.dt <- eval(parse(text=data(list=g1[[N]]$atlas)))
+#' atlas.dt <- eval(parse(text=g1[[N]]$atlas))
 #' g1.frontal <- count_interlobar(g1[[N]], 'Frontal', atlas.dt)
 #' }
 

@@ -107,7 +107,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
     if (!is.null(atlas)) {
       g$atlas <- atlas
-      atlas.dt <- eval(parse(text=data(list=atlas)))
+      atlas.dt <- eval(parse(text=atlas))
       if (!'name' %in% vertex_attr_names(g)) V(g)$name <- atlas.dt[, name]
 
       g <- assign_lobes(g, atlas.dt)

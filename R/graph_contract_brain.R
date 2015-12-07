@@ -16,7 +16,7 @@
 
 graph.contract.brain <- function(g) {
   atlas <- g$atlas
-  atlas.dt <- eval(parse(text=data(list=atlas)))
+  atlas.dt <- eval(parse(text=atlas))
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)
   E(g.sub)$weight <- 1
   g.sub <- simplify(g.sub)

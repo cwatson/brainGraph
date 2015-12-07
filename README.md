@@ -1,4 +1,6 @@
 # brainGraph
+[![Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
+
 *brainGraph* is an R package that is used to perform graph theory analyses of
 brain MRI data. It is currently most useful in ROI-based analyses (e.g. using an
 atlas such as AAL or one from Freesurfer); however, the computations will still

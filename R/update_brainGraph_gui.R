@@ -47,7 +47,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                         kNumComms=NULL, comm=NULL, ...) {
     dev.set(dev)
     atlas <- g$atlas
-    atlas.dt <- eval(parse(text=data(list=atlas)))
+    atlas.dt <- eval(parse(text=atlas))
     Nv <- vcount(g)
 
     #=======================================================

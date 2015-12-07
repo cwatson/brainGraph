@@ -46,7 +46,7 @@ plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
         legend.title <- 'Communities (#)'
       } else if (v.attr == 'lobe') {
         atlas <- graph$atlas
-        atlas.dt <- eval(parse(text=data(list=atlas)))
+        atlas.dt <- eval(parse(text=atlas))
         group.nums <- c(atlas.dt[, levels(lobe)])
         group.max <- length(group.nums)
         group.nums <- c(group.nums, 'Inter', '')

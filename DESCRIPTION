@@ -5,10 +5,11 @@ Date: 2015-12-06
 Title: Graph Theory Analysis of Brain MRI Data
 Author: Christopher G. Watson <cgwatson@bu.edu>
 Maintainer: Christopher G. Watson <cgwatson@bu.edu>
-Description: 'brainGraph' contains functions that perform graph theory analyses
-    of brain MRI data. It is best suited to data from a Freesurfer analysis (for
-    now), but can work with more. If using data from a Freesurfer atlas, there
-    are also functions for graph visualization (rudimentary).
+Description: A set of tools for performing graph theory analysis of brain MRI
+    data. It is best suited to data from a Freesurfer analysis (cortical
+    thickness, volumes, local gyrification index, surface area), but also works
+    with e.g., tractography data from FSL. It contains a graphical user
+    interface for graph visualization and data exploration.
 URL: https://github.com/cwatson/brainGraph
 BugReports: https://groups.google.com/forum/?hl=en#!forum/brainGraph-help
 LazyData: true

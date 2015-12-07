@@ -12,6 +12,7 @@
 #' @seealso \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 
 graph_attr_dt <- function(g.list, group=NULL) {
+  Group <- NULL
   inds <- which(sapply(graph_attr(g.list[[1]]), class) %in% c('numeric', 'integer'))
   g.attr.names <- graph_attr_names(g.list[[1]])[inds]
   g.dt <- as.data.table(sapply(g.attr.names, function(x)

@@ -20,7 +20,7 @@ spatial.dist <- function(g) {
                  deparse(substitute(g))))
   }
   name <- x.mni <- y.mni <- z.mni <- NULL
-  atlas.dt <- eval(parse(text=data(list=g$atlas)))
+  atlas.dt <- eval(parse(text=g$atlas))
   coords <- atlas.dt[, list(name, x.mni, y.mni, z.mni)]
   setkey(coords, name)
   es <- get.edgelist(g)

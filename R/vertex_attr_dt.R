@@ -14,8 +14,8 @@
 #' \link[igraph]{as_data_frame}}
 
 vertex_attr_dt <- function(g, group=NULL) {
-  lobe <- name <- NULL
-  atlas.dt <- eval(parse(text=data(list=g$atlas)))
+  lobe <- name <- Group <- NULL
+  atlas.dt <- eval(parse(text=g$atlas))
   net.meas <- data.table(density=g$density,
                          region=V(g)$name,
                          lobe=atlas.dt[, levels(lobe)][V(g)$lobe],

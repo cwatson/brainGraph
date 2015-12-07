@@ -53,10 +53,10 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, exclude.subs=NULL) {
 
-  Group <- Study.ID <- hemi <- name <- NULL
+  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas)
-  atlas.dt <- eval(parse(text=data(list=atlas)))
+  atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 
   covars <- fread(paste0(datadir, '/covars.csv'))

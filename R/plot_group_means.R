@@ -25,7 +25,8 @@ plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
                              all.vals=TRUE,
                              modality=c('thickness', 'volume', 'lgi', 'area'))
  {
-  region <- value <- Group <- ..density.. <- avg <- group.mean <- NULL
+  region <- value <- Group <- ..density.. <- avg <- group.mean <- bwidth <- NULL
+  breaks <- x <- width <- NULL
   if (!is.character(regions)) {
     regions <- dat[, unique(region)][regions]
   } else {

@@ -580,7 +580,7 @@ plot_brainGraph_gui <- function() {
   if (kNumGroups <= 1) edgeDiffs$setSensitive(F)
 
   # Major lobe number, if applicable
-  atlas.dt <- eval(parse(text=data(list=atlas)))
+  atlas.dt <- eval(parse(text=atlas))
   hboxLobe <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxLobe, F, F, 0)
 
