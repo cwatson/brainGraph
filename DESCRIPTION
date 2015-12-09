@@ -25,6 +25,7 @@ Imports:
     foreach,
     ggplot2,
     Hmisc,
+    methods,
     oro.nifti,
     parallel,
     plyr,

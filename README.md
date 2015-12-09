@@ -1,16 +1,25 @@
 # brainGraph
 [![Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
+[![](http://cranlogs.r-pkg.org/badges/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
 
 *brainGraph* is an R package that is used to perform graph theory analyses of
-brain MRI data. It is currently most useful in ROI-based analyses (e.g. using an
-atlas such as AAL or one from Freesurfer); however, the computations will still
-work with any graph. There is a rudimentary plotting GUI that will *not* work
-without data from a standard atlas (to be fixed some time in the future, but 
-it wouldn't make too much sense for non-brain MRI data).
+brain MRI data. It is currently most useful in atlas-based analyses (e.g. using
+an atlas such as AAL or one from Freesurfer); however, the computations will
+still work with any graph. There is a plotting GUI for fast and easy data
+exploration that will *not* work without data from a standard atlas (ideally to
+be fixed some time in the future).
 
 # Installation
-If you do not have the *devtools* package, I recommend you install that first.
-Then, all you need to type is
+There are two ways to install this package:
+
+* Directly from CRAN:
+``` r
+install.packages('brainGraph')
+```
+
+* For development versions, using the *devtools* package (install first, if
+necessary):
 ``` r
 devtools::install_github('cwatson/brainGraph')
 ```

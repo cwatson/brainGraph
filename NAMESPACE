@@ -50,3 +50,11 @@ import(boot)
 importFrom(plyr, laply, aaply)
 importFrom(abind, abind)
 importFrom(scales, fullseq)
+importFrom(grDevices, adjustcolor, dev.copy, dev.cur, dev.list, dev.new,
+  dev.off, dev.set, nclass.FD, png)
+importFrom(graphics, legend, par, plot, title)
+importFrom(methods, hasArg)
+importFrom(stats, as.formula, density, lm, p.adjust, ppoints, qnorm, resid,
+  rstudent, sd, t.test, wilcox.test)
+importFrom(utils, combn, flush.console, packageVersion, setTxtProgressBar,
+  txtProgressBar, write.table)
