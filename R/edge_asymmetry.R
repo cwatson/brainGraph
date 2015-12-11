@@ -38,25 +38,28 @@ edge_asymmetry <- function(g, level=c('hemi', 'vertex'), .parallel=TRUE) {
   if (level == 'hemi') {
     lh <- length(E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'L')])
     rh <- length(E(g)[which(V(g)$hemi == 'R') %--% which(V(g)$hemi == 'R')])
-    regions <- 'all'
+    asymm <- data.table(region='all', lh=lh, rh=rh)
+
   } else if (level == 'vertex') {
     inds <- which(V(g)$degree > 0)
-    lh <- rh <- rep(0, vcount(g))
+    asymm <- data.frame(lh=rep(0, vcount(g)), rh=rep(0, vcount(g)))
     if (isTRUE(.parallel)) {
-      lh[inds] <- unlist(mclapply(V(g)[inds], function(x)
-                                  length(E(g)[x %--% which(V(g)$hemi == 'L')]),
-                                  mc.cores=detectCores()))
-      rh[inds] <- unlist(mclapply(V(g)[inds], function(x)
-                                  length(E(g)[x %--% which(V(g)$hemi == 'R')]),
-                                  mc.cores=detectCores()))
+      asymm[inds, ] <- foreach (i=inds, .combine='rbind') %dopar% {
+        lh <- length(E(g)[i %--% which(V(g)$hemi == 'L')])
+        rh <- length(E(g)[i %--% which(V(g)$hemi == 'R')])
+        c(lh, rh)
+      }
     } else {
-      lh[inds] <- vapply(V(g)[inds], function(x)
-                         length(E(g)[x %--% which(V(g)$hemi == 'L')]), numeric(1))
-      rh[inds] <- vapply(V(g)[inds], function(x)
-                         length(E(g)[x %--% which(V(g)$hemi == 'R')]), numeric(1))
+      asymm$lh[inds] <- vapply(V(g)[inds], function(x)
+                               length(E(g)[x %--% which(V(g)$hemi == 'L')]),
+                               numeric(1))
+      asymm$rh[inds] <- vapply(V(g)[inds], function(x)
+                               length(E(g)[x %--% which(V(g)$hemi == 'R')]),
+                               numeric(1))
     }
-    regions <- V(g)$name
+    setDT(asymm)
+    asymm[, region := V(g)$name]
   }
-  asymm <- 2 * (lh - rh) / (lh + rh)
-  return(data.table(region=regions, lh=lh, rh=rh, asymm=asymm))
+  asymm[, asymm := 2 * (lh - rh) / (lh + rh)]
+  return(asymm)
 }

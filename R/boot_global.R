@@ -64,7 +64,16 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     statfun(data, indices, measure)
   }
 
-  ncpus <- detectCores()
+  if (.Platform$OS.type == 'windows') {
+    my.parallel <- 'snow'
+    ncpus <- as.numeric(Sys.getenv('NUMBER_OF_PROCESSORS'))
+    cl <- makeCluster(ncpus, type='SOCK')
+    clusterEvalQ(cl, library(brainGraph))
+  } else {
+    my.parallel='multicore'
+    ncpus <- detectCores()
+    cl <- NULL
+  }
   env <- environment()
   my.boot <- vector('list', length=kNumGroups)
   for (i in seq_len(kNumGroups)) {
@@ -72,7 +81,8 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     progbar <- txtProgressBar(min=0, max=R, style=3)
 
     my.boot[[i]] <- boot(resids[groups[i], !'Group', with=F], intfun,
-                       measure=measure, R=R, parallel='multicore', ncpus=ncpus)
+                       measure=measure, R=R, parallel=my.parallel, ncpus=ncpus,
+                       cl=cl)
     close(progbar)
   }
 
