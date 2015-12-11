@@ -1,6 +1,7 @@
 # brainGraph 0.49.0
 
 ## Minor changes
+* Exported `plot_perm_diffs`
 * Added argument checking for most functions
 * `count_interlobar` no longer takes `atlas.dt` as an argument
 * `dti_create_mats` now accepts argument `P` for "number of samples"
