@@ -15,13 +15,15 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 spatial.dist <- function(g) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if (! 'atlas' %in% graph_attr_names(g)) {
-    stop(sprintf('Error: Input graph "%s" does not have an "atlas" attribute!',
+    stop(sprintf('Input graph "%s" does not have an "atlas" attribute',
                  deparse(substitute(g))))
   }
   name <- x.mni <- y.mni <- z.mni <- NULL
-  atlas.dt <- eval(parse(text=g$atlas))
-  coords <- atlas.dt[, list(name, x.mni, y.mni, z.mni)]
+  coords <- eval(parse(text=g$atlas))[, list(name, x.mni, y.mni, z.mni)]
   setkey(coords, name)
   es <- get.edgelist(g)
   dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -

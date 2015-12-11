@@ -24,6 +24,9 @@
 #' Theory and Experiment, 02, P02001.
 
 within_module_deg_z_score <- function(g, memb) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {

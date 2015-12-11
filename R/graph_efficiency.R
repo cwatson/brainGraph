@@ -33,6 +33,9 @@
 
 graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
                              weights=NULL) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {
@@ -59,7 +62,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
         neighbs <- neighbors(g, v=x)
         g.sub <- induced.subgraph(g, neighbs)
         Nv <- vcount(g.sub)
-  
+
         paths <- shortest.paths(g.sub, weights=weights)
         paths <- paths[upper.tri(paths)]
         2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])

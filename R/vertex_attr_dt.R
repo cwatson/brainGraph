@@ -16,30 +16,21 @@
 vertex_attr_dt <- function(g, group=NULL) {
   lobe <- name <- Group <- NULL
   atlas.dt <- eval(parse(text=g$atlas))
-  net.meas <- data.table(density=g$density,
-                         region=V(g)$name,
-                         lobe=atlas.dt[, levels(lobe)][V(g)$lobe],
-                         hemi=V(g)$hemi,
-                         degree=V(g)$degree,
-                         knn=V(g)$knn,
-                         btwn.cent=V(g)$btwn.cent,
-                         hubs=V(g)$hubs,
-                         ev.cent=V(g)$ev.cent,
-                         lev.cent=V(g)$lev.cent,
-                         coreness=V(g)$coreness,
-                         trans=V(g)$transitivity,
-                         E.local=V(g)$E.local,
-                         E.nodal=V(g)$E.nodal,
-                         PC=V(g)$PC,
-                         z=V(g)$z.score,
-                         vulnerability=V(g)$vulnerability,
-                         asymm=V(g)$asymm,
-                         eccentricity=V(g)$eccentricity)
 
-  if ('strength' %in% vertex_attr_names(g)) net.meas$strength <- V(g)$strength
+  net.meas <- setDT(as_data_frame(g, what='vertices'))
+  net.meas[, c('x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni', 'lobe.hemi',
+               'circle.layout', 'comm', 'comp', 'circle.layout.comm',
+               'color.comm', 'color.comp', 'color.lobe') := NULL]
+  net.meas$density <- g$density
+  net.meas$lobe <- atlas.dt[, levels(lobe)][V(g)$lobe]
+  setnames(net.meas, 'name', 'region')
+  setcolorder(net.meas,
+              c('density', 'region', 'lobe', 'hemi',
+                names(net.meas[, !c('density', 'region', 'lobe', 'hemi'),
+                      with=F])))
+
   if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
   if ('modality' %in% graph_attr_names(g)) net.meas$modality <- g$modality
-
   if (is.null(group)) {
     if ('Group' %in% graph_attr_names(g)) {
       net.meas$Group <- g$Group

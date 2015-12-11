@@ -22,6 +22,7 @@
 #' @param sub.thresh A numeric (between 0 and 1) for thresholding by subject
 #' numbers
 #' @param groups A character vector of group names
+#' @param P Number of samples generated using FSL (default: 5000)
 #' @export
 #'
 #' @return A list containing:
@@ -45,13 +46,13 @@
 #' my.mats <- dti_create_mats(f.A, Nv, 'waytotal', f.way, thresholds,
 #'   sub.thresh=0.5, groups)
 #' my.mats <- dti_create_mats(f.A, Nv, 'size', f.size, thresholds,
-#'   sub.thresh=0.5, groups)
+#'   sub.thresh=0.5, groups, P=5000)
 #' }
 
 dti_create_mats <- function(A.files, Nv,
                             divisor=c('none', 'waytotal', 'size', 'rowSums'),
                             div.files, mat.thresh=0, sub.thresh=0.5,
-                            groups=NULL) {
+                            groups=NULL, P=5000) {
   inds <- lapply(groups, function(x) grep(x, A.files))
   kNumSubjs <- lengths(inds)
 
@@ -80,7 +81,7 @@ dti_create_mats <- function(A.files, Nv,
       R <- array(apply(div, 3, function(x)
                        cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
                  dim=dim(A))
-      A.norm <- 2 * A / (5e3 * R)   #TODO: should not be hard-coded as 5e3
+      A.norm <- 2 * A / (P * R)
 
     } else if (divisor == 'rowSums') {
       A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))

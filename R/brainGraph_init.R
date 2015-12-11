@@ -59,6 +59,9 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 
+  if (!file.exists(paste0(datadir, '/covars.csv'))) {
+    stop(sprintf('File "covars.csv" does not exist in %s', datadir))
+  }
   covars <- fread(paste0(datadir, '/covars.csv'))
   covars[, Group := as.factor(Group)]
   setkey(covars, Study.ID, Group)
@@ -66,6 +69,16 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   kNumGroups <- length(groups)
 
   modality <- match.arg(modality)
+  if (!file.exists(paste0(datadir, '/lh_', atlas, '_', modality, '.csv'))) {
+    stop(sprintf('File "%s" does not exist in %s',
+                 paste0(datadir, '/lh_', atlas, '_', modality, '.csv'),
+                 datadir))
+  }
+  if (!file.exists(paste0(datadir, '/rh_', atlas, '_', modality, '.csv'))) {
+    stop(sprintf('File "%s" does not exist in %s',
+                 paste0(datadir, '/rh_', atlas, '_', modality, '.csv'),
+                 datadir))
+  }
   lh <- fread(paste0(datadir, '/lh_', atlas, '_', modality, '.csv'))
   setkey(lh, Study.ID)
   rh <- fread(paste0(datadir, '/rh_', atlas, '_', modality, '.csv'))

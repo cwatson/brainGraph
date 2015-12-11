@@ -5,7 +5,6 @@
 #'
 #' @param g The igraph graph object
 #' @param lobe A character string indicating the lobe to count from (uppercase)
-#' @param atlas.dt A data table with specific atlas data
 #' @export
 #'
 #' @return A data table of total, intra-, and inter-lobar edge counts
@@ -13,14 +12,20 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' atlas.dt <- eval(parse(text=g1[[N]]$atlas))
-#' g1.frontal <- count_interlobar(g1[[N]], 'Frontal', atlas.dt)
+#' g1.frontal <- count_interlobar(g1[[N]], 'Frontal')
 #' }
 
-count_interlobar <- function(g, lobe, atlas.dt) {
-  lobe.names <- levels(atlas.dt$lobe)
-  if (! lobe %in% lobe.names) {
-    stop('Incorrect lobe name!')
+count_interlobar <- function(g, lobe) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
+  if (!'atlas' %in% graph_attr_names(g)) {
+    stop(sprintf('Input graph %s does not have an "atlas" attribute',
+                 deparse(substitute(g))))
+  }
+  lobe.names <- eval(parse(text=g$atlas))[, levels(lobe)]
+  if (!lobe %in% lobe.names) {
+    stop(sprintf('Incorrect lobe name "%s"', lobe))
   }
 
   id <- which(lobe == lobe.names)

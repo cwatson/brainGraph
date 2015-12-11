@@ -27,8 +27,11 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 edge_asymmetry <- function(g, level=c('hemi', 'vertex'), .parallel=TRUE) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if (!'hemi' %in% vertex_attr_names(g)) {
-    stop(sprintf('Graph "%s" does not have vertex attribute "hemi"!',
+    stop(sprintf('Graph "%s" does not have vertex attribute "hemi"',
                  deparse(substitute(g))))
   }
   level <- match.arg(level)

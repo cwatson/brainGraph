@@ -27,6 +27,9 @@
 
 robustness <- function(g, type=c('vertex', 'edge'),
                        measure=c('btwn.cent', 'degree', 'random'), N=1e3) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   type <- match.arg(type)
   measure <- match.arg(measure)
   if (type == 'vertex') {

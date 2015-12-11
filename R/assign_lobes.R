@@ -4,8 +4,9 @@
 #' for all vertices in a graph, given a specific atlas. It will also add an
 #' attribute \emph{circle.layout} for plotting circular graphs.
 #'
+#' The input graph \code{g} \emph{must} have a graph attribute named \code{atlas}.
+#'
 #' @param g An \emph{igraph} graph object.
-#' @param atlas.dt A data table for a specific atlas.
 #' @param rand A character string indicating whether this function is being run
 #' for a random graph or a "graph of interest" (default: FALSE).
 #'
@@ -16,9 +17,13 @@
 #'     plots}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-assign_lobes <- function(g, atlas.dt, rand=FALSE) {
+assign_lobes <- function(g, rand=FALSE) {
   lobe <- hemi <- name <- class <- NULL
-  atlas <- g$atlas
+  if (!'atlas' %in% graph_attr_names(g)) {
+    stop(sprintf('Input graph %s does not have an "atlas" attribute!',
+                 deparse(substitute(g))))
+  }
+  atlas.dt <- eval(parse(text=g$atlas))
 
   # Check that vertex names match the atlas names
   nonmatches <- !V(g)$name %in% atlas.dt[, name]

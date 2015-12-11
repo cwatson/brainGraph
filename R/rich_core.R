@@ -21,6 +21,9 @@
 #' One, 10(3): e0119678. doi:10.1371/journal.pone.0119678
 
 rich.core <- function(g) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {
@@ -34,7 +37,8 @@ rich.core <- function(g) {
   Nv <- vcount(g)
 
   vorder <- order(degs, decreasing=TRUE)
-  kplus <- sapply(seq_len(Nv), function(x) length(E(g)[vorder[x] %--% which(degs > degs[vorder[x]])]))
+  kplus <- sapply(seq_len(Nv), function(x)
+                  length(E(g)[vorder[x] %--% which(degs > degs[vorder[x]])]))
 
   r <- max(which(kplus == max(kplus)))
   k.r <- degs[vorder][r]

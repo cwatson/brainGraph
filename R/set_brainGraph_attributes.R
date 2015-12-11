@@ -41,6 +41,9 @@
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
                                       subject=NULL, group=NULL, rand=FALSE) {
   name <- NULL
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)
@@ -110,7 +113,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       atlas.dt <- eval(parse(text=atlas))
       if (!'name' %in% vertex_attr_names(g)) V(g)$name <- atlas.dt[, name]
 
-      g <- assign_lobes(g, atlas.dt)
+      g <- assign_lobes(g)
       V(g)$color.lobe <- group.cols[V(g)$lobe]
       E(g)$color.lobe <- color.edges(g, V(g)$lobe)
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)

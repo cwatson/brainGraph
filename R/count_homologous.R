@@ -10,8 +10,11 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 count_homologous <- function(g) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if (!'atlas' %in% graph_attr_names(g)) {
-    stop(sprintf('Graph "%s" must have an "atlas" attribute!',
+    stop(sprintf('Graph "%s" must have an "atlas" attribute',
                  deparse(substitute(g))))
   }
   atlas <- g$atlas
@@ -31,7 +34,7 @@ count_homologous <- function(g) {
     regions.r <- V(g)$name[seq(2, Nv - 2, by=2)]
 
   } else {
-    stop(sprintf('Atlas "%s" is not a valid name!', atlas))
+    stop(sprintf('Atlas "%s" is not a valid name', atlas))
   }
 
   eids <- unlist(Map(function(x, y)

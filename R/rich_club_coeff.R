@@ -25,6 +25,9 @@
 #' Letters, 101.16:168702.
 
 rich.club.coeff <- function(g, k=1, weighted=FALSE) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {

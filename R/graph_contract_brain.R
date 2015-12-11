@@ -15,8 +15,9 @@
 #' @seealso \code{\link[igraph]{contract.vertices}}
 
 graph.contract.brain <- function(g) {
-  atlas <- g$atlas
-  atlas.dt <- eval(parse(text=atlas))
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not an igraph graph object', deparse(substitute(g))))
+  }
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)
   E(g.sub)$weight <- 1
   g.sub <- simplify(g.sub)

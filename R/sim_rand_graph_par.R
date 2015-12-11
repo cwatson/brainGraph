@@ -24,6 +24,9 @@
 #' }
 
 sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if (clustering == TRUE) {
     r <- foreach(i=seq_len(N),
                   .packages=c('igraph', 'brainGraph')) %dopar% {
@@ -40,8 +43,7 @@ sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
       }
     } else {
       iters <- max(10*ecount(g), 1e4)
-      r <- foreach(i=seq_len(N),
-                   .packages=c('igraph', 'brainGraph')) %dopar% {
+      r <- foreach(i=seq_len(N)) %dopar% {
         tmp <- rewire(g, keeping_degseq(loops=F, iters))
         tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
         tmp

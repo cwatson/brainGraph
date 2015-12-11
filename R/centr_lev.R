@@ -24,6 +24,9 @@
 
 centr_lev <- function(g, .parallel=TRUE) {
   i <- NULL
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   k <- degree(g)
   n <- vcount(g)
   lev.cent <- rep(NA, n)

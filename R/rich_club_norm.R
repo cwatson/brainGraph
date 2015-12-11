@@ -29,6 +29,9 @@
 #' 2:110-115.
 
 rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
+  if (!is.igraph(g)) {
+    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
+  }
   if (is.null(rand)) {
     rand <- sim.rand.graph.par(g, N, clustering=F)
   } else {
