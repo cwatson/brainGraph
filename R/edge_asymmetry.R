@@ -34,6 +34,7 @@ edge_asymmetry <- function(g, level=c('hemi', 'vertex'), .parallel=TRUE) {
     stop(sprintf('Graph "%s" does not have vertex attribute "hemi"',
                  deparse(substitute(g))))
   }
+  i <- region <- NULL
   level <- match.arg(level)
   if (level == 'hemi') {
     lh <- length(E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'L')])

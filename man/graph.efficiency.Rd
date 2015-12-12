@@ -4,7 +4,8 @@
 \alias{graph.efficiency}
 \title{Calculate graph global, local, or nodal efficiency}
 \usage{
-graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL)
+graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
+  .parallel = TRUE)
 }
 \arguments{
 \item{g}{The graph on which to calculate efficiency}
@@ -14,6 +15,9 @@ graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL)
 \item{weights}{A numeric vector of edge weights; if 'NULL', and if the graph
 has edge attribute 'weight', then that will be used. To avoid using weights,
 this should be 'NA'}
+
+\item{.parallel}{Logical indicating whether or not to use \code{foreach}
+(default: TRUE)}
 }
 \value{
 A vector of the local efficiencies for each vertex of the graph (if

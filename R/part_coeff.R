@@ -36,12 +36,22 @@ part.coeff <- function(g, memb) {
   vs <- which(degs > 0)
 
   PC <- rep(0, length(degs))
-  PC[vs] <- foreach (i=seq_along(vs), .combine='c') %dopar% {
-    Kis <- vapply(seq_len(Nc), function(x)
-                  length(edges[vs[i] %--% which(memb==x)]),
-                  integer(1))
-    Ki <- degs[vs[i]]
-    1 - sum((Kis/Ki)^2)
+  if (.Platform$OS == 'windows') {
+    PC[vs] <- foreach (i=seq_along(vs), .combine='c') %dopar% {
+      Kis <- vapply(seq_len(Nc), function(x)
+                    sum(neighbors(g, vs[i]) %in% which(memb==x)),
+                    integer(1))
+      Ki <- degs[vs[i]]
+      1 - sum((Kis/Ki)^2)
+    }
+  } else {
+    PC[vs] <- foreach (i=seq_along(vs), .combine='c') %dopar% {
+      Kis <- vapply(seq_len(Nc), function(x)
+                    length(edges[vs[i] %--% which(memb==x)]),
+                    integer(1))
+      Ki <- degs[vs[i]]
+      1 - sum((Kis/Ki)^2)
+    }
   }
 
   return(PC)
