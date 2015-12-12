@@ -42,6 +42,7 @@ A list containing:
 \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
 data}
 \item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
+\item{all.dat.tidy}{A 'tidied' version of \code{all.dat}}
 }
 \description{
 This function initializes some variables that are important for further

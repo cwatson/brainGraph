@@ -38,6 +38,7 @@
 #' \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
 #' data}
 #' \item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
+#' \item{all.dat.tidy}{A 'tidied' version of \code{all.dat}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
@@ -53,7 +54,8 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, exclude.subs=NULL) {
 
-  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- NULL
+  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <- NULL
+  value <- region <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas)
   atlas.dt <- eval(parse(text=atlas))
@@ -115,8 +117,13 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
     setkey(covars.scgm, Study.ID, Group)
   }
 
+  all.dat.tidy <- melt(all.dat, id.vars=names(covars), variable.name='region')
+  all.dat.tidy[, modality := modality]
+  all.dat.tidy[, group.mean := mean(value), by=list(Group, region)]
+  setkey(all.dat.tidy, Group, region)
+
   return(list(atlas=atlas, densities=densities, modality=modality,
               kNumDensities=kNumDensities, covars=covars, groups=groups,
               kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh,
-              all.dat=all.dat))
+              all.dat=all.dat, all.dat.tidy=all.dat.tidy))
 }

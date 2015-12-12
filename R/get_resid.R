@@ -1,38 +1,65 @@
-#' Linear models of columns of a data frame
+#' Linear model residuals across brain regions
 #'
-#' This function runs linear models on the columns of the input data frame (e.g.
-#' cortical thickness data for each region), in order to adjust for relevant
-#' variables (e.g. age, sex, group, etc.).
+#' This function runs linear models across brain regions listed in a
+#' \code{data.table} (e.g. cortical thickness), in order to adjust for relevant
+#' variables (e.g. age, sex, group, etc.). It adds the \emph{studentized}
+#' residuals as a column and returns the data table.
 #'
-#' @param thicknesses Data frame of all thickness data. First column must be
-#' subject ID (or something similar)
-#' @param covars Data frame of covariates for the linear model. Must share a
-#' subject ID column with \emph{thicknesses}
+#' @param tidy.dt A \code{data.table} that has been "tidied", containing all
+#' covariates and the brain measure of interest
+#' @param covars A \code{data.table} of covariates
+#' @param use.mean A logical indicating whether to control for the mean
+#' hemispheric brain value (e.g. mean LH/RH cortical thickness) (default: NULL)
+#' @param exclude A character vector of columns to exclude (default: NULL)
 #' @export
 #'
 #' @return A list with components:
-#' \item{models}{The \code{\link[stats]{lm}} objects for each brain region.}
-#' \item{resids}{Data table of studentized residuals for all subjects and brain
-#' regions.}
+#' \item{all.dat.tidy}{The tidied \code{data.table} with 'resids' column added}
+#' \item{formulas}{Character string of the \code{\link{lm}} formulas used}
+#' \item{resids.all}{The "wide" \code{data.table} of residuals}
 #' @seealso \code{\link{rstudent}}
 
-get.resid <- function(thicknesses, covars) {
-  Group <- NULL
-  dat <- merge(covars, thicknesses)
-  regions <- 2:ncol(thicknesses)
-  m <- lapply(names(thicknesses)[regions],
-              function(x) lm(as.formula(paste0(x, '~',
-                              paste(names(covars[, -1, with=F]),
-                                    collapse='+'))),
-                             data=dat))
+get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
+  region <- resids <- Group <- NULL
+  myDT <- copy(tidy.dt)
+  exclude <- c('Study.ID', exclude)
 
-  # Get the studentized residuals
-  all.resid <- as.data.table(lapply(m, rstudent))
-  setnames(all.resid, colnames(thicknesses)[regions])
-  if ('Group' %in% names(covars)) {
-    all.resid$Group <- dat$Group
-    setkey(all.resid, Group)
+  # Adjust by mean hemispheric values
+  if (isTRUE(use.mean)) {
+    formula.lh <- paste('value ~',
+                        paste(names(covars[, !c(exclude, 'mean.rh'), with=F]),
+                                         collapse='+'))
+    formula.rh <- paste('value ~',
+                        paste(names(covars[, !c(exclude, 'mean.lh'), with=F]),
+                                         collapse='+'))
+    if (nrow(myDT[grep('^l.*', region)]) == 0) {
+      lh.string <- '.*\\.L$'
+      rh.string <- '.*\\.R$'
+    } else {
+      lh.string <- '^l.*'
+      rh.string <- '^R.*'
+    }
+    myDT[grep(lh.string, region),
+            resids := rstudent(lm(as.formula(formula.lh), .SD)), by=region]
+    myDT[grep(rh.string, region),
+            resids := rstudent(lm(as.formula(formula.lh), .SD)), by=region]
+    formulas <- c(formula.lh, formula.rh)
+
+  # Don't adjust by mean hemispheric values
+  } else {
+    formula.lhrh <- paste('value ~ ', paste(names(covars[, !exclude, with=F]),
+                                            collapse='+'))
+    myDT[, resids := rstudent(lm(as.formula(formula.lhrh), .SD)), by=region]
+    formulas <- formula.lhrh
   }
 
-  list(models=m, resids=all.resid)
+  # Return data to "wide" format with just the residuals
+  all.dat.wide <- dcast.data.table(myDT, paste(paste(names(covars),
+                                                     collapse='+'),
+                                               '~ region'),
+                                   value.var='resids')
+  resids.all <- all.dat.wide[, !setdiff(names(covars), 'Group'), with=F]
+  setkey(resids.all, Group)
+
+  return(list(all.dat.tidy=myDT, formulas=formulas, resids.all=resids.all))
 }

@@ -2,27 +2,32 @@
 % Please edit documentation in R/get_resid.R
 \name{get.resid}
 \alias{get.resid}
-\title{Linear models of columns of a data frame}
+\title{Linear model residuals across brain regions}
 \usage{
-get.resid(thicknesses, covars)
+get.resid(tidy.dt, covars, use.mean = FALSE, exclude = NULL)
 }
 \arguments{
-\item{thicknesses}{Data frame of all thickness data. First column must be
-subject ID (or something similar)}
+\item{tidy.dt}{A \code{data.table} that has been "tidied", containing all
+covariates and the brain measure of interest}
 
-\item{covars}{Data frame of covariates for the linear model. Must share a
-subject ID column with \emph{thicknesses}}
+\item{covars}{A \code{data.table} of covariates}
+
+\item{use.mean}{A logical indicating whether to control for the mean
+hemispheric brain value (e.g. mean LH/RH cortical thickness) (default: NULL)}
+
+\item{exclude}{A character vector of columns to exclude (default: NULL)}
 }
 \value{
 A list with components:
-\item{models}{The \code{\link[stats]{lm}} objects for each brain region.}
-\item{resids}{Data table of studentized residuals for all subjects and brain
-regions.}
+\item{all.dat.tidy}{The tidied \code{data.table} with 'resids' column added}
+\item{formulas}{Character string of the \code{\link{lm}} formulas used}
+\item{resids.all}{The "wide" \code{data.table} of residuals}
 }
 \description{
-This function runs linear models on the columns of the input data frame (e.g.
-cortical thickness data for each region), in order to adjust for relevant
-variables (e.g. age, sex, group, etc.).
+This function runs linear models across brain regions listed in a
+\code{data.table} (e.g. cortical thickness), in order to adjust for relevant
+variables (e.g. age, sex, group, etc.). It adds the \emph{studentized}
+residuals as a column and returns the data table.
 }
 \seealso{
 \code{\link{rstudent}}
