@@ -26,10 +26,17 @@
 #' @seealso \code{\link[Hmisc]{rcorr}}
 
 corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
-  if (length(exclusions) == 0) {
-    corrs <- rcorr(as.matrix(dat), ...)
+  if (!is.data.table(dat)) {
+    DT <- as.data.table(dat)
   } else {
-    corrs <- rcorr(as.matrix(dat[, -exclusions, with=F]), ...)
+    DT <- copy(dat)
+  }
+  if ('Group' %in% names(DT)) DT[, Group := NULL]
+
+  if (length(exclusions) == 0) {
+    corrs <- Hmisc::rcorr(as.matrix(DT), ...)
+  } else {
+    corrs <- Hmisc::rcorr(as.matrix(DT[, -exclusions, with=F]), ...)
   }
   r <- corrs$r
   p <- corrs$P
@@ -38,7 +45,7 @@ corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
   if (hasArg('density')) {
     N <- ncol(r)
     emax <- N  * (N - 1) / 2
-  
+
     thresh <- sort(r[lower.tri(r)])[emax - density * emax]
   }
   r.thresh <- ifelse(r > thresh, 1, 0)

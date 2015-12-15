@@ -37,7 +37,7 @@ get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
       rh.string <- '.*\\.R$'
     } else {
       lh.string <- '^l.*'
-      rh.string <- '^R.*'
+      rh.string <- '^r.*'
     }
     myDT[grep(lh.string, region),
             resids := rstudent(lm(as.formula(formula.lh), .SD)), by=region]
@@ -47,6 +47,13 @@ get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
 
   # Don't adjust by mean hemispheric values
   } else {
+    # In case 'mean.lh' or 'mean.rh' are in 'covars', exclude
+    if ('mean.lh' %in% names(covars)) {
+      exclude <- c(exclude, 'mean.lh')
+    }
+    if ('mean.rh' %in% names(covars)) {
+      exclude <- c(exclude, 'mean.rh')
+    }
     formula.lhrh <- paste('value ~ ', paste(names(covars[, !exclude, with=F]),
                                             collapse='+'))
     myDT[, resids := rstudent(lm(as.formula(formula.lhrh), .SD)), by=region]

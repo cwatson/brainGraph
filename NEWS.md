@@ -1,6 +1,10 @@
-# brainGraph 0.51.0
+# brainGraph 0.52.0
 
 ## Minor changes
+* `corr.matrix`: minor syntax change
+* `get.resid`: fixed minor bug when `use.mean=FALSE` but *covars* has columns
+    *mean.lh* and/or *mean.rh*
+* `get.resid`: fixed bug when `use.mean=TRUE` (syntax error for RH vertices)
 * Exported `plot_perm_diffs`
 * Added argument checking for most functions
 * `boot_global` added an OS check to get multicore functionality on Windows
