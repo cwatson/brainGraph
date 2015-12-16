@@ -115,6 +115,18 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
     covars.scgm <- fread(paste0(datadir, '/covars.scgm.csv'))
     covars.scgm[, Group := as.factor(Group)]
     setkey(covars.scgm, Study.ID, Group)
+
+    if (!is.null(exclude.subs)) {
+      covars.scgm <- covars.scgm[!Study.ID %in% exclude.subs]
+      scgm <- scgm[!Study.ID %in% exclude.subs]
+    }
+
+    all.dat.scgm <- merge(covars.scgm, scgm)
+    all.dat.scgm.tidy <- melt(all.dat.scgm, id.vars=names(covars.scgm),
+                              variable.name='region')
+    all.dat.scgm.tidy[, modality := modality]
+    all.dat.scgm.tidy[, group.mean := mean(value), by=list(Group, region)]
+    setkey(all.dat.scgm.tidy, Group, region)
   }
 
   all.dat.tidy <- melt(all.dat, id.vars=names(covars), variable.name='region')
@@ -122,8 +134,14 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   all.dat.tidy[, group.mean := mean(value), by=list(Group, region)]
   setkey(all.dat.tidy, Group, region)
 
-  return(list(atlas=atlas, densities=densities, modality=modality,
+  res <- list(atlas=atlas, densities=densities, modality=modality,
               kNumDensities=kNumDensities, covars=covars, groups=groups,
               kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh,
-              all.dat=all.dat, all.dat.tidy=all.dat.tidy))
+              all.dat=all.dat, all.dat.tidy=all.dat.tidy)
+  if (isTRUE(grepl('scgm', atlas))) {
+    res <- c(res, list(covars.scgm=covars.scgm, scgm=scgm,
+                       all.dat.scgm=all.dat.scgm,
+                       all.dat.scgm.tidy=all.dat.scgm.tidy))
+  }
+  return(res)
 }

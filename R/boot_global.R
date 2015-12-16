@@ -80,7 +80,7 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     counter <- 0
     progbar <- txtProgressBar(min=0, max=R, style=3)
 
-    my.boot[[i]] <- boot(resids[groups[i], !'Group', with=F], intfun,
+    my.boot[[i]] <- boot(resids[groups[i]], intfun,
                        measure=measure, R=R, parallel=my.parallel, ncpus=ncpus,
                        cl=cl)
     close(progbar)

@@ -20,7 +20,7 @@
 #' @seealso \code{\link{rstudent}}
 
 get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
-  region <- resids <- Group <- NULL
+  region <- resids <- Group <- Study.ID <- NULL
   myDT <- copy(tidy.dt)
   exclude <- c('Study.ID', exclude)
 
@@ -65,8 +65,8 @@ get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
                                                      collapse='+'),
                                                '~ region'),
                                    value.var='resids')
-  resids.all <- all.dat.wide[, !setdiff(names(covars), 'Group'), with=F]
-  setkey(resids.all, Group)
+  resids.all <- all.dat.wide[, !setdiff(names(covars), c('Study.ID', 'Group')), with=F]
+  setkey(resids.all, Group, Study.ID)
 
   return(list(all.dat.tidy=myDT, formulas=formulas, resids.all=resids.all))
 }

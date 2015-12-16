@@ -26,12 +26,14 @@
 #' @seealso \code{\link[Hmisc]{rcorr}}
 
 corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
+  Group <- Study.ID <- NULL
   if (!is.data.table(dat)) {
     DT <- as.data.table(dat)
   } else {
     DT <- copy(dat)
   }
   if ('Group' %in% names(DT)) DT[, Group := NULL]
+  if ('Study.ID' %in% names(DT)) DT[, Study.ID := NULL]
 
   if (length(exclusions) == 0) {
     corrs <- Hmisc::rcorr(as.matrix(DT), ...)
