@@ -70,9 +70,11 @@ permute.group <- function(permSet, density, resids,
   groups <- as.numeric(resids$Group)
   out <- foreach(i=seq_len(nrow(permSet)), .combine='rbind',
                  .export='assign_lobes') %dopar% {
-    corrs1 <- corr.matrix(resids[which(groups[permSet[i, ]] == 1)],
+    corrs1 <- corr.matrix(as.matrix(resids[which(groups[permSet[i, ]] == 1),
+                          !c('Study.ID', 'Group'), with=F]),
                           density=density)
-    corrs2 <- corr.matrix(resids[which(groups[permSet[i, ]] == 2)],
+    corrs2 <- corr.matrix(as.matrix(resids[which(groups[permSet[i, ]] == 2),
+                          !c('Study.ID', 'Group'), with=F]),
                           density=density)
     g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
     g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)

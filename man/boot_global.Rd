@@ -4,40 +4,35 @@
 \alias{boot_global}
 \title{Bootstrapping for global graph measures}
 \usage{
-boot_global(densities, resids, groups, R = 1000, measure = "mod")
+boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
+  "Cp", "Lp", "assortativity"))
 }
 \arguments{
 \item{densities}{A vector of graph densities to loop through}
 
 \item{resids}{A data.table of the residuals (from \code{\link{get.resid}})}
 
-\item{groups}{A character vector indicating group names}
-
 \item{R}{The number of bootstrap replicates (default: 1e3)}
 
 \item{measure}{Character string of the measure to test (default: 'mod')}
 }
 \value{
-A list with the following elements:
-\item{g}{A list of \code{\link[boot]{boot}} objects}
+A list with two elements:
+\item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
 \item{dt}{A data table with length \emph{# densities * # groups}}
-\item{p1}{A ggplot object with ribbon representing standard error}
-\item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
 }
 \description{
 This function performs bootstrapping to get group standard error estimates of
-a global graph measure (e.g. modularity). It will output a list containing a
-data table with standard errors and 95\% confidence intervals at each density
-for each group, and 2 ggplot objects for plotting. This function is intended
-for cortical thickness networks (in which there is only one graph per group),
-but will obviously work in other scenarios.
+a global graph measure (e.g. modularity). It will output a list containing
+the \code{\link[boot]{boot}} objects and a \code{\link{data.table}} with
+standard errors and 95\% confidence intervals at each density for each group.
 }
 \details{
 The 95\% confidence intervals are calculated using the normal approximation.
 }
 \examples{
 \dontrun{
-boot.res <- boot_global(densities, m$resids, groups, 1e3, 'E.global')
+boot.E.global <- boot_global(densities, m$resids, 1e3, 'E.global')
 }
 }
 \author{

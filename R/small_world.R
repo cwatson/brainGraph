@@ -55,7 +55,7 @@ small.world <- function(g, rand) {
           function(x) vapply(x,
               function(y) graph_attr(y, 'Cp'), numeric(1)),
                                  numeric(length(rand[[1]]))))
-      N <- vapply(rand, length, numeric(1))
+      N <- lengths(rand)
     }
   }
   Cp.norm <- Cp / Cp.rand

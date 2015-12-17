@@ -1,42 +1,40 @@
 #' Bootstrapping for global graph measures
 #'
 #' This function performs bootstrapping to get group standard error estimates of
-#' a global graph measure (e.g. modularity). It will output a list containing a
-#' data table with standard errors and 95\% confidence intervals at each density
-#' for each group, and 2 ggplot objects for plotting. This function is intended
-#' for cortical thickness networks (in which there is only one graph per group),
-#' but will obviously work in other scenarios.
+#' a global graph measure (e.g. modularity). It will output a list containing
+#' the \code{\link[boot]{boot}} objects and a \code{\link{data.table}} with
+#' standard errors and 95\% confidence intervals at each density for each group.
 #'
 #' The 95\% confidence intervals are calculated using the normal approximation.
 #'
 #' @param densities A vector of graph densities to loop through
 #' @param resids A data.table of the residuals (from \code{\link{get.resid}})
-#' @param groups A character vector indicating group names
 #' @param R The number of bootstrap replicates (default: 1e3)
 #' @param measure Character string of the measure to test (default: 'mod')
 #' @export
 #'
-#' @return A list with the following elements:
-#' \item{g}{A list of \code{\link[boot]{boot}} objects}
+#' @return A list with two elements:
+#' \item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
 #' \item{dt}{A data table with length \emph{# densities * # groups}}
-#' \item{p1}{A ggplot object with ribbon representing standard error}
-#' \item{p2}{A ggplot object with ribbon representing 95\% confidence interval}
 #' @seealso \code{\link[boot]{boot}, \link[boot]{boot.ci},
 #' \link{permute.group}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' boot.res <- boot_global(densities, m$resids, groups, 1e3, 'E.global')
+#' boot.E.global <- boot_global(densities, m$resids, 1e3, 'E.global')
 #' }
 
-boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
+boot_global <- function(densities, resids, R=1e3,
+                        measure=c('mod', 'E.global', 'Cp', 'Lp',
+                                  'assortativity')) {
 
-  meas <- Group <- se <- ci.low <- ci.high <- t0 <- NULL
-  kNumGroups <- length(groups)
-  kNumDensities <- length(densities)
+  Group <- t0 <- NULL
+  groups <- resids[, levels(Group)]
+  measure <- match.arg(measure)
+
   # 'statistic' function for the bootstrapping process
   statfun <- function(x, i, measure) {
-    group <- x[i]
+    group <- as.matrix(x[i, !c('Study.ID', 'Group'), with=F])
     corrs <- lapply(densities, function(x) corr.matrix(group, density=x))
     g.boot <- lapply(corrs, function(x)
                      graph_from_adjacency_matrix(x$r.thresh, mode='undirected',
@@ -75,8 +73,8 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
     cl <- NULL
   }
   env <- environment()
-  my.boot <- vector('list', length=kNumGroups)
-  for (i in seq_len(kNumGroups)) {
+  my.boot <- vector('list', length=length(groups))
+  for (i in seq_along(groups)) {
     counter <- 0
     progbar <- txtProgressBar(min=0, max=R, style=3)
 
@@ -87,26 +85,16 @@ boot_global <- function(densities, resids, groups, R=1e3, measure='mod') {
   }
 
   # Get everything into a data.table
-  boot.dt <- data.table(density=rep(densities, kNumGroups),
+  boot.dt <- data.table(density=rep(densities, length(groups)),
                         meas=c(sapply(my.boot, with, t0)),
                         se=c(sapply(my.boot, function(x) apply(x$t, 2, sd))),
-                        Group=rep(groups, each=kNumDensities))
-  bootplot <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
-    geom_line() +
-    geom_ribbon(aes(ymin=meas-se, ymax=meas+se, fill=Group), alpha=0.3) +
-    ylab(measure)
-
-  # Use the estimated normal 95% CI instead of se
+                        Group=rep(groups, each=length(densities)))
   ci <- vapply(seq_along(densities), function(x)
                sapply(my.boot, function(y)
                       boot.ci(y, type='norm', index=x)$normal[2:3]),
-               numeric(kNumGroups * 2))
+               numeric(2 * length(groups)))
   boot.dt$ci.low <- c(t(ci[2 * (seq_along(groups) - 1) + 1, ]))
   boot.dt$ci.high <- c(t(ci[2 * (seq_along(groups) - 1) + 2, ]))
-  bootplot.ci <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
-    geom_line() + geom_point() +
-    geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=0.3) +
-    ylab(measure)
 
-  return(list(g=my.boot, dt=boot.dt, p1=bootplot, p2=bootplot.ci))
+  return(list(g=my.boot, dt=boot.dt))
 }

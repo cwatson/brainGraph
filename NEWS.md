@@ -1,6 +1,8 @@
-# brainGraph 0.52.1
+# brainGraph 0.53.0
 
 ## Minor changes
+* `corr.matrix` was basically reverted back for speed purposes
+* New function `plot_boot`; removed plotting code from `boot_global`
 * `brainGraph_init` does a better job of dealing with subcortical gray matter data
 * `boot_global` and `permute.group` updated to work with new version of `corr.matrix`
 * `get.resid` now returns *data.table* of residuals with a *Study.ID* column

@@ -27,18 +27,13 @@
 
 corr.matrix <- function(dat, thresh=NULL, density=0.1, exclusions=NULL, ...) {
   Group <- Study.ID <- NULL
-  if (!is.data.table(dat)) {
-    DT <- as.data.table(dat)
-  } else {
-    DT <- copy(dat)
-  }
-  if ('Group' %in% names(DT)) DT[, Group := NULL]
-  if ('Study.ID' %in% names(DT)) DT[, Study.ID := NULL]
+  if ('Group' %in% names(dat)) dat[, Group := NULL]
+  if ('Study.ID' %in% names(dat)) dat[, Study.ID := NULL]
 
-  if (length(exclusions) == 0) {
-    corrs <- Hmisc::rcorr(as.matrix(DT), ...)
+  if (is.null(exclusions)) {
+    corrs <- Hmisc::rcorr(as.matrix(dat), ...)
   } else {
-    corrs <- Hmisc::rcorr(as.matrix(DT[, -exclusions, with=F]), ...)
+    corrs <- Hmisc::rcorr(as.matrix(dat[, -exclusions, with=F]), ...)
   }
   r <- corrs$r
   p <- corrs$P
