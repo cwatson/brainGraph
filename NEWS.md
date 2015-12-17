@@ -1,4 +1,4 @@
-# brainGraph 0.53.0
+# brainGraph 0.53.1
 
 ## Minor changes
 * `corr.matrix` was basically reverted back for speed purposes
@@ -8,7 +8,7 @@
 * `get.resid` now returns *data.table* of residuals with a *Study.ID* column
 * `corr.matrix`: minor syntax change
 * `get.resid`: fixed minor bug when `use.mean=FALSE` but *covars* has columns
-    *mean.lh* and/or *mean.rh*
+    *mean.lh* and/or *mean.rh*; fixed minor bug w/ RH residual calculation
 * `get.resid`: fixed bug when `use.mean=TRUE` (syntax error for RH vertices)
 * Exported `plot_perm_diffs`
 * Added argument checking for most functions

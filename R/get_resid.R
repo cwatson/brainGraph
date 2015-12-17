@@ -42,7 +42,7 @@ get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
     myDT[grep(lh.string, region),
             resids := rstudent(lm(as.formula(formula.lh), .SD)), by=region]
     myDT[grep(rh.string, region),
-            resids := rstudent(lm(as.formula(formula.lh), .SD)), by=region]
+            resids := rstudent(lm(as.formula(formula.rh), .SD)), by=region]
     formulas <- c(formula.lh, formula.rh)
 
   # Don't adjust by mean hemispheric values
