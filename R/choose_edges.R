@@ -23,9 +23,7 @@ choose.edges <- function(g) {
     repeat {
       x <- sample(degrees.large, 1)
       neighb <- intersect(neighbors(graph, x), degrees.large)
-      if (length(neighb) >= 2) {
-        return(list(x, neighb))
-      }
+      if (length(neighb) >= 2) return(list(x, neighb))
     }
   }
   #=============================================================================
@@ -33,9 +31,7 @@ choose.edges <- function(g) {
   #=============================================================================
   get.neighbors <- function(nbrhood) {
     y <- sample(nbrhood, 2)
-    y1 <- y[1]
-    y2 <- y[2]
-    return(data.frame(y1=y1, y2=y2))
+    return(data.frame(y1=y[1], y2=y[2]))
   }
   #=============================================================================
   # Uniformly select a random neighbor from the y's with degree > 1

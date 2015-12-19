@@ -32,12 +32,12 @@ robustness <- function(g, type=c('vertex', 'edge'),
   }
   type <- match.arg(type)
   measure <- match.arg(measure)
+  max.comp.orig <- g$max.comp
   if (type == 'vertex') {
     n <- vcount(g)
 
     if (measure == 'random') {
       max.comp <- matrix(nrow=n+1, ncol=N)
-      max.comp.orig <- g$max.comp
       max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
         g.new <- g
         ord <- V(g.new)$name[sample(n)]
@@ -55,7 +55,6 @@ robustness <- function(g, type=c('vertex', 'edge'),
       ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=T)]
       max.comp.removed <- vector('integer', length=n+1)
       max.comp.removed[1] <- 1
-      max.comp.orig <- g$max.comp
       for (i in seq_len(n - 1)) {
         g <- delete.vertices(g, ord[i])
         max.comp.removed[i+1] <- max(components(g)$csize)
@@ -68,7 +67,6 @@ robustness <- function(g, type=c('vertex', 'edge'),
       stop('For edge attacks, must choose "btwn.cent" or "random"!')
     } else if (measure == 'random') {
       max.comp <- matrix(nrow=m+1, ncol=N)
-      max.comp.orig <- g$max.comp
       max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
         g.new <- g
         ord <- sample(m)
@@ -88,7 +86,6 @@ robustness <- function(g, type=c('vertex', 'edge'),
       verts <- as_edgelist(g)[ord, ]
       max.comp.removed <- vector('integer', length=m+1)
       max.comp.removed[1] <- 1
-      max.comp.orig <- g$max.comp
       for (i in seq_along(ord)) {
         g <- delete.edges(g, E(g)[verts[ord[i], 1] %--% verts[ord[i], 2]])
         max.comp.removed[i+1] <- max(components(g)$csize)
