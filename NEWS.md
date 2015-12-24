@@ -1,5 +1,9 @@
 # brainGraph 0.55.0
 
+2015-12-24
+
+Second CRAN version
+
 ## New functions
 * `aop` and `loo` calculate measures of *individual contribution* (see Reference
     within the function help)

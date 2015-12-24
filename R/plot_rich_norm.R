@@ -45,13 +45,12 @@ plot_rich_norm <- function(rich.dt, densities, alpha=0.05, g=NULL) {
                         xend=subDT[, max(k), by=density]$V1,
                         Group=rep(subDT[, unique(Group)],
                                   each=length(densities)))
-    setkey(rects, density, Group)
   } else {
     rects <- data.table(density=densities, xstart=0, xend=0,
                         Group=rep(subDT[, unique(Group)],
                                   each=length(densities)))
-    setkey(rects, density, Group)
   }
+  setkey(rects, density, Group)
 
   p <- ggplot(data=subDT[rects], aes(x=k, y=phi)) +
     geom_line(aes(col=Group)) +
