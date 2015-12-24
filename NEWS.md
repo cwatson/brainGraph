@@ -1,10 +1,11 @@
-# brainGraph 0.54.0
+# brainGraph 0.55.0
 
 ## New functions
 * `aop` and `loo` calculate measures of *individual contribution* (see Reference
     within the function help)
   * Now requires the package `ade4`
-* `plot_boot`: removed plotting code from `boot_global`
+* `plot_boot`: new function based on the removed plotting code from `boot_global`
+* `plot_rich_norm`: function to plot normalized rich club coefficient curves
 
 ## Minor changes
 * `boot_global`:

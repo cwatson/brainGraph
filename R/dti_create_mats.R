@@ -53,7 +53,7 @@ dti_create_mats <- function(A.files, Nv,
                             divisor=c('none', 'waytotal', 'size', 'rowSums'),
                             div.files, mat.thresh=0, sub.thresh=0.5,
                             groups=NULL, P=5000) {
-  inds <- lapply(groups, function(x) grep(x, A.files))
+  inds <- lapply(groups, grep, A.files)
   kNumSubjs <- lengths(inds)
 
   A <- array(sapply(A.files, function(x)

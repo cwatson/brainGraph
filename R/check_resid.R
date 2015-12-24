@@ -8,7 +8,7 @@
 #' @param cols Logical indicating whether to color by group (default: FALSE)
 #' @export
 #'
-#' @return A list of \code{\link{ggplot2}} objects
+#' @return A list of \code{\link[ggplot2]{ggplot}} objects
 #' @seealso \code{\link[stats]{qqnorm}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples

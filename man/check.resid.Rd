@@ -12,7 +12,7 @@ check.resid(resids, cols = FALSE)
 \item{cols}{Logical indicating whether to color by group (default: FALSE)}
 }
 \value{
-A list of \code{\link{ggplot2}} objects
+A list of \code{\link[ggplot2]{ggplot}} objects
 }
 \description{
 This function checks the model residuals for each brain region in the

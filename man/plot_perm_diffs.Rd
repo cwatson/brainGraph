@@ -31,8 +31,8 @@ plot_perm_diffs(g1, g2, perm.dt, measure, level = c("graph", "vertex"),
 \value{
 A list with three elements:
 \item{dt}{A data table with p-values for each density/region}
-\item{p1}{A \code{\link[ggplot2]{ggplot2}} plotting object}
-\item{p2}{A \code{\link[ggplot2]{ggplot2}} plotting object}
+\item{p1}{A \code{\link[ggplot2]{ggplot}} plotting object}
+\item{p2}{A \code{\link[ggplot2]{ggplot}} plotting object}
 }
 \description{
 For a given (global- or vertex-level) graph measure, determine the

@@ -26,6 +26,7 @@ export(plot_brainGraph_mni)
 export(plot_corr_mat)
 export(plot_group_means)
 export(plot_perm_diffs)
+export(plot_rich_norm)
 export(plot_vertex_measures)
 export(rich.club.coeff)
 export(rich.club.norm)
@@ -59,7 +60,7 @@ importFrom(grDevices, adjustcolor, dev.copy, dev.cur, dev.list, dev.new,
   dev.off, dev.set, nclass.FD, png)
 importFrom(graphics, legend, par, plot, title)
 importFrom(methods, hasArg)
-importFrom(stats, as.formula, density, lm, p.adjust, ppoints, qnorm, resid,
-  rstudent, sd, t.test, wilcox.test)
+importFrom(stats, as.dist, as.formula, density, lm, p.adjust, ppoints, qnorm,
+  resid, rstudent, sd, t.test, wilcox.test)
 importFrom(utils, combn, flush.console, packageVersion, setTxtProgressBar,
   txtProgressBar, write.table)

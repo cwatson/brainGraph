@@ -21,8 +21,8 @@
 #'
 #' @return A list with three elements:
 #' \item{dt}{A data table with p-values for each density/region}
-#' \item{p1}{A \code{\link[ggplot2]{ggplot2}} plotting object}
-#' \item{p2}{A \code{\link[ggplot2]{ggplot2}} plotting object}
+#' \item{p1}{A \code{\link[ggplot2]{ggplot}} plotting object}
+#' \item{p2}{A \code{\link[ggplot2]{ggplot}} plotting object}
 #'
 #' @seealso \code{\link{permute.group}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
