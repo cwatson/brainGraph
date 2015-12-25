@@ -1,5 +1,6 @@
 # brainGraph
-[![Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
+[![Linux Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/cwatson/brainGraph?svg=true)](https://ci.appveyor.com/project/cwatson/brainGraph)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
 [![](http://cranlogs.r-pkg.org/badges/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
 
@@ -29,3 +30,8 @@ itself.
 # Usage
 To see the *User Guide*, please use
 [this link.](https://www.dropbox.com/s/j831n3q9muyz1go/brainGraph_UserGuide.pdf?dl=0)
+
+# Getting Help
+For bug reports, feature requests, help with usage/code/etc., please use the
+*Google Group*
+[brainGraph-help](https://groups.google.com/forum/?hl=en#!forum/brainGraph-help).

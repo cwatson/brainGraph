@@ -39,7 +39,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
                             alternative=c('two.sided', 'less', 'greater'),
                             alpha=0.05, groups=NULL, ylabel=NULL) {
 
-  p <- perm.diff <- obs.diff <- sig <- trend <- yloc <- obs <- Group <- NULL
+  p <- perm.diff <- obs.diff <- sig <- trend <- yloc <- obs <- Group <- mean.diff <- NULL
   ci.low <- ci.high <- region <- reg.num <- NULL
   densities.perm <- perm.dt[, unique(density)]
   densities.g <- which(round(sapply(g1, graph_attr, 'density'), 2) %in% round(densities.perm, 2))
@@ -102,6 +102,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
       sigplot <- sigplot + ylab(measure)
     }
 
+    perm.dt[, mean.diff := mean(perm.diff), by=density]
     perm.dt[, c('ci.low', 'ci.high') := as.list(sort(perm.diff)[.N * ci]), by=density]
     sigplot2 <- ggplot(result.dt[, list(obs.diff=-diff(obs)), by=density],
                        aes(x=as.factor(density))) +
@@ -111,7 +112,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
                 aes(x=density, y=ci.high), lty=2) +
       geom_line(aes(x=density, y=obs.diff), col='red') +
       geom_point(aes(x=density, y=obs.diff), col='red', size=3) +
-      geom_line(data=perm.dt, aes(x=density, y=mean(perm.diff)), lty=2) +
+      geom_line(data=perm.dt, aes(x=density, y=mean.diff), lty=2) +
       #geom_boxplot(data=perm.dt, aes(x=as.factor(density), y=perm.diff),
       #             fill='cyan3', outlier.size=0) +
       #scale_x_discrete(breaks=seq(densities.perm[1],

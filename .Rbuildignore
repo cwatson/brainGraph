@@ -2,3 +2,4 @@ cran-comments.md
 NEWS.md
 README.md
 ^\.travis\.yml$
+^appveyor\.yml$
