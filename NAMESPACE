@@ -65,3 +65,4 @@ importFrom(stats, as.dist, as.formula, density, lm, p.adjust, ppoints, qnorm,
   resid, rstudent, sd, t.test, wilcox.test)
 importFrom(utils, combn, flush.console, packageVersion, setTxtProgressBar,
   txtProgressBar, write.table)
+importFrom(RcppEigen, fastLmPure)

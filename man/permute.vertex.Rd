@@ -8,14 +8,14 @@ permute.vertex(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
   alpha = 0.05, N = 1000, ...)
 }
 \arguments{
-\item{g1}{A list of igraph graph objects for group 1}
+\item{g1}{A list of \code{igraph} graph objects for group 1}
 
-\item{g2}{A list of igraph graph objects for group 2}
+\item{g2}{A list of \code{igraph} graph objects for group 2}
 
-\item{measure}{A character string of the measure to test}
+\item{measure}{A character string of the vertex measure of interest}
 
 \item{test}{Character string for the test to use (passed to
-\code{\link{group.graph.diffs}}); one of 't.test', 'wilcox.test', or 'lm'}
+\code{\link{group.graph.diffs}}); either 't.test', 'wilcox.test', or 'lm'}
 
 \item{alpha}{The significance level (default: 0.05)}
 
@@ -27,9 +27,10 @@ permute.vertex(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
 A list with the following elements:
 \item{g}{A graph representing group differences, with \emph{p.perm} included
 as a vertex-level attribute (it is actually 1 - \emph{p.perm})}
-\item{p.max}{The proportion of the number of times the maximum t-statistic of
-the permuted groups was greater than the observed maximum t-statistic}
-\item{thresh}{The \eqn{1 - \alpha} \%ile maximum t-statistic of all permuted values}
+\item{p.max}{The proportion of the number of times the maximum statistic of
+  the permuted groups was greater than the observed maximum statistic}
+\item{thresh}{The \eqn{1 - \alpha} \%ile maximum statistic of all permuted
+  values}
 }
 \description{
 This function performs a permutation test looking at the max t-statistic for
@@ -43,9 +44,9 @@ section and pass the appropriate arguments.
 }
 \examples{
 \dontrun{
-g.diff <- permute.vertex(g.wt[[1]][[3]], g.wt[[2]][[3]], measure='degree')
-g.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
-    test='lm', covars=covars.dti)
+g.perm.diff <- permute.vertex(g[[1]][[3]], g[[2]][[3]], measure='degree')
+g.perm.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
+  test='lm', covars=covars.dti)
 }
 }
 \author{
@@ -57,6 +58,6 @@ tests for functional neuroimaging: A primer with examples.} Human Brain
 Mapping, 15(1):1-25.
 }
 \seealso{
-\code{\link{sample}, \link{group.graph.diffs}}
+\code{\link{group.graph.diffs}}
 }
 

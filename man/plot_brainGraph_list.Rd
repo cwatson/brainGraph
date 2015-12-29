@@ -4,8 +4,8 @@
 \alias{plot_brainGraph_list}
 \title{Write PNG files for a list of graphs}
 \usage{
-plot_brainGraph_list(g.list, fname.base, diffs = FALSE, cols = c("none",
-  "lobe", "comm"))
+plot_brainGraph_list(g.list, fname.base, diffs = FALSE, subgraph = NULL,
+  ...)
 }
 \arguments{
 \item{g.list}{A list of \code{igraph} graph objects}
@@ -16,23 +16,33 @@ plot_brainGraph_list(g.list, fname.base, diffs = FALSE, cols = c("none",
 \item{diffs}{A logical, indicating whether or not to highlight edge
 differences (default: FALSE)}
 
-\item{cols}{A character string indicating how to color the vertices (default:
-'none')}
+\item{subgraph}{A character string specifying an equation for deleting
+vertices (default: NULL)}
+
+\item{...}{Other parameters (passed to \code{\link{plot_brainGraph}})}
 }
 \description{
 This function takes a list of \code{igraph} graph objects and plots them over
 an axial slice of the brain. A \emph{png} file is written for each element of
-the list, which can be joined as a \emph{gif} or converted to video.
+the list, which can be joined as a \emph{gif} or converted to video using a
+tool outside of R.
 }
 \details{
 You can choose to highlight edge differences between subsequent list
 elements, and whether to color vertices by \emph{lobe}, \emph{community}
-membership, or \emph{lightblue} (the default). By default, the vertex sizes
-are equal to vertex degree, and max out at 20.
+membership, or \emph{lightblue} (the default) (or a color of your choosing).
+By default, the vertex sizes are equal to vertex degree, and max out at 20;
+however, you may choose other values. Finally, you may choose to plot only a
+subgraph of vertices based on some criteria (see example).
 
 This function may be particularly useful if the graph list contains graphs of
 a single subject group at incremental densities, or if the graph list
 contains graphs of each subject in a group.
+}
+\examples{
+\dontrun{
+plot_brainGraph_list(g[[1]], 'g1', subgraph='hemi == "R"')
+}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

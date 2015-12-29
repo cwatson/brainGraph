@@ -1,3 +1,25 @@
+# brainGraph 0.56.0
+
+2015-12-29
+
+## Major changes
+* Now requires the package `RcppEigen` for fast linear model calculations;
+    resulted in major speed improvements
+* `group.graph.diffs`:
+  * Uses the function `fastLmPure` from `RcppEigen` for speed/efficiency
+  * Linear model specification is more limited now, though (on *TODO* list)
+
+## New functions
+* `plot_global`: create a line plot across all densities of global graph
+    measures in the same figure
+
+## Minor changes
+* `plot_brainGraph_list`:
+  * You can now specify a condition for removing vertices (e.g. `hemi == "R"`
+    will keep only right hemisphere vertices
+  * Vertex sizing and coloring is a bit more flexible
+
+---
 # brainGraph 0.55.0
 
 2015-12-24

@@ -2,22 +2,22 @@
 % Please edit documentation in R/group_graph_diffs.R
 \name{group.graph.diffs}
 \alias{group.graph.diffs}
-\title{Do between-group tests at each vertex for a given graph measure}
+\title{Perform between-group tests at each vertex for a given vertex measure}
 \usage{
 group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
   covars = NULL, permute = FALSE, perm.order = NULL)
 }
 \arguments{
-\item{g1}{A list of igraph graph objects for group 1}
+\item{g1}{A list of \code{igraph} graph objects for group 1}
 
-\item{g2}{A list of igraph graph objects for group 2}
+\item{g2}{A list of \code{igraph} graph objects for group 2}
 
-\item{measure}{A character string of the measure to test}
+\item{measure}{A character string of the vertex measure of interest}
 
-\item{test}{A character string for the test to use, either 't.test' (default)
-or 'wilcox.test'}
+\item{test}{A character string for the test to use, either 't.test',
+'wilcox.test', or 'lm' (default: 't.test')}
 
-\item{covars}{A data frame of covariates; only needed if using \emph{lm}
+\item{covars}{A \code{data.table} of covariates; needed if using \emph{lm}
 (default: NULL)}
 
 \item{permute}{Logical; should be \emph{TRUE} if being called from
@@ -33,25 +33,26 @@ A graph with vertex attributes:
 visualization purposes)}
 \item{p}{Equal to \eqn{1-p}}
 \item{p.fdr}{Equal to \eqn{1-p_{FDR}} (the FDR-adjusted p-value)}
+\item{beta}{Equal to the parameter estimate (if 'lm' is used)}
 }
 \description{
 This function takes two lists of graphs (the length of each equaling the
 number of subjects per group) and performs either a linear model, 2-sample
-t-test, or 2-sample Wilcoxon test at each vertex for a given network measure
-(e.g. vertex degree).
+t-test, or 2-sample Wilcoxon test at each vertex for a given vertex measure
+(e.g. \emph{degree}).
 }
 \details{
-The linear model choice is currently pretty inflexible. You will need to
-provide a data frame of covariates, of which \emph{Study.ID} and \emph{Group}
-need to be column names. Additionally, all graphs must have a \emph{name}
-attribute (at the graph level) which matches the \emph{Study.ID} for a given
-subject. This function will then return the p-value, t-statistic, and
-parameter estimate related to the \emph{Group} covariate.
+You will need to provide a \code{data.table} of covariates, of which
+\emph{Study.ID} and \emph{Group} need to be column names. Additionally, all
+graphs must have a \emph{name} attribute (at the graph level) which matches
+the \emph{Study.ID} for a given subject. This function will then return the
+p-value, t-statistic, and parameter estimate associated with the \emph{Group}
+covariate.
 }
 \examples{
 \dontrun{
 g.diffs.btwn <- group.graph.diffs(g1, g2, 'btwn.cent', test='wilcox.test')
-g.diffs.btwn <- group.graph.diffs(g.way[[1]][[5]], g.way[[2]][[5]], 'btwn.cent',
+g.diffs.btwn <- group.graph.diffs(g[[1]][[5]], g[[2]][[5]], 'btwn.cent',
                                   test='lm', covars=covars.dti)
 }
 }
@@ -59,7 +60,6 @@ g.diffs.btwn <- group.graph.diffs(g.way[[1]][[5]], g.way[[2]][[5]], 'btwn.cent',
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
-\code{\link[stats]{t.test}, \link[stats]{wilcox.test},
-\link[stats]{p.adjust}, \link{vec.transform}}
+\code{\link{permute.vertex}}
 }
 

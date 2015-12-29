@@ -2,12 +2,15 @@
 #'
 #' This function takes a list of \code{igraph} graph objects and plots them over
 #' an axial slice of the brain. A \emph{png} file is written for each element of
-#' the list, which can be joined as a \emph{gif} or converted to video.
+#' the list, which can be joined as a \emph{gif} or converted to video using a
+#' tool outside of R.
 #'
 #' You can choose to highlight edge differences between subsequent list
 #' elements, and whether to color vertices by \emph{lobe}, \emph{community}
-#' membership, or \emph{lightblue} (the default). By default, the vertex sizes
-#' are equal to vertex degree, and max out at 20.
+#' membership, or \emph{lightblue} (the default) (or a color of your choosing).
+#' By default, the vertex sizes are equal to vertex degree, and max out at 20;
+#' however, you may choose other values. Finally, you may choose to plot only a
+#' subgraph of vertices based on some criteria (see example).
 #'
 #' This function may be particularly useful if the graph list contains graphs of
 #' a single subject group at incremental densities, or if the graph list
@@ -15,44 +18,80 @@
 #'
 #' @param g.list A list of \code{igraph} graph objects
 #' @param fname.base A character string specifying the base of the filename for
-#' \emph{png} output
+#'   \emph{png} output
 #' @param diffs A logical, indicating whether or not to highlight edge
-#' differences (default: FALSE)
-#' @param cols A character string indicating how to color the vertices (default:
-#' 'none')
+#'   differences (default: FALSE)
+#' @param subgraph A character string specifying an equation for deleting
+#'   vertices (default: NULL)
+#' @param ... Other parameters (passed to \code{\link{plot_brainGraph}})
 #' @export
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' plot_brainGraph_list(g[[1]], 'g1', subgraph='hemi == "R"')
+#' }
 
 plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE,
-                                 cols=c('none', 'lobe', 'comm')) {
+                                 subgraph=NULL, ...) {
 
   for (i in seq_along(g.list)) {
     png(filename=sprintf('%s_%03d.png', fname.base, i))
-    cols <- match.arg(cols)
-    if (cols == 'none') {
+
+    #TODO: doesn't work if you want to use e.g., %in% TODO:
+    if (!is.null(subgraph)) {
+      if (nchar(subgraph) > 0) {
+        subs <- strsplit(subgraph, split='&')[[1]]
+        subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
+        cond <- eval(parse(text=paste0('V(g.list[[', i, ']])$', subs, collapse='&')))
+        cond <- setdiff(seq_len(vcount(g.list[[i]])), which(cond))
+        g.list[[i]] <- delete.vertices(g.list[[i]], cond)
+      } else {
+        stop(sprintf('%s must be a valid character string', subgraph))
+      }
+    }
+
+    fargs <- list(...)
+    # Choose different vertex colors
+    if (hasArg('vertex.color')) {
+      if (fargs$vertex.color == 'color.lobe' || fargs$vertex.color == 'color.comm') {
+        vcols <- vertex_attr(g.list[[i]], fargs$vertex.color)
+        ecols <- edge_attr(g.list[[i]], fargs$vertex.color)
+      } else {
+        vcols <- fargs$vertex.color
+        ecols <- 'red'
+      }
+    } else {
       vcols <- 'lightblue'
       ecols <- 'red'
-    } else if (cols == 'lobe') {
-      vcols <- V(g.list[[i]])$color.lobe
-      ecols <- E(g.list[[i]])$color.lobe
-    } else if (cols == 'comm') {
-      vcols <- V(g.list[[i]])$color.comm
-      ecols <- E(g.list[[i]])$color.comm
+    }
+
+    # Choose different vertex sizes
+    if (hasArg('vertex.size')) {
+      if (is.character(fargs$vertex.size)) {
+        vsize <- vertex_attr(g.list[[i]], fargs$vertex.size)
+        vsize <- vec.transform(vsize, min(vsize), 20)
+      } else {
+        vsize <- fargs$vertex.size
+      }
+    } else {
+      vsize <- pmin(V(g.list[[i]])$degree, 20)
     }
     plot_brainGraph_mni('axial')
-    plot_brainGraph(g.list[[i]], vertex.label=NA,
-                    vertex.size=pmin(V(g.list[[i]])$degree, 20),
-                    vertex.color=vcols,
-                    edge.width=1, edge.color=ecols)
+    plot_brainGraph(g.list[[i]],
+                    vertex.size=vsize,
+                    vertex.color=vcols, edge.color=ecols,
+                    main=g.list[[i]]$Group, ...)
 
     if (isTRUE(diffs)) {
       if (i > 1) {
         g.diff <- graph.difference(g.list[[i]], g.list[[i-1]])
-        if (cols == 'lobe') {
-          ecols <- E(g.diff)$color.lobe
-        } else if (cols == 'comm') {
-          ecols <- E(g.diff)$color.comm
+        if (hasArg('vertex.color')) {
+          if (fargs$vertex.color == 'color.lobe' || fargs$vertex.color == 'color.comm') {
+            ecols <- edge_attr(g.diff, fargs$vertex.color)
+          } else {
+            ecols <- 'red'
+          }
         } else {
           ecols <- 'deeppink'
         }
