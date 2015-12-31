@@ -10,7 +10,7 @@
 #' membership, or \emph{lightblue} (the default) (or a color of your choosing).
 #' By default, the vertex sizes are equal to vertex degree, and max out at 20;
 #' however, you may choose other values. Finally, you may choose to plot only a
-#' subgraph of vertices based on some criteria (see example).
+#' subgraph of vertices based on some criteria (see examples).
 #'
 #' This function may be particularly useful if the graph list contains graphs of
 #' a single subject group at incremental densities, or if the graph list
@@ -30,6 +30,7 @@
 #' @examples
 #' \dontrun{
 #' plot_brainGraph_list(g[[1]], 'g1', subgraph='hemi == "R"')
+#' plot_brainGraph_list(g[[1]], 'g1', subgraph='degree > 10 | btwn.cent > 50')
 #' }
 
 plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE,
@@ -38,12 +39,22 @@ plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE,
   for (i in seq_along(g.list)) {
     png(filename=sprintf('%s_%03d.png', fname.base, i))
 
-    #TODO: doesn't work if you want to use e.g., %in% TODO:
     if (!is.null(subgraph)) {
       if (nchar(subgraph) > 0) {
-        subs <- strsplit(subgraph, split='&')[[1]]
-        subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
-        cond <- eval(parse(text=paste0('V(g.list[[', i, ']])$', subs, collapse='&')))
+        subs <- strsplit(subgraph, split='\\&|\\|')[[1]]
+        if (length(subs) > 1) {
+          nchars <- cumsum(sapply(subs, nchar))
+          splits <- sapply(seq_along(subs), function(x)
+                           substr(subgraph, start=nchars[x]+x, stop=nchars[x]+x))
+          subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
+          # In case there is a mix of '&' and '|'
+          cond.string <- paste(sapply(seq_along(subs), function(x)
+                                      paste0('V(g.list[[', i, ']])$', subs[x], splits[x])),
+                               collapse='')
+        } else {
+          cond.string <- paste0('V(g.list[[', i, ']])$', subs)
+        }
+        cond <- eval(parse(text=cond.string))
         cond <- setdiff(seq_len(vcount(g.list[[i]])), which(cond))
         g.list[[i]] <- delete.vertices(g.list[[i]], cond)
       } else {

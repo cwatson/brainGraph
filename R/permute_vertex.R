@@ -35,7 +35,7 @@
 #' \dontrun{
 #' g.perm.diff <- permute.vertex(g[[1]][[3]], g[[2]][[3]], measure='degree')
 #' g.perm.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
-#'   test='lm', covars=covars.dti)
+#'   test='lm', covars=covars.dti, alternative='greater')
 #' }
 
 permute.vertex <- function(g1, g2, measure, test=c('t.test', 'wilcox.test', 'lm'),
@@ -61,7 +61,7 @@ permute.vertex <- function(g1, g2, measure, test=c('t.test', 'wilcox.test', 'lm'
     }
   }
 
-  p.max <- (sum(abs(max.rand) >= abs(max.observed)) + 1) / (N + 1)
+  p.max <- (sum(max.rand >= max.observed, na.rm=T) + 1) / (N + 1)
   thresh <- sort(max.rand)[(1 - alpha) * N]
   Nv <- vcount(g.diffs)
   V(g.diffs)$p.perm <- 1 - vapply(seq_len(Nv), function(x)

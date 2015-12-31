@@ -33,7 +33,7 @@ elements, and whether to color vertices by \emph{lobe}, \emph{community}
 membership, or \emph{lightblue} (the default) (or a color of your choosing).
 By default, the vertex sizes are equal to vertex degree, and max out at 20;
 however, you may choose other values. Finally, you may choose to plot only a
-subgraph of vertices based on some criteria (see example).
+subgraph of vertices based on some criteria (see examples).
 
 This function may be particularly useful if the graph list contains graphs of
 a single subject group at incremental densities, or if the graph list
@@ -42,6 +42,7 @@ contains graphs of each subject in a group.
 \examples{
 \dontrun{
 plot_brainGraph_list(g[[1]], 'g1', subgraph='hemi == "R"')
+plot_brainGraph_list(g[[1]], 'g1', subgraph='degree > 10 | btwn.cent > 50')
 }
 }
 \author{

@@ -9,7 +9,6 @@
 #' @param subject A character vector indicating subject ID (default: NULL)
 #' @param group A character vector indicating group membership (default: NULL)
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
-#'
 #' @export
 #'
 #' @return g A copy of the same graph, with the following attributes:
@@ -33,8 +32,9 @@
 #' \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 #' \link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},
 #' \link{rich.club.coeff}, \link{within_module_deg_z_score},
-#' \link[igraph]{coreness}, \link{spatial.dist}, \link{vulnerability},
-#' \link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn}}
+#' \link[igraph]{coreness}, \link{edge_spatial_dist}, \link{vulnerability},
+#' \link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn},
+#' \link{vertex_spatial_dist}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -176,7 +176,11 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     # Edge attributes
     #-----------------------------------------------------------------------------
     E(g)$btwn <- edge.betweenness(g)
-    E(g)$dist <- spatial.dist(g)
+    E(g)$dist <- edge_spatial_dist(g)
+
+    g$spatial.dist <- mean(E(g)$dist)
+    V(g)$dist <- vertex_spatial_dist(g)
+    V(g)$dist.strength <- V(g)$dist * V(g)$degree
   }
 
   g

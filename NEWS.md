@@ -1,23 +1,30 @@
-# brainGraph 0.56.0
+# brainGraph 0.57.0
 
-2015-12-29
+2015-12-31
 
 ## Major changes
 * Now requires the package `RcppEigen` for fast linear model calculations;
     resulted in major speed improvements
+* Now requires the package `permute` for the `NBS` function
 * `group.graph.diffs`:
   * Uses the function `fastLmPure` from `RcppEigen` for speed/efficiency
+  * Can specify multiple alternative hypotheses
   * Linear model specification is more limited now, though (on *TODO* list)
 
 ## New functions
+* `NBS`: implements the network-based statistic
 * `plot_global`: create a line plot across all densities of global graph
     measures in the same figure
+* `vertex_spatial_dist`: calculates the mean edge distance for all edges of a
+    given vertex
 
 ## Minor changes
 * `plot_brainGraph_list`:
   * You can now specify a condition for removing vertices (e.g. `hemi == "R"`
-    will keep only right hemisphere vertices
+    will keep only right hemisphere vertices; includes complex logical 
+    expressions (i.e., with multiple '&' and '|' conditions)
   * Vertex sizing and coloring is a bit more flexible
+* `edge_spatial_dist`: re-named from `spatial.dist`
 
 ---
 # brainGraph 0.55.0

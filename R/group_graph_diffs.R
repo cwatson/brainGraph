@@ -17,6 +17,8 @@
 #' @param measure A character string of the vertex measure of interest
 #' @param test A character string for the test to use, either 't.test',
 #' 'wilcox.test', or 'lm' (default: 't.test')
+#' @param alternative Character string, whether to do a two- or one-sided test
+#' (default: 'two.sided')
 #' @param covars A \code{data.table} of covariates; needed if using \emph{lm}
 #' (default: NULL)
 #' @param permute Logical; should be \emph{TRUE} if being called from
@@ -45,6 +47,7 @@
 
 group.graph.diffs <- function(g1, g2, measure,
                               test=c('t.test', 'wilcox.test', 'lm'),
+                              alternative=c('two.sided', 'less', 'greater'),
                               covars=NULL, permute=FALSE, perm.order=NULL) {
   statistic <- p.value <- Study.ID <- Group <- region <- se <- NULL
 
@@ -61,8 +64,10 @@ group.graph.diffs <- function(g1, g2, measure,
   if (test == 'lm') {
     # Perform a linear model at each vertex
     #-------------------------------------------------------
-    if (is.null(covars)) {
-      stop('Please provide a data frame of covariates!')
+    if (is.null(covars)) stop('Please provide a data frame of covariates!')
+    f <- function(x, y, z) {
+      est <- fastLmPure(x, y)
+      list(est$coef[z], est$se[z], est$df.resid)
     }
     id1 <- vapply(g1, graph_attr, character(1), 'name')
     id2 <- vapply(g2, graph_attr, character(1), 'name')
@@ -86,22 +91,25 @@ group.graph.diffs <- function(g1, g2, measure,
       DT <- merge(covars, meas.id.dt)
       covars.mat <- as.matrix(covars[, lapply(.SD, as.numeric), .SDcols=2:ncol(covars)])
     }
-      DT.tidy <- melt(DT, id.vars=names(covars),
-                                   variable.name='region', value.name='measure')
-      setkey(DT.tidy, Group, Study.ID)
-      z <- which(names(covars) == 'Group')
-      DT.tidy[, beta := fastLmPure(cbind(1, covars.mat), measure)$coef[z], by=region]
-      DT.tidy[, se := fastLmPure(cbind(1, covars.mat), measure)$se[z], by=region]
-      DT.tidy[, df := fastLmPure(cbind(1, covars.mat), measure)$df.resid, by=region]
-      DT.tidy[, t := beta / se, by=region]
-      DT.tidy[, p := 2 * (1 - pt(abs(t), df=df)), by=region]
-      p <- DT.tidy[, unique(p), by=region]$V1
-      p.fdr <- p.adjust(p, 'fdr')
-      V(g.diffs)$size2 <- DT.tidy[, unique(t), by=region]$V1
-      V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
-      V(g.diffs)$beta <- DT.tidy[, unique(beta), by=region]$V1
-      V(g.diffs)$p <- 1 - p
-      V(g.diffs)$p.fdr <- 1 - p.fdr
+    DT.tidy <- melt(DT, id.vars=names(covars),
+                    variable.name='region', value.name='measure')
+    setkey(DT.tidy, Group, Study.ID)
+    z <- which(names(covars) == 'Group')
+    DT.tidy[, c('beta', 'se', 'df') := f(cbind(1, covars.mat), measure, z), by=region]
+    DT.tidy[, t := beta / se, by=region]
+
+    alt <- match.arg(alternative)
+    if (alt == 'two.sided') {
+      V(g.diffs)$p <- 1 - DT.tidy[, unique(2 * (1 - pt(abs(t), df=df))), by=region]$V1
+    } else if (alt == 'less') {
+      V(g.diffs)$p <- 1 - DT.tidy[, unique(1 - pt(t, df=df)), by=region]$V1
+    } else if (alt == 'greater') {
+      V(g.diffs)$p <- 1 - DT.tidy[, unique(pt(t, df=df)), by=region]$V1
+    }
+    V(g.diffs)$p.fdr <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
+    V(g.diffs)$size2 <- DT.tidy[, unique(t), by=region]$V1
+    V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
+    V(g.diffs)$beta <- DT.tidy[, unique(beta), by=region]$V1
 
   } else {
     # Do a simple statistical test

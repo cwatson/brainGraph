@@ -5,7 +5,8 @@
 \title{Perform between-group tests at each vertex for a given vertex measure}
 \usage{
 group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
-  covars = NULL, permute = FALSE, perm.order = NULL)
+  alternative = c("two.sided", "less", "greater"), covars = NULL,
+  permute = FALSE, perm.order = NULL)
 }
 \arguments{
 \item{g1}{A list of \code{igraph} graph objects for group 1}
@@ -16,6 +17,9 @@ group.graph.diffs(g1, g2, measure, test = c("t.test", "wilcox.test", "lm"),
 
 \item{test}{A character string for the test to use, either 't.test',
 'wilcox.test', or 'lm' (default: 't.test')}
+
+\item{alternative}{Character string, whether to do a two- or one-sided test
+(default: 'two.sided')}
 
 \item{covars}{A \code{data.table} of covariates; needed if using \emph{lm}
 (default: NULL)}

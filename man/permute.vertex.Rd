@@ -46,7 +46,7 @@ section and pass the appropriate arguments.
 \dontrun{
 g.perm.diff <- permute.vertex(g[[1]][[3]], g[[2]][[3]], measure='degree')
 g.perm.diff <- permute.vertex(g[[1]][[5]], g[[2]][[5]], measure='degree',
-  test='lm', covars=covars.dti)
+  test='lm', covars=covars.dti, alternative='greater')
 }
 }
 \author{

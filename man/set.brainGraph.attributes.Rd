@@ -50,7 +50,8 @@ Christopher G. Watson, \email{cgwatson@bu.edu}
 \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 \link[igraph]{cluster_louvain}, \link{graph.efficiency}, \link{color.edges},
 \link{rich.club.coeff}, \link{within_module_deg_z_score},
-\link[igraph]{coreness}, \link{spatial.dist}, \link{vulnerability},
-\link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn}}
+\link[igraph]{coreness}, \link{edge_spatial_dist}, \link{vulnerability},
+\link{centr_lev}, \link{edge_asymmetry}, \link[igraph]{graph.knn},
+\link{vertex_spatial_dist}}
 }
 
