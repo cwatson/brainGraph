@@ -25,10 +25,10 @@ FALSE)}
 \value{
 A list containing:
 \item{g.nbs}{The \code{igraph} graph object based on the initial threshold}
-\item{obs}{Integer vector of the observed component sizes}
+\item{obs}{Integer vector of the observed connected component sizes}
 \item{perm}{Integer vector of the permutation distribution of largest
   connected component sizes}
-\item{p.perm}{Numeric; the permutation p-value}
+\item{p.perm}{Numeric vector of the permutation p-values for each component}
 }
 \description{
 Calculates the \emph{network-based statistic (NBS)}, which allows for
@@ -38,7 +38,9 @@ connectivity matrices and a \code{data.table} of covariates, and creates a
 null distribution of the largest connected component size by permuting
 subjects. If you would like to perform a t-test at each element, then supply
 a covariates \code{data.table} with only a \emph{Study.ID} and \emph{Group}
-column.
+column. The graph that is returned by this function will have a
+\code{t.stat} edge attribute which is the t-statistic for that particular
+connection.
 }
 \examples{
 \dontrun{

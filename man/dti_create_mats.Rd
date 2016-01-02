@@ -4,27 +4,26 @@
 \alias{dti_create_mats}
 \title{Create connection matrices for tractography analysis}
 \usage{
-dti_create_mats(A.files, Nv, divisor = c("none", "waytotal", "size",
-  "rowSums"), div.files, mat.thresh = 0, sub.thresh = 0.5, groups = NULL,
-  P = 5000)
+dti_create_mats(A.files, divisor = c("none", "waytotal", "size", "rowSums"),
+  div.files = NULL, mat.thresh = 0, sub.thresh = 0.5, inds, P = 5000)
 }
 \arguments{
 \item{A.files}{A character vector of the filenames with connection matrices}
 
-\item{Nv}{Integer representing the number of vertices (rows/columns)}
-
 \item{divisor}{A character string indicating how to normalize the connection
-matrices; either 'none', 'waytotal', 'size', or 'rowSums'}
+matrices; either 'none' (default), 'waytotal', 'size', or 'rowSums'}
 
 \item{div.files}{A character vector of the filenames with the data to
-normalize by (e.g. a list of \emph{waytotal} files)}
+normalize by (e.g. a list of \emph{waytotal} files) (default: NULL)}
 
-\item{mat.thresh}{A numeric (vector) for thresholding connection matrices}
+\item{mat.thresh}{A numeric (vector) for thresholding connection matrices
+(default: 0)}
 
 \item{sub.thresh}{A numeric (between 0 and 1) for thresholding by subject
-numbers}
+numbers (default: 0.5)}
 
-\item{groups}{A character vector of group names}
+\item{inds}{A list (length equal to number of groups) of integers; each list
+element should be a vector of length equal to the group sizes}
 
 \item{P}{Number of samples generated using FSL (default: 5000)}
 }
@@ -60,10 +59,10 @@ connections for which at least \emph{X}\% of subjects have a positive entry
 \examples{
 \dontrun{
 thresholds <- seq(from=0.001, to=0.01, by=0.001)
-my.mats <- dti_create_mats(f.A, Nv, 'waytotal', f.way, thresholds,
-  sub.thresh=0.5, groups)
-my.mats <- dti_create_mats(f.A, Nv, 'size', f.size, thresholds,
-  sub.thresh=0.5, groups, P=5000)
+my.mats <- dti_create_mats(f.A, 'waytotal', f.way, thresholds,
+  sub.thresh=0.5, inds)
+my.mats <- dti_create_mats(f.A, 'size', f.size, thresholds,
+  sub.thresh=0.5, inds, P=5000)
 }
 }
 \author{

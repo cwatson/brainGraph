@@ -19,12 +19,13 @@
     given vertex
 
 ## Minor changes
+* `dti_create_mats`: changed a few arguments
+* `edge_spatial_dist`: re-named from `spatial.dist`
 * `plot_brainGraph_list`:
   * You can now specify a condition for removing vertices (e.g. `hemi == "R"`
     will keep only right hemisphere vertices; includes complex logical 
     expressions (i.e., with multiple '&' and '|' conditions)
   * Vertex sizing and coloring is a bit more flexible
-* `edge_spatial_dist`: re-named from `spatial.dist`
 
 ---
 # brainGraph 0.55.0

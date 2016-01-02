@@ -13,15 +13,16 @@
 #' (the default is 0.5, or 50\%).
 #'
 #' @param A.files A character vector of the filenames with connection matrices
-#' @param Nv Integer representing the number of vertices (rows/columns)
 #' @param divisor A character string indicating how to normalize the connection
-#' matrices; either 'none', 'waytotal', 'size', or 'rowSums'
+#'   matrices; either 'none' (default), 'waytotal', 'size', or 'rowSums'
 #' @param div.files A character vector of the filenames with the data to
-#' normalize by (e.g. a list of \emph{waytotal} files)
+#'   normalize by (e.g. a list of \emph{waytotal} files) (default: NULL)
 #' @param mat.thresh A numeric (vector) for thresholding connection matrices
+#'   (default: 0)
 #' @param sub.thresh A numeric (between 0 and 1) for thresholding by subject
-#' numbers
-#' @param groups A character vector of group names
+#'   numbers (default: 0.5)
+#' @param inds A list (length equal to number of groups) of integers; each list
+#'   element should be a vector of length equal to the group sizes
 #' @param P Number of samples generated using FSL (default: 5000)
 #' @export
 #'
@@ -43,19 +44,19 @@
 #' @examples
 #' \dontrun{
 #' thresholds <- seq(from=0.001, to=0.01, by=0.001)
-#' my.mats <- dti_create_mats(f.A, Nv, 'waytotal', f.way, thresholds,
-#'   sub.thresh=0.5, groups)
-#' my.mats <- dti_create_mats(f.A, Nv, 'size', f.size, thresholds,
-#'   sub.thresh=0.5, groups, P=5000)
+#' my.mats <- dti_create_mats(f.A, 'waytotal', f.way, thresholds,
+#'   sub.thresh=0.5, inds)
+#' my.mats <- dti_create_mats(f.A, 'size', f.size, thresholds,
+#'   sub.thresh=0.5, inds, P=5000)
 #' }
 
-dti_create_mats <- function(A.files, Nv,
+dti_create_mats <- function(A.files,
                             divisor=c('none', 'waytotal', 'size', 'rowSums'),
-                            div.files, mat.thresh=0, sub.thresh=0.5,
-                            groups=NULL, P=5000) {
-  inds <- lapply(groups, grep, A.files)
+                            div.files=NULL, mat.thresh=0, sub.thresh=0.5,
+                            inds, P=5000) {
   kNumSubjs <- lengths(inds)
 
+  Nv <- length(readLines(A.files[1]))
   A <- array(sapply(A.files, function(x)
                     matrix(scan(x, what=numeric(0), n=Nv*Nv, quiet=T),
                            Nv, Nv, byrow=T)),
@@ -98,14 +99,14 @@ dti_create_mats <- function(A.files, Nv,
 
   # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
   A.inds <- lapply(seq_along(mat.thresh), function(y)
-                   lapply(1:2, function(x)
+                   lapply(seq_along(inds), function(x)
                           ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x],
                                  1,
                                  0)))
 
   # Back to a list of arrays for all subjects
   A.norm.sub <- lapply(seq_along(mat.thresh), function(z)
-                      lapply(1:2, function(x)
+                      lapply(seq_along(inds), function(x)
                              array(sapply(inds[[x]], function(y)
                                           ifelse(A.inds[[z]][[x]] == 1,
                                                  A.norm[, , y],

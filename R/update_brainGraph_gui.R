@@ -289,11 +289,11 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent',
                     'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
                     'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
-                    'eccentricity')
+                    'eccentricity', 'dist', 'dist.strength')
     if (i == 0) {
       vsize <- mult * const
     } else {
-      if (i < 15) {
+      if (i < 17) {
         if (i == 11 && !is.directed(g)) {
           i <- 2
         }
@@ -308,14 +308,14 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
           vsize <- vsize[!is.nan(vsize)]
         }
 
-      } else if (i == 15) {  # Other
+      } else if (i == 17) {  # Other
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
         if (v.attr %in% c('p', 'p.adj', 'p.fdr', 'p.perm', 'hubs')) {
           vsize <- mult * 15 * vertex_attr(g, v.attr)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
-      } else if (i == 16) {  # equation
+      } else if (i == 18) {  # equation
         x <- vertSize.eqn$getText()
         if (nchar(x) > 0) {
           subs <- strsplit(x, split='&')[[1]]
