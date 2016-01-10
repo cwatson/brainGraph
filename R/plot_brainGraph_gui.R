@@ -475,7 +475,7 @@ plot_brainGraph_gui <- function() {
   vsize.opts <<- c('const', 'degree', 'ev.cent', 'btwn.cent',
                   'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
                   'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
-                  'eccentricity', 'dist', 'dist.strength')
+                  'eccentricity', 'dist', 'dist.strength', 'Lp')
   gSignalConnect(comboVsize, 'changed', function(widget, ...) {
       i <- widget$getActive()
       if (i == 0) {  # 'Constant'
@@ -488,7 +488,7 @@ plot_brainGraph_gui <- function() {
         vertSize.other$setSensitive(F)
         lapply(vertSize.spin, function(x) x$setSensitive(T))
         lapply(vertSizeEqn, function(x) x$setSensitive(F))
-        if (i < 17) {
+        if (i < 18) {
           if (i == 10 && !is.directed(graphs[[1]])) i <- 2
           for (j in seq_len(kNumGroups)) {
             rangeX <- range(vertex_attr(graphs[[j]], vsize.opts[i + 1]), na.rm=T)
@@ -502,7 +502,7 @@ plot_brainGraph_gui <- function() {
             gtkSpinButtonSetRange(vertSize.spin[[j]], min=newMin, max=newMax)
             gtkSpinButtonSetValue(vertSize.spin[[j]], newMin)
           }
-        } else if (i == 17) {  # 'Other'
+        } else if (i == 18) {  # 'Other'
           vertSize.other$setSensitive(T)
           lapply(vertSizeEqn, function(x) x$setSensitive(F))
           lapply(vertSize.spin, function(x) x$setSensitive(T))
@@ -512,7 +512,7 @@ plot_brainGraph_gui <- function() {
             gtkSpinButtonSetRange(vertSize.spin[[j]], min=-100, max=100)
             gtkSpinButtonSetValue(vertSize.spin[[j]], 0)
           }
-        } else if (i == 18) {  # equation
+        } else if (i == 19) {  # equation
           lapply(vertSizeEqn, function(x) x$setSensitive(T))
           lapply(vertSize.spin, function(x) x$setSensitive(F))
         }

@@ -45,9 +45,9 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
   if (!'Group' %in% names(covars)) stop('"covars" must have a "Group" column')
   alt <- match.arg(alternative)
   if (alt == 'two.sided') {
-    pfun <- function(T, df) return(2 * (1 - pt(abs(T), df=df)))
+    pfun <- function(T, df) return(2 * (pt(abs(T), df=df, lower.tail=F)))
   } else if (alt == 'less') {
-    pfun <- function(T, df) return(1 - pt(T, df=df))
+    pfun <- function(T, df) return(pt(T, df=df, lower.tail=F))
   } else if (alt == 'greater') {
     pfun <- function(T, df) return(pt(T, df=df))
   }

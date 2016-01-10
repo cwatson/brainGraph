@@ -1,4 +1,4 @@
-# brainGraph 0.57.0
+# brainGraph 0.59.0
 
 2015-12-31
 
@@ -26,6 +26,7 @@
     will keep only right hemisphere vertices; includes complex logical 
     expressions (i.e., with multiple '&' and '|' conditions)
   * Vertex sizing and coloring is a bit more flexible
+* New vertex attribute `Lp` (average path length for each vertex)
 
 ---
 # brainGraph 0.55.0

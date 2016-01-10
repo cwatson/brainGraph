@@ -146,6 +146,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     V(g)$hubs <- 0  # I define hubs as vertices w/ btwn.cent > mean + sd
     V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
     g$num.hubs <- sum(V(g)$hubs)
+    Lpv <- distances(g)
+    Lpv[is.infinite(Lpv)] <- NA
+    V(g)$Lp <- rowMeans(Lpv, na.rm=T)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- graph.coreness(g)

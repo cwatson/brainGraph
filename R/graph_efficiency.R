@@ -67,7 +67,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
           g.sub <- induced.subgraph(g, neighbs)
           Nv <- vcount(g.sub)
 
-          paths <- shortest.paths(g.sub, weights=weights)
+          paths <- distances(g.sub, weights=weights)
           paths <- paths[upper.tri(paths)]
           2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
         }
@@ -77,7 +77,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
           g.sub <- induced.subgraph(g, neighbs)
           Nv <- vcount(g.sub)
 
-          paths <- shortest.paths(g.sub, weights=weights)
+          paths <- distances(g.sub, weights=weights)
           paths <- paths[upper.tri(paths)]
           eff[i] <- 2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
         }
@@ -85,7 +85,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
     }
   } else {
     Nv <- length(degs)
-    eff <- apply(shortest.paths(g, weights=weights), 2, function(x)
+    eff <- apply(distances(g, weights=weights), 2, function(x)
                  sum(1 / x[x != 0]) / (Nv - 1))
     if (type == 'global') eff <- mean(eff)
   }

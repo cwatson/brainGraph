@@ -132,8 +132,8 @@ permute.group <- function(permSet, density, resids,
         Cp1 <- transitivity(g1, type='localaverage')
         Cp2 <- transitivity(g2, type='localaverage')
         Cp.diff <- Cp1 - Cp2
-        Lp1 <- average.path.length(g1)
-        Lp2 <- average.path.length(g2)
+        Lp1 <- mean_distance(g1)
+        Lp2 <- mean_distance(g2)
         Lp.diff <- Lp1 - Lp2
         assortativity1 <- assortativity.degree(g1)
         assortativity2 <- assortativity.degree(g2)
