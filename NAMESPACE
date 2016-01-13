@@ -1,3 +1,4 @@
+export(analysis_random_graphs)
 export(aop)
 export(boot_global)
 export(brainGraph_init)

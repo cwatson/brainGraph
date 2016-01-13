@@ -415,7 +415,7 @@ plot_brainGraph_gui <- function() {
                'Coreness', 'Clustering coeff.', 'PC',
                'E.local', 'E.nodal', 'Within-module degree z-score', 'Hub score',
                'Vulnerability', 'NN degree', 'Asymmetry', 'Eccentricity',
-               'Distance', 'Distance strength', 'Other', 'Equation')
+               'Distance', 'Distance strength', 'Lp', 'Other', 'Equation')
   comboVsize <- add_combo(hboxVsize, choices, 'Attribute')
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
 

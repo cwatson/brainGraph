@@ -1,6 +1,6 @@
-# brainGraph 0.59.0
+# brainGraph 0.60.0
 
-2015-12-31
+2016-01-13
 
 ## Major changes
 * Now requires the package `RcppEigen` for fast linear model calculations;
@@ -13,6 +13,8 @@
 
 ## New functions
 * `NBS`: implements the network-based statistic
+* `analysis_random_graphs`: perform all the steps for getting *small-world*
+    parameters and normalized *rich-club* coefficients and p-values
 * `plot_global`: create a line plot across all densities of global graph
     measures in the same figure
 * `vertex_spatial_dist`: calculates the mean edge distance for all edges of a
