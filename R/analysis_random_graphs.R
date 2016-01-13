@@ -43,7 +43,7 @@
 #' }
 
 analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
-  Group <- densities <- Study.ID <- threshold <- NULL
+  Group <- Study.ID <- threshold <- NULL
   if (!isTRUE(dir.exists(paste0(savedir, '/ALL')))) {
     dir.create(paste0(savedir, '/ALL/'), recursive=TRUE)
   }
@@ -107,6 +107,7 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
   groups <- covars[, levels(Group)]
   fnames <- rand.dt <- small.dt <- vector('list', length=length(g))
   if (nesting == 2) {
+    densities <- sapply(g[[1]], graph_attr, 'density')
     for (i in seq_along(g)) {
       fnames <- list.files(savedir, sprintf('rand%i_thr.*', i), full.names=T)
       rand_all <- lapply(fnames, readRDS)
