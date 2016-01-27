@@ -1,6 +1,22 @@
-# brainGraph 0.60.0
+# brainGraph 0.60.2
 
-2016-01-13
+2016-01-26
+
+## Bug fix
+* `rich.club.norm` had a bug in calculating the p-values; to fix, do something
+    like: 
+
+```
+for (i in seq_along(groups)) {
+  for (j in seq_along(densities)) {
+    max.deg <- max(V(g[[i]][[j]])$degree)
+    phi.norm[[i]][[j]]$p <- sapply(seq_len(max.deg), function(x)
+        sum(phi.norm[[i]][[j]]$phi.rand[, x] >= phi.norm[[i]][[j]]$phi.orig[x]) / N)
+  }
+}
+```
+
+where `N` is the number of random graphs generated.
 
 ## Major changes
 * Now requires the package `RcppEigen` for fast linear model calculations;

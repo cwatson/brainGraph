@@ -21,6 +21,10 @@ vertex_attr_dt <- function(g, group=NULL) {
   net.meas[, c('x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni', 'lobe.hemi',
                'circle.layout', 'comm', 'comp', 'circle.layout.comm',
                'color.comm', 'color.comp', 'color.lobe') := NULL]
+  if (g$atlas == 'destrieux') {
+    net.meas[, 'color.class' := NULL]
+    net.meas$class <- atlas.dt[, levels(class)][V(g)$class]
+  }
   net.meas$density <- g$density
   net.meas$lobe <- atlas.dt[, levels(lobe)][V(g)$lobe]
   setnames(net.meas, 'name', 'region')
