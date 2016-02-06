@@ -8,8 +8,8 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
   vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min,
   vertSize.const = NULL, edgeWidth.const = NULL, vertLabels = NULL,
   comm = NULL, kNumComms = NULL, neighb = NULL, neighbMult = NULL,
-  slider = NULL, vertSize.other = NULL, vertSize.eqn = NULL,
-  showDiameter = NULL, edgeDiffs = NULL)
+  slider = NULL, vertSize.other = NULL, edgeWidth.other = NULL,
+  vertSize.eqn = NULL, showDiameter = NULL, edgeDiffs = NULL)
 }
 \arguments{
 \item{plotDev}{A Cairo device for the plotting area}
@@ -53,6 +53,8 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
 \item{slider}{A GTK horizontal slider widget for changing edge curvature}
 
 \item{vertSize.other}{A GTK entry for vertex size (other attributes)}
+
+\item{edgeWidth.other}{A GTK entry for edge width (other attributes)}
 
 \item{vertSize.eqn}{A GTK entry for equations to exclude vertices}
 

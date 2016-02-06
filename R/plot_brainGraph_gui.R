@@ -300,14 +300,14 @@ plot_brainGraph_gui <- function() {
           graphObj[[1]] <<- graphObjEntry[[1]]$getText()
           graphObj[[2]] <<- graphObjEntry[[2]]$getText()
 
-          if (!is.igraph(eval(parse(text=graphObj[[1]])))) {
+          if (!is_igraph(eval(parse(text=graphObj[[1]])))) {
             warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
                                            type='error', buttons='close',
                                            'Error: Not an igraph object!')
             response <- warnDialog$run()
             if (response == GtkResponseType['close']) warnDialog$destroy()
           } else {
-            if (nchar(graphObj[[2]]) > 0 & !is.igraph(eval(parse(text=graphObj[[2]])))) {
+            if (nchar(graphObj[[2]]) > 0 & !is_igraph(eval(parse(text=graphObj[[2]])))) {
               warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
                                              type='error', buttons='close',
                                              'Error: Not an igraph object!')
@@ -416,6 +416,9 @@ plot_brainGraph_gui <- function() {
                'E.local', 'E.nodal', 'Within-module degree z-score', 'Hub score',
                'Vulnerability', 'NN degree', 'Asymmetry', 'Eccentricity',
                'Distance', 'Distance strength', 'Lp', 'Other', 'Equation')
+  if (is_weighted(graphs[[1]])) {
+    choices <- c(choices, 'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt')
+  }
   comboVsize <- add_combo(hboxVsize, choices, 'Attribute')
   vertSize.const <- add_entry(hboxVsize, char.width=3, entry.text='5')
 
@@ -475,7 +478,8 @@ plot_brainGraph_gui <- function() {
   vsize.opts <<- c('const', 'degree', 'ev.cent', 'btwn.cent',
                   'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
                   'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
-                  'eccentricity', 'dist', 'dist.strength', 'Lp')
+                  'eccentricity', 'dist', 'dist.strength', 'Lp', 'other', 'eqn',
+                  'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt')
   gSignalConnect(comboVsize, 'changed', function(widget, ...) {
       i <- widget$getActive()
       if (i == 0) {  # 'Constant'
@@ -488,15 +492,16 @@ plot_brainGraph_gui <- function() {
         vertSize.other$setSensitive(F)
         lapply(vertSize.spin, function(x) x$setSensitive(T))
         lapply(vertSizeEqn, function(x) x$setSensitive(F))
-        if (i < 18) {
-          if (i == 10 && !is.directed(graphs[[1]])) i <- 2
+        if (i < 18 | i > 19) {
+          if (i == 10 && !is_directed(graphs[[1]])) i <- 2
           for (j in seq_len(kNumGroups)) {
             rangeX <- range(vertex_attr(graphs[[j]], vsize.opts[i + 1]), na.rm=T)
             newMin <- rangeX[1]
             newMax <- rangeX[2]
-            newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
+            newStep <- ifelse(diff(rangeX) > 10 & newMin >= 0, 1,
                               ifelse(diff(rangeX) < 1, 0.01, 0.1))
-            newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
+            newDigits <- ifelse(diff(rangeX) > 10 & newMin >= 0, 0,
+                                ifelse(diff(rangeX) < 1, 2, 1))
             gtkSpinButtonSetDigits(vertSize.spin[[j]], newDigits)
             gtkSpinButtonSetIncrements(vertSize.spin[[j]], step=newStep, page=0)
             gtkSpinButtonSetRange(vertSize.spin[[j]], min=newMin, max=newMax)
@@ -523,17 +528,27 @@ plot_brainGraph_gui <- function() {
   #gSignalConnect(vertSize.spin[[2]], 'value-changed', function(x) updateFun(2))
   #-----------------------------------------------------------------------------
   # Edge width?
-  hboxEwidth <- gtkHBoxNew(F, 6)
-  vbox$packStart(hboxEwidth, F, F, 0)
-  choices <- c('Constant', 'Edge betweenness', 'Distance')
-  if ('weight' %in% edge_attr_names(graphs[[1]])) choices <- c(choices, 'Weight')
-  comboEwidth <- add_combo(hboxEwidth, choices, 'Edge width')
+  #-----------------------------------------------------------------------------
+  frameEwidth <- gtkFrameNew('Edge width')
+  vbox$add(frameEwidth)
 
+  vboxEwidth <- gtkVBoxNew(F, 2)
+  frameEwidth$add(vboxEwidth)
+
+  hboxEwidth <- gtkHBoxNew(F, 6)
+  vboxEwidth$packStart(hboxEwidth, F, F, 0)
+  choices <- c('Constant', 'Edge betweenness', 'Distance', 'Other')
+  if ('weight' %in% edge_attr_names(graphs[[1]])) choices <- c(choices, 'Weight')
+  comboEwidth <- add_combo(hboxEwidth, choices, 'Attribute')
   edgeWidth.const <- add_entry(hboxEwidth, char.width=3, entry.text='1')
 
-  # Have 2 entries to allow for min's of 2 groups
   hboxEwidthOther <- gtkHBoxNew(F, 6)
-  vbox$packStart(hboxEwidthOther, F, F, 0)
+  vboxEwidth$packStart(hboxEwidthOther, F, F, 0)
+  edgeWidth.other <- add_entry(hboxEwidthOther, label.text=paste0('\t', 'Other:'),
+                              char.width=10)
+  edgeWidth.other$setSensitive(F)
+
+  # Have 2 entries to allow for min's of 2 groups
   for (i in 1:2) {
     hboxEwidthMin[[i]] <- gtkHBoxNew(F, 6)
     hboxEwidthOther$packStart(hboxEwidthMin[[i]], T, F, 0)
@@ -545,14 +560,26 @@ plot_brainGraph_gui <- function() {
     edgeWidth.spin[[i]]$setSensitive(F)
   }
 
-  ewidth.opts <<- c('const', 'btwn', 'dist', 'weight')
+  ewidth.opts <<- c('const', 'btwn', 'dist', 'other', 'weight')
   gSignalConnect(comboEwidth, 'changed', function(widget, ...) {
     i <- widget$getActive()
     if (i == 0) {  # 'Constant'
       edgeWidth.const$setSensitive(T)
+      edgeWidth.other$setSensitive(F)
       lapply(edgeWidth.spin, function(x) x$setSensitive(F))
+    } else if (i == 3) {  # 'Other'
+      edgeWidth.const$setSensitive(F)
+      edgeWidth.other$setSensitive(T)
+      lapply(edgeWidth.spin, function(x) x$setSensitive(T))
+      for (j in seq_len(kNumGroups)) {
+        gtkSpinButtonSetDigits(edgeWidth.spin[[j]], 2)
+        gtkSpinButtonSetIncrements(edgeWidth.spin[[j]], step=0.01, page=0)
+        gtkSpinButtonSetRange(edgeWidth.spin[[j]], min=-100, max=100)
+        gtkSpinButtonSetValue(edgeWidth.spin[[j]], 0)
+      }
     } else {
       edgeWidth.const$setSensitive(F)
+      edgeWidth.other$setSensitive(F)
       lapply(edgeWidth.spin, function(x) x$setSensitive(T))
       for (j in seq_len(kNumGroups)) {
         rangeX <- range(edge_attr(graphs[[j]], ewidth.opts[i + 1]), na.rm=T)
@@ -659,7 +686,7 @@ plot_brainGraph_gui <- function() {
                           vertSize.const=vertSize.const, edgeWidth.const=edgeWidth.const,
                           vertLabels, comm=comboComm, kNumComms=kNumComms,
                           neighb=comboNeighb, neighbMult=comboNeighbMult,
-                          slider=slider[[j]], vertSize.other,
+                          slider=slider[[j]], vertSize.other, edgeWidth.other,
                           vertSize.eqn=vertSizeEqn[[j]], showDiameter=showDiameter, edgeDiffs)
   }
   gSignalConnect(btnOK, 'clicked', function(widget) {

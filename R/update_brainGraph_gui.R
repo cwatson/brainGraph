@@ -24,6 +24,7 @@
 #' @param neighbMult A GTK entry for joint neighborhoods of multiple vertices
 #' @param slider A GTK horizontal slider widget for changing edge curvature
 #' @param vertSize.other A GTK entry for vertex size (other attributes)
+#' @param edgeWidth.other A GTK entry for edge width (other attributes)
 #' @param vertSize.eqn A GTK entry for equations to exclude vertices
 #' @param showDiameter A GTK check button for showing the graph's diameter
 #' @param edgeDiffs A GTK check button for showing edge diffs between graphs
@@ -35,7 +36,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                        edgeWidth.min, vertSize.const=NULL, edgeWidth.const=NULL,
                        vertLabels=NULL, comm=NULL, kNumComms=NULL, neighb=NULL,
                        neighbMult=NULL, slider=NULL, vertSize.other=NULL,
-                       vertSize.eqn=NULL, showDiameter=NULL, edgeDiffs=NULL) {
+                       edgeWidth.other=NULL, vertSize.eqn=NULL,
+                       showDiameter=NULL, edgeDiffs=NULL) {
 
   #===========================================================================
   #===========================================================================
@@ -289,12 +291,13 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     vsize.opts <- c('const', 'degree', 'ev.cent', 'btwn.cent',
                     'coreness', 'transitivity', 'PC', 'E.local', 'E.nodal',
                     'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
-                    'eccentricity', 'dist', 'dist.strength', 'Lp')
+                    'eccentricity', 'dist', 'dist.strength', 'Lp', 'other',
+                    'eqn', 'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt')
     if (i == 0) {
       vsize <- mult * const
     } else {
-      if (i < 18) {
-        if (i == 11 && !is.directed(g)) {
+      if (i < 18 | i > 19) {
+        if (i == 11 && !is_directed(g)) {
           i <- 2
         }
         vnum <- vertex_attr(g, vsize.opts[i + 1])
@@ -327,25 +330,38 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       }
     }
 
+    #-----------------------------------
     # Edge width
+    #-----------------------------------
     if (!edgeWidth.const$getSensitive()) {
       e.const <- NULL
+      if (!edgeWidth.other$getSensitive()) {
+        e.attr <- NULL
+      } else {
+        e.attr <- edgeWidth.other$getText()
+      }
     } else {
       e.const <- eval(parse(text=edgeWidth.const$getText()))
+      e.attr <- NULL
     }
+    e.min <- edgeWidth.min$getValue()
 
-    if (edgeWidth$getActive() == 0) {  # Constant
+    j <- edgeWidth$getActive()
+    if (j == 0) {  # Constant
       ewidth <- e.const
-    } else if (edgeWidth$getActive() == 1) {  # Edge betweenness
-      e.min <- edgeWidth.min$getValue()
+    } else if (j == 1) {  # Edge betweenness
       g <- delete.edges(g, which(E(g)$btwn < e.min))
       ewidth <- log1p(E(g)$btwn)
-    } else if (edgeWidth$getActive() == 2) {  # Euclidean distance
-      e.min <- edgeWidth.min$getValue()
+    } else if (j == 2) {  # Euclidean distance
       g <- delete.edges(g, which(E(g)$dist < e.min))
       ewidth <- vec.transform(E(g)$dist, 0.1, 5)
-    } else if (edgeWidth$getActive() == 3) {  # Edge weight
-      e.min <- edgeWidth.min$getValue()
+    } else if (j == 3) {  # Other
+      e.vals <- edge_attr(g, e.attr)
+      # If all are negative, take the absolute value
+      if (sum(e.vals > 0) == 0) edge_attr(g, e.attr) <- abs(e.vals)
+      g <- delete.edges(g, which(edge_attr(g, e.attr) < e.min))
+      ewidth <- vec.transform(edge_attr(g, e.attr), 0, 5)
+    } else if (j == 4) {  # Edge weight
       g <- delete.edges(g, which(E(g)$weight < e.min))
       ewidth <- vec.transform(E(g)$weight, min(E(g)$weight), 5)
     }
@@ -401,7 +417,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       if (n == 0) {
         main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
       } else {
-        main <- g$group
+        main <- g$Group
       }
       plotFunc(g,
                vertex.label=vlabel, vertex.label.cex=vlabel.cex,
@@ -425,9 +441,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     if (vertColor$getActive() + 1 == 3) {
       lobes <- sort(unique(V(g)$lobe))
       lobe.names <- levels(atlas.dt[, lobe])[lobes]
-      nonzero <- V(g)$degree > 0
       total <- unname(atlas.dt[, table(lobe)])[lobes]
-      lobe.names <- paste0(lobe.names, ': ', table(V(g)$lobe[nonzero]),
+      lobe.names <- paste0(lobe.names, ': ', table(V(g)$lobe),
                            ' / ', total)
       lobe.cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
       legend('topleft',
@@ -472,7 +487,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     }
   }
   #=============================================================================
-  if (!is.igraph(graph1)) {
+  if (!is_igraph(graph1)) {
     stop(sprintf('%s is not a graph object.', deparse(substitute(graph1))))
   }
 

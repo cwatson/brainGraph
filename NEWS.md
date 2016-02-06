@@ -1,10 +1,12 @@
-# brainGraph 0.60.2
+# brainGraph 0.60.3
 
-2016-01-26
+2016-02-06
 
 ## Bug fix
-* `rich.club.norm` had a bug in calculating the p-values; to fix, do something
-    like: 
+* `rich.club.norm` had a bug in calculating the p-values. If you have already
+    gone through the process of creating random graphs and the object `phi.norm`,
+    you can fix with the following code: (add another loop if you have
+    single-subject graphs, e.g. DTI data)
 
 ```
 for (i in seq_along(groups)) {
@@ -39,12 +41,16 @@ where `N` is the number of random graphs generated.
 ## Minor changes
 * `dti_create_mats`: changed a few arguments
 * `edge_spatial_dist`: re-named from `spatial.dist`
+* `group.graph.diffs`: returns a graph w/ spatial coord's for plotting
 * `plot_brainGraph_list`:
   * You can now specify a condition for removing vertices (e.g. `hemi == "R"`
-    will keep only right hemisphere vertices; includes complex logical 
+    will keep only right hemisphere vertices; includes complex logical
     expressions (i.e., with multiple '&' and '|' conditions)
   * Vertex sizing and coloring is a bit more flexible
 * New vertex attribute `Lp` (average path length for each vertex)
+* `plot_brainGraph_gui`:
+  * Added an *Other* option for adjusting edge widths by a custom attribute
+  * More options for adjusting vertex sizes when the graph is weighted
 
 ---
 # brainGraph 0.55.0

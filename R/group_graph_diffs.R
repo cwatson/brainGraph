@@ -59,6 +59,17 @@ group.graph.diffs <- function(g1, g2, measure,
   g.diffs$atlas <- g1[[1]]$atlas
   V(g.diffs)$name <- V(g1[[1]])$name
   g.diffs <- assign_lobes(g.diffs)
+  V(g.diffs)$color.lobe <- group.cols[V(g.diffs)$lobe]
+  E(g.diffs)$color.lobe <- color.edges(g.diffs, V(g.diffs)$lobe)
+  x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+  atlas.dt <- eval(parse(text=atlas))
+  vorder <- match(V(g.diffs)$name, atlas.dt$name)
+  V(g.diffs)$x <- atlas.dt[vorder, x]
+  V(g.diffs)$y <- atlas.dt[vorder, y]
+  V(g.diffs)$z <- atlas.dt[vorder, z]
+  V(g.diffs)$x.mni <- atlas.dt[vorder, x.mni]
+  V(g.diffs)$y.mni <- atlas.dt[vorder, y.mni]
+  V(g.diffs)$z.mni <- atlas.dt[vorder, z.mni]
 
   test <- match.arg(test)
   if (test == 'lm') {
