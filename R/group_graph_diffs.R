@@ -62,7 +62,7 @@ group.graph.diffs <- function(g1, g2, measure,
   V(g.diffs)$color.lobe <- group.cols[V(g.diffs)$lobe]
   E(g.diffs)$color.lobe <- color.edges(g.diffs, V(g.diffs)$lobe)
   x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
-  atlas.dt <- eval(parse(text=atlas))
+  atlas.dt <- eval(parse(text=g.diffs$atlas))
   vorder <- match(V(g.diffs)$name, atlas.dt$name)
   V(g.diffs)$x <- atlas.dt[vorder, x]
   V(g.diffs)$y <- atlas.dt[vorder, y]
