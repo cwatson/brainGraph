@@ -24,6 +24,7 @@
 #' Theory and Experiment, 02, P02001.
 
 within_module_deg_z_score <- function(g, memb) {
+  i <- NULL
   if (!is.igraph(g)) {
     stop(sprintf('%s is not a graph object', deparse(substitute(g))))
   }
@@ -33,15 +34,16 @@ within_module_deg_z_score <- function(g, memb) {
     degs <- degree(g)
   }
   vs <- which(degs > 0)
+  es <- E(g)
   z <- Ki <- rep(0, length(degs))
 
-  comms <- lapply(seq_len(max(memb)), function(x)
-                  induced.subgraph(g, which(memb == x)))
-  Ksi <- vapply(comms, function(x) mean(degree(x)), numeric(1))
-  sigKsi <- vapply(comms, function(x) sd(degree(x)), numeric(1))
+  Ki[vs] <- foreach(i=vs, .combine='c') %dopar% {
+    length(es[i %--% which(memb == memb[i])])
+  }
+  di <- lapply(seq_len(max(memb)), function(x) Ki[memb == x])
+  Ksi <- vapply(di, mean, numeric(1))
+  sigKsi <- vapply(di, sd, numeric(1))
 
-  Ki[vs] <- vapply(vs, function(x)
-                   degree(comms[[memb[x]]])[V(g)$name[x]], numeric(1))
   z[vs] <- (Ki[vs] - Ksi[memb[vs]]) / sigKsi[memb[vs]]
   z <- ifelse(!is.finite(z), 0, z)
   return(z)

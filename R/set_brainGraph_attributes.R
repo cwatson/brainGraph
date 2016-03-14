@@ -56,7 +56,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
   Ek <- vapply(R, with, numeric(1), Ek)
   g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
   g$E.global <- graph.efficiency(g, 'global', weights=NA)
-  comm <- cluster_louvain(g)
+  comm <- cluster_louvain(g, weights=NA)
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
@@ -78,7 +78,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g, weights=NA)
     g$transitivity <- transitivity(g)
-    g$assortativity <- assortativity.degree(g)
+    g$assortativity <- assortativity_degree(g)
 
     if (is.weighted(g)) {
       V(g)$strength <- graph.strength(g)
@@ -89,11 +89,26 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       g$E.global.wt <- mean(V(g)$E.nodal.wt)
       g$diameter.wt <- diameter(g)
       R <- lapply(1:max(V(g)$degree),
-                  function(x) rich.club.coeff(g, x, weighted=T))
+                  function(x) rich.club.coeff(g, x, weighted=TRUE))
       phi <- vapply(R, with, numeric(1), phi)
       Nk <- vapply(R, with, numeric(1), Nk)
       Ek <- vapply(R, with, numeric(1), Ek)
       g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+      comm.wt <- cluster_louvain(g)
+      g$mod.wt <- max(comm.wt$modularity)
+
+      x <- comm.wt$membership
+      V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
+      V(g)$color.comm.wt <- color.vertices(V(g)$comm.wt)[V(g)$comm.wt]
+      E(g)$color.comm.wt <- color.edges(g, V(g)$comm.wt)
+
+      V(g)$PC.wt <- part.coeff(g, V(g)$comm.wt)
+      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt)
+
+      V(g)$transitivity.wt <- transitivity(g, type='weighted')
+      Lpv.wt <- distances(g)
+      Lpv.wt[is.infinite(Lpv.wt)] <- NA
+      V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
     }
 
     if (is.directed(g)) {
@@ -146,12 +161,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     V(g)$hubs <- 0  # I define hubs as vertices w/ btwn.cent > mean + sd
     V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
     g$num.hubs <- sum(V(g)$hubs)
-    Lpv <- distances(g)
+    Lpv <- distances(g, weights=NA)
     Lpv[is.infinite(Lpv)] <- NA
-    V(g)$Lp <- rowMeans(Lpv, na.rm=T)
+    V(g)$Lp <- rowMeans(Lpv, na.rm=TRUE)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$lev.cent <- centr_lev(g)
-    V(g)$coreness <- graph.coreness(g)
+    V(g)$coreness <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
     V(g)$E.local <- graph.efficiency(g, type='local', weights=NA)
     V(g)$E.nodal <- graph.efficiency(g, type='nodal', weights=NA)

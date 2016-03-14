@@ -1,6 +1,6 @@
-# brainGraph 0.60.3
+# brainGraph 0.60.5
 
-2016-02-06
+2016-03-14
 
 ## Bug fix
 * `rich.club.norm` had a bug in calculating the p-values. If you have already
@@ -19,6 +19,9 @@ for (i in seq_along(groups)) {
 ```
 
 where `N` is the number of random graphs generated.
+* `dti_create_mats`: there was a bug when *sub.thresh* equals 0; it would take
+    matrix entries, even if they were below the *mat.thresh* values. This has
+    been fixed. Argument checking has also been added.
 
 ## Major changes
 * Now requires the package `RcppEigen` for fast linear model calculations;
@@ -51,6 +54,12 @@ where `N` is the number of random graphs generated.
 * `plot_brainGraph_gui`:
   * Added an *Other* option for adjusting edge widths by a custom attribute
   * More options for adjusting vertex sizes when the graph is weighted
+* `set.brainGraph.attributes`: New calculations for weighted graphs:
+  * *Modularity* and community membership
+  * *Participation coefficient* and *within-module degree z-score*
+  * Vertex-level *transitivity*
+  * Vertex-level *shortest path lengths*
+
 
 ---
 # brainGraph 0.55.0

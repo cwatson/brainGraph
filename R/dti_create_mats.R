@@ -54,7 +54,25 @@ dti_create_mats <- function(A.files,
                             divisor=c('none', 'waytotal', 'size', 'rowSums'),
                             div.files=NULL, mat.thresh=0, sub.thresh=0.5,
                             inds, P=5000) {
+  # Argument checking
+  if (!isTRUE(all(sapply(A.files, file.exists)))) {
+    stop(sprintf('%s does not contain all valid files',
+                 deparse(substitute(A.files))))
+  }
+  if (!isTRUE(all(sapply(div.files, file.exists)))) {
+    stop(sprintf('%s does not contain all valid files',
+                 deparse(substitute(div.files))))
+  }
+  if (any(mat.thresh < 0)) stop(paste('"mat.thresh" must be non-negative'))
+  if (sub.thresh < 0 | sub.thresh > 1) {
+    stop(paste('"sub.thresh" must be between 0 and 1 (inclusive)'))
+  }
+
   kNumSubjs <- lengths(inds)
+  if (sum(kNumSubjs) != length(A.files)) {
+    stop(paste('Number of matrix files does not match number of subjects'))
+  }
+
 
   Nv <- length(readLines(A.files[1]))
   A <- array(sapply(A.files, function(x)
@@ -78,7 +96,7 @@ dti_create_mats <- function(A.files,
       A.norm <- A / W
 
     } else if (divisor == 'size') {
-      # Control for the size (# voxels) of both regions 'm' and 'n'
+      # Control for the size (# voxels) of both regions 'x' and 'y'
       R <- array(apply(div, 3, function(x)
                        cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
                  dim=dim(A))
@@ -98,11 +116,17 @@ dti_create_mats <- function(A.files,
                            rowSums(A.bin[[y]][, , x], dims=2)))
 
   # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
-  A.inds <- lapply(seq_along(mat.thresh), function(y)
-                   lapply(seq_along(inds), function(x)
-                          ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x],
-                                 1,
-                                 0)))
+  if (sub.thresh == 0) {
+    A.inds <- lapply(seq_along(mat.thresh), function(y)
+                     lapply(seq_along(inds), function(x)
+                            ifelse(A.bin.sums[[y]][[x]] > 0, 1, 0)))
+  } else {
+    A.inds <- lapply(seq_along(mat.thresh), function(y)
+                     lapply(seq_along(inds), function(x)
+                            ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x],
+                                   1,
+                                   0)))
+  }
 
   # Back to a list of arrays for all subjects
   A.norm.sub <- lapply(seq_along(mat.thresh), function(z)
