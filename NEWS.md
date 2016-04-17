@@ -1,6 +1,6 @@
-# brainGraph 0.60.5
+# brainGraph 0.61.0
 
-2016-03-14
+2016-04-17
 
 ## Bug fix
 * `rich.club.norm` had a bug in calculating the p-values. If you have already
@@ -31,6 +31,7 @@ where `N` is the number of random graphs generated.
   * Uses the function `fastLmPure` from `RcppEigen` for speed/efficiency
   * Can specify multiple alternative hypotheses
   * Linear model specification is more limited now, though (on *TODO* list)
+* Added data table for the `destrieux.scgm` atlas
 
 ## New functions
 * `NBS`: implements the network-based statistic
@@ -52,8 +53,14 @@ where `N` is the number of random graphs generated.
   * Vertex sizing and coloring is a bit more flexible
 * New vertex attribute `Lp` (average path length for each vertex)
 * `plot_brainGraph_gui`:
+  * Added a checkbox for displaying a color legend or not
+  * Can color vertices by weighted community membership
   * Added an *Other* option for adjusting edge widths by a custom attribute
   * More options for adjusting vertex sizes when the graph is weighted
+  * Made the GUI window more compact to fit lower screen resolutions
+* `plot_rich_norm`:
+  * New argument `facet.by` to group the plots by either "density" (default) or
+    "threshold" (for multi-subject, e.g. DTI data)
 * `set.brainGraph.attributes`: New calculations for weighted graphs:
   * *Modularity* and community membership
   * *Participation coefficient* and *within-module degree z-score*

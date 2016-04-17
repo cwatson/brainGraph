@@ -18,6 +18,7 @@
 #' @param vertSize.const A GTK entry for constant vertex size
 #' @param edgeWidth.const A GTK entry for constant width
 #' @param vertLabels A GTK check button for showing vertex labels
+#' @param showLegend A GTK check button for showing a legend
 #' @param comm A GTK combo box for plotting individual communities
 #' @param kNumComms Integer indicating the number of total communities (optional)
 #' @param neighb A GTK combo box for plotting individual neighborhoods
@@ -34,10 +35,10 @@
 update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                        edgeWidth, vertColor, hemi, lobe, orient, vertSize.min,
                        edgeWidth.min, vertSize.const=NULL, edgeWidth.const=NULL,
-                       vertLabels=NULL, comm=NULL, kNumComms=NULL, neighb=NULL,
-                       neighbMult=NULL, slider=NULL, vertSize.other=NULL,
-                       edgeWidth.other=NULL, vertSize.eqn=NULL,
-                       showDiameter=NULL, edgeDiffs=NULL) {
+                       vertLabels=NULL, showLegend=NULL, comm=NULL,
+                       kNumComms=NULL, neighb=NULL, neighbMult=NULL,
+                       slider=NULL, vertSize.other=NULL, edgeWidth.other=NULL,
+                       vertSize.eqn=NULL, showDiameter=NULL, edgeDiffs=NULL) {
 
   #===========================================================================
   #===========================================================================
@@ -372,6 +373,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                            V(g)$color.comm,
                            V(g)$color.lobe,
                            V(g)$color.comp,
+                           V(g)$color.comm.wt,
                            V(g)$color.class
     )
     edge.color <- switch(vertColor$getActive() + 1,
@@ -379,6 +381,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                          E(g)$color.comm,
                          E(g)$color.lobe,
                          E(g)$color.comp,
+                         E(g)$color.comm.wt,
                          E(g)$color.class
     )
 
@@ -438,7 +441,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     }
 
     # Show a legend for lobe colors
-    if (vertColor$getActive() + 1 == 3) {
+    if (vertColor$getActive() + 1 == 3 & showLegend$active == TRUE) {
       lobes <- sort(unique(V(g)$lobe))
       lobe.names <- levels(atlas.dt[, lobe])[lobes]
       total <- unname(atlas.dt[, table(lobe)])[lobes]
@@ -451,7 +454,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
              bg='black',
              text.col='white',
              cex=0.75)
-    } else if (vertColor$getActive() + 1 == 5) {
+    } else if (vertColor$getActive() + 1 == 5 & showLegend$active == TRUE) {
       classes <- levels(atlas.dt[, class])
       cols <- c('red', 'green', 'blue')
       legend('topleft',
@@ -493,6 +496,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
   make.plot(dev=plotDev, g=graph1, g2=graph2, orient, vertSize.min,
             edgeWidth.min, vertLabels, vertSize, edgeWidth,
-            vertColor, vertSize.const=vertSize.const, vertSize.eqn=vertSize.eqn,
-            hemi, the.slider=slider, kNumComms=kNumComms, comm=comm)
+            vertColor, showLegend, vertSize.const=vertSize.const,
+            vertSize.eqn=vertSize.eqn, hemi, the.slider=slider,
+            kNumComms=kNumComms, comm=comm)
 }

@@ -7,9 +7,10 @@
 update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
   vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min,
   vertSize.const = NULL, edgeWidth.const = NULL, vertLabels = NULL,
-  comm = NULL, kNumComms = NULL, neighb = NULL, neighbMult = NULL,
-  slider = NULL, vertSize.other = NULL, edgeWidth.other = NULL,
-  vertSize.eqn = NULL, showDiameter = NULL, edgeDiffs = NULL)
+  showLegend = NULL, comm = NULL, kNumComms = NULL, neighb = NULL,
+  neighbMult = NULL, slider = NULL, vertSize.other = NULL,
+  edgeWidth.other = NULL, vertSize.eqn = NULL, showDiameter = NULL,
+  edgeDiffs = NULL)
 }
 \arguments{
 \item{plotDev}{A Cairo device for the plotting area}
@@ -41,6 +42,8 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
 \item{edgeWidth.const}{A GTK entry for constant width}
 
 \item{vertLabels}{A GTK check button for showing vertex labels}
+
+\item{showLegend}{A GTK check button for showing a legend}
 
 \item{comm}{A GTK combo box for plotting individual communities}
 

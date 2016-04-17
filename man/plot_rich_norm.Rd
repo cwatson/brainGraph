@@ -4,10 +4,14 @@
 \alias{plot_rich_norm}
 \title{Plot normalized rich club coefficients against degree threshold}
 \usage{
-plot_rich_norm(rich.dt, densities, alpha = 0.05, g = NULL)
+plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
+  alpha = 0.05, g = NULL)
 }
 \arguments{
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
+
+\item{facet.by}{A character string indicating whether the variable of
+interest is "density" or "threshold" (e.g. with DTI data)}
 
 \item{densities}{A numeric vector of the densities to plot}
 

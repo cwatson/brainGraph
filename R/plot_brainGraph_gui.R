@@ -341,7 +341,7 @@ plot_brainGraph_gui <- function() {
   vboxMain$add(frame)
 
   vbox <- gtkVBoxNew(F, 2)
-  vbox$setBorderWidth(5)
+  vbox$setBorderWidth(3)
   frame$add(vbox)
 
   # Create a frame for each plot area
@@ -355,7 +355,7 @@ plot_brainGraph_gui <- function() {
     vbox$add(frameG[[i]])
 
     vboxG[[i]] <- gtkVBoxNew(F, 2)
-    vboxG[[i]]$setBorderWidth(10)
+    vboxG[[i]]$setBorderWidth(5)
     frameG[[i]]$add(vboxG[[i]])
 
     hbox <- gtkHBoxNew(F, 6)
@@ -386,19 +386,38 @@ plot_brainGraph_gui <- function() {
 
   # Should vertex labels be displayed?
   #---------------------------------------
-  hbox <- gtkHBoxNew(F, 6)
+  hbox <- gtkHBoxNew(F, 24)
   vbox$packStart(hbox, F, F, 0)
-  vertLabels <- add_check(hbox, 'Display vertex _labels?')
+
+  hboxLabels <- gtkHBoxNew(F, 6)
+  hbox$packStart(hboxLabels, F, F, 0)
+  vertLabels <- add_check(hboxLabels, 'Display vertex _labels?')
+
+  # Show a legend (for lobe colors)?
+  #---------------------------------------
+  hboxLegend <- gtkHBoxNew(F, 6)
+  hbox$packStart(hboxLegend, F, F, 0)
+  showLegend <- add_check(hboxLegend, 'Show le_gend?')
+  showLegend$setSensitive(F)
 
   # Vertex colors based on community membership?
   #---------------------------------------
   atlas <- graphs[[1]]$atlas
   hboxVcolor <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
-  choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components')
-  if (atlas == 'destrieux') choices <- c(choices, 'Class')
+  choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components',
+               'Communities (weighted)')
+  if (atlas %in% c('destrieux', 'destrieux.scgm')) choices <- c(choices, 'Class')
 
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
+  gSignalConnect(comboVcolor, 'changed', function(widget, ...) {
+      i <- widget$getActive()
+      if (i %in% c(2, 5)) {
+        showLegend$setSensitive(T)
+      } else {
+        showLegend$setSensitive(F)
+      }
+  })
 
   #-----------------------------------------------------------------------------
   # Vertex size?
@@ -632,27 +651,21 @@ plot_brainGraph_gui <- function() {
   #---------------------------------------------------------
   # Create 2 drawing areas for the plotting
   #---------------------------------------------------------
-  # Check screen resolution so the plotting window fits
   if (.Platform$OS.type == 'windows') {
-    screen.x <- 1600
+    scr_width <- system("wmic desktopmonitor get screenwidth", intern=TRUE)
+    scr_height <- system("wmic desktopmonitor get screenheight", intern=TRUE)
+    res <- as.numeric(c(scr_width[-c(1, length(scr_width))],
+                        scr_height[-c(1, length(scr_height))]))
   } else {
-  display.size <- system('xdpyinfo | grep dimensions', intern=T)
-  m <- regexpr(' [0-9]+x', display.size)
-  res <- regmatches(display.size, m)
-  screen.x <- as.numeric(sub('x', '', sub(' ', '', res)))
+    display.size <- system("xrandr | grep '*' | awk '{print $1}'", intern=T)
+    res <- as.numeric(strsplit(display.size, 'x')[[1]])
   }
 
-  if (screen.x <= 1440) {
-    graphics.res <- 460
-  } else if (screen.x > 1440 && screen.x <= 1680) {
-    graphics.res <- 560
-  } else {
-    graphics.res <- 640
-  }
+  ydim <- ifelse(res[2] < 800, 0.8 * res[2], 700)
 
   for (i in 1:2) {
     graphics[[i]] <- gtkDrawingArea()
-    graphics[[i]]$setSizeRequest(graphics.res, graphics.res)
+    graphics[[i]]$setSizeRequest(res[1] / 3 - 10, ydim)#0.8 * res[2])#graphics.res, graphics.res)
 
     vboxPlot[[i]] <- gtkVBox()
     vboxPlot[[i]]$packStart(graphics[[i]], expand=T, fill=T, padding=0)
@@ -684,7 +697,8 @@ plot_brainGraph_gui <- function() {
                           orient=comboOrient[[j]], vertSize.min=vertSize.spin[[j]],
                           edgeWidth.min=edgeWidth.spin[[j]],
                           vertSize.const=vertSize.const, edgeWidth.const=edgeWidth.const,
-                          vertLabels, comm=comboComm, kNumComms=kNumComms,
+                          vertLabels=vertLabels, showLegend=showLegend,
+                          comm=comboComm, kNumComms=kNumComms,
                           neighb=comboNeighb, neighbMult=comboNeighbMult,
                           slider=slider[[j]], vertSize.other, edgeWidth.other,
                           vertSize.eqn=vertSizeEqn[[j]], showDiameter=showDiameter, edgeDiffs)
