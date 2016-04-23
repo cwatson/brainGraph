@@ -36,7 +36,7 @@ rich.club.coeff <- function(g, k=1, weighted=FALSE) {
   Nv <- vcount(g)
   Nk <- sum(degs > k)
   if (Nk == 0) {
-    return(list(phi=NaN, graph=graph.empty(), Nk=0, Ek=0))
+    return(list(phi=NaN, graph=make_empty_graph(), Nk=0, Ek=0))
   } else {
     rich.club.nodes <- order(degs)[(Nv - Nk + 1):Nv]
     rich.club.graph <- induced.subgraph(g, rich.club.nodes)

@@ -1,6 +1,8 @@
-# brainGraph 0.61.0
+# brainGraph 0.62.0
 
-2016-04-17
+2016-04-22
+
+Third CRAN version
 
 ## Bug fix
 * `rich.club.norm` had a bug in calculating the p-values. If you have already
@@ -34,6 +36,8 @@ where `N` is the number of random graphs generated.
 * Added data table for the `destrieux.scgm` atlas
 
 ## New functions
+* `SPM`: new function that replaces and improves upon both `group.graph.diffs`
+    and `permute.vertex`
 * `NBS`: implements the network-based statistic
 * `analysis_random_graphs`: perform all the steps for getting *small-world*
     parameters and normalized *rich-club* coefficients and p-values
