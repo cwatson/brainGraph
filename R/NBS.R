@@ -5,11 +5,14 @@
 #' data by Zalesky et al. Accepts a three-dimensional array of all subjects'
 #' connectivity matrices and a \code{data.table} of covariates, and creates a
 #' null distribution of the largest connected component size by permuting
-#' subjects. If you would like to perform a t-test at each element, then supply
-#' a covariates \code{data.table} with only a \emph{Study.ID} and \emph{Group}
-#' column. The graph that is returned by this function will have a
-#' \code{t.stat} edge attribute which is the t-statistic for that particular
-#' connection.
+#' subjects across groups. The covariates \code{data.table} must have (at least)
+#' a \emph{Group} column.
+#'
+#' The graph that is returned by this function will have a \code{t.stat} edge
+#' attribute which is the t-statistic for that particular connection, along with
+#' a \code{p} edge attribute, which is the p-value for that connection.
+#' Additionally, each vertex will have a \code{p.nbs} attribute representing
+#' \eqn{1 - } the p-value associated with that vertex's component.
 #'
 #' @param A Three-dimensional array of all subjects' connectivity matrices
 #' @param covars A \code{data.table} of covariates
@@ -29,6 +32,7 @@
 #' \item{perm}{Integer vector of the permutation distribution of largest
 #'   connected component sizes}
 #' \item{p.perm}{Numeric vector of the permutation p-values for each component}
+#' \item{p.init}{Numeric; the initial p-value threshold used}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
@@ -41,97 +45,82 @@
 
 NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
                 p.init=0.001, N=1e3, symmetric=FALSE) {
-  i <- k <- NULL
+  i <- k <- value <- Var1 <- Var2 <- Var3 <- se <- p <- NULL
   if (!'Group' %in% names(covars)) stop('"covars" must have a "Group" column')
+  if (dim(A)[3] != nrow(covars)) stop('"covars" length doesn\'t match array length')
+
   alt <- match.arg(alternative)
   if (alt == 'two.sided') {
-    pfun <- function(T, df) return(2 * (pt(abs(T), df=df, lower.tail=F)))
+    pfun <- function(q, df) return(2 * (pt(abs(q), df=df, lower.tail=F)))
   } else if (alt == 'less') {
-    pfun <- function(T, df) return(pt(T, df=df, lower.tail=F))
+    pfun <- function(q, df) return(pt(q, df=df, lower.tail=F))
   } else if (alt == 'greater') {
-    pfun <- function(T, df) return(pt(T, df=df))
+    pfun <- function(q, df) return(pt(q, df=df))
   }
   Nv <- nrow(A)
-  covars.mat <- as.matrix(covars[, lapply(.SD, as.numeric), .SDcols=2:ncol(covars)])
-  df <- nrow(covars.mat) - ncol(covars.mat) - 1
+  X <- cbind(1, as.matrix(covars[, lapply(.SD, as.numeric), .SDcols=2:ncol(covars)]))
+  df <- nrow(X) - ncol(X)
   z <- which(names(covars) == 'Group')
 
   # Calculate initial p-values; threshold and create a graph
   #---------------------------------------------------------
+  A.m <- setDT(melt(A))
   if (isTRUE(symmetric)) {
-    inds.upper <- which(upper.tri(A[, , 1]), arr.ind=TRUE)
-    p <- matrix(NaN, nrow=Nv, ncol=Nv)
-    est.vec <- foreach(i=seq_len(nrow(inds.upper)), .combine='rbind') %dopar% {
-      est <- fastLmPure(cbind(1, covars.mat),
-                        A[inds.upper[i, 1], inds.upper[i, 2], ], method=2)
-
-      data.table(est$coef[z], est$se[z])
-    }
-    p.vec <- with(est.vec, pfun(V1 / V2, df))
-    p[upper.tri(p, diag=FALSE)] <- p.vec
-    p <- ifelse(p < p.init, 1, 0)
-    g.nbs <- graph_from_adjacency_matrix(p, diag=F, mode='undirected')
-    E(g.nbs)$t.stat <- with(est.vec, V1 / V2)[which(!is.na(p.vec) & p.vec < p.init)]
-  } else {
-    T.tmp <- coefs <- stderrs <- rep(0, Nv)
-    T <- foreach(i=seq_len(Nv), .combine='rbind') %dopar% {
-      for (j in seq_len(Nv)) {
-        est <- fastLmPure(cbind(1, covars.mat), A[i, j, ], method=2)
-        coefs[j] <- est$coef[z]
-        stderrs[j] <- est$se[z]
-      }
-      T.tmp <- coefs / stderrs
-      T.tmp
-    }
-    p <- ifelse(pfun(T, df) < p.init, 1, 0)
-    p[is.na(p)] <- T[is.nan(T)] <- 0
-    T.max <- ifelse(abs(T) > t(abs(T)), T, t(T))
-    p <- ifelse(abs(p) > t(abs(p)), p, t(p))
-    p[lower.tri(p)] <- 0
-    g.nbs <- graph_from_adjacency_matrix(p, diag=F, mode='undirected')
-    E(g.nbs)$t.stat <- T.max[p == 1]
+    inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
+    setnames(inds.upper, c('Var1', 'Var2'))
+    setkey(inds.upper, Var1, Var2)
+    setkey(A.m, Var1, Var2)
+    A.m <- A.m[inds.upper]
+    setkey(A.m, Var3)
   }
-  comps <- unique(components(g.nbs)$csize)
+  A.m.sub <- A.m[A.m[, sum(value) > 0, by=list(Var1, Var2)]$V1]
+  A.m.sub[, t := with(fastLmPure(X, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
+  A.m.sub[abs(t) > 1.5, p := pfun(t, df)]
+  T.dt <- A.m.sub[p < p.init, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
+  T.mat <- p.mat <- matrix(0, Nv, Nv)
+  for (i in seq_len(nrow(T.dt))) {
+    T.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$t[i]
+    p.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$p[i]
+  }
+  inds.transpose <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
 
-  # Create a null distribution of maximum components sizes
+  T.max <- ifelse(abs(T.mat) > t(abs(T.mat)), T.mat, t(T.mat))
+  for (i in seq_len(nrow(inds.transpose))) {
+    p.mat[inds.transpose[i, 2], inds.transpose[i, 1]] <- p.mat[inds.transpose[i, 1], inds.transpose[i, 2]]
+  }
+  g.nbs <- graph_from_adjacency_matrix(T.max, diag=F, mode='undirected', weighted=TRUE)
+  E(g.nbs)$t.stat <- E(g.nbs)$weight
+  E(g.nbs)$p <- 1 - E(graph_from_adjacency_matrix(p.mat, diag=F, mode='undirected', weighted=TRUE))$weight
+  if (any(E(g.nbs)$weight < 0)) g.nbs <- delete_edge_attr(g.nbs, 'weight')
+  clusts <- components(g.nbs)
+  comps <- sort(unique(clusts$csize), decreasing=T)
+
+  # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
   myPerms.nbs <- shuffleSet(n=nrow(covars), nset=N)
-  if (isTRUE(symmetric)) {
-    coefs <- stderrs <- rep(0, length=nrow(inds.upper))
-    p <- matrix(NaN, nrow=Nv, ncol=Nv)
-    comps.perm <- foreach (k=seq_len(N), .combine='c') %dopar% {
-      covars.mat.tmp <- as.matrix(covars.mat[myPerms.nbs[k, ], ])
-      covars.mat.tmp[, z-1] <- covars.mat[, z-1]
-      for (m in seq_len(nrow(inds.upper))) {
-        est <- fastLmPure(cbind(1, covars.mat),
-                          A[inds.upper[m, 1], inds.upper[m, 2], ][myPerms.nbs[k, ]],
-                          method=2)
-        coefs[m] <- est$coef[z]
-        stderrs[m] <- est$se[z]
-      }
-      p.vec <- pfun(coefs / stderrs, df)
-      p[upper.tri(p, diag=FALSE)] <- p.vec
-      p <- ifelse(p < p.init, 1, 0)
-      max(components(graph_from_adjacency_matrix(p, diag=F, mode='undirected'))$csize)
+  comps.perm <- foreach (k=seq_len(N), .combine='c') %dopar% {
+    X.tmp <- as.matrix(X[myPerms.nbs[k, ], ])
+    X.tmp[, 'Group'] <- X[, 'Group']
+    A.m.tmp <- setDT(melt(A[, , myPerms.nbs[k, ]]))
+    if (isTRUE(symmetric)) {
+      setkey(A.m.tmp, Var1, Var2)
+      A.m.tmp <- A.m.tmp[inds.upper]
+      setkey(A.m.tmp, Var3)
     }
-  } else {
-    coefs <- stderrs <- matrix(0, nrow=Nv, ncol=Nv)
-    comps.perm <- foreach (k=seq_len(N), .combine='c') %dopar% {
-      covars.mat.tmp <- as.matrix(covars.mat[myPerms.nbs[k, ], ])
-      covars.mat.tmp[, z-1] <- covars.mat[, z-1]
-      for (m in seq_len(Nv)) {
-        for (n in seq_len(Nv)) {
-          est <- fastLmPure(cbind(1, covars.mat.tmp),
-                            A[m, n, ][myPerms.nbs[k, ]], method=2)
-          coefs[m, n] <- est$coef[z]
-          stderrs[m, n] <- est$se[z]
-        }
-      }
-      p.tmp <- pfun(coefs / stderrs, df)
-      p.tmp <- ifelse(p.tmp < p.init, 1, 0)
-      max(components(graph_from_adjacency_matrix(p.tmp, diag=F, mode='undirected'))$csize)
-    }
+    A.m.tmp.sub <- A.m.tmp[A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)]$V1]
+    A.m.tmp.sub[, t := with(fastLmPure(X, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
+    A.m.tmp.sub[abs(t) > 1.5, p := ifelse(pfun(t, df) < p.init, 1, 0)]
+    T.dt.tmp <- A.m.tmp.sub[p == 1, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
+    T.mat.tmp <- matrix(0, Nv, Nv)
+    for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t[i]
+    T.max.tmp <- ifelse(abs(T.mat.tmp) > t(abs(T.mat.tmp)), T.mat.tmp, t(T.mat.tmp))
+    max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
   }
   p.perm <- sapply(comps, function(x) (sum(x <= comps.perm) + 1) / (N + 1))
-  return(list(g.nbs=g.nbs, obs=comps, perm=comps.perm, p.perm=p.perm))
+  x <- clusts$membership
+  V(g.nbs)$comp <- match(x, order(table(x), decreasing=TRUE))
+  V(g.nbs)$p.nbs <- NA
+  for (i in seq_along(comps)) V(g.nbs)[V(g.nbs)$comp == i]$p.nbs <- 1 - p.perm[i]
+
+  return(list(g.nbs=g.nbs, obs=comps, perm=comps.perm, p.perm=p.perm, p.init=p.init))
 }

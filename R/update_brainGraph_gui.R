@@ -15,6 +15,7 @@
 #' @param orient A GTK combo box for plotting a specific orientation
 #' @param vertSize.min A GTK spin button for minimum vertex size
 #' @param edgeWidth.min A GTK spin button for minimum edge width
+#' @param edgeWidth.max A GTK spin button for maximum edge width
 #' @param vertSize.const A GTK entry for constant vertex size
 #' @param edgeWidth.const A GTK entry for constant width
 #' @param vertLabels A GTK check button for showing vertex labels
@@ -34,9 +35,9 @@
 
 update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                        edgeWidth, vertColor, hemi, lobe, orient, vertSize.min,
-                       edgeWidth.min, vertSize.const=NULL, edgeWidth.const=NULL,
-                       vertLabels=NULL, showLegend=NULL, comm=NULL,
-                       kNumComms=NULL, neighb=NULL, neighbMult=NULL,
+                       edgeWidth.min, edgeWidth.max, vertSize.const=NULL,
+                       edgeWidth.const=NULL, vertLabels=NULL, showLegend=NULL,
+                       comm=NULL, kNumComms=NULL, neighb=NULL, neighbMult=NULL,
                        slider=NULL, vertSize.other=NULL, edgeWidth.other=NULL,
                        vertSize.eqn=NULL, showDiameter=NULL, edgeDiffs=NULL) {
 
@@ -46,8 +47,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
   #===========================================================================
   #===========================================================================
   make.plot <- function(dev, g, g2, orient, vertSize.min, edgeWidth.min,
-                        vertSize.const=NULL, vertSize.eqn=NULL, the.slider=NULL,
-                        kNumComms=NULL, comm=NULL, ...) {
+                        edgeWidth.max, vertSize.const=NULL, vertSize.eqn=NULL,
+                        the.slider=NULL, kNumComms=NULL, comm=NULL, ...) {
     dev.set(dev)
     atlas <- g$atlas
     atlas.dt <- eval(parse(text=atlas))
@@ -314,8 +315,9 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
       } else if (i == 18) {  # Other
         g <- delete.vertices(g, which(vertex_attr(g, v.attr) < v.min))
-        if (v.attr %in% c('p', 'p.adj', 'p.fdr', 'p.perm', 'hubs')) {
-          vsize <- mult * 15 * vertex_attr(g, v.attr)
+        if (v.attr %in% c('p', 'p.adj', 'p.fdr', 'p.perm', 'p.nbs', 'hubs')) {
+          g <- delete.vertices(g, which(is.na(vertex_attr(g, v.attr))))
+          vsize <- mult * vec.transform(vertex_attr(g, v.attr), 0, 10)
         } else {
           vsize <- mult * vertex_attr(g, v.attr)
         }
@@ -346,24 +348,29 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       e.attr <- NULL
     }
     e.min <- edgeWidth.min$getValue()
+    e.max <- edgeWidth.max$getValue()
 
     j <- edgeWidth$getActive()
     if (j == 0) {  # Constant
       ewidth <- e.const
     } else if (j == 1) {  # Edge betweenness
       g <- delete.edges(g, which(E(g)$btwn < e.min))
+      g <- delete.edges(g, which(E(g)$btwn > e.max))
       ewidth <- log1p(E(g)$btwn)
     } else if (j == 2) {  # Euclidean distance
       g <- delete.edges(g, which(E(g)$dist < e.min))
+      g <- delete.edges(g, which(E(g)$dist > e.max))
       ewidth <- vec.transform(E(g)$dist, 0.1, 5)
     } else if (j == 3) {  # Other
       e.vals <- edge_attr(g, e.attr)
       # If all are negative, take the absolute value
       if (sum(e.vals > 0) == 0) edge_attr(g, e.attr) <- abs(e.vals)
       g <- delete.edges(g, which(edge_attr(g, e.attr) < e.min))
+      g <- delete.edges(g, which(edge_attr(g, e.attr) > e.max))
       ewidth <- vec.transform(edge_attr(g, e.attr), 0, 5)
     } else if (j == 4) {  # Edge weight
       g <- delete.edges(g, which(E(g)$weight < e.min))
+      g <- delete.edges(g, which(E(g)$weight > e.max))
       ewidth <- vec.transform(E(g)$weight, min(E(g)$weight), 5)
     }
 
@@ -495,7 +502,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
   }
 
   make.plot(dev=plotDev, g=graph1, g2=graph2, orient, vertSize.min,
-            edgeWidth.min, vertLabels, vertSize, edgeWidth,
+            edgeWidth.min, edgeWidth.max, vertLabels, vertSize, edgeWidth,
             vertColor, showLegend, vertSize.const=vertSize.const,
             vertSize.eqn=vertSize.eqn, hemi, the.slider=slider,
             kNumComms=kNumComms, comm=comm)

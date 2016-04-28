@@ -43,13 +43,12 @@ A list containing:
   \emph{df} (graph-level attribute of the degrees of freedom)}
 \item{perm}{A list containing: \emph{null.dist} (the null distribution of
   maximum t-statistics), \emph{thresh} (the t-statistic value corresponding
-  to 100\eqn{1 - \alpha}\% of the null distribution)}
+  to \eqn{100 \times (1 - \alpha)}\% of the null distribution)}
 }
 \description{
-This function takes two lists of graphs (the length of each equaling the
-number of subjects per group) and performs either a linear model, 2-sample
-t-test, or 2-sample Wilcoxon test at each vertex for a given vertex measure
-(e.g. \emph{degree}).
+This function takes a list of \code{igraph} graphs and performs either a
+linear model, 2-sample t-test, or 2-sample Wilcoxon test at each vertex for a
+given vertex measure (e.g. \emph{degree}).
 }
 \details{
 You will need to provide a \code{data.table} of covariates, of which

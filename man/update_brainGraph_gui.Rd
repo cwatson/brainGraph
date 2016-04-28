@@ -5,7 +5,7 @@
 \title{Function to dynamically plot a graph}
 \usage{
 update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
-  vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min,
+  vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min, edgeWidth.max,
   vertSize.const = NULL, edgeWidth.const = NULL, vertLabels = NULL,
   showLegend = NULL, comm = NULL, kNumComms = NULL, neighb = NULL,
   neighbMult = NULL, slider = NULL, vertSize.other = NULL,
@@ -36,6 +36,8 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
 \item{vertSize.min}{A GTK spin button for minimum vertex size}
 
 \item{edgeWidth.min}{A GTK spin button for minimum edge width}
+
+\item{edgeWidth.max}{A GTK spin button for maximum edge width}
 
 \item{vertSize.const}{A GTK entry for constant vertex size}
 

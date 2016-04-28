@@ -29,6 +29,7 @@ A list containing:
 \item{perm}{Integer vector of the permutation distribution of largest
   connected component sizes}
 \item{p.perm}{Numeric vector of the permutation p-values for each component}
+\item{p.init}{Numeric; the initial p-value threshold used}
 }
 \description{
 Calculates the \emph{network-based statistic (NBS)}, which allows for
@@ -36,11 +37,15 @@ family-wise error (FWE) control over network data, introduced for brain MRI
 data by Zalesky et al. Accepts a three-dimensional array of all subjects'
 connectivity matrices and a \code{data.table} of covariates, and creates a
 null distribution of the largest connected component size by permuting
-subjects. If you would like to perform a t-test at each element, then supply
-a covariates \code{data.table} with only a \emph{Study.ID} and \emph{Group}
-column. The graph that is returned by this function will have a
-\code{t.stat} edge attribute which is the t-statistic for that particular
-connection.
+subjects across groups. The covariates \code{data.table} must have (at least)
+a \emph{Group} column.
+}
+\details{
+The graph that is returned by this function will have a \code{t.stat} edge
+attribute which is the t-statistic for that particular connection, along with
+a \code{p} edge attribute, which is the p-value for that connection.
+Additionally, each vertex will have a \code{p.nbs} attribute representing
+\eqn{1 - } the p-value associated with that vertex's component.
 }
 \examples{
 \dontrun{

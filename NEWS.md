@@ -1,3 +1,23 @@
+# brainGraph 0.63.0
+2016-04-28
+
+## Bug fix
+* `NBS`: the `t.stat` edge attribute was, under certain situations, incorrectly
+    assigning the values; this has been fixed in the latest version
+* `vec.transform`: fixed bug which occurred when the input vector is the same
+    number repeated (i.e., when `range(x) = 0`)
+
+## Minor changes
+* `NBS`:
+  * New edge attribute `p`, the p-value for that specific connection
+  * Returns the `p.init` value for record-keeping
+* `plot_brainGraph_gui`:
+  * Option for specifying maximum values for edge widths
+* `write.brainnet`:
+  * Now allows for writing weighted adjacency matrices, using the `edge.wt`
+    function argument
+
+---
 # brainGraph 0.62.0
 
 2016-04-22

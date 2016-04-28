@@ -4,17 +4,20 @@
 \alias{write.brainnet}
 \title{Write files to be used for visualization with BrainNet Viewer}
 \usage{
-write.brainnet(g, node.color = c("none", "community", "lobe"),
-  node.size = "constant", file.prefix = "")
+write.brainnet(g, node.color = c("none", "community", "lobe", "component"),
+  node.size = "constant", edge.wt = NULL, file.prefix = "")
 }
 \arguments{
-\item{g}{A graph}
+\item{g}{The \code{igraph} graph object of interest}
 
-\item{node.color}{Character string indicating whether to color the nodes or
+\item{node.color}{Character string indicating whether to color the vertices or
 not; can be 'none', 'lobe', or 'community'}
 
-\item{node.size}{Character string indicating what size the nodes should be;
+\item{node.size}{Character string indicating what size the vertices should be;
 can be any vertex-level attribute (default: 'constant')}
+
+\item{edge.wt}{Character string indicating the edge attribute to use to
+return a weighted adjacency matrix}
 
 \item{file.prefix}{Character string for the basename of the \emph{.node} and
 \emph{.edge} files that are written}
@@ -33,7 +36,14 @@ For the \emph{.node} file, there are 6 columns:
 \item \emph{Column 5}: Vertex size
 \item \emph{Column 6}: Vertex label
 }
-The \emph{.edge} file is the graph's associated adjacency matrix.
+The \emph{.edge} file is the graph's associated adjacency matrix; a weighted
+adjacency matrix can be returned by using the \code{edge.wt} argument.
+}
+\examples{
+\dontrun{
+write.brainnet(g, node.color='community', node.size='degree',
+  edge.wt='t.stat')
+}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

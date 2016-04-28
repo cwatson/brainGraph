@@ -348,8 +348,9 @@ plot_brainGraph_gui <- function() {
   #---------------------------------------------------------
   frameG <- vboxG <- hboxOrient <- comboOrient <- graphname <- graphs <-
   hboxVsizeMin <- vertSize.adj <- vertSize.spin <- hboxVsizeEqn <-
-  vertSizeEqn <- hboxEwidthMin <- edgeWidth.adj <- edgeWidth.spin <-
-  graphics <- vboxPlot <- groupplot <- comboHemi <- vector('list', 2)
+  vertSizeEqn <- hboxEwidthMin <- hboxEwidthMax <- edgeWidth.adj <- edgeWidth.spin <-
+  edgeWidthMax.adj <- edgeWidthMax.spin <- graphics <- vboxPlot <- groupplot <-
+  comboHemi <- vector('list', 2)
   for (i in 1:2) {
     frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
@@ -563,20 +564,41 @@ plot_brainGraph_gui <- function() {
 
   hboxEwidthOther <- gtkHBoxNew(F, 6)
   vboxEwidth$packStart(hboxEwidthOther, F, F, 0)
-  edgeWidth.other <- add_entry(hboxEwidthOther, label.text=paste0('\t', 'Other:'),
+  edgeWidth.other <- add_entry(hboxEwidthOther, label.text='Other:',
                               char.width=10)
   edgeWidth.other$setSensitive(F)
 
-  # Have 2 entries to allow for min's of 2 groups
+  # Have 2 entries to allow for min's and max's of 2 groups
   for (i in 1:2) {
     hboxEwidthMin[[i]] <- gtkHBoxNew(F, 6)
-    hboxEwidthOther$packStart(hboxEwidthMin[[i]], T, F, 0)
+    if (i == 1) {
+      hboxEwidthOther$packStart(hboxEwidthMin[[i]], T, F, 0)
+    } else {
+      hboxEwidthOther$packStart(hboxEwidthMin[[i]], F, F, 0)
+    }
     labelMin <- gtkLabelNew(sprintf('Min. %i:', i))
     hboxEwidthMin[[i]]$packStart(labelMin, F, F, 0)
     edgeWidth.adj[[i]] <- gtkAdjustmentNew(value=0, lower=0, upper=100, step.incr=1)
     edgeWidth.spin[[i]] <- gtkSpinButtonNew(edgeWidth.adj[[i]], climb.rate=1, digits=0)
     hboxEwidthMin[[i]]$packStart(edgeWidth.spin[[i]], F, F, 0)
     edgeWidth.spin[[i]]$setSensitive(F)
+  }
+
+  hboxEwidthOtherMax <- gtkHBoxNew(F, 6)
+  vboxEwidth$packStart(hboxEwidthOtherMax, F, F, 0)
+  for (i in 1:2) {
+      hboxEwidthMax[[i]] <- gtkHBoxNew(F, 6)
+    if (i == 1) {
+      hboxEwidthOtherMax$packStart(hboxEwidthMax[[i]], T, F, 0)
+    } else {
+      hboxEwidthOtherMax$packEnd(hboxEwidthMax[[i]], F, F, 0)
+    }
+    labelMax <- gtkLabelNew(sprintf('Max. %i:', i))
+    hboxEwidthMax[[i]]$packStart(labelMax, F, F, 0)
+    edgeWidthMax.adj[[i]] <- gtkAdjustmentNew(value=0, lower=0, upper=100, step.incr=1)
+    edgeWidthMax.spin[[i]] <- gtkSpinButtonNew(edgeWidthMax.adj[[i]], climb.rate=1, digits=0)
+    hboxEwidthMax[[i]]$packStart(edgeWidthMax.spin[[i]], F, F, 0)
+    edgeWidthMax.spin[[i]]$setSensitive(F)
   }
 
   ewidth.opts <<- c('const', 'btwn', 'dist', 'other', 'weight')
@@ -586,20 +608,27 @@ plot_brainGraph_gui <- function() {
       edgeWidth.const$setSensitive(T)
       edgeWidth.other$setSensitive(F)
       lapply(edgeWidth.spin, function(x) x$setSensitive(F))
+      lapply(edgeWidthMax.spin, function(x) x$setSensitive(F))
     } else if (i == 3) {  # 'Other'
       edgeWidth.const$setSensitive(F)
       edgeWidth.other$setSensitive(T)
       lapply(edgeWidth.spin, function(x) x$setSensitive(T))
+      lapply(edgeWidthMax.spin, function(x) x$setSensitive(T))
       for (j in seq_len(kNumGroups)) {
         gtkSpinButtonSetDigits(edgeWidth.spin[[j]], 2)
         gtkSpinButtonSetIncrements(edgeWidth.spin[[j]], step=0.01, page=0)
         gtkSpinButtonSetRange(edgeWidth.spin[[j]], min=-100, max=100)
         gtkSpinButtonSetValue(edgeWidth.spin[[j]], 0)
+        gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], 2)
+        gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=0.01, page=0)
+        gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=-100, max=100)
+        gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], 100)
       }
     } else {
       edgeWidth.const$setSensitive(F)
       edgeWidth.other$setSensitive(F)
       lapply(edgeWidth.spin, function(x) x$setSensitive(T))
+      lapply(edgeWidthMax.spin, function(x) x$setSensitive(T))
       for (j in seq_len(kNumGroups)) {
         rangeX <- range(edge_attr(graphs[[j]], ewidth.opts[i + 1]), na.rm=T)
         newMin <- rangeX[1]
@@ -611,6 +640,10 @@ plot_brainGraph_gui <- function() {
         gtkSpinButtonSetIncrements(edgeWidth.spin[[j]], step=newStep, page=0)
         gtkSpinButtonSetRange(edgeWidth.spin[[j]], min=newMin, max=newMax)
         gtkSpinButtonSetValue(edgeWidth.spin[[j]], newMin)
+        gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], newDigits)
+        gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=newStep, page=0)
+        gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=newMin, max=newMax)
+        gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], newMax)
       }
     }
   })
@@ -695,7 +728,7 @@ plot_brainGraph_gui <- function() {
                           vertSize=comboVsize, edgeWidth=comboEwidth,
                           vertColor=comboVcolor, hemi=comboHemi[[j]], lobe=comboLobe,
                           orient=comboOrient[[j]], vertSize.min=vertSize.spin[[j]],
-                          edgeWidth.min=edgeWidth.spin[[j]],
+                          edgeWidth.min=edgeWidth.spin[[j]], edgeWidth.max=edgeWidthMax.spin[[j]],
                           vertSize.const=vertSize.const, edgeWidth.const=edgeWidth.const,
                           vertLabels=vertLabels, showLegend=showLegend,
                           comm=comboComm, kNumComms=kNumComms,

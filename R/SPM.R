@@ -1,9 +1,8 @@
 #' Perform between-group tests at each vertex for a given vertex measure
 #'
-#' This function takes two lists of graphs (the length of each equaling the
-#' number of subjects per group) and performs either a linear model, 2-sample
-#' t-test, or 2-sample Wilcoxon test at each vertex for a given vertex measure
-#' (e.g. \emph{degree}).
+#' This function takes a list of \code{igraph} graphs and performs either a
+#' linear model, 2-sample t-test, or 2-sample Wilcoxon test at each vertex for a
+#' given vertex measure (e.g. \emph{degree}).
 #'
 #' You will need to provide a \code{data.table} of covariates, of which
 #' \emph{Study.ID} and \emph{Group} need to be column names. Additionally, all
@@ -52,7 +51,7 @@
 #'   \emph{df} (graph-level attribute of the degrees of freedom)}
 #' \item{perm}{A list containing: \emph{null.dist} (the null distribution of
 #'   maximum t-statistics), \emph{thresh} (the t-statistic value corresponding
-#'   to 100\eqn{1 - \alpha}\% of the null distribution)}
+#'   to \eqn{100 \times (1 - \alpha)}\% of the null distribution)}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
@@ -109,7 +108,7 @@ SPM <- function(g, measure, outcome=measure,
   # Specify a linear model at every vertex
   #---------------------------------------------------------
     f <- function(x, y, z) {
-      est <- fastLmPure(x, y)
+      est <- fastLmPure(x, y, method=2)
       list(est$coef[z], est$se[z], est$df.resid)
     }
     calc_stats <- function(DT, covars) {
