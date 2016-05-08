@@ -19,8 +19,8 @@ vertex_attr_dt <- function(g, group=NULL) {
 
   net.meas <- setDT(as_data_frame(g, what='vertices'))
   net.meas[, c('x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni', 'lobe.hemi',
-               'circle.layout', 'comm', 'comp', 'circle.layout.comm',
-               'color.comm', 'color.comp', 'color.lobe') := NULL]
+               'circle.layout', 'comm', 'comm.wt', 'comp', 'circle.layout.comm',
+               'color.comm', 'color.comm.wt', 'color.comp', 'color.lobe') := NULL]
   if (g$atlas == 'destrieux') {
     net.meas[, 'color.class' := NULL]
     net.meas$class <- atlas.dt[, levels(class)][V(g)$class]

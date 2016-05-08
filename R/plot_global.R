@@ -9,8 +9,6 @@
 #'
 #' @param tidy.dt A \code{\link{data.table}} that has been "tidied", containing
 #'   global graph measures for all densities and subject groups
-#' @param legend.pos A numeric vector indicating the legend position (default:
-#'   c(1, 0))
 #' @param vline Numeric; required to plot a dashed vertical line (default: NULL)
 #' @param level.names Character vector of facet label names, if you wish to
 #'   change them (default: NULL)
@@ -26,7 +24,7 @@
 #' @return A \code{\link[ggplot2]{ggplot}} object
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-plot_global <- function(tidy.dt, legend.pos=c(1, 0), vline=NULL,
+plot_global <- function(tidy.dt, vline=NULL,
                         level.names=NULL, exclude=NULL, perms=NULL,
                         g=NULL, alt=NULL) {
   sig <- trend <- yloc <- value <- variable <- Group <- NULL
@@ -58,8 +56,8 @@ plot_global <- function(tidy.dt, legend.pos=c(1, 0), vline=NULL,
   p <- ggplot(subDT, aes(x=density, y=value, col=Group)) +
     geom_line() +
     facet_wrap(~ variable, scales='free_y') +
-    theme(legend.position=legend.pos, legend.justification=legend.pos,
-          legend.background=element_rect(fill='gray90', size=0.5))
+    theme(legend.position='bottom',
+          legend.background=element_rect(fill='lightgray'))
   # Add a dashed vertical line at the density of interest
   if (!is.null(vline)) p <- p + geom_vline(xintercept=vline, lty=2, col='grey60')
 

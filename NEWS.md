@@ -1,9 +1,10 @@
-# brainGraph 0.63.0
-2016-04-28
+# brainGraph 0.64.0
+2016-05-08
 
 ## Bug fix
 * `NBS`: the `t.stat` edge attribute was, under certain situations, incorrectly
     assigning the values; this has been fixed in the latest version
+* `SPM`: the permutation p-values were previously incorrect; has been fixed
 * `vec.transform`: fixed bug which occurred when the input vector is the same
     number repeated (i.e., when `range(x) = 0`)
 
@@ -13,6 +14,10 @@
   * Returns the `p.init` value for record-keeping
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
+* `plot_global`: legend position is now "bottom" by default
+* `plot_rich_norm`:
+  * Should work for more than 2 groups
+  * Now works with multi-subject data; collapses by *Group* and plots the group mean
 * `write.brainnet`:
   * Now allows for writing weighted adjacency matrices, using the `edge.wt`
     function argument

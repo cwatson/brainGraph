@@ -66,7 +66,7 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
   #---------------------------------------------------------
   A.m <- setDT(melt(A))
   if (isTRUE(symmetric)) {
-    inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
+    inds.upper <- setDT(which(upper.tri(A[, , 1]), arr.ind=TRUE))
     setnames(inds.upper, c('Var1', 'Var2'))
     setkey(inds.upper, Var1, Var2)
     setkey(A.m, Var1, Var2)

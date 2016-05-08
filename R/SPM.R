@@ -116,8 +116,8 @@ SPM <- function(g, measure, outcome=measure,
                       variable.name='region', value.name=measure)
       setkeyv(DT.tidy, key(DT))
       z <- which(names(DT) == 'Group')
-      covars.mat <- cbind(1, as.matrix(DT[, lapply(.SD, as.numeric), .SDcols=names(covars)[-1]]))
-      DT.tidy[, c('beta', 'se', 'df') := f(covars.mat, get(measure), z), by=region]
+      X <- cbind(1, as.matrix(DT[, lapply(.SD, as.numeric), .SDcols=names(covars)[-1]]))
+      DT.tidy[, c('beta', 'se', 'df') := f(X, get(measure), z), by=region]
       return(DT.tidy)
     }
 
@@ -135,11 +135,11 @@ SPM <- function(g, measure, outcome=measure,
       DT[, Group := NULL]
       setkey(DT, Study.ID)
       z <- which(names(DT) == outcome)
-      covars.mat <- cbind(1, as.matrix(DT[, lapply(.SD, as.numeric), .SDcols=names(covars)[-c(1, z)]]))
+      X <- cbind(1, as.matrix(DT[, lapply(.SD, as.numeric), .SDcols=names(covars)[-c(1, z)]]))
       DT.tidy <- melt(DT, id.vars=names(covars),
                       variable.name='region', value.name='measure')
       setkeyv(DT.tidy, key(DT))
-      DT.tidy[, c('beta', 'se', 'df') := f(cbind(covars.mat, measure), get(outcome), z), by=region]
+      DT.tidy[, c('beta', 'se', 'df') := f(cbind(X, measure), get(outcome), z), by=region]
     } else {
       DT.tidy <- calc_stats(DT, covars)
       V(g.diffs)$meas.diff <- DT.tidy[, mean(get(measure)), by=list(region, Group)][, -diff(V1), by=region]$V1
@@ -159,9 +159,9 @@ SPM <- function(g, measure, outcome=measure,
     DT.tidy[, t := beta / se, by=region]
 
     if (alt == 'two.sided') {
-      V(g.diffs)$p <- 1 - DT.tidy[, unique(2 * (1 - pt(abs(t), df=df))), by=region]$V1
+      V(g.diffs)$p <- 1 - DT.tidy[, unique(2 * (pt(abs(t), df=df, lower.tail=F))), by=region]$V1
     } else if (alt == 'less') {
-      V(g.diffs)$p <- 1 - DT.tidy[, unique(1 - pt(t, df=df)), by=region]$V1
+      V(g.diffs)$p <- 1 - DT.tidy[, unique(pt(t, df=df, lower.tail=F)), by=region]$V1
     } else if (alt == 'greater') {
       V(g.diffs)$p <- 1 - DT.tidy[, unique(pt(t, df=df)), by=region]$V1
     }
@@ -175,8 +175,16 @@ SPM <- function(g, measure, outcome=measure,
   V(g.diffs)$size2 <- DT.tidy[, unique(t), by=region]$V1
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
   if (isTRUE(permute)) {
-    V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                    sum(tmax.null.dist >= x) / N, numeric(1))
+    if (alt == 'two.sided') {
+      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
+                                      (sum(tmax.null.dist >= abs(x) + 1) / (N + 1)), numeric(1))
+    } else if (alt == 'less') {
+      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
+                                      (sum(tmax.null.dist >= x) + 1) / (N + 1), numeric(1))
+    } else if (alt == 'greater') {
+      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
+                                      (sum(tmax.null.dist >= (-1 * x)) + 1) / (N + 1), numeric(1))
+    }
   }
 
   return(list(g=g.diffs, perm=list(null.dist=tmax.null.dist, thresh=tmax.thresh)))

@@ -146,7 +146,6 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
       }
     }
     rand.dt <- rbindlist(lapply(rand.dt, rbindlist))
-    rand.dt[, threshold := as.factor(threshold)]
     rand.dt[, Group := as.factor(Group)]
     rand.dt[, Study.ID := as.factor(Study.ID)]
     setcolorder(rand.dt, c('threshold', 'Group', 'Study.ID', names(rand.dt)[3:6]))
@@ -156,7 +155,6 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
     kNumSubjs <- sapply(g, function(x) length(x[[1]]))
     small.dt[, Group := rep(groups, times=kNumSubjs*length(g[[1]]))]
     small.dt[, Group := as.factor(Group)]
-    small.dt[, threshold := as.factor(threshold)]
     small.dt[, Study.ID := as.factor(Study.ID)]
     setkey(small.dt, Group, threshold)
   }

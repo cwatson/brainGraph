@@ -4,16 +4,12 @@
 \alias{plot_global}
 \title{Plot global graph measures across densities}
 \usage{
-plot_global(tidy.dt, legend.pos = c(1, 0), vline = NULL,
-  level.names = NULL, exclude = NULL, perms = NULL, g = NULL,
-  alt = NULL)
+plot_global(tidy.dt, vline = NULL, level.names = NULL, exclude = NULL,
+  perms = NULL, g = NULL, alt = NULL)
 }
 \arguments{
 \item{tidy.dt}{A \code{\link{data.table}} that has been "tidied", containing
 global graph measures for all densities and subject groups}
-
-\item{legend.pos}{A numeric vector indicating the legend position (default:
-c(1, 0))}
 
 \item{vline}{Numeric; required to plot a dashed vertical line (default: NULL)}
 
