@@ -5,10 +5,14 @@
 #' files (of covariates/demographics, cortical thickness/volumes, etc.) and
 #' returning them as data tables.
 #'
-#' The file containing covariates should be names \code{covars.csv}. The files
-#' containing volumetric data should include hemisphere, atlas, and modality,
-#' e.g. \code{lh_dkt_thickness.csv}. If you would like to include subcortical
-#' gray matter, then you will need files \code{covars.scgm.csv} and
+#' The file containing covariates should be named \code{covars.csv}. However,
+#' you may also supply a \code{data.table} using the function argument
+#' \code{covars}. This is useful if you have multiple covariates in your file
+#' and wish to subset the data on your own.
+#'
+#' The files containing volumetric data should include hemisphere, atlas, and
+#' modality, e.g. \code{lh_dkt_thickness.csv}. If you would like to include
+#' subcortical gray matter, then you will need files \code{covars.scgm.csv} and
 #' \code{scgm.csv}.
 #'
 #' @param atlas A character string indicating which brain atlas you are using
@@ -22,6 +26,8 @@
 #' @param use.mean A logical indicating whether or not you would like to
 #' calculate the mean hemispheric volumetric measure (for later use in linear
 #' models) (default: FALSE)
+#' @param covars (optional) A \code{data.table} of covariates; specify this if
+#'   you do not want to load your full covariates file (default: NULL)
 #' @param exclude.subs (optional) A character vector of the Study ID's of
 #' subjects who are to be excluded from the analysis
 #' @export
@@ -52,7 +58,7 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
                                     'dk', 'dk.scgm', 'dkt', 'dkt.scgm', 'hoa112',
                                     'lpba40'), densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
-                            use.mean=FALSE, exclude.subs=NULL) {
+                            use.mean=FALSE, covars=NULL, exclude.subs=NULL) {
 
   Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <- NULL
   value <- region <- NULL
@@ -64,7 +70,9 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   if (!file.exists(paste0(datadir, '/covars.csv'))) {
     stop(sprintf('File "covars.csv" does not exist in %s', datadir))
   }
-  covars <- fread(paste0(datadir, '/covars.csv'))
+  if (is.null(covars)) {
+    covars <- fread(paste0(datadir, '/covars.csv'))
+  }
   covars[, Group := as.factor(Group)]
   setkey(covars, Study.ID, Group)
   groups <- covars[, levels(Group)]
@@ -112,7 +120,12 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   if (isTRUE(grepl('scgm', atlas))) {
     scgm <- fread(paste0(datadir, '/scgm.csv'))
     setkey(scgm, Study.ID)
-    covars.scgm <- fread(paste0(datadir, '/covars.scgm.csv'))
+    if (is.null(covars)) {
+      covars.scgm <- fread(paste0(datadir, '/covars.scgm.csv'))
+    } else {
+      covars.scgm <- fread(paste0(datadir, '/covars.csv'))
+      covars.scgm <- covars.scgm[scgm == 1, !c('scgm', 'thickness', 'lgi.lh', 'lgi.rh', 'tract'), with=F]
+    }
     covars.scgm[, Group := as.factor(Group)]
     setkey(covars.scgm, Study.ID, Group)
 

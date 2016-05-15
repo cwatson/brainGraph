@@ -5,7 +5,7 @@
 \title{Plot normalized rich club coefficients against degree threshold}
 \usage{
 plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
-  alpha = 0.05, g = NULL)
+  alpha = 0.05, fdr = TRUE, g = NULL)
 }
 \arguments{
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
@@ -15,7 +15,10 @@ interest is "density" or "threshold" (e.g. with DTI data)}
 
 \item{densities}{A numeric vector of the densities to plot}
 
-\item{alpha}{The significance level (DEFAULT: 0.05)}
+\item{alpha}{The significance level (default: 0.05)}
+
+\item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
+p-value for determining significance (default: TRUE)}
 
 \item{g}{A list (of lists) of \code{igraph} graph objects; required if you
 want to plot a shaded region demarcating the \code{\link{rich.core}}}
@@ -30,7 +33,7 @@ region demarcating the \code{\link{rich.core}} cutoff.
 }
 \examples{
 \dontrun{
-richPlot <- plot_rich_norm(rich.dt, densities[N:(N+1)], g=g)
+plot_rich_norm(rich.dt, facet.by='density', densities[N:(N+1)], g=g)
 }
 }
 \author{

@@ -7,7 +7,7 @@
 brainGraph_init(atlas = c("aal116", "aal90", "brainsuite", "destrieux", "dk",
   "dk.scgm", "dkt", "dkt.scgm", "hoa112", "lpba40"), densities, datadir,
   modality = c("thickness", "volume", "lgi", "area"), use.mean = FALSE,
-  exclude.subs = NULL)
+  covars = NULL, exclude.subs = NULL)
 }
 \arguments{
 \item{atlas}{A character string indicating which brain atlas you are using}
@@ -25,6 +25,9 @@ modality/measure you are using to create the graphs ('thickness', 'volume',
 \item{use.mean}{A logical indicating whether or not you would like to
 calculate the mean hemispheric volumetric measure (for later use in linear
 models) (default: FALSE)}
+
+\item{covars}{(optional) A \code{data.table} of covariates; specify this if
+you do not want to load your full covariates file (default: NULL)}
 
 \item{exclude.subs}{(optional) A character vector of the Study ID's of
 subjects who are to be excluded from the analysis}
@@ -51,10 +54,14 @@ files (of covariates/demographics, cortical thickness/volumes, etc.) and
 returning them as data tables.
 }
 \details{
-The file containing covariates should be names \code{covars.csv}. The files
-containing volumetric data should include hemisphere, atlas, and modality,
-e.g. \code{lh_dkt_thickness.csv}. If you would like to include subcortical
-gray matter, then you will need files \code{covars.scgm.csv} and
+The file containing covariates should be named \code{covars.csv}. However,
+you may also supply a \code{data.table} using the function argument
+\code{covars}. This is useful if you have multiple covariates in your file
+and wish to subset the data on your own.
+
+The files containing volumetric data should include hemisphere, atlas, and
+modality, e.g. \code{lh_dkt_thickness.csv}. If you would like to include
+subcortical gray matter, then you will need files \code{covars.scgm.csv} and
 \code{scgm.csv}.
 }
 \examples{

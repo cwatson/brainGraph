@@ -109,12 +109,16 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
     }
     A.m.tmp.sub <- A.m.tmp[A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)]$V1]
     A.m.tmp.sub[, t := with(fastLmPure(X, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
-    A.m.tmp.sub[abs(t) > 1.5, p := ifelse(pfun(t, df) < p.init, 1, 0)]
-    T.dt.tmp <- A.m.tmp.sub[p == 1, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
-    T.mat.tmp <- matrix(0, Nv, Nv)
-    for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t[i]
-    T.max.tmp <- ifelse(abs(T.mat.tmp) > t(abs(T.mat.tmp)), T.mat.tmp, t(T.mat.tmp))
-    max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
+    if (A.m.tmp.sub[, max(abs(t))] <= 1.5) {
+      0
+    } else {
+      A.m.tmp.sub[abs(t) > 1.5, p := ifelse(pfun(t, df) < p.init, 1, 0)]
+      T.dt.tmp <- A.m.tmp.sub[p == 1, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
+      T.mat.tmp <- matrix(0, Nv, Nv)
+      for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t[i]
+      T.max.tmp <- ifelse(abs(T.mat.tmp) > t(abs(T.mat.tmp)), T.mat.tmp, t(T.mat.tmp))
+      max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
+    }
   }
   p.perm <- sapply(comps, function(x) (sum(x <= comps.perm) + 1) / (N + 1))
   x <- clusts$membership

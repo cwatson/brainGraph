@@ -12,6 +12,8 @@
 #' @param perm.dt Data table with the permutation results
 #' @param measure Character string for the graph measure of interest
 #' @param level Character string, either 'graph' or 'vertex'
+#' @param auc Logical indicating whether the data refer to area-under-the-curve
+#'   (across all densities) (default: FALSE)
 #' @param alternative Character string, whether to do a two- or one-sided test
 #' (default: 'two.sided')
 #' @param alpha Significance level (default: 0.05)
@@ -35,17 +37,23 @@
 #' }
 
 plot_perm_diffs <- function(g1, g2, perm.dt, measure,
-                            level=c('graph', 'vertex'),
+                            level=c('graph', 'vertex'), auc=FALSE,
                             alternative=c('two.sided', 'less', 'greater'),
                             alpha=0.05, groups=NULL, ylabel=NULL) {
 
-  p <- perm.diff <- obs.diff <- sig <- trend <- yloc <- obs <- Group <- mean.diff <- NULL
-  ci.low <- ci.high <- region <- reg.num <- NULL
-  densities.perm <- perm.dt[, unique(density)]
-  densities.g <- which(round(sapply(g1, graph_attr, 'density'), 2) %in% round(densities.perm, 2))
-  g1 <- g1[densities.g]
-  g2 <- g2[densities.g]
-  N <- perm.dt[, .N, by=density]$N  # Handles diff num. of perm's across densities
+  p <- perm.diff <- obs.diff <- sig <- trend <- yloc <- obs <- Group <- mean.diff <-
+    ci.low <- ci.high <- region <- reg.num <- NULL
+
+  if (!isTRUE(auc)) {
+    densities.perm <- perm.dt[, unique(density)]
+    densities.g <- which(round(sapply(g1, graph_attr, 'density'), 2) %in% round(densities.perm, 2))
+    g1 <- g1[densities.g]
+    g2 <- g2[densities.g]
+    N <- perm.dt[, .N, by=density]$N  # Handles diff num. of perm's across densities
+  } else {
+    densities.g <- sapply(g1, graph_attr, 'density')
+    N <- nrow(perm.dt)
+  }
 
   if (is.null(groups)) groups <- c('Group 1', 'Group 2')
   alt <- match.arg(alternative)
@@ -131,11 +139,19 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
       meas.obs1 <- sapply(g1, vertex_attr, measure)
       meas.obs2 <- sapply(g2, vertex_attr, measure)
     }
+    if (isTRUE(auc)) {
+      perm.dt$density <- 1
+      meas.obs <- list(t(meas.obs1), t(meas.obs2))
+      obs.diff <- sapply(seq_len(ncol(perm.dt)-1), function(y)
+                         auc_diff(densities.g, cbind(meas.obs[[1]][, y], meas.obs[[2]][, y])))
+    } else {
+      obs.diff <- as.vector(meas.obs1 - meas.obs2)
+    }
     perm.dt[, N := .N, by=density]
     perm.m <- melt(perm.dt, id.vars=c('density', 'N'), variable.name='region',
                    value.name='perm.diff')
     setkey(perm.m, density, region)
-    perm.m$obs.diff <- rep(as.vector(meas.obs1 - meas.obs2),
+    perm.m$obs.diff <- rep(obs.diff,
                            times=rep(N, each=ncol(perm.dt)-2))
 
     if (alt == 'two.sided') {

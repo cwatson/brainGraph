@@ -5,8 +5,8 @@
 \title{Calculate permutation p-values and plot group differences}
 \usage{
 plot_perm_diffs(g1, g2, perm.dt, measure, level = c("graph", "vertex"),
-  alternative = c("two.sided", "less", "greater"), alpha = 0.05,
-  groups = NULL, ylabel = NULL)
+  auc = FALSE, alternative = c("two.sided", "less", "greater"),
+  alpha = 0.05, groups = NULL, ylabel = NULL)
 }
 \arguments{
 \item{g1}{List of igraph graph objects for group 1}
@@ -18,6 +18,9 @@ plot_perm_diffs(g1, g2, perm.dt, measure, level = c("graph", "vertex"),
 \item{measure}{Character string for the graph measure of interest}
 
 \item{level}{Character string, either 'graph' or 'vertex'}
+
+\item{auc}{Logical indicating whether the data refer to area-under-the-curve
+(across all densities) (default: FALSE)}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test
 (default: 'two.sided')}

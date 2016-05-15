@@ -1,21 +1,36 @@
-# brainGraph 0.64.0
-2016-05-08
+# brainGraph 0.65.0
+2016-05-15
 
 ## Bug fix
-* `NBS`: the `t.stat` edge attribute was, under certain situations, incorrectly
+* `NBS`:
+  * the `t.stat` edge attribute was, under certain situations, incorrectly
     assigning the values; this has been fixed in the latest version
+  * fixed bug when permutations didn't result in any connected components
 * `SPM`: the permutation p-values were previously incorrect; has been fixed
 * `vec.transform`: fixed bug which occurred when the input vector is the same
     number repeated (i.e., when `range(x) = 0`)
+
+## New functions
+* `auc_diff`: calculates the area-under-the-curve across densities for two
+    groups
+* `permute.group.auc`: does permutation testing across all densities, and
+    returns the permutation distributions for the difference in AUC between two
+    groups
 
 ## Minor changes
 * `NBS`:
   * New edge attribute `p`, the p-value for that specific connection
   * Returns the `p.init` value for record-keeping
+* `brainGraph_init`: can now provide a `covars` data table if you want to subset
+    certain variables yourself, or if the file is named differently from
+    `covars.csv`
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
 * `plot_global`: legend position is now "bottom" by default
+* `plot_perm_diffs`: added argument `auc` for using the area-under-the-curve
+    across densities
 * `plot_rich_norm`:
+  * Added argument `fdr` to choose whether or not to use FDR-adjusted p-values
   * Should work for more than 2 groups
   * Now works with multi-subject data; collapses by *Group* and plots the group mean
 * `write.brainnet`:
