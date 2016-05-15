@@ -67,10 +67,10 @@ brainGraph_init <- function(atlas=c('aal116', 'aal90', 'brainsuite', 'destrieux'
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 
-  if (!file.exists(paste0(datadir, '/covars.csv'))) {
-    stop(sprintf('File "covars.csv" does not exist in %s', datadir))
-  }
   if (is.null(covars)) {
+    if (!file.exists(paste0(datadir, '/covars.csv'))) {
+      stop(sprintf('File "covars.csv" does not exist in %s', datadir))
+    }
     covars <- fread(paste0(datadir, '/covars.csv'))
   }
   covars[, Group := as.factor(Group)]
