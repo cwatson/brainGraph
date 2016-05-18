@@ -1,19 +1,19 @@
 #' Calculate the normalized rich club coefficient
 #'
-#' This function will generate a number of random graphs, calculate their rich
-#' club coefficients (\eqn{\phi}), and return \eqn{\phi} of the graph of
-#' interest divided by the mean across random graphs, i.e. \eqn{\phi_{norm}}.
+#' This function will (optionally) generate a number of random graphs, calculate
+#' their rich club coefficients (\eqn{\phi}), and return \eqn{\phi} of the graph
+#' of interest divided by the mean across random graphs, i.e. \eqn{\phi_{norm}}.
 #' If random graphs have already been generated, you can supply a list as an
 #' argument (since graph generation is time consuming).
 #'
-#' @param g The igraph graph object of interest
+#' @param g An \code{igraph} graph object
 #' @param N The number of random graphs to generate (default: 100)
-#' @param rand A list of igraph graph objects, if random graphs have already
-#' been generated (default: NULL)
-#' @param ... Other parameters (passed to \emph{rich.club.coeff})
+#' @param rand A list of \code{igraph} graph objects, if random graphs have
+#'   already been generated (default: NULL)
+#' @param ... Other parameters (passed to \code{\link{rich.club.coeff}})
 #' @export
 #'
-#' @return A list with two elements:
+#' @return A list with four elements:
 #' \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
 #' columns, where each row contains the coefficients for a given random graph.}
 #' \item{phi.orig}{A vector of the rich-club coefficients for the original
@@ -29,9 +29,7 @@
 #' 2:110-115.
 
 rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
   if (is.null(rand)) {
     rand <- sim.rand.graph.par(g, N, clustering=F)
   } else {
@@ -53,7 +51,7 @@ rich.club.norm <- function(g, N=1e2, rand=NULL, ...) {
   phi.orig <- g$rich$phi
   phi.norm <- phi.orig / colMeans(phi.rand)
   p <- vapply(seq_len(max.deg), function(x)
-              sum(phi.rand[, x] >= phi.orig[x]) / N,
+              (sum(phi.rand[, x] >= phi.orig[x]) + 1) / (N + 1),
               numeric(1))
   return(list(phi.rand=phi.rand, phi.orig=phi.orig, phi.norm=phi.norm, p=p))
 }

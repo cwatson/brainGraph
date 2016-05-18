@@ -7,13 +7,12 @@
 vertex_attr_dt(g, group = NULL)
 }
 \arguments{
-\item{g}{An igraph graph object}
+\item{g}{An \code{igraph} graph object}
 
-\item{group}{A character string indicating group membership (default:NULL)}
+\item{group}{A character string indicating group membership (default: NULL)}
 }
 \value{
-A data table with 18-19 columns and row number equal to the number of
-vertices in the graph
+A data table; each row is for a different vertex
 }
 \description{
 This is just a helper function that creates a data table in which each row is

@@ -7,17 +7,17 @@
 rich.club.norm(g, N = 100, rand = NULL, ...)
 }
 \arguments{
-\item{g}{The igraph graph object of interest}
+\item{g}{An \code{igraph} graph object}
 
 \item{N}{The number of random graphs to generate (default: 100)}
 
-\item{rand}{A list of igraph graph objects, if random graphs have already
-been generated (default: NULL)}
+\item{rand}{A list of \code{igraph} graph objects, if random graphs have
+already been generated (default: NULL)}
 
-\item{...}{Other parameters (passed to \emph{rich.club.coeff})}
+\item{...}{Other parameters (passed to \code{\link{rich.club.coeff}})}
 }
 \value{
-A list with two elements:
+A list with four elements:
 \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
 columns, where each row contains the coefficients for a given random graph.}
 \item{phi.orig}{A vector of the rich-club coefficients for the original
@@ -26,9 +26,9 @@ graph.}
 \item{p}{The p-value based on the \emph{N} random graphs generated.}
 }
 \description{
-This function will generate a number of random graphs, calculate their rich
-club coefficients (\eqn{\phi}), and return \eqn{\phi} of the graph of
-interest divided by the mean across random graphs, i.e. \eqn{\phi_{norm}}.
+This function will (optionally) generate a number of random graphs, calculate
+their rich club coefficients (\eqn{\phi}), and return \eqn{\phi} of the graph
+of interest divided by the mean across random graphs, i.e. \eqn{\phi_{norm}}.
 If random graphs have already been generated, you can supply a list as an
 argument (since graph generation is time consuming).
 }

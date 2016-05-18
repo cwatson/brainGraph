@@ -103,7 +103,7 @@ permute.group.auc <- function(permSet, densities, resids,
         meas.list <- lapply(g, function(x) t(sapply(x, function(y) centr_betw(y)$res)))
       }
       my.diff <- sapply(seq_along(V(g[[1]][[1]])), function(x)
-                         auc_diff(cbind(meas.list[[1]][, x], meas.list[[2]][, x])))
+                         auc_diff(densities, cbind(meas.list[[1]][, x], meas.list[[2]][, x])))
       tmp <- as.data.table(t(my.diff))
       setnames(tmp, 1:ncol(tmp), V(g[[1]][[1]])$name)
 
@@ -121,17 +121,17 @@ permute.group.auc <- function(permSet, densities, resids,
       #-----------------------------------
       if (level == 'graph') {
         mod <- sapply(g, sapply, function(x) modularity(cluster_louvain(x)))
-        mod.diff <- auc_diff(mod)
+        mod.diff <- auc_diff(densities, mod)
         Cp <- sapply(g, sapply, function(x) transitivity(x, type='localaverage'))
-        Cp.diff <- auc_diff(Cp)
+        Cp.diff <- auc_diff(densities, Cp)
         Lp <- sapply(g, sapply, mean_distance)
-        Lp.diff <- auc_diff(Lp)
+        Lp.diff <- auc_diff(densities, Lp)
         assort <- sapply(g, sapply, assortativity.degree)
-        assort.diff <- auc_diff(assort)
+        assort.diff <- auc_diff(densities, assort)
         E.global <- sapply(g, sapply, graph.efficiency, 'global')
-        E.global.diff <- auc_diff(E.global)
+        E.global.diff <- auc_diff(densities, E.global)
         E.local <- sapply(g, sapply, graph.efficiency, 'local', .parallel=T)
-        E.local.diff <- auc_diff(E.local)
+        E.local.diff <- auc_diff(densities, E.local)
 
         #assort.lobe1 <- assortativity_nominal(g1, V(g1)$lobe)
         #assort.lobe2 <- assortativity_nominal(g2, V(g2)$lobe)

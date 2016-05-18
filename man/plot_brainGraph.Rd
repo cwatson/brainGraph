@@ -2,31 +2,55 @@
 % Please edit documentation in R/plot_brainGraph.R
 \name{plot_brainGraph}
 \alias{plot_brainGraph}
-\title{Plot a graph with a specific spatial layout}
+\title{Plot a brain graph with a specific spatial layout}
 \usage{
-plot_brainGraph(g, rescale = F, ylim = c(-1.5, 1.5), asp = 0,
+plot_brainGraph(g, plane = c("axial", "sagittal"), hemi = c("both", "L",
+  "R"), subgraph = NULL, rescale = FALSE, ylim = c(-1.5, 1.5), asp = 0,
   main = NULL, ...)
 }
 \arguments{
-\item{g}{The graph to plot}
+\item{g}{An \code{igraph} graph object}
 
-\item{rescale}{A logical, whether to rescale the coordinates}
+\item{plane}{A character string indicating which orientation to plot
+(default: 'axial')}
 
-\item{ylim}{A vector giving limits for the vertical axis}
+\item{hemi}{A character string indicating which hemisphere to plot (default:
+'both')}
 
-\item{asp}{A numeric constant for the aspect ratio}
+\item{subgraph}{A character string specifying an equation for deleting
+vertices (default: NULL)}
 
-\item{main}{Character string for the main title}
+\item{rescale}{A logical, whether to rescale the coordinates (default: FALSE)}
+
+\item{ylim}{A vector giving limits for the vertical axis
+(default: c(-1.5, 1.5))}
+
+\item{asp}{A numeric constant for the aspect ratio (default: 0)}
+
+\item{main}{Character string for the main title (default: NULL)}
 
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }
 \description{
 This function plots a graph when the spatial layout of the nodes is important
-(e.g. in the brain). It is really just a wrapper for
-\code{\link{plot.igraph}}, with some options pre-specified that work for
-plotting in the brain's layout. This means that
-\code{\link{set.brainGraph.attributes}} needs to be run on the graph,
-and a valid set of coordinates provided for the vertices. Most of the
-parameters valid here can be seen in \code{\link{igraph.plotting}}.
+(e.g. in the brain). The function \code{\link{set.brainGraph.attributes}}
+needs to be run on the graph, and a valid set of coordinates provided for the
+vertices. Most of the parameters valid here can be seen in
+\code{\link{igraph.plotting}}.
+}
+\details{
+With the argument \code{subgraph}, you can specify a simple logical equation
+for which vertices to show. For example, \emph{'degree > 10'} will plot only
+vertices with a \emph{degree} greater than 10. Combinations of \emph{AND}
+(i.e., \code{&}) and \emph{OR} (i.e., \code{|}) are allowed.
+}
+\examples{
+\dontrun{
+plot_brainGraph(g[[1]], hemi='R')
+plot_brainGraph(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
+}
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 

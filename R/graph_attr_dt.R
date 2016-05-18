@@ -22,6 +22,7 @@ graph_attr_dt <- function(g.list, group=NULL) {
   if ('name' %in% graph_attr_names(g.list[[1]])) {
     g.dt$Study.ID <- sapply(g.list, function(x) x$name)
   }
+  if ('atlas' %in% graph_attr_names(g.list[[1]])) g.dt$atlas <- g.list[[1]]$atlas
   if ('modality' %in% graph_attr_names(g.list[[1]])) {
     g.dt$modality <- sapply(g.list, function(x) x$modality)
   }

@@ -7,7 +7,7 @@
 rich.core(g)
 }
 \arguments{
-\item{g}{The graph of interest}
+\item{g}{An \code{igraph} graph object}
 }
 \value{
 A data frame with the following components:
@@ -19,7 +19,7 @@ A data frame with the following components:
 \description{
 This function finds the boundary of the rich core of a graph, based on the
 decreasing order of vertex degree. It also calculates the degree that
-corresponds that that rank, and the core size relative to the total number of
+corresponds to that rank, and the core size relative to the total number of
 vertices in the graph.
 }
 \author{

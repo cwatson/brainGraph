@@ -4,12 +4,11 @@
 #' a vertex and each column is a different network measure (degree, centrality,
 #' etc.).
 #'
-#' @param g An igraph graph object
-#' @param group A character string indicating group membership (default:NULL)
+#' @param g An \code{igraph} graph object
+#' @param group A character string indicating group membership (default: NULL)
 #' @export
 #'
-#' @return A data table with 18-19 columns and row number equal to the number of
-#' vertices in the graph
+#' @return A data table; each row is for a different vertex
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
 #' \link[igraph]{as_data_frame}}
 
@@ -35,6 +34,7 @@ vertex_attr_dt <- function(g, group=NULL) {
 
   if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
   if ('modality' %in% graph_attr_names(g)) net.meas$modality <- g$modality
+  if ('atlas' %in% graph_attr_names(g)) net.meas$atlas <- g$atlas
   if (is.null(group)) {
     if ('Group' %in% graph_attr_names(g)) {
       net.meas$Group <- g$Group

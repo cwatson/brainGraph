@@ -1,7 +1,9 @@
-# brainGraph 0.65.0
-2016-05-15
+# brainGraph 0.66.0
+2016-05-18
 
 ## Bug fix
+* `rich.club.norm`: changed the p-value calculation again; this shouldn't affect
+    many results, particularly if N=1,000 (random graphs)
 * `NBS`:
   * the `t.stat` edge attribute was, under certain situations, incorrectly
     assigning the values; this has been fixed in the latest version
@@ -24,6 +26,9 @@
 * `brainGraph_init`: can now provide a `covars` data table if you want to subset
     certain variables yourself, or if the file is named differently from
     `covars.csv`
+* `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
+    and a character string of logical expressions for plotting subgraphs
+    (previously was in `plot_brainGraph_list`)
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
 * `plot_global`: legend position is now "bottom" by default

@@ -2,10 +2,10 @@
 #'
 #' This function finds the boundary of the rich core of a graph, based on the
 #' decreasing order of vertex degree. It also calculates the degree that
-#' corresponds that that rank, and the core size relative to the total number of
+#' corresponds to that rank, and the core size relative to the total number of
 #' vertices in the graph.
 #'
-#' @param g The graph of interest
+#' @param g An \code{igraph} graph object
 #' @export
 #'
 #' @return A data frame with the following components:
@@ -21,19 +21,13 @@
 #' One, 10(3): e0119678. doi:10.1371/journal.pone.0119678
 
 rich.core <- function(g) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {
     degs <- degree(g)
   }
-  if ('density' %in% graph_attr_names(g)) {
-    dens <- g$density
-  } else {
-    dens <- graph.density(g)
-  }
+  dens <- ifelse('density' %in% graph_attr_names(g), g$density, graph.density(g))
   Nv <- vcount(g)
 
   vorder <- order(degs, decreasing=TRUE)
