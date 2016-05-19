@@ -4,15 +4,15 @@
 \alias{plot_brainGraph_mni}
 \title{Draw an axial or sagittal slice of the MNI152 T1 image}
 \usage{
-plot_brainGraph_mni(plane = c("axial", "sagittal"), slice, hemi = c("left",
-  "right"), save = FALSE, fname = NULL)
+plot_brainGraph_mni(plane = c("axial", "sagittal"), slice, hemi = c("L",
+  "R"), save = FALSE, fname = NULL)
 }
 \arguments{
 \item{plane}{Character string, either 'axial' or 'sagittal'}
 
 \item{slice}{The x or z-coordinate of the slice to use}
 
-\item{hemi}{Character string, either 'left' or 'right'}
+\item{hemi}{Character string, either 'L' or 'R'}
 
 \item{save}{Logical indicating whether or not a png file should be saved
 (default: FALSE)}

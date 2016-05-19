@@ -1,4 +1,4 @@
-# brainGraph 0.66.0
+# brainGraph 0.67.0
 2016-05-18
 
 ## Bug fix
@@ -11,6 +11,11 @@
 * `SPM`: the permutation p-values were previously incorrect; has been fixed
 * `vec.transform`: fixed bug which occurred when the input vector is the same
     number repeated (i.e., when `range(x) = 0`)
+
+## Major changes
+* `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
+    showing a legend, and a character string of logical expressions for plotting
+    subgraphs (previously was in `plot_brainGraph_list`)
 
 ## New functions
 * `auc_diff`: calculates the area-under-the-curve across densities for two
@@ -26,9 +31,6 @@
 * `brainGraph_init`: can now provide a `covars` data table if you want to subset
     certain variables yourself, or if the file is named differently from
     `covars.csv`
-* `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
-    and a character string of logical expressions for plotting subgraphs
-    (previously was in `plot_brainGraph_list`)
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
 * `plot_global`: legend position is now "bottom" by default

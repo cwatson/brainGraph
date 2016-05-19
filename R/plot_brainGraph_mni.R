@@ -6,7 +6,7 @@
 #'
 #' @param plane Character string, either 'axial' or 'sagittal'
 #' @param slice The x or z-coordinate of the slice to use
-#' @param hemi Character string, either 'left' or 'right'
+#' @param hemi Character string, either 'L' or 'R'
 #' @param save Logical indicating whether or not a png file should be saved
 #' (default: FALSE)
 #' @param fname The name of the file to be saved
@@ -14,7 +14,7 @@
 #' @seealso \code{\link[oro.nifti]{image.nifti}}
 
 plot_brainGraph_mni <- function(plane=c('axial', 'sagittal'), slice,
-                                hemi=c('left', 'right'),
+                                hemi=c('L', 'R'),
                                 save=FALSE, fname=NULL) {
     if (isTRUE(save)) {
       png(filename=fname)
@@ -32,13 +32,13 @@ plot_brainGraph_mni <- function(plane=c('axial', 'sagittal'), slice,
 
     } else {
       hemi <- match.arg(hemi)
-      if (hemi == 'right') {
+      if (hemi == 'R') {
         X <- mni152
-      } else if (hemi == 'left') {
+      } else if (hemi == 'L') {
         tmp <- mni152@.Data
         X <- nifti(tmp[rev(seq_len(nrow(tmp))), rev(seq_len(ncol(tmp))), ])
       } else {
-        stop('Argument "hemi" must be "left" or "right"!')
+        stop('Argument "hemi" must be "L" or "R"!')
       }
 
       #slice <- 50

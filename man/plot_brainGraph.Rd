@@ -5,8 +5,8 @@
 \title{Plot a brain graph with a specific spatial layout}
 \usage{
 plot_brainGraph(g, plane = c("axial", "sagittal"), hemi = c("both", "L",
-  "R"), subgraph = NULL, rescale = FALSE, ylim = c(-1.5, 1.5), asp = 0,
-  main = NULL, ...)
+  "R"), subgraph = NULL, show.legend = FALSE, rescale = FALSE,
+  ylim = c(-1.5, 1.5), asp = 0, main = NULL, ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -19,6 +19,9 @@ plot_brainGraph(g, plane = c("axial", "sagittal"), hemi = c("both", "L",
 
 \item{subgraph}{A character string specifying an equation for deleting
 vertices (default: NULL)}
+
+\item{show.legend}{Logical indicating whether or not to show a legend
+(default: FALSE)}
 
 \item{rescale}{A logical, whether to rescale the coordinates (default: FALSE)}
 

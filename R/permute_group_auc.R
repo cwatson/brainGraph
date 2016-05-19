@@ -83,7 +83,7 @@ permute.group.auc <- function(permSet, densities, resids,
     if (level == 'vertex') {
       if (measure == 'vulnerability') {
         for (jj in length(g)) {
-          for (kk in lengths(g)[1]) {
+          for (kk in lengths(g)[jj]) {
             g[[jj]][[kk]]$E.global <- graph.efficiency(g[[jj]][[kk]], 'global')
             V(g[[jj]][[kk]])$degree <- degree(g[[jj]][[kk]])
           }
@@ -110,7 +110,7 @@ permute.group.auc <- function(permSet, densities, resids,
     # Custom function
     #-----------------------------------
     } else if (level == 'other') {
-      tmp <- .function(g1, g2, density)
+      tmp <- .function(g, densities)
 
     } else {
       #g1$atlas <- g2$atlas <- atlas
