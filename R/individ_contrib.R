@@ -55,7 +55,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
                                            !c('Study.ID', 'Group'),
                                            with=F],
                                density=0.1)$R
-      colSums(corrs[[as.numeric(cur.group)]][[1]]$R - new.corrs)
+      colSums(abs(corrs[[as.numeric(cur.group)]][[1]]$R - new.corrs))
     }
     RC.dt <- cbind(resids[, list(Study.ID, Group)], RC)
     RC.m <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
@@ -112,7 +112,7 @@ aop <- function(resids, index, corr.mat, level=c('global', 'regional')) {
                           nrepet=1e3)$obs
     return(data.table(resids[index, list(Study.ID, Group)], IC=r))
   } else if (level == 'regional') {
-    RC <- colSums(corr.mat - new.corr)
+    RC <- colSums(abs(corr.mat - new.corr))
     RC.dt <- cbind(resids[index, list(Study.ID, Group)], t(RC))
     RC.m <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
                  variable.name='region', value.name='RC')

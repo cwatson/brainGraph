@@ -18,6 +18,8 @@ An \emph{igraph} graph object with additional vertex attributes:
   \item{lobe.hemi}{Integer vector indicating the lobe and hemisphere}
   \item{circle.layout}{Integer vector for ordering the vertices for circle
     plots}
+  \item{x, y, z, x.mni, y.mni, z.mni}{Spatial coordinates}
+  \item{color.lobe}{Colors based on \emph{lobe}}
 }
 \description{
 This function will assign vertex attributes \emph{lobe} and \emph{lobe.hemi}

@@ -15,17 +15,17 @@
 #'   \item{lobe.hemi}{Integer vector indicating the lobe and hemisphere}
 #'   \item{circle.layout}{Integer vector for ordering the vertices for circle
 #'     plots}
+#'   \item{x, y, z, x.mni, y.mni, z.mni}{Spatial coordinates}
+#'   \item{color.lobe}{Colors based on \emph{lobe}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 assign_lobes <- function(g, rand=FALSE) {
-  lobe <- hemi <- name <- class <- NULL
-  if (!'atlas' %in% graph_attr_names(g)) {
-    stop(sprintf('Input graph %s does not have an "atlas" attribute!',
-                 deparse(substitute(g))))
-  }
-  atlas.dt <- eval(parse(text=g$atlas))
+
+  lobe <- hemi <- name <- class <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+  stopifnot('atlas' %in% graph_attr_names(g))
 
   # Check that vertex names match the atlas names
+  atlas.dt <- eval(parse(text=g$atlas))
   nonmatches <- !V(g)$name %in% atlas.dt[, name]
   if (any(nonmatches)) {
     stop(paste('Check the following vertex names: ',
@@ -40,6 +40,16 @@ assign_lobes <- function(g, rand=FALSE) {
   if (g$atlas == 'destrieux') V(g)$class <- atlas.dt[vorder, as.numeric(class)]
 
   if (!isTRUE(rand)) {
+    # Add spatial coordinates for plotting over a brain slice
+    V(g)$x <- atlas.dt[vorder, x]
+    V(g)$y <- atlas.dt[vorder, y]
+    V(g)$z <- atlas.dt[vorder, z]
+    V(g)$x.mni <- atlas.dt[vorder, x.mni]
+    V(g)$y.mni <- atlas.dt[vorder, y.mni]
+    V(g)$z.mni <- atlas.dt[vorder, z.mni]
+    V(g)$color.lobe <- group.cols[V(g)$lobe]
+    E(g)$color.lobe <- color.edges(g, V(g)$lobe)
+
     if (g$atlas %in% c('dkt', 'dk', 'destrieux')) {
       counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
       V(g)$circle.layout <-

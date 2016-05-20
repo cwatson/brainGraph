@@ -41,9 +41,7 @@
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
                                       subject=NULL, group=NULL, rand=FALSE) {
   name <- NULL
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
 
   g$version <- packageVersion('brainGraph')
   if (!'degree' %in% graph_attr_names(g)) V(g)$degree <- degree(g)
@@ -129,8 +127,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       if (!'name' %in% vertex_attr_names(g)) V(g)$name <- atlas.dt[, name]
 
       g <- assign_lobes(g)
-      V(g)$color.lobe <- group.cols[V(g)$lobe]
-      E(g)$color.lobe <- color.edges(g, V(g)$lobe)
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
 
@@ -141,18 +137,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
         V(g)$color.class <- group.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
         E(g)$color.class <- color.edges(g, V(g)$class)
-      }
-
-      # Add the spatial coordinates for plotting over the brain
-      if ('name' %in% vertex_attr_names(g)) {
-        x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
-        vorder <- match(V(g)$name, atlas.dt$name)
-        V(g)$x <- atlas.dt[vorder, x]
-        V(g)$y <- atlas.dt[vorder, y]
-        V(g)$z <- atlas.dt[vorder, z]
-        V(g)$x.mni <- atlas.dt[vorder, x.mni]
-        V(g)$y.mni <- atlas.dt[vorder, y.mni]
-        V(g)$z.mni <- atlas.dt[vorder, z.mni]
       }
     }
 

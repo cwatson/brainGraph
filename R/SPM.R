@@ -177,7 +177,7 @@ SPM <- function(g, measure, outcome=measure,
   if (isTRUE(permute)) {
     if (alt == 'two.sided') {
       V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(tmax.null.dist >= abs(x) + 1) / (N + 1)), numeric(1))
+                                      (sum(abs(tmax.null.dist) >= abs(x)) + 1) / (N + 1), numeric(1))
     } else if (alt == 'less') {
       V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
                                       (sum(tmax.null.dist >= x) + 1) / (N + 1), numeric(1))

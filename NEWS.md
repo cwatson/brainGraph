@@ -1,7 +1,9 @@
-# brainGraph 0.67.0
-2016-05-18
+# brainGraph 0.68.0
+2016-05-20
 
 ## Bug fix
+* `aop` and `loo`: regional contributions were calculated incorrectly (without
+    an absolute value)
 * `rich.club.norm`: changed the p-value calculation again; this shouldn't affect
     many results, particularly if N=1,000 (random graphs)
 * `NBS`:
@@ -23,6 +25,7 @@
 * `permute.group.auc`: does permutation testing across all densities, and
     returns the permutation distributions for the difference in AUC between two
     groups
+* `rich.club.attrs`: give a graph attributes based on rich-club analysis
 
 ## Minor changes
 * `NBS`:
@@ -33,7 +36,12 @@
     `covars.csv`
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
-* `plot_global`: legend position is now "bottom" by default
+* `plot_global`:
+  * legend position is now "bottom" by default
+  * can specify `xvar` to be either "density" or "threshold"; if the latter, the
+    x-axis is reversed
+  * If data has a `Study.ID` column, the `ggplot2` function `stat_smooth` is used
+    and the statistic is based on a generalized additive model
 * `plot_perm_diffs`: added argument `auc` for using the area-under-the-curve
     across densities
 * `plot_rich_norm`:

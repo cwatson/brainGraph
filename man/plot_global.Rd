@@ -4,12 +4,16 @@
 \alias{plot_global}
 \title{Plot global graph measures across densities}
 \usage{
-plot_global(tidy.dt, vline = NULL, level.names = NULL, exclude = NULL,
-  perms = NULL, g = NULL, alt = NULL)
+plot_global(tidy.dt, xvar = c("density", "threshold"), vline = NULL,
+  level.names = NULL, exclude = NULL, perms = NULL, g = NULL,
+  alt = NULL)
 }
 \arguments{
 \item{tidy.dt}{A \code{\link{data.table}} that has been "tidied", containing
 global graph measures for all densities and subject groups}
+
+\item{xvar}{A character string indicating whether the variable of
+interest is "density" or "threshold" (e.g. with DTI data)}
 
 \item{vline}{Numeric; required to plot a dashed vertical line (default: NULL)}
 
@@ -25,7 +29,7 @@ change them (default: NULL)}
 \emph{perms} is provided (default: NULL)}
 
 \item{alt}{Character vector of alternative hypotheses; required if
-\emph{perms} is provided (default: NULL)}
+\emph{perms} is provided, but defaults to "two.sided" for all variables}
 }
 \value{
 A \code{\link[ggplot2]{ggplot}} object

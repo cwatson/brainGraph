@@ -21,15 +21,6 @@ make_empty_brainGraph <- function(g) {
   g.new <- assign_lobes(g.new)
   V(g.new)$color.lobe <- group.cols[V(g.new)$lobe]
   E(g.new)$color.lobe <- color.edges(g.new, V(g.new)$lobe)
-  x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
-  atlas.dt <- eval(parse(text=g.new$atlas))
-  vorder <- match(V(g.new)$name, atlas.dt$name)
-  V(g.new)$x <- atlas.dt[vorder, x]
-  V(g.new)$y <- atlas.dt[vorder, y]
-  V(g.new)$z <- atlas.dt[vorder, z]
-  V(g.new)$x.mni <- atlas.dt[vorder, x.mni]
-  V(g.new)$y.mni <- atlas.dt[vorder, y.mni]
-  V(g.new)$z.mni <- atlas.dt[vorder, z.mni]
 
   return(g.new)
 }
