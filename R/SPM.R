@@ -144,13 +144,13 @@ SPM <- function(g, measure, outcome=measure,
       DT.tidy <- calc_stats(DT, covars)
       V(g.diffs)$meas.diff <- DT.tidy[, mean(get(measure)), by=list(region, Group)][, -diff(V1), by=region]$V1
       if (isTRUE(permute)) {
-        tmax.observed <- DT.tidy[, max(beta / se)]
+        tmax.observed <- DT.tidy[, max(beta / se, na.rm=T)]
         perm.order <- shuffleSet(n=nrow(DT), nset=N)
         tmax.null.dist <- foreach (i=seq_len(N), .combine='c') %dopar% {
           DT.shuff <- DT[perm.order[i, ]]
           DT.shuff$Group <- DT$Group
           setkeyv(DT.shuff, key(DT))
-          calc_stats(DT.shuff, DT.shuff[, names(covars), with=F])[, max(beta / se)]
+          calc_stats(DT.shuff, DT.shuff[, names(covars), with=F])[, max(beta / se, na.rm=T)]
         }
         tmax.thresh <- sort(tmax.null.dist)[floor((1 - alpha) * N) + 1]
       }
@@ -177,14 +177,17 @@ SPM <- function(g, measure, outcome=measure,
   if (isTRUE(permute)) {
     if (alt == 'two.sided') {
       V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(abs(tmax.null.dist) >= abs(x)) + 1) / (N + 1), numeric(1))
+                                      (sum(abs(tmax.null.dist) >= abs(x), na.rm=T) + 1) / (N + 1), numeric(1))
     } else if (alt == 'less') {
       V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(tmax.null.dist >= x) + 1) / (N + 1), numeric(1))
+                                      (sum(tmax.null.dist >= x, na.rm=T) + 1) / (N + 1), numeric(1))
     } else if (alt == 'greater') {
       V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(tmax.null.dist >= (-1 * x)) + 1) / (N + 1), numeric(1))
+                                      (sum(tmax.null.dist >= (-1 * x), na.rm=T) + 1) / (N + 1), numeric(1))
     }
+    V(g.diffs)$p[V(g.diffs)$meas.diff == 0] <- 0
+    V(g.diffs)$p.fdr[V(g.diffs)$meas.diff == 0] <- 0
+    V(g.diffs)$p.perm[V(g.diffs)$meas.diff == 0] <- 0
   }
 
   return(list(g=g.diffs, perm=list(null.dist=tmax.null.dist, thresh=tmax.thresh)))

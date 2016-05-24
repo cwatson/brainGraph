@@ -10,7 +10,7 @@
 }
 \usage{data("dk.scgm")}
 \format{
-  A data frame with 82 observations on the following 10 variables.
+  A data frame with 82 observations on the following 11 variables.
   \describe{
     \item{\code{name}}{a character vector of region names}
     \item{\code{x}}{a numeric vector of x-coordinates (internal to \code{brainGraph})}
@@ -22,6 +22,7 @@
     \item{\code{lobe}}{a factor with levels \code{Frontal} \code{Parietal} \code{Temporal} \code{Occipital} \code{Insula} \code{Cingulate}}
     \item{\code{hemi}}{a factor with levels \code{L} \code{R}}
     \item{\code{index}}{a numeric vector}
+    \item{\code{name.full}}{a character vector of full region names}
   }
 }
 \source{

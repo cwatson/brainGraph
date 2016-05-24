@@ -315,7 +315,11 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       # Slider for curvature of edges in circle plots
       curv <- ifelse(length(class(the.slider)) > 1, the.slider$getValue(), 0)
 
-      main <- ifelse(n == 0, paste0('Neighborhoods of: ', paste(vnames, collapse=', ')), g$Group)
+      if (n == 0) {
+        main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
+      } else {
+        main <- g$Group
+      }
 
       # Show a legend for vertex colors
       show.legend <- FALSE

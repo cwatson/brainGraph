@@ -108,7 +108,7 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
       setkey(A.m.tmp, Var3)
     }
     A.m.tmp.sub <- A.m.tmp[A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)]$V1]
-    A.m.tmp.sub[, t := with(fastLmPure(X, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
+    A.m.tmp.sub[, t := with(fastLmPure(X.tmp, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
     if (A.m.tmp.sub[, max(abs(t))] <= 1.5) {
       0
     } else {

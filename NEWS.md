@@ -1,5 +1,5 @@
-# brainGraph 0.68.0
-2016-05-20
+# brainGraph 0.69.0
+2016-05-23
 
 ## Bug fix
 * `aop` and `loo`: regional contributions were calculated incorrectly (without
@@ -10,7 +10,10 @@
   * the `t.stat` edge attribute was, under certain situations, incorrectly
     assigning the values; this has been fixed in the latest version
   * fixed bug when permutations didn't result in any connected components
-* `SPM`: the permutation p-values were previously incorrect; has been fixed
+  * fixed bug w/ data randomization; the bug didn't seem to affect the results
+* `SPM`:
+  * the permutation p-values were previously incorrect; has been fixed
+  * added an argument to remove `NA` values
 * `vec.transform`: fixed bug which occurred when the input vector is the same
     number repeated (i.e., when `range(x) = 0`)
 
@@ -22,12 +25,15 @@
 ## New functions
 * `auc_diff`: calculates the area-under-the-curve across densities for two
     groups
+* `cor.diff.test`: calculates the significance of the difference between
+    correlation coefficients
 * `permute.group.auc`: does permutation testing across all densities, and
     returns the permutation distributions for the difference in AUC between two
     groups
 * `rich.club.attrs`: give a graph attributes based on rich-club analysis
 
 ## Minor changes
+* Added a column, `name.full` to some of the atlas data files
 * `NBS`:
   * New edge attribute `p`, the p-value for that specific connection
   * Returns the `p.init` value for record-keeping
@@ -48,6 +54,8 @@
   * Added argument `fdr` to choose whether or not to use FDR-adjusted p-values
   * Should work for more than 2 groups
   * Now works with multi-subject data; collapses by *Group* and plots the group mean
+* `set.brainGraph.diffs`: calculate graph `strength`, which is the mean of vertex
+    strength (weighted networks)
 * `write.brainnet`:
   * Now allows for writing weighted adjacency matrices, using the `edge.wt`
     function argument

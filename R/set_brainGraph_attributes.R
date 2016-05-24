@@ -80,6 +80,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
 
     if (is.weighted(g)) {
       V(g)$strength <- graph.strength(g)
+      g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
       V(g)$E.local.wt <- graph.efficiency(g, type='local')
       g$E.local.wt <- mean(V(g)$E.local.wt)
