@@ -35,9 +35,7 @@
 
 graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
                              weights=NULL, .parallel=TRUE) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
   x <- NULL
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree

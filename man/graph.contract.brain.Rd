@@ -7,10 +7,10 @@
 graph.contract.brain(g)
 }
 \arguments{
-\item{g}{The graph to contract}
+\item{g}{An \code{igraph} graph object}
 }
 \value{
-A new graph
+A new \code{igraph} graph object
 }
 \description{
 This function creates a new graph after merging multiple vertices based on

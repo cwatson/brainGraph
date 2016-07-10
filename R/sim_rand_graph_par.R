@@ -24,9 +24,7 @@
 #' }
 
 sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
   if (clustering == TRUE) {
     r <- foreach(i=seq_len(N),
                   .packages=c('igraph', 'brainGraph')) %dopar% {

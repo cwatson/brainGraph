@@ -25,9 +25,7 @@
 
 within_module_deg_z_score <- function(g, memb) {
   i <- NULL
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
   } else {

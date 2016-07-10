@@ -15,17 +15,13 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 edge_spatial_dist <- function(g) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
-  if (! 'atlas' %in% graph_attr_names(g)) {
-    stop(sprintf('Input graph "%s" does not have an "atlas" attribute',
-                 deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
+  stopifnot('atlas' %in% graph_attr_names(g))
+
   name <- x.mni <- y.mni <- z.mni <- NULL
   coords <- eval(parse(text=g$atlas))[, list(name, x.mni, y.mni, z.mni)]
   setkey(coords, name)
-  es <- get.edgelist(g)
+  es <- as_edgelist(g)
   dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -
                          coords[es[, 1], list(x.mni, y.mni, z.mni)])^2))
 }
@@ -46,13 +42,8 @@ edge_spatial_dist <- function(g) {
 #'   network topology in health and schizophrenia}. Cerebral Cortex, 23:127-138.
 
 vertex_spatial_dist <- function(g) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
-  if (! 'dist' %in% edge_attr_names(g)) {
-    stop(sprintf('Input graph "%s" does not have a "dist" edge attribute',
-                 deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
+  stopifnot('dist' %in% edge_attr_names(g))
 
   Nv <- vcount(g)
   dists <- sapply(V(g)$name, function(x) mean(E(g)[x %--% seq_len(Nv)]$dist))

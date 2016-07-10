@@ -79,9 +79,8 @@ SPM <- function(g, measure, outcome=measure,
   meas <- vapply(g, vertex_attr, numeric(Nv), measure)
   g.diffs <- make_empty_brainGraph(g[[1]])
 
-  id <- vapply(g, graph_attr, character(1), 'name')
-  groups <- vapply(g, graph_attr, character(1), 'Group')
-  meas.id.dt <- data.table(Study.ID=id, Group=groups)
+  meas.id.dt <- data.table(Study.ID=vapply(g, graph_attr, character(1), 'name'),
+                           Group=vapply(g, graph_attr, character(1), 'Group'))
   setkey(meas.id.dt, Group, Study.ID)
   meas.id.dt <- cbind(meas.id.dt, t(meas))
   setnames(meas.id.dt, 3:(Nv + 2), V(g.diffs)$name)
@@ -93,8 +92,7 @@ SPM <- function(g, measure, outcome=measure,
   if (test == 'wilcox.test') {
     f.wil <- function(x, ...) {
       stats <- wilcox.test(x, ...)
-      stats$parameter <- NA
-      list(stats$statistic, stats$parameter, stats$p.value)
+      list(stats$statistic, NA, stats$p.value)
     }
 
     DT.tidy <- melt(meas.id.dt, id.vars=c('Study.ID', 'Group'),
@@ -174,20 +172,21 @@ SPM <- function(g, measure, outcome=measure,
   V(g.diffs)$p.fdr <- 1 - p.adjust(1 - V(g.diffs)$p, 'fdr')
   V(g.diffs)$size2 <- DT.tidy[, unique(t), by=region]$V1
   V(g.diffs)$size <- vec.transform(V(g.diffs)$size2, 0, 20)
+  excl <- which(V(g.diffs)$meas.diff == 0)
+  V(g.diffs)$p[excl] <- V(g.diffs)$p.fdr[excl] <- 0
   if (isTRUE(permute)) {
     if (alt == 'two.sided') {
-      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(abs(tmax.null.dist) >= abs(x), na.rm=T) + 1) / (N + 1), numeric(1))
+      p.perm <- vapply(V(g.diffs)$size2, function(x)
+                       (sum(abs(tmax.null.dist) >= abs(x), na.rm=T) + 1) / (N + 1), numeric(1))
     } else if (alt == 'less') {
-      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(tmax.null.dist >= x, na.rm=T) + 1) / (N + 1), numeric(1))
+      p.perm <- vapply(V(g.diffs)$size2, function(x)
+                       (sum(tmax.null.dist >= x, na.rm=T) + 1) / (N + 1), numeric(1))
     } else if (alt == 'greater') {
-      V(g.diffs)$p.perm <- 1 - vapply(V(g.diffs)$size2, function(x)
-                                      (sum(tmax.null.dist >= (-1 * x), na.rm=T) + 1) / (N + 1), numeric(1))
+      p.perm <- vapply(V(g.diffs)$size2, function(x)
+                       (sum(tmax.null.dist >= (-1 * x), na.rm=T) + 1) / (N + 1), numeric(1))
     }
-    V(g.diffs)$p[V(g.diffs)$meas.diff == 0] <- 0
-    V(g.diffs)$p.fdr[V(g.diffs)$meas.diff == 0] <- 0
-    V(g.diffs)$p.perm[V(g.diffs)$meas.diff == 0] <- 0
+    V(g.diffs)$p.perm <- 1 - p.perm
+    V(g.diffs)$p.perm[excl] <- 0
   }
 
   return(list(g=g.diffs, perm=list(null.dist=tmax.null.dist, thresh=tmax.thresh)))

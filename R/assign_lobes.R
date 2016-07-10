@@ -21,8 +21,9 @@
 
 assign_lobes <- function(g, rand=FALSE) {
 
-  lobe <- hemi <- name <- class <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+  stopifnot(is_igraph(g))
   stopifnot('atlas' %in% graph_attr_names(g))
+  lobe <- hemi <- name <- class <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
 
   # Check that vertex names match the atlas names
   atlas.dt <- eval(parse(text=g$atlas))
@@ -50,8 +51,8 @@ assign_lobes <- function(g, rand=FALSE) {
     V(g)$color.lobe <- group.cols[V(g)$lobe]
     E(g)$color.lobe <- color.edges(g, V(g)$lobe)
 
+    counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
     if (g$atlas %in% c('dkt', 'dk', 'destrieux')) {
-      counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
@@ -66,9 +67,8 @@ assign_lobes <- function(g, rand=FALSE) {
           which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
 
-    } else if (g$atlas %in% c('aal90', 'lpba40', 'hoa112', 'brainsuite',
-                            'dk.scgm', 'dkt.scgm')) {
-      counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
+    } else if (g$atlas %in% c('aal90', 'aal2.94', 'aal116', 'aal2.120', 'lpba40',
+                              'hoa112', 'brainsuite', 'dk.scgm', 'dkt.scgm')) {
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
@@ -84,6 +84,15 @@ assign_lobes <- function(g, rand=FALSE) {
           which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
+      if (g$atlas %in% c('aal116', 'aal2.120')) {
+        mid1 <- sum(counts[seq(1, 14, 2)])
+        mid2 <- sum(counts[seq(1, 15, 2)])
+        V(g)$circle.layout <-
+          c(V(g)$circle.layout[1:mid1],
+            which(V(g)$lobe == 8 & V(g)$hemi == 'L'),
+            V(g)$circle.layout[(mid2+1):(mid2+mid1)],
+            which(V(g)$lobe == 8 & V(g)$hemi == 'R'))
+      }
     }
   }
 

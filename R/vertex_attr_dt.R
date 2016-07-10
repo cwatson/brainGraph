@@ -20,7 +20,7 @@ vertex_attr_dt <- function(g, group=NULL) {
   net.meas[, c('x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni', 'lobe.hemi',
                'circle.layout', 'comm', 'comm.wt', 'comp', 'circle.layout.comm',
                'color.comm', 'color.comm.wt', 'color.comp', 'color.lobe') := NULL]
-  if (g$atlas == 'destrieux') {
+  if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
     net.meas[, 'color.class' := NULL]
     net.meas$class <- atlas.dt[, levels(class)][V(g)$class]
   }

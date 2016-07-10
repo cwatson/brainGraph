@@ -7,17 +7,16 @@
 #' The new edge weight is equal to the number of inter-lobular connections of
 #' the original graph.
 #'
-#' @param g The graph to contract
+#' @param g An \code{igraph} graph object
 #' @export
 #'
-#' @return A new graph
+#' @return A new \code{igraph} graph object
 #'
 #' @seealso \code{\link[igraph]{contract.vertices}}
 
 graph.contract.brain <- function(g) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not an igraph graph object', deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
+
   g.sub <- contract.vertices(g, V(g)$lobe.hemi)
   E(g.sub)$weight <- 1
   g.sub <- simplify(g.sub)
@@ -32,5 +31,6 @@ graph.contract.brain <- function(g) {
   V(g.sub)$color <- vcols
   V(g.sub)$lobe <- rep(sort(unique(V(g)$lobe)), 2)
   E(g.sub)$color.lobe <- color.edges(g.sub, V(g.sub)$lobe)
-  g.sub
+
+  return(g.sub)
 }

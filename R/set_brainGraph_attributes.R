@@ -134,7 +134,12 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       g$asymm <- edge_asymmetry(g)$asymm
       V(g)$asymm <- edge_asymmetry(g, 'vertex')$asymm
 
-      if (atlas == 'destrieux') {
+      E(g)$dist <- edge_spatial_dist(g)
+      g$spatial.dist <- mean(E(g)$dist)
+      V(g)$dist <- vertex_spatial_dist(g)
+      V(g)$dist.strength <- V(g)$dist * V(g)$degree
+
+      if (atlas %in% c('destrieux', 'destrieux.scgm')) {
         V(g)$color.class <- group.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
         E(g)$color.class <- color.edges(g, V(g)$class)
@@ -142,13 +147,16 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     }
 
     V(g)$knn <- graph.knn(g, weights=NA)$knn
+
+    Lpv <- distances(g, weights=NA)
+    Lpv[is.infinite(Lpv)] <- NA
+    V(g)$Lp <- rowMeans(Lpv, na.rm=TRUE)
+
+    E(g)$btwn <- edge.betweenness(g)
     V(g)$btwn.cent <- centr_betw(g)$res
     V(g)$hubs <- 0  # I define hubs as vertices w/ btwn.cent > mean + sd
     V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
     g$num.hubs <- sum(V(g)$hubs)
-    Lpv <- distances(g, weights=NA)
-    Lpv[is.infinite(Lpv)] <- NA
-    V(g)$Lp <- rowMeans(Lpv, na.rm=TRUE)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$lev.cent <- centr_lev(g)
     V(g)$coreness <- coreness(g)
@@ -175,15 +183,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
 
     V(g)$PC <- part.coeff(g, V(g)$comm)
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
-
-    # Edge attributes
-    #-----------------------------------------------------------------------------
-    E(g)$btwn <- edge.betweenness(g)
-    E(g)$dist <- edge_spatial_dist(g)
-
-    g$spatial.dist <- mean(E(g)$dist)
-    V(g)$dist <- vertex_spatial_dist(g)
-    V(g)$dist.strength <- V(g)$dist * V(g)$degree
   }
 
   g

@@ -16,17 +16,11 @@
 #' }
 
 count_interlobar <- function(g, lobe) {
-  if (!is.igraph(g)) {
-    stop(sprintf('%s is not a graph object', deparse(substitute(g))))
-  }
-  if (!'atlas' %in% graph_attr_names(g)) {
-    stop(sprintf('Input graph %s does not have an "atlas" attribute',
-                 deparse(substitute(g))))
-  }
+  stopifnot(is_igraph(g))
+  stopifnot('atlas' %in% graph_attr_names(g))
+
   lobe.names <- eval(parse(text=g$atlas))[, levels(lobe)]
-  if (!lobe %in% lobe.names) {
-    stop(sprintf('Incorrect lobe name "%s"', lobe))
-  }
+  stopifnot(lobe %in% lobe.names)
 
   id <- which(lobe == lobe.names)
   total <- length(E(g)[which(V(g)$lobe == id) %--% V(g)])

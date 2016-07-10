@@ -1,5 +1,5 @@
-# brainGraph 0.69.0
-2016-05-23
+# brainGraph 0.70.0
+2016-07-10
 
 ## Bug fix
 * `aop` and `loo`: regional contributions were calculated incorrectly (without
@@ -18,6 +18,7 @@
     number repeated (i.e., when `range(x) = 0`)
 
 ## Major changes
+* Added atlases `aal2.94` and `aal2.120`
 * `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
     showing a legend, and a character string of logical expressions for plotting
     subgraphs (previously was in `plot_brainGraph_list`)

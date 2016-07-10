@@ -68,7 +68,7 @@ importFrom(grDevices, adjustcolor, dev.copy, dev.cur, dev.list, dev.new,
 importFrom(graphics, legend, par, plot, title)
 importFrom(methods, hasArg)
 importFrom(stats, as.dist, as.formula, complete.cases, density, lm, p.adjust,
-  ppoints, pt, qnorm, resid, rstudent, sd, t.test, wilcox.test)
-importFrom(utils, combn, flush.console, packageVersion, setTxtProgressBar,
-  txtProgressBar, write.table)
+  pnorm, ppoints, pt, qnorm, resid, rstudent, sd, t.test, wilcox.test)
+importFrom(utils, combn, flush.console, head, packageVersion, setTxtProgressBar,
+  tail, txtProgressBar, write.table)
 importFrom(RcppEigen, fastLmPure)

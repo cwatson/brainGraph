@@ -145,11 +145,11 @@ permute.group.auc <- function(permSet, densities, resids,
 
       # "Lobe" level
       #-----------------------------------
-      } else if (level == 'lobe') {
-        t1 <- as.data.table(count_interlobar(g1, 'Temporal'))
-        t2 <- as.data.table(count_interlobar(g2, 'Temporal'))
-        tdiff <- t1 - t2
-        tmp <- data.table(density=density, diff=tdiff)
+#      } else if (level == 'lobe') {
+#        t1 <- as.data.table(count_interlobar(g1, 'Temporal'))
+#        t2 <- as.data.table(count_interlobar(g2, 'Temporal'))
+#        tdiff <- t1 - t2
+#        tmp <- data.table(density=density, diff=tdiff)
       }
     }
 
