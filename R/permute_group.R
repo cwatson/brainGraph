@@ -87,8 +87,8 @@ permute.group <- function(permSet, density, resids,
         g2$E.global <- graph.efficiency(g2, 'global')
         V(g1)$degree <- degree(g1)
         V(g2)$degree <- degree(g2)
-        vuln.diff <- vulnerability(g1, .parallel=F) -
-          vulnerability(g2, .parallel=F)
+        vuln.diff <- vulnerability(g1, use.parallel=F) -
+          vulnerability(g2, use.parallel=F)
         tmp <- as.data.table(cbind(density, t(vuln.diff)))
 
       } else if (measure == 'degree') {

@@ -4,12 +4,15 @@
 \alias{part.coeff}
 \title{Calculate vertex participation coefficient}
 \usage{
-part.coeff(g, memb)
+part.coeff(g, memb, use.parallel = TRUE)
 }
 \arguments{
 \item{g}{The graph}
 
 \item{memb}{The community membership indices of each vertex}
+
+\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
+(default: TRUE)}
 }
 \value{
 A vector of the participation coeff's for each vertex of the graph.

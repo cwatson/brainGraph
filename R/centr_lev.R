@@ -12,8 +12,8 @@
 #' This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 #'
 #' @param g The igraph graph object
-#' @param .parallel Logical indicating whether or not to use \emph{foreach}
-#' (default: TRUE)
+#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
+#'   (default: TRUE)
 #' @export
 #'
 #' @return A vector of the leverage centrality for all vertices.
@@ -22,7 +22,7 @@
 #' @references Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 #' \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
 
-centr_lev <- function(g, .parallel=TRUE) {
+centr_lev <- function(g, use.parallel=TRUE) {
   i <- NULL
   stopifnot(is_igraph(g))
 
@@ -30,7 +30,7 @@ centr_lev <- function(g, .parallel=TRUE) {
   n <- vcount(g)
   lev.cent <- rep(NA, n)
   inds <- which(k > 0)
-  if (isTRUE(.parallel)) {
+  if (isTRUE(use.parallel)) {
     lev.cent[inds] <- foreach(i=inds, .combine='c') %dopar% {
       nbs <- neighbors(g, i)
       mean((k[i] - k[nbs]) / (k[i] + k[nbs]))

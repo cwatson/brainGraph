@@ -9,6 +9,8 @@
 #' @param subject A character vector indicating subject ID (default: NULL)
 #' @param group A character vector indicating group membership (default: NULL)
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
+#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
+#'   (default: TRUE)
 #' @export
 #'
 #' @return g A copy of the same graph, with the following attributes:
@@ -39,7 +41,8 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
-                                      subject=NULL, group=NULL, rand=FALSE) {
+                                      subject=NULL, group=NULL, rand=FALSE,
+                                      use.parallel=TRUE) {
   name <- NULL
   stopifnot(is_igraph(g))
 
@@ -53,7 +56,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
   Nk <- vapply(R, with, numeric(1), Nk)
   Ek <- vapply(R, with, numeric(1), Ek)
   g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
-  g$E.global <- graph.efficiency(g, 'global', weights=NA)
+  g$E.global <- graph.efficiency(g, 'global', weights=NA,
+                                 use.parallel=use.parallel)
   comm <- cluster_louvain(g, weights=NA)
   g$mod <- max(comm$modularity)
 
@@ -82,9 +86,10 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       V(g)$strength <- graph.strength(g)
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
-      V(g)$E.local.wt <- graph.efficiency(g, type='local')
+      V(g)$E.local.wt <- graph.efficiency(g, type='local',
+                                          use.parallel=use.parallel)
       g$E.local.wt <- mean(V(g)$E.local.wt)
-      V(g)$E.nodal.wt <- graph.efficiency(g, 'nodal')
+      V(g)$E.nodal.wt <- graph.efficiency(g, 'nodal', use.parallel=use.parallel)
       g$E.global.wt <- mean(V(g)$E.nodal.wt)
       g$diameter.wt <- diameter(g)
       R <- lapply(1:max(V(g)$degree),
@@ -101,8 +106,9 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       V(g)$color.comm.wt <- color.vertices(V(g)$comm.wt)[V(g)$comm.wt]
       E(g)$color.comm.wt <- color.edges(g, V(g)$comm.wt)
 
-      V(g)$PC.wt <- part.coeff(g, V(g)$comm.wt)
-      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt)
+      V(g)$PC.wt <- part.coeff(g, V(g)$comm.wt, use.parallel=use.parallel)
+      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt,
+                                                   use.parallel=use.parallel)
 
       V(g)$transitivity.wt <- transitivity(g, type='weighted')
       Lpv.wt <- distances(g)
@@ -131,8 +137,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       g$assortativity.lobe <- assortativity_nominal(g, V(g)$lobe)
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
 
-      g$asymm <- edge_asymmetry(g)$asymm
-      V(g)$asymm <- edge_asymmetry(g, 'vertex')$asymm
+      g$asymm <- edge_asymmetry(g, use.parallel=use.parallel)$asymm
+      V(g)$asymm <- edge_asymmetry(g, 'vertex', use.parallel=use.parallel)$asymm
 
       E(g)$dist <- edge_spatial_dist(g)
       g$spatial.dist <- mean(E(g)$dist)
@@ -158,14 +164,16 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
     g$num.hubs <- sum(V(g)$hubs)
     V(g)$ev.cent <- centr_eigen(g)$vector
-    V(g)$lev.cent <- centr_lev(g)
+    V(g)$lev.cent <- centr_lev(g, use.parallel=use.parallel)
     V(g)$coreness <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
-    V(g)$E.local <- graph.efficiency(g, type='local', weights=NA)
-    V(g)$E.nodal <- graph.efficiency(g, type='nodal', weights=NA)
+    V(g)$E.local <- graph.efficiency(g, type='local', weights=NA,
+                                     use.parallel=use.parallel)
+    V(g)$E.nodal <- graph.efficiency(g, type='nodal', weights=NA,
+                                     use.parallel=use.parallel)
     g$E.local <- mean(V(g)$E.local)
-    V(g)$vulnerability <- vulnerability(g)
-    g$vulnerability <- max(V(g)$vulnerability)
+    V(g)$vulnerability <- vulnerability(g, use.parallel=use.parallel)
+    g$vulnerability <- max(V(g)$vulnerability, use.parallel=use.parallel)
     V(g)$eccentricity <- eccentricity(g)
 
     # Community stuff
@@ -182,7 +190,8 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
 
     V(g)$PC <- part.coeff(g, V(g)$comm)
-    V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
+    V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm,
+                                              use.parallel=use.parallel)
   }
 
   g

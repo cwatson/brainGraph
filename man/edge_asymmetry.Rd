@@ -4,7 +4,7 @@
 \alias{edge_asymmetry}
 \title{Calculate an asymmetry index based on edge counts}
 \usage{
-edge_asymmetry(g, level = c("hemi", "vertex"), .parallel = TRUE)
+edge_asymmetry(g, level = c("hemi", "vertex"), use.parallel = TRUE)
 }
 \arguments{
 \item{g}{The igraph graph object}
@@ -12,7 +12,7 @@ edge_asymmetry(g, level = c("hemi", "vertex"), .parallel = TRUE)
 \item{level}{A character string indicating whether to calculate asymmetry for
 each region, or the hemisphere as a whole (default: 'hemi')}
 
-\item{.parallel}{Logical indicating whether or not to use \emph{foreach}
+\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
 (default: TRUE)}
 }
 \value{

@@ -22,7 +22,7 @@
 #' @param weights A numeric vector of edge weights; if 'NULL', and if the graph
 #' has edge attribute 'weight', then that will be used. To avoid using weights,
 #' this should be 'NA'
-#' @param .parallel Logical indicating whether or not to use \code{foreach}
+#' @param use.parallel Logical indicating whether or not to use \code{foreach}
 #' (default: TRUE)
 #' @export
 #'
@@ -34,7 +34,7 @@
 #' small-world networks}. Phys Rev Lett, 87.19:198701.
 
 graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
-                             weights=NULL, .parallel=TRUE) {
+                             weights=NULL, use.parallel=TRUE) {
   stopifnot(is_igraph(g))
   x <- NULL
   if ('degree' %in% vertex_attr_names(g)) {
@@ -59,7 +59,7 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
     nodes <- which(degs > 1)
 
     if (length(nodes) > 0) {
-      if (isTRUE(.parallel)) {
+      if (isTRUE(use.parallel)) {
         eff[nodes] <- foreach (x=nodes, .combine='c') %dopar% {
           neighbs <- neighbors(g, v=x)
           g.sub <- induced.subgraph(g, neighbs)

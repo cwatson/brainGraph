@@ -4,12 +4,15 @@
 \alias{within_module_deg_z_score}
 \title{Calculate vertex within-module degree z-score}
 \usage{
-within_module_deg_z_score(g, memb)
+within_module_deg_z_score(g, memb, use.parallel = TRUE)
 }
 \arguments{
 \item{g}{The graph}
 
 \item{memb}{The community membership indices of each vertex}
+
+\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
+(default: TRUE)}
 }
 \value{
 A vector of the within-module degree z-scores for each vertex of the

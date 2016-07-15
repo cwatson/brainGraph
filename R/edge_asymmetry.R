@@ -16,8 +16,8 @@
 #' @param g The igraph graph object
 #' @param level A character string indicating whether to calculate asymmetry for
 #' each region, or the hemisphere as a whole (default: 'hemi')
-#' @param .parallel Logical indicating whether or not to use \emph{foreach}
-#' (default: TRUE)
+#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
+#'   (default: TRUE)
 #' @export
 #'
 #' @return A data table with edge counts for both hemispheres and the asymmetry
@@ -26,7 +26,7 @@
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-edge_asymmetry <- function(g, level=c('hemi', 'vertex'), .parallel=TRUE) {
+edge_asymmetry <- function(g, level=c('hemi', 'vertex'), use.parallel=TRUE) {
   stopifnot(is_igraph(g))
   stopifnot('hemi' %in% vertex_attr_names(g))
 
@@ -40,7 +40,7 @@ edge_asymmetry <- function(g, level=c('hemi', 'vertex'), .parallel=TRUE) {
   } else if (level == 'vertex') {
     inds <- which(V(g)$degree > 0)
     asymm <- data.frame(lh=rep(0, vcount(g)), rh=rep(0, vcount(g)))
-    if (isTRUE(.parallel)) {
+    if (isTRUE(use.parallel)) {
       asymm[inds, ] <- foreach (i=inds, .combine='rbind') %dopar% {
         lh <- length(E(g)[i %--% which(V(g)$hemi == 'L')])
         rh <- length(E(g)[i %--% which(V(g)$hemi == 'R')])

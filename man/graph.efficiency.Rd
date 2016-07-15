@@ -5,7 +5,7 @@
 \title{Calculate graph global, local, or nodal efficiency}
 \usage{
 graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
-  .parallel = TRUE)
+  use.parallel = TRUE)
 }
 \arguments{
 \item{g}{The graph on which to calculate efficiency}
@@ -16,7 +16,7 @@ graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
 has edge attribute 'weight', then that will be used. To avoid using weights,
 this should be 'NA'}
 
-\item{.parallel}{Logical indicating whether or not to use \code{foreach}
+\item{use.parallel}{Logical indicating whether or not to use \code{foreach}
 (default: TRUE)}
 }
 \value{

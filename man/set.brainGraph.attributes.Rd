@@ -5,7 +5,7 @@
 \title{Set a number of graph and vertex attributes useful in MRI analyses}
 \usage{
 set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
-  subject = NULL, group = NULL, rand = FALSE)
+  subject = NULL, group = NULL, rand = FALSE, use.parallel = TRUE)
 }
 \arguments{
 \item{g}{An igraph object}
@@ -19,6 +19,9 @@ set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
 \item{group}{A character vector indicating group membership (default: NULL)}
 
 \item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
+
+\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
+(default: TRUE)}
 }
 \value{
 g A copy of the same graph, with the following attributes:

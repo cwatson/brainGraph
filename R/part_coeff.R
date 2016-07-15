@@ -15,6 +15,8 @@
 #'
 #' @param g The graph
 #' @param memb The community membership indices of each vertex
+#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
+#'   (default: TRUE)
 #' @export
 #'
 #' @return A vector of the participation coeff's for each vertex of the graph.
@@ -24,7 +26,7 @@
 #' networks: modules and universal roles, Journal of Statistical Mechanics:
 #' Theory and Experiment, 02, P02001.
 
-part.coeff <- function(g, memb) {
+part.coeff <- function(g, memb, use.parallel=TRUE) {
   i <- NULL
   if ('degree' %in% vertex_attr_names(g)) {
     degs <- V(g)$degree
@@ -35,20 +37,30 @@ part.coeff <- function(g, memb) {
   vs <- which(degs > 0)
 
   PC <- rep(0, length(degs))
-  if (.Platform$OS == 'windows') {
-    PC[vs] <- foreach (i=vs, .combine='c') %dopar% {
+  if (isTRUE(use.parallel)) {
+    if (.Platform$OS == 'windows') {
+      PC[vs] <- foreach (i=vs, .combine='c') %dopar% {
+        Kis <- vapply(seq_len(max(memb)), function(x)
+                      sum(neighbors(g, i) %in% which(memb == x)),
+                      integer(1))
+        Ki <- degs[i]
+        1 - sum((Kis/Ki)^2)
+      }
+    } else {
+      PC[vs] <- foreach (i=vs, .combine='c') %dopar% {
+        Kis <- vapply(seq_len(max(memb)), function(x)
+                      length(es[i %--% which(memb == x)]), integer(1))
+        Ki <- degs[i]
+        1 - sum((Kis/Ki)^2)
+      }
+    }
+  } else {
+    for (i in vs) {
       Kis <- vapply(seq_len(max(memb)), function(x)
                     sum(neighbors(g, i) %in% which(memb == x)),
                     integer(1))
       Ki <- degs[i]
-      1 - sum((Kis/Ki)^2)
-    }
-  } else {
-    PC[vs] <- foreach (i=vs, .combine='c') %dopar% {
-      Kis <- vapply(seq_len(max(memb)), function(x)
-                    length(es[i %--% which(memb == x)]), integer(1))
-      Ki <- degs[i]
-      1 - sum((Kis/Ki)^2)
+      PC[i] <- 1 - sum((Kis/Ki)^2)
     }
   }
 

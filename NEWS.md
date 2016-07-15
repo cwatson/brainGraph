@@ -1,5 +1,5 @@
-# brainGraph 0.70.0
-2016-07-10
+# brainGraph 0.71.0
+2016-07-15
 
 ## Bug fix
 * `aop` and `loo`: regional contributions were calculated incorrectly (without
@@ -18,6 +18,10 @@
     number repeated (i.e., when `range(x) = 0`)
 
 ## Major changes
+* Changed instances of `.parallel` to `use.parallel`; also, added it as an
+    argument to `set.brainGraph.attributes` to control all of the functions that
+    it calls; also added the argument to `part.coeff` and
+    `within_module_deg_z_score`
 * Added atlases `aal2.94` and `aal2.120`
 * `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
     showing a legend, and a character string of logical expressions for plotting
