@@ -36,23 +36,22 @@ check.resid <- function(resids, cols=FALSE) {
 
   ggQQ <- function(R, cols) {
     Group <- NULL
+    p <- ggplot(R, aes(x=x, y=resid)) +
+      labs(x='Theoretical Quantiles', y='Sample Quantiles')
     if (isTRUE(cols)) {
-      p <- ggplot(R, aes(x=x, y=resid)) +
+      p <- p +
         geom_text(aes(x=x, y=resid+0.3, label=ind, col=Group), size=3) +
         geom_line(aes(x=x, y=x), col='gray50') +
         geom_point(aes(col=Group, shape=mark, size=mark)) +
-        xlab('Theoretical Quantiles') + ylab('Sample Quantiles') +
-        facet_wrap( ~ region, nrow=3, ncol=3, scales='free') +
         scale_shape_manual(values=c(20, 8)) +
         scale_size_manual(values=c(1.5, 3)) +
         theme(legend.position='none')
     } else {
-      p <- ggplot(R, aes(x=x, y=resid)) +
+      p <- p +
         geom_point() +
-        geom_line(aes(x=x, y=x)) +
-        xlab('Theoretical Quantiles') + ylab('Sample Quantiles') +
-        facet_wrap( ~ region, nrow=3, ncol=3, scales='free')
+        geom_line(aes(x=x, y=x))
     }
+    p <- p + facet_wrap( ~ region, nrow=3, ncol=3, scales='free')
     return(p)
   }
 

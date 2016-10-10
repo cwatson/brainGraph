@@ -407,13 +407,14 @@ plot_brainGraph_gui <- function() {
   hboxVcolor <- gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components',
-               'Communities (weighted)')
-  if (atlas %in% c('destrieux', 'destrieux.scgm')) choices <- c(choices, 'Class')
+               'Communities (weighted)', 'Class', 'Network')
 
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
+  #if (!atlas %in% c('destrieux', 'destrieux.scgm')) comboVcolor$setActiveIter(F, 5)
+  #if (atlas != 'dosenbach160') comboVcolor$setActive(F, 6)
   gSignalConnect(comboVcolor, 'changed', function(widget, ...) {
       i <- widget$getActive()
-      if (i %in% c(2, 5)) {
+      if (i %in% c(2, 5, 6)) {
         showLegend$setSensitive(T)
       } else {
         showLegend$setSensitive(F)

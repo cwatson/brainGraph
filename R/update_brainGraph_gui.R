@@ -75,12 +75,11 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
       memb.lobe <- apply(vapply(combos[[ind1]][, ind2],
                                 function(x) V(g)$lobe == x, logical(Nv)), 1, any)
       sg.lobe <- induced.subgraph(g, memb.lobe)
-      for (att in graph_attr_names(sg.lobe)) sg.lobe <- delete_graph_attr(sg.lobe, att)
-      for (att in vertex_attr_names(sg.lobe)) sg.lobe <- delete_vertex_attr(sg.lobe, att)
-      for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
-      V(sg.lobe)$name <- V(g)$name[memb.lobe]
-#      V(sg.lobe)$hemi <- V(g)$hemi[memb.lobe]
     }
+    for (att in graph_attr_names(sg.lobe)) sg.lobe <- delete_graph_attr(sg.lobe, att)
+    for (att in vertex_attr_names(sg.lobe)) sg.lobe <- delete_vertex_attr(sg.lobe, att)
+    for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
+    V(sg.lobe)$name <- V(g)$name[memb.lobe]
 
     #=======================================================
     # Hemisphere to plot
@@ -91,21 +90,17 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     } else if (hemi$getActive() == 2) {  # RH only
       plotHemi <- 'R'
 
-    } else if (hemi$getActive() == 3) {  # Interhemispheric only
-      sg.hemi <- g - E(g) +
-        subgraph.edges(g, E(g)[which(atlas.dt$hemi == 'L') %--% which(atlas.dt$hemi == 'R')])
-      memb.hemi <- seq_len(Nv)
-    } else if (hemi$getActive() == 4) {  # Homologous connections only
-      eids <- count_homologous(g)
-      sg.hemi <- subgraph.edges(g, eids)
-      memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
-    } else if (hemi$getActive() > 4) {
-      groups <- switch(hemi$getActive() - 4,
+    } else if (hemi$getActive() > 2) {
+      groups <- switch(hemi$getActive() - 2,
+                       seq_len(Nv),
+                       seq_len(Nv),
                        seq_len(max(V(g)$comm)),
                        seq_len(max(V(g)$comm)),
                        sort(unique(V(g)$lobe)),
                        sort(unique(V(g)$lobe)))
-      eids <- switch(hemi$getActive() - 4,
+      eids <- switch(hemi$getActive() - 2,
+                     E(g)[which(atlas.dt$hemi == 'L') %--% which(atlas.dt$hemi == 'R')],
+                     count_homologous(g),
                      unique(unlist(sapply(groups, function(x)
                                           as.numeric(E(g)[which(V(g)$comm == x) %--%
                                                      which(V(g)$comm %in% groups[-x])])))),
@@ -120,14 +115,13 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                                                      which(V(g)$lobe == x)])))))
       sg.hemi <- subgraph.edges(g, eids)
       memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
+      for (att in graph_attr_names(sg.hemi)) sg.hemi <- delete_graph_attr(sg.hemi, att)
+      for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
+      for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
+      V(sg.hemi)$name <- V(g)$name[memb.hemi]
+      g <- g %s% (sg.lobe %s% sg.hemi)
     }
 
-#    for (att in graph_attr_names(sg.hemi)) sg.hemi <- delete_graph_attr(sg.hemi, att)
-#    for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
-#    for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
-#    V(sg.hemi)$name <- V(g)$name[memb.hemi]
-#    V(sg.lobe)$hemi <- V(g)$hemi[memb.hemi]
-#
     if (lobe$getActive() > 0) {
       g <- g %s% sg.lobe
 #    g <- g %s% (sg.lobe %s% sg.hemi)
@@ -140,6 +134,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
     # Orientation of plots
     #====================================================
     if (orient$getActive() == 3) { # CIRCULAR LAYOUT
+      plane <- 'circular'
       par(bg='black')
       circ <- V(g)$circle.layout
 
@@ -304,42 +299,34 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                                            'color.lobe',
                                            'color.comp',
                                            'color.comm.wt',
-                                           'color.class')
+                                           'color.class',
+                                           'color.network')
     }
 
     # Show vertex labels?
-    vlabel <- ifelse(vertLabels$active == FALSE, NA, TRUE)
+    vlabel <- ifelse(vertLabels$active == FALSE, NA, 'name')
 
-    if (identical(plotFunc, plot_brainGraph)) {
-      if (orient$getActive() == 3) plotFunc <- plot
-      # Slider for curvature of edges in circle plots
-      curv <- ifelse(length(class(the.slider)) > 1, the.slider$getValue(), 0)
+    # Slider for curvature of edges in circle plots
+    curv <- ifelse(length(class(the.slider)) > 1, the.slider$getValue(), 0)
 
-      if (n == 0) {
-        main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
-      } else {
-        main <- g$Group
-      }
-
-      # Show a legend for vertex colors
-      show.legend <- FALSE
-      if (vertColor$getActive() + 1 %in% c(3, 5) & showLegend$active == TRUE) {
-        show.legend <- TRUE
-      }
-
-      plotFunc(g, plane=plane, hemi=plotHemi, subgraph=subgraph,
-               vertex.label=vlabel, vertex.size=vsize, edge.width=ewidth,
-               vertex.color=vertex.color, edge.color=edge.color,
-               edge.curved=curv, main=main, show.legend=show.legend)
-
-      if (orient$getActive() == 3) {
-        g.density <- round(graph.density(g), digits=3)
-        par(new=T, mar=c(5, 0, 3, 0) + 0.1)
-        subt <- paste('# vertices: ', vcount(g), '# edges: ', ecount(g), '\n',
-                      'Density: ', g.density)
-        title(main=main, col.main='white', sub=subt, col.sub='white')
-      }
+    if (n == 0) {
+      main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
+    } else {
+      main <- g$Group
     }
+
+    # Show a legend for vertex colors
+    show.legend <- FALSE
+    if (vertColor$getActive() %in% c(2, 5, 6) & showLegend$active == TRUE) {
+      show.legend <- TRUE
+    }
+
+    plotFunc(g, plane=plane, hemi=plotHemi, subgraph=subgraph,
+             vertex.label=vlabel, vertex.size=vsize, edge.width=ewidth,
+             vertex.color=vertex.color, edge.color=edge.color,
+             edge.curved=curv, main=main, show.legend=show.legend)
+
+
 
     if (showDiameter$active == TRUE | edgeDiffs$active == TRUE) {
       # Show the diameter of each graph?
@@ -355,7 +342,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                vertex.shape='none', edge.width=5,
                vertex.color='deeppink', edge.color='deeppink',
                xlim=xlim.g, ylim=ylim.g,
-               edge.curved=curv)
+               edge.curved=curv, sub=NULL)
     }
   }
   #=============================================================================

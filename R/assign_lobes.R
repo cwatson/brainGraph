@@ -23,7 +23,7 @@ assign_lobes <- function(g, rand=FALSE) {
 
   stopifnot(is_igraph(g))
   stopifnot('atlas' %in% graph_attr_names(g))
-  lobe <- hemi <- name <- class <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+  lobe <- hemi <- name <- class <- network <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
 
   # Check that vertex names match the atlas names
   atlas.dt <- eval(parse(text=g$atlas))
@@ -38,18 +38,24 @@ assign_lobes <- function(g, rand=FALSE) {
   V(g)$lobe.hemi <- as.numeric(atlas.dt[vorder, interaction(lobe, hemi)])
   V(g)$hemi <- as.character(atlas.dt[vorder, hemi])
 
-  if (g$atlas == 'destrieux') V(g)$class <- atlas.dt[vorder, as.numeric(class)]
+  if (g$atlas %in% c('destrieux', 'destrieux.scgm')) V(g)$class <- atlas.dt[vorder, as.numeric(class)]
+  if (g$atlas == 'dosenbach160') V(g)$network <- atlas.dt[vorder, as.numeric(network)]
 
   if (!isTRUE(rand)) {
     # Add spatial coordinates for plotting over a brain slice
-    V(g)$x <- atlas.dt[vorder, x]
-    V(g)$y <- atlas.dt[vorder, y]
-    V(g)$z <- atlas.dt[vorder, z]
-    V(g)$x.mni <- atlas.dt[vorder, x.mni]
-    V(g)$y.mni <- atlas.dt[vorder, y.mni]
-    V(g)$z.mni <- atlas.dt[vorder, z.mni]
+    V(g)$x <- V(g)$x.mni <- atlas.dt[vorder, x.mni]
+    V(g)$y <- V(g)$y.mni <- atlas.dt[vorder, y.mni]
+    V(g)$z <- V(g)$z.mni <- atlas.dt[vorder, z.mni]
     V(g)$color.lobe <- group.cols[V(g)$lobe]
     E(g)$color.lobe <- color.edges(g, V(g)$lobe)
+    if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
+      V(g)$color.class <- group.cols[V(g)$class]
+      E(g)$color.class <- color.edges(g, V(g)$class)
+    }
+    if (g$atlas == 'dosenbach160') {
+      V(g)$color.network <- group.cols[V(g)$network]
+      E(g)$color.network <- color.edges(g, V(g)$network)
+    }
 
     counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
     if (g$atlas %in% c('dkt', 'dk', 'destrieux')) {
@@ -68,7 +74,8 @@ assign_lobes <- function(g, rand=FALSE) {
           which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
 
     } else if (g$atlas %in% c('aal90', 'aal2.94', 'aal116', 'aal2.120', 'lpba40',
-                              'hoa112', 'brainsuite', 'dk.scgm', 'dkt.scgm')) {
+                              'hoa112', 'brainsuite', 'dk.scgm', 'dkt.scgm',
+                              'destrieux.scgm', 'dosenbach160')) {
       V(g)$circle.layout <-
         c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
@@ -84,7 +91,7 @@ assign_lobes <- function(g, rand=FALSE) {
           which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
           which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
-      if (g$atlas %in% c('aal116', 'aal2.120')) {
+      if (g$atlas %in% c('aal116', 'aal2.120', 'dosenbach160')) {
         mid1 <- sum(counts[seq(1, 14, 2)])
         mid2 <- sum(counts[seq(1, 15, 2)])
         V(g)$circle.layout <-

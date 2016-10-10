@@ -12,6 +12,8 @@
 #'   already been generated (default: NULL)
 #' @param ... Other parameters (passed to \code{\link{rich.club.coeff}})
 #' @export
+#' @importFrom plyr laply
+#' @importFrom plyr aaply
 #'
 #' @return A list with four elements:
 #' \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}

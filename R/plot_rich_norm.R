@@ -79,7 +79,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
               aes(x=NULL, y=NULL, xmin=xstart, xmax=xend, ymin=-Inf, ymax=Inf),
               alpha=0.08, fill='red') +
     facet_wrap(as.formula(paste('~', facet.by)), scales='free') +
-    xlab('Degree (k)') + ylab(expression(phi[norm])) +
+    labs(x='Degree (k)', y=expression(phi[norm])) +
     theme(legend.position='bottom')
 
   return(p)

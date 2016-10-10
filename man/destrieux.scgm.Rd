@@ -8,12 +8,9 @@
 }
 \usage{data("destrieux.scgm")}
 \format{
-  A data frame with 162 observations on the following 11 variables.
+  A data frame with 162 observations on the following 8 variables.
   \describe{
     \item{\code{name}}{a character vector of region names}
-    \item{\code{x}}{a numeric vector of x-coordinates (internal to \code{brainGraph})}
-    \item{\code{y}}{a numeric vector of y-coordinates (internal to \code{brainGraph})}
-    \item{\code{z}}{a numeric vector of z-coordinates (internal to \code{brainGraph})}
     \item{\code{x.mni}}{a numeric vector of x-coordinates (in MNI space)}
     \item{\code{y.mni}}{a numeric vector of y-coordinates (in MNI space)}
     \item{\code{z.mni}}{a numeric vector of z-coordinates (in MNI space)}

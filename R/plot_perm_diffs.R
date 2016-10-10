@@ -64,7 +64,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
     if (!measure %in% names(perm.dt)) {
       stop(sprintf('Measure %s is not valid!', deparse(substitute(measure))))
     }
-    if (is.igraph(g1)) {
+    if (is_igraph(g1)) {
       meas.obs1 <- graph_attr(g1, measure)
       meas.obs2 <- graph_attr(g2, measure)
     } else {
@@ -125,14 +125,14 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
       #             fill='cyan3', outlier.size=0) +
       #scale_x_discrete(breaks=seq(densities.perm[1],
       #                            densities.perm[length(densities.perm)], by=0.05)) +
-      xlab('Density') +
-      ylab(sprintf('Permutation difference (%s - %s)', groups[1], groups[2])) +
-      ggtitle(ylabel)
+      labs(x='Density',
+           y=sprintf('Permutation difference (%s - %s)', groups[1], groups[2]),
+           plot.title=ylabel)
 
   # Vertex-level permutations
   #-------------------------------------
   } else if (level == 'vertex') {
-    if (is.igraph(g1)) {
+    if (is_igraph(g1)) {
       meas.obs1 <- vertex_attr(g1, measure)
       meas.obs2 <- vertex_attr(g2, measure)
     } else {

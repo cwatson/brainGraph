@@ -17,7 +17,7 @@
 #'
 #' @param g The \code{igraph} graph object of interest
 #' @param node.color Character string indicating whether to color the vertices or
-#'   not; can be 'none', 'lobe', or 'community'
+#'   not; can be 'none', 'lobe', 'comm', 'comm.wt', 'comp', or 'network'
 #' @param node.size Character string indicating what size the vertices should be;
 #'   can be any vertex-level attribute (default: 'constant')
 #' @param edge.wt Character string indicating the edge attribute to use to
@@ -35,7 +35,7 @@
 #'   edge.wt='t.stat')
 #' }
 
-write.brainnet <- function(g, node.color=c('none', 'community', 'lobe', 'component'),
+write.brainnet <- function(g, node.color=c('none', 'comm', 'comm.wt', 'lobe', 'comp', 'network'),
                            node.size='constant', edge.wt=NULL, file.prefix='') {
   x.mni <- y.mni <- z.mni <- NULL
   stopifnot(is_igraph(g))
@@ -46,18 +46,15 @@ write.brainnet <- function(g, node.color=c('none', 'community', 'lobe', 'compone
   node.color <- match.arg(node.color)
   if (node.color == 'none') {
     color <- rep(1, vcount(g))
-  } else if (node.color == 'community') {
-    color <- V(g)$comm
-  } else if (node.color == 'lobe') {
-    color <- V(g)$lobe
-  } else if (node.color == 'component') {
-    color <- V(g)$comp
+  } else {
+    color <- vertex_attr(g, node.color)
   }
 
   node.size <- match.arg(node.size)
   if (node.size == 'constant') {
     size <- 5
   } else {
+    stopifnot(node.size %in% vertex_attr_names(g))
     size <- vertex_attr(g, node.size)
   }
 

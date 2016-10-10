@@ -5,9 +5,10 @@
 \title{Initialize variables for further use in brainGraph}
 \usage{
 brainGraph_init(atlas = c("aal116", "aal2.120", "aal2.94", "aal90",
-  "brainsuite", "destrieux", "dk", "dk.scgm", "dkt", "dkt.scgm", "hoa112",
-  "lpba40"), densities, datadir, modality = c("thickness", "volume", "lgi",
-  "area"), use.mean = FALSE, covars = NULL, exclude.subs = NULL)
+  "brainsuite", "destrieux", "destrieux.scgm", "dk", "dk.scgm", "dkt",
+  "dkt.scgm", "dosenbach160", "hoa112", "lpba40"), densities, datadir,
+  modality = c("thickness", "volume", "lgi", "area"), use.mean = FALSE,
+  covars = NULL, exclude.subs = NULL)
 }
 \arguments{
 \item{atlas}{A character string indicating which brain atlas you are using}

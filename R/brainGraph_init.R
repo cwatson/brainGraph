@@ -55,8 +55,9 @@
 #' }
 
 brainGraph_init <- function(atlas=c('aal116', 'aal2.120', 'aal2.94', 'aal90',
-                                    'brainsuite', 'destrieux', 'dk', 'dk.scgm',
-                                    'dkt', 'dkt.scgm', 'hoa112', 'lpba40'),
+                                    'brainsuite', 'destrieux', 'destrieux.scgm',
+                                    'dk', 'dk.scgm', 'dkt', 'dkt.scgm',
+                                    'dosenbach160', 'hoa112', 'lpba40'),
                             densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, covars=NULL, exclude.subs=NULL) {

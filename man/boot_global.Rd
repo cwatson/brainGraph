@@ -32,7 +32,7 @@ The 95\% confidence intervals are calculated using the normal approximation.
 }
 \examples{
 \dontrun{
-boot.E.global <- boot_global(densities, m$resids, 1e3, 'E.global')
+boot.E.global <- boot_global(densities, resids.all, 1e3, 'E.global')
 }
 }
 \author{

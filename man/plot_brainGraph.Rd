@@ -4,9 +4,9 @@
 \alias{plot_brainGraph}
 \title{Plot a brain graph with a specific spatial layout}
 \usage{
-plot_brainGraph(g, plane = c("axial", "sagittal"), hemi = c("both", "L",
-  "R"), subgraph = NULL, show.legend = FALSE, rescale = FALSE,
-  ylim = c(-1.5, 1.5), asp = 0, main = NULL, ...)
+plot_brainGraph(g, plane = c("axial", "sagittal", "circular"),
+  hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
+  rescale = FALSE, asp = 0, main = NULL, sub = "default", ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -25,12 +25,11 @@ vertices (default: NULL)}
 
 \item{rescale}{A logical, whether to rescale the coordinates (default: FALSE)}
 
-\item{ylim}{A vector giving limits for the vertical axis
-(default: c(-1.5, 1.5))}
-
 \item{asp}{A numeric constant for the aspect ratio (default: 0)}
 
 \item{main}{Character string for the main title (default: NULL)}
+
+\item{sub}{Character string for the subtitle (default: 'default')}
 
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }
@@ -46,6 +45,8 @@ With the argument \code{subgraph}, you can specify a simple logical equation
 for which vertices to show. For example, \emph{'degree > 10'} will plot only
 vertices with a \emph{degree} greater than 10. Combinations of \emph{AND}
 (i.e., \code{&}) and \emph{OR} (i.e., \code{|}) are allowed.
+
+To remove the subtitle at the bottom, simply specify \code{sub=NULL}.
 }
 \examples{
 \dontrun{

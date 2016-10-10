@@ -23,6 +23,8 @@
 #'   numbers (default: 0.5)
 #' @param inds A list (length equal to number of groups) of integers; each list
 #'   element should be a vector of length equal to the group sizes
+#' @param algo Character string of the tractography algorithm used (default:
+#'   'probabilistic')
 #' @param P Number of samples generated using FSL (default: 5000)
 #' @export
 #'
@@ -53,7 +55,8 @@
 dti_create_mats <- function(A.files,
                             divisor=c('none', 'waytotal', 'size', 'rowSums'),
                             div.files=NULL, mat.thresh=0, sub.thresh=0.5,
-                            inds, P=5000) {
+                            inds, algo=c('probabilistic', 'deterministic'),
+                            P=5000) {
   # Argument checking
   if (!isTRUE(all(sapply(A.files, file.exists)))) {
     stop(sprintf('%s does not contain all valid files',
@@ -80,31 +83,36 @@ dti_create_mats <- function(A.files,
                            Nv, Nv, byrow=T)),
              dim=c(Nv, Nv, sum(kNumSubjs)))
 
+  algo <- match.arg(algo)
   divisor <- match.arg(divisor)
-  if (divisor == 'none') {
-    A.norm <- A
-  } else {
-    div <- array(sapply(div.files, function(x)
-                        matrix(scan(x, what=numeric(0), n=Nv*1, quiet=T),
-                               Nv, 1, byrow=T)),
-                 dim=c(Nv, 1, sum(kNumSubjs)))
+  if (algo == 'probabilistic') {
+    if (divisor == 'none') {
+      A.norm <- A
+    } else {
+      div <- array(sapply(div.files, function(x)
+                          matrix(scan(x, what=numeric(0), n=Nv*1, quiet=T),
+                                 Nv, 1, byrow=T)),
+                   dim=c(Nv, 1, sum(kNumSubjs)))
 
-    if (divisor == 'waytotal') {
-      # Control for streamline count by waytotal
-      W <- array(apply(div, 3, function(x)
-                       x[, rep(1, Nv)]), dim=dim(A))
-      A.norm <- A / W
+      if (divisor == 'waytotal') {
+        # Control for streamline count by waytotal
+        W <- array(apply(div, 3, function(x)
+                         x[, rep(1, Nv)]), dim=dim(A))
+        A.norm <- A / W
 
-    } else if (divisor == 'size') {
-      # Control for the size (# voxels) of both regions 'x' and 'y'
-      R <- array(apply(div, 3, function(x)
-                       cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
-                 dim=dim(A))
-      A.norm <- 2 * A / (P * R)
+      } else if (divisor == 'size') {
+        # Control for the size (# voxels) of both regions 'x' and 'y'
+        R <- array(apply(div, 3, function(x)
+                         cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
+                   dim=dim(A))
+        A.norm <- 2 * A / (P * R)
 
-    } else if (divisor == 'rowSums') {
-      A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
+      } else if (divisor == 'rowSums') {
+        A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
+      }
     }
+  } else {
+    A.norm <- A
   }
 
   A.norm <- ifelse(is.nan(A.norm), 0, A.norm)
@@ -114,6 +122,19 @@ dti_create_mats <- function(A.files,
   A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0)
   A.bin.sums <- lapply(seq_along(mat.thresh), function(y) lapply(inds, function(x)
                            rowSums(A.bin[[y]][, , x], dims=2)))
+
+  # In case deterministic tractography was used and the user would like to
+  # adjust for ROI size
+  if (algo == 'deterministic' & divisor == 'size') {
+    div <- array(sapply(div.files, function(x)
+                        matrix(scan(x, what=numeric(0), n=Nv*1, quiet=T),
+                               Nv, 1, byrow=T)),
+                 dim=c(Nv, 1, sum(kNumSubjs)))
+    R <- array(apply(div, 3, function(x)
+                     cbind(sapply(seq_len(Nv), function(y) x + x[y]))),
+               dim=dim(A))
+    A.norm <- 2 * A.norm / R
+  }
 
   # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
   if (sub.thresh == 0) {
@@ -138,11 +159,15 @@ dti_create_mats <- function(A.files,
                                    dim=dim(A.norm[, , inds[[x]]]))))
   A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind::abind, x))
 
-  # Group means
+  # Group means; first take the means of the unthresholded data
+  #A.norm.mean <- lapply(inds, function(x) apply(A.norm[, , x], c(1, 2), mean))
+  #A.group <- lapply(seq_len(length(inds)), function(x)
+  #                  lapply(mat.thresh, function(y) (A.norm.mean[[x]] > y) + 0))
   A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
                         lapply(inds, function(y)
                                rowMeans(A.norm.sub[[x]][, , y], dims=2)))
 
   return(list(A=A, A.norm=A.norm, A.bin=A.bin, A.bin.sums=A.bin.sums,
-              A.inds=A.inds, A.norm.sub=A.norm.sub, A.norm.mean=A.norm.mean))
+              A.inds=A.inds, A.norm.sub=A.norm.sub, A.norm.mean=A.norm.mean))#,
+              #A.group=A.group))
 }

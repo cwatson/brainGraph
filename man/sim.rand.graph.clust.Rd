@@ -14,10 +14,7 @@ sim.rand.graph.clust(graph, cl = graph$transitivity, max.iters = 100)
 \item{max.iters}{The maximum number of iterations to perform (default: 100)}
 }
 \value{
-A list with components:
-\item{g}{The random graph that was generated}
-\item{iters}{The total number of iterations performed}
-\item{cl}{The clustering coefficient at each step}
+An \code{igraph} graph object
 }
 \description{
 This function will simulate a random graph with a given degree sequence and

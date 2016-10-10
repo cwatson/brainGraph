@@ -8,12 +8,9 @@
 }
 \usage{data("hoa112")}
 \format{
-  A data frame with 112 observations on the following 10 variables.
+  A data frame with 112 observations on the following 7 variables.
   \describe{
     \item{\code{name}}{a character vector of region names}
-    \item{\code{x}}{a numeric vector of x-coordinates (internal to \code{brainGraph})}
-    \item{\code{y}}{a numeric vector of y-coordinates (internal to \code{brainGraph})}
-    \item{\code{z}}{a numeric vector of z-coordinates (internal to \code{brainGraph})}
     \item{\code{x.mni}}{a numeric vector of x-coordinates (in MNI space)}
     \item{\code{y.mni}}{a numeric vector of y-coordinates (in MNI space)}
     \item{\code{z.mni}}{a numeric vector of z-coordinates (in MNI space)}

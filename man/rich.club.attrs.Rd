@@ -44,6 +44,12 @@ vertices). They will also be given a \code{color.rich} attribute (either
 will be largest for \emph{rich-club} connections, then smaller for
 \emph{feeder}, and smallest for \emph{local}.
 }
+\examples{
+\dontrun{
+g <- rich.club.attrs(g, rich.dt[density == densities[N] & p.fdr < .01,
+                                range(k)])
+}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }

@@ -5,7 +5,8 @@
 \title{Create connection matrices for tractography analysis}
 \usage{
 dti_create_mats(A.files, divisor = c("none", "waytotal", "size", "rowSums"),
-  div.files = NULL, mat.thresh = 0, sub.thresh = 0.5, inds, P = 5000)
+  div.files = NULL, mat.thresh = 0, sub.thresh = 0.5, inds,
+  algo = c("probabilistic", "deterministic"), P = 5000)
 }
 \arguments{
 \item{A.files}{A character vector of the filenames with connection matrices}
@@ -24,6 +25,9 @@ numbers (default: 0.5)}
 
 \item{inds}{A list (length equal to number of groups) of integers; each list
 element should be a vector of length equal to the group sizes}
+
+\item{algo}{Character string of the tractography algorithm used (default:
+'probabilistic')}
 
 \item{P}{Number of samples generated using FSL (default: 5000)}
 }

@@ -23,23 +23,23 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
+#' boot.mod <- boot_global(densities, resids.all, measure='mod')
 #' boot.mod.plots <- plot_boot(boot.mod$dt, ylab='Modularity')
 #' }
 
 plot_boot <- function(boot.dt, ylabel=NULL, alpha=0.4, ...) {
   meas <- Group <- se <- ci.low <- ci.high <- NULL
 
-  # First plot, using the SEM
-  bootplot <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
+  b <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
     geom_line() +
-    geom_ribbon(aes(ymin=meas-se, ymax=meas+se, fill=Group), alpha=alpha, ...) +
-    ylab(ylabel)
+    labs(y=ylabel)
+  # First plot, using the SEM
+  bootplot <- b +
+    geom_ribbon(aes(ymin=meas-se, ymax=meas+se, fill=Group), alpha=alpha, ...)
 
   # Use the estimated normal 95% CI instead of se
-  bootplot.ci <- ggplot(boot.dt, aes(x=density, y=meas, col=Group)) +
-    geom_line() +
-    geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=alpha, ...) +
-    ylab(ylabel)
+  bootplot.ci <- b +
+    geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=alpha, ...)
 
   return(list(p1=bootplot, p2=bootplot.ci))
 }

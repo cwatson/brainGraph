@@ -7,23 +7,24 @@
 corr.matrix(dat, thresh = NULL, density = 0.1, exclusions = NULL, ...)
 }
 \arguments{
-\item{dat}{Matrix or data frame of the columns to correlate}
+\item{dat}{Data table of the data to correlate}
 
-\item{thresh}{Absolute correlation value to threshold by}
+\item{thresh}{Numeric; absolute correlation value to threshold by}
 
-\item{density}{Keeps the top \emph{X}\% of correlations}
+\item{density}{Numeric indicating the resultant network density; keeps the
+top \emph{X}\% of correlations}
 
-\item{exclusions}{Vector of indices (columns) to exclude (optional)}
+\item{exclusions}{Numeric vector of indices (columns) to exclude (optional)}
 
 \item{...}{Other arguments to be passed to \code{\link[Hmisc]{rcorr}}}
 }
 \value{
 A list with the following components:
-\item{R}{Correlation coefficients (default: Pearson).}
-\item{P}{Associated p-values.}
+\item{R}{Numeric matrix of correlation coefficients.}
+\item{P}{Numeric matrix of p-values.}
 \item{r.thresh}{Binary matrix indicating correlations that are above a
-certain threshold.}
-\item{threshold}{The threshold used.}
+  certain threshold.}
+\item{threshold}{Numeric; the threshold value used.}
 }
 \description{
 This function does a column-by-column correlation of a given data frame, and
@@ -32,10 +33,19 @@ keep only the 10\% strongest correlations.
 }
 \details{
 If you wish to exclude regions from your analysis, you can give the indices
-of their columns. Also returns the p-values. Essentially a wrapper for
+of their columns. This function is essentially a wrapper for
 \code{\link[Hmisc]{rcorr}}, with some added functionality to work with this
 type of data more easily. By default, the Pearson correlation coefficients
 are calculated, but can return Spearman by passing an additional argument.
+}
+\examples{
+\dontrun{
+corrs <- lapply(groups, function(x) lapply(densities, function(y)
+  corr.matrix(resids.all[x], density=y)))
+}
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \seealso{
 \code{\link[Hmisc]{rcorr}}

@@ -25,11 +25,10 @@
 
 sim.rand.graph.par <- function(g, N, clustering=TRUE, ...) {
   stopifnot(is_igraph(g))
-  if (clustering == TRUE) {
-    r <- foreach(i=seq_len(N),
-                  .packages=c('igraph', 'brainGraph')) %dopar% {
+  if (isTRUE(clustering)) {
+    r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- sim.rand.graph.clust(g, ...)
-      tmp$g <- set.brainGraph.attributes(tmp$g, rand=TRUE)
+      tmp <- set.brainGraph.attributes(tmp, rand=TRUE)
       tmp
     }
   } else {

@@ -13,7 +13,7 @@
 #' \link[igraph]{as_data_frame}}
 
 vertex_attr_dt <- function(g, group=NULL) {
-  lobe <- name <- Group <- NULL
+  lobe <- name <- Group <- network <- NULL
   atlas.dt <- eval(parse(text=g$atlas))
 
   net.meas <- setDT(as_data_frame(g, what='vertices'))
@@ -23,6 +23,10 @@ vertex_attr_dt <- function(g, group=NULL) {
   if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
     net.meas[, 'color.class' := NULL]
     net.meas$class <- atlas.dt[, levels(class)][V(g)$class]
+  }
+  if (g$atlas == 'dosenbach160') {
+    net.meas[, 'color.network' := NULL]
+    net.meas$network <- atlas.dt[, levels(network)][V(g)$network]
   }
   net.meas$density <- g$density
   net.meas$lobe <- atlas.dt[, levels(lobe)][V(g)$lobe]

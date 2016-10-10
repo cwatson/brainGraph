@@ -14,20 +14,19 @@
 graph_attr_dt <- function(g.list, group=NULL) {
   Group <- NULL
   inds <- which(sapply(graph_attr(g.list[[1]]), class) %in% c('numeric', 'integer'))
-  g.attr.names <- graph_attr_names(g.list[[1]])[inds]
-  g.dt <- as.data.table(sapply(g.attr.names, function(x)
+  g.attrs <- graph_attr_names(g.list[[1]])
+  g.attr.num <- g.attrs[inds]
+  g.dt <- as.data.table(sapply(g.attr.num, function(x)
                                sapply(g.list, function(y)
                                       round(graph_attr(y, x), 4))))
 
-  if ('name' %in% graph_attr_names(g.list[[1]])) {
-    g.dt$Study.ID <- sapply(g.list, function(x) x$name)
-  }
-  if ('atlas' %in% graph_attr_names(g.list[[1]])) g.dt$atlas <- g.list[[1]]$atlas
-  if ('modality' %in% graph_attr_names(g.list[[1]])) {
+  if ('name' %in% g.attrs) g.dt$Study.ID <- sapply(g.list, function(x) x$name)
+  if ('atlas' %in% g.attrs) g.dt$atlas <- g.list[[1]]$atlas
+  if ('modality' %in% g.attrs) {
     g.dt$modality <- sapply(g.list, function(x) x$modality)
   }
   if (is.null(group)) {
-    if ('Group' %in% graph_attr_names(g.list[[1]])) {
+    if ('Group' %in% g.attrs) {
       g.dt$Group <- sapply(g.list, function(x) x$Group)
       setkey(g.dt, Group, density)
     }

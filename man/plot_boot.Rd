@@ -34,6 +34,7 @@ The 95\% confidence intervals are calculated using the normal approximation.
 }
 \examples{
 \dontrun{
+boot.mod <- boot_global(densities, resids.all, measure='mod')
 boot.mod.plots <- plot_boot(boot.mod$dt, ylab='Modularity')
 }
 }

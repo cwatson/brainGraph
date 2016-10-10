@@ -7,7 +7,7 @@
 #' @param corrs The correlation matrix
 #' @param ordered A logical indicating whether or not to order vertices
 #' (default:TRUE)
-#' @param type Character string, either 'comm' or 'lobe'
+#' @param type Character string, one of: 'comm', 'comm.wt', 'lobe', or 'network'
 #' @param g An igraph graph object; not required if \emph{ordered} is FALSE
 #' @param group A character vector of the group name (default: NULL)
 #' @export
@@ -21,8 +21,9 @@
 #'                            group=groups[1])
 #' }
 
-plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
-                          group=NULL) {
+plot_corr_mat <- function(corrs, ordered=TRUE,
+                          type=c('comm', 'comm.wt', 'lobe', 'network'),
+                          g=NULL, group=NULL) {
   Var1 <- Var2 <- memb <- color <- color.test <- legend.t <- value <- color.text <- NULL
   base_size <- ifelse(nrow(corrs) > 90, 7.5, 9)
 
@@ -37,19 +38,19 @@ plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
     create.dt <- function(dat, graph, v.attr) {
       lobe <- memb1 <- memb2 <- Var1 <- Var2 <- value <- legend.t <- color <- color.text <- NULL
       memb <- vertex_attr(graph, v.attr)
-      if (v.attr == 'comm') {
+      if (v.attr %in% c('comm', 'comm.wt')) {
         tab <- table(memb)
         group.nums <- as.integer(names(tab))
         group.max <- length(group.nums)
         group.nums <- c(group.nums, group.max + 1, group.max + 2)
         new.order <- order(match(memb, group.nums))
         legend.title <- 'Communities (#)'
-      } else if (v.attr == 'lobe') {
-        group.nums <- c(eval(parse(text=graph$atlas))[, levels(lobe)])
+      } else if (v.attr %in% c('lobe', 'network')) {
+        group.nums <- c(eval(parse(text=graph$atlas))[, levels(get(v.attr))])
         group.max <- length(group.nums)
         group.nums <- c(group.nums, 'Inter', '')
         new.order <- order(memb)
-        legend.title <- 'Lobe'
+        legend.title <- tools::toTitleCase(v.attr)
       }
       dat <- dat[new.order, new.order]
       dat.m <- melt(dat)
@@ -77,27 +78,28 @@ plot_corr_mat <- function(corrs, ordered=TRUE, type=c('comm', 'lobe'), g=NULL,
     matplot <- ggplot(corrs.m, aes(Var1, Var2, fill=memb)) +
       geom_tile() +
       scale_fill_manual(values=corrs.m[, levels(color)]) +
-      ggtitle(group) +
       theme(axis.ticks=element_blank(),
            axis.text.x=element_text(size=0.7*base_size, angle=45,
                                     color=corrs.m[1:Nv, color.text]),
            axis.title.x=element_blank(),
            axis.text.y=element_text(size=0.7*base_size,
                                     color=corrs.m[rev(1:Nv), color.text]),
-           axis.title.y=element_blank()) +
-      labs(fill=corrs.m[, unique(legend.t)]) +
+           axis.title.y=element_blank(),
+           plot.title=element_text(hjust=0.5, face='bold')) +
+      labs(title=group, fill=corrs.m[, unique(legend.t)]) +
       ylim(rev(levels(corrs.m$Var2)))
 
   } else {
     corrs.m <- melt(corrs)
     matplot <- ggplot(corrs.m, aes(Var1, Var2, fill=value)) +
       geom_tile() +
-      ggtitle(group) +
       theme(axis.ticks=element_blank(),
            axis.text.x=element_text(size=0.7*base_size, angle=45),
            axis.title.x=element_blank(),
            axis.text.y=element_text(size=0.7*base_size),
-           axis.title.y=element_blank()) +
+           axis.title.y=element_blank(),
+           plot.title=element_text(hjust=0.5, face='bold')) +
+      labs(title=group) +
       ylim(rev(levels(corrs.m$Var2)))
     if (identical(sum(abs(corrs)) - sum(corrs == 1), 0)) {
       matplot <- matplot + scale_fill_gradient2(low='white', high='blue') +

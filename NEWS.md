@@ -1,7 +1,10 @@
-# brainGraph 0.71.0
-2016-07-15
+# brainGraph 0.72.0
+
+2016-10-XX
 
 ## Bug fix
+* `sim.rand.graph.clust` previously returned a list; now it correctly returns an
+    `igraph` graph object
 * `aop` and `loo`: regional contributions were calculated incorrectly (without
     an absolute value)
 * `rich.club.norm`: changed the p-value calculation again; this shouldn't affect
@@ -18,11 +21,12 @@
     number repeated (i.e., when `range(x) = 0`)
 
 ## Major changes
+* `dti_create_mats`: new function argument `algo` can be used to specify either 'probabilistic' or 'deterministic'. In the case of the latter, when dividing streamline count by ROI size, you can supply absolute streamline counts with the `mat.thresh` argument.
 * Changed instances of `.parallel` to `use.parallel`; also, added it as an
     argument to `set.brainGraph.attributes` to control all of the functions that
     it calls; also added the argument to `part.coeff` and
     `within_module_deg_z_score`
-* Added atlases `aal2.94` and `aal2.120`
+* Added atlases `aal2.94`, `aal2.120`, and `dosenbach160`
 * `plot_brainGraph`: can now specify the orientation plane, hemisphere to plot,
     showing a legend, and a character string of logical expressions for plotting
     subgraphs (previously was in `plot_brainGraph_list`)
@@ -38,6 +42,9 @@
 * `rich.club.attrs`: give a graph attributes based on rich-club analysis
 
 ## Minor changes
+* Removed the `x`, `y`, and `z` columns from the atlas data files; now only the
+    MNI coordinates are used. This should simplify adding a personal atlas to use
+    with the package
 * Added a column, `name.full` to some of the atlas data files
 * `NBS`:
   * New edge attribute `p`, the p-value for that specific connection
@@ -45,8 +52,10 @@
 * `brainGraph_init`: can now provide a `covars` data table if you want to subset
     certain variables yourself, or if the file is named differently from
     `covars.csv`
+* `plot_brainGraph`: can now manually specify a subtitle;
 * `plot_brainGraph_gui`:
   * Option for specifying maximum values for edge widths
+* `plot_corr_mat`: color cells based on weighted community or network
 * `plot_global`:
   * legend position is now "bottom" by default
   * can specify `xvar` to be either "density" or "threshold"; if the latter, the
@@ -59,11 +68,14 @@
   * Added argument `fdr` to choose whether or not to use FDR-adjusted p-values
   * Should work for more than 2 groups
   * Now works with multi-subject data; collapses by *Group* and plots the group mean
-* `set.brainGraph.diffs`: calculate graph `strength`, which is the mean of vertex
-    strength (weighted networks)
+* `plot_vertex_measures`: can facet by different variables (e.g., lobe, community, network, etc.)
+* `set.brainGraph.attributes`:
+  * calculate graph `strength`, which is the mean of vertex strength (weighted networks)
+  * Invert edge weights for distance-based measures
 * `write.brainnet`:
   * Now allows for writing weighted adjacency matrices, using the `edge.wt`
     function argument
+  * Can color vertices by multiple variables
 
 ---
 # brainGraph 0.62.0

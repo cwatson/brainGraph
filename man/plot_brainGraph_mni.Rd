@@ -5,7 +5,7 @@
 \title{Draw an axial or sagittal slice of the MNI152 T1 image}
 \usage{
 plot_brainGraph_mni(plane = c("axial", "sagittal"), slice, hemi = c("L",
-  "R"), save = FALSE, fname = NULL)
+  "R"), save.graph = FALSE, fname = NULL)
 }
 \arguments{
 \item{plane}{Character string, either 'axial' or 'sagittal'}
@@ -14,8 +14,8 @@ plot_brainGraph_mni(plane = c("axial", "sagittal"), slice, hemi = c("L",
 
 \item{hemi}{Character string, either 'L' or 'R'}
 
-\item{save}{Logical indicating whether or not a png file should be saved
-(default: FALSE)}
+\item{save.graph}{Logical indicating whether or not a png file should be
+saved (default: FALSE)}
 
 \item{fname}{The name of the file to be saved}
 }

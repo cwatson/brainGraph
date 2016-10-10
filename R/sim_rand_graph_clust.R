@@ -9,10 +9,7 @@
 #' @param max.iters The maximum number of iterations to perform (default: 100)
 #' @export
 #'
-#' @return A list with components:
-#' \item{g}{The random graph that was generated}
-#' \item{iters}{The total number of iterations performed}
-#' \item{cl}{The clustering coefficient at each step}
+#' @return An \code{igraph} graph object
 #'
 #' @seealso \code{\link{choose.edges}, \link[igraph]{rewire},
 #' \link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
@@ -23,12 +20,12 @@ sim.rand.graph.clust <- function(graph, cl=graph$transitivity, max.iters=100) {
   #g.all <- vector('list')
 
   cur.iter <- 0
-  cl.all <- loop.time <- vector(length=length(max.iters))
+  #cl.all <- loop.time <- vector(length=length(max.iters))
   while ((transitivity(g) < cl) & (cur.iter < max.iters)) {
     start.time <- Sys.time()
     repeat {
       g.cand <- g
-  
+
       # If E(y1, y2) and E(z1, z2) don't exist, rewire 2 edges
       repeat {
         e <- choose.edges(g.cand)
@@ -56,10 +53,11 @@ sim.rand.graph.clust <- function(graph, cl=graph$transitivity, max.iters=100) {
     }
 
     cur.iter <- cur.iter + 1
-    cl.all[cur.iter] <- transitivity(g.cand)
+    #cl.all[cur.iter] <- transitivity(g.cand)
     g <- g.cand
-    loop.time[cur.iter] <- as.numeric(Sys.time() - start.time)
+    #loop.time[cur.iter] <- as.numeric(Sys.time() - start.time)
   }
 
-  return(list(g=g, iters=cur.iter, cl=cl.all, time=loop.time))#, g.all))
+  return(g)
+  #return(list(g=g, iters=cur.iter, cl=cl.all, time=loop.time))#, g.all))
 }

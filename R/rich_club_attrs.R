@@ -34,6 +34,11 @@
 #'   \item{size.rich}{Edge and vertex attributes}
 #' @seealso \code{\link{rich.club.norm}, \link{rich.club.coeff}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' g <- rich.club.attrs(g, rich.dt[density == densities[N] & p.fdr < .01,
+#'                                 range(k)])
+#' }
 
 rich.club.attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
   if (is.null(deg.range)) deg.range <- c(1, max(V(g)$degree))

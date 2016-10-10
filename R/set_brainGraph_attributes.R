@@ -86,12 +86,6 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       V(g)$strength <- graph.strength(g)
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
-      V(g)$E.local.wt <- graph.efficiency(g, type='local',
-                                          use.parallel=use.parallel)
-      g$E.local.wt <- mean(V(g)$E.local.wt)
-      V(g)$E.nodal.wt <- graph.efficiency(g, 'nodal', use.parallel=use.parallel)
-      g$E.global.wt <- mean(V(g)$E.nodal.wt)
-      g$diameter.wt <- diameter(g)
       R <- lapply(1:max(V(g)$degree),
                   function(x) rich.club.coeff(g, x, weighted=TRUE))
       phi <- vapply(R, with, numeric(1), phi)
@@ -100,26 +94,35 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
       comm.wt <- cluster_louvain(g)
       g$mod.wt <- max(comm.wt$modularity)
-
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
       V(g)$color.comm.wt <- color.vertices(V(g)$comm.wt)[V(g)$comm.wt]
       E(g)$color.comm.wt <- color.edges(g, V(g)$comm.wt)
-
       V(g)$PC.wt <- part.coeff(g, V(g)$comm.wt, use.parallel=use.parallel)
       V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt,
                                                    use.parallel=use.parallel)
-
       V(g)$transitivity.wt <- transitivity(g, type='weighted')
+
+      # Need to convert weights for distance measures
+      E(g)$weight <- 1 / E(g)$weight
+      V(g)$E.local.wt <- graph.efficiency(g, type='local',
+                                          use.parallel=use.parallel)
+      g$E.local.wt <- mean(V(g)$E.local.wt)
+      V(g)$E.nodal.wt <- graph.efficiency(g, 'nodal', use.parallel=use.parallel)
+      g$E.global.wt <- mean(V(g)$E.nodal.wt)
+      g$diameter.wt <- diameter(g)
       Lpv.wt <- distances(g)
       Lpv.wt[is.infinite(Lpv.wt)] <- NA
       V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
+
+      # Convert back to connection strength
+      E(g)$weight <- 1 / E(g)$weight
     }
 
     if (is.directed(g)) {
-      hubs <- hub.score(g)
+      hubs <- hub_score(g)
       g$hub.score <- hubs$value
-      authorities <- authority.score(g)
+      authorities <- authority_score(g)
       g$authority.score <- authorities$value
       V(g)$hub.score <- hubs$vector
       V(g)$authority.score <- authorities$vector
@@ -146,9 +149,10 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
       V(g)$dist.strength <- V(g)$dist * V(g)$degree
 
       if (atlas %in% c('destrieux', 'destrieux.scgm')) {
-        V(g)$color.class <- group.cols[V(g)$class]
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
-        E(g)$color.class <- color.edges(g, V(g)$class)
+      }
+      if (atlas == 'dosenbach160') {
+        g$assortativity.network <- assortativity_nominal(g, V(g)$network)
       }
     }
 
@@ -173,7 +177,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
                                      use.parallel=use.parallel)
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g, use.parallel=use.parallel)
-    g$vulnerability <- max(V(g)$vulnerability, use.parallel=use.parallel)
+    g$vulnerability <- max(V(g)$vulnerability)
     V(g)$eccentricity <- eccentricity(g)
 
     # Community stuff
@@ -189,7 +193,7 @@ set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
 
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
 
-    V(g)$PC <- part.coeff(g, V(g)$comm)
+    V(g)$PC <- part.coeff(g, V(g)$comm, use.parallel=use.parallel)
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm,
                                               use.parallel=use.parallel)
   }

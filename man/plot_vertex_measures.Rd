@@ -2,18 +2,22 @@
 % Please edit documentation in R/plot_vertex_measures.R
 \name{plot_vertex_measures}
 \alias{plot_vertex_measures}
-\title{Plot vertex-level graph measures at a single density}
+\title{Plot vertex-level graph measures at a single density or threshold}
 \usage{
-plot_vertex_measures(dat, cur.density = 0.1, measure = "btwn.cent",
-  ylabel = NULL)
+plot_vertex_measures(tidy.dt, facet.by = "lobe", measure = "btwn.cent",
+  show.points = FALSE, ylabel = NULL)
 }
 \arguments{
-\item{dat}{A ``tidied'' data table of vertex-level graph measures}
+\item{tidy.dt}{A ``tidied'' \code{data.table} of vertex-level graph measures}
 
-\item{cur.density}{A numeric indicating the graph density}
+\item{facet.by}{Character string indicating whether the data should be
+plotted separately by a certain variable (default: 'lobe')}
 
 \item{measure}{A character string of the graph measure to plot (default:
 'btwn.cent')}
+
+\item{show.points}{Logical indicating whether or not to show individual data
+points (default: FALSE)}
 
 \item{ylabel}{A character string for the y-axis label}
 }
@@ -22,12 +26,13 @@ A \code{ggplot} object
 }
 \description{
 This function creates boxplots of a single vertex-level graph measure at a
-single density, grouped by \emph{lobe}; each lobe has a separate \emph{facet}
-in a \code{ggplot} object.
+single density or threshold, grouped by the variable specified by
+\code{facet.by} (e.g., \emph{lobe} or \emph{network}).
 }
 \examples{
 \dontrun{
-ggp.btwn <- plot_vertex_measures(net.meas.tidy, densities[N], 'btwn.cent')
+ggp.btwn <- plot_vertex_measures(dt.net.meas.tidy, facet.by='network',
+  measure='E.nodal')
 }
 }
 \author{

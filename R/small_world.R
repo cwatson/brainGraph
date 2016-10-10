@@ -26,12 +26,12 @@
 #' 'small-world' networks}. Nature, 393:440-442.
 
 small.world <- function(g, rand) {
-  if (is.igraph(g)) g <- list(g)  # Single graph at a single density
+  if (is_igraph(g)) g <- list(g)  # Single graph at a single density
   Lp <- vapply(g, function(x) graph_attr(x, 'Lp'), numeric(1))
   Cp <- vapply(g, function(x) graph_attr(x, 'Cp'), numeric(1))
   densities <- vapply(g, function(x) graph_attr(x, 'density'), numeric(1))
 
-  if (is.igraph(rand[[1]])) {
+  if (is_igraph(rand[[1]])) {
     Lp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Lp'), numeric(1)))
     Cp.rand <- mean(vapply(rand, function(x) graph_attr(x, 'Cp'), numeric(1)))
     N <- length(rand)

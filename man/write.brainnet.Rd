@@ -4,14 +4,14 @@
 \alias{write.brainnet}
 \title{Write files to be used for visualization with BrainNet Viewer}
 \usage{
-write.brainnet(g, node.color = c("none", "community", "lobe", "component"),
-  node.size = "constant", edge.wt = NULL, file.prefix = "")
+write.brainnet(g, node.color = c("none", "comm", "comm.wt", "lobe", "comp",
+  "network"), node.size = "constant", edge.wt = NULL, file.prefix = "")
 }
 \arguments{
 \item{g}{The \code{igraph} graph object of interest}
 
 \item{node.color}{Character string indicating whether to color the vertices or
-not; can be 'none', 'lobe', or 'community'}
+not; can be 'none', 'lobe', 'comm', 'comm.wt', 'comp', or 'network'}
 
 \item{node.size}{Character string indicating what size the vertices should be;
 can be any vertex-level attribute (default: 'constant')}

@@ -4,8 +4,8 @@
 \alias{plot_corr_mat}
 \title{Plot a correlation matrix}
 \usage{
-plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "lobe"), g = NULL,
-  group = NULL)
+plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "comm.wt", "lobe",
+  "network"), g = NULL, group = NULL)
 }
 \arguments{
 \item{corrs}{The correlation matrix}
@@ -13,7 +13,7 @@ plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "lobe"), g = NULL,
 \item{ordered}{A logical indicating whether or not to order vertices
 (default:TRUE)}
 
-\item{type}{Character string, either 'comm' or 'lobe'}
+\item{type}{Character string, one of: 'comm', 'comm.wt', 'lobe', or 'network'}
 
 \item{g}{An igraph graph object; not required if \emph{ordered} is FALSE}
 

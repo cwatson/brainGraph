@@ -21,7 +21,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' boot.E.global <- boot_global(densities, m$resids, 1e3, 'E.global')
+#' boot.E.global <- boot_global(densities, resids.all, 1e3, 'E.global')
 #' }
 
 boot_global <- function(densities, resids, R=1e3,

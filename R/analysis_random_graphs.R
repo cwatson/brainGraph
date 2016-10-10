@@ -62,7 +62,7 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
   }
   # Check if the graphs have 3 or 2 nested levels
   nesting <- 2
-  if (is.igraph(g[[1]][[1]][[1]])) nesting <- 3
+  if (is_igraph(g[[1]][[1]][[1]])) nesting <- 3
 
   # Loop through all graphs, generate random graphs, calculate rich club coeff's
   phi.norm <- vector('list', length=length(g))
