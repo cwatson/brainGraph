@@ -1,6 +1,8 @@
 # brainGraph 0.72.0
 
-2016-10-XX
+2016-10-10
+
+Fourth CRAN version
 
 ## Bug fix
 * `sim.rand.graph.clust` previously returned a list; now it correctly returns an
