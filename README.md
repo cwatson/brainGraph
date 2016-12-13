@@ -28,7 +28,7 @@ itself.
 
 # Usage
 To see the *User Guide*, please use
-[this link.](https://www.dropbox.com/s/j831n3q9muyz1go/brainGraph_UserGuide.pdf?dl=0)
+[this link.](https://dl.dropboxusercontent.com/s/wmupawb39bcdho3/brainGraph_UserGuide.pdf) (NOTE: you will be asked to download the PDF)
 
 # Getting Help
 For bug reports, feature requests, help with usage/code/etc., please use the
