@@ -4,10 +4,15 @@
 \alias{choose.edges}
 \title{Select edges for re-wiring.}
 \usage{
-choose.edges(g)
+choose.edges(A, degs, degs.large)
 }
 \arguments{
-\item{g}{The random graph that has been generated}
+\item{A}{Numeric (adjacency) matrix}
+
+\item{degs}{Integer vector of the graph's degree sequence}
+
+\item{degs.large}{Integer vector of vertex numbers with degree greater than
+one}
 }
 \value{
 A data frame with four elements; two edges will be removed and two
@@ -22,4 +27,6 @@ Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 biological network structure with clustered random networks}. BMC
 Bioinformatics, 10:405-421.
 }
-
+\seealso{
+\code{\link{sim.rand.graph.clust}}
+}

@@ -20,8 +20,8 @@ test to use; one of: 'two.sided' (default), 'less', 'greater'}
 }
 \value{
 A list containing:
-{p}{The p-values}
-{z}{The z-score for the difference in correlation coefficients}
+\item{p}{The p-values}
+\item{z}{The z-score for the difference in correlation coefficients}
 }
 \description{
 Given two sets of correlation coefficients and sample sizes, this function
@@ -44,4 +44,3 @@ edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

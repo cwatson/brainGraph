@@ -44,10 +44,9 @@ corrs <- lapply(groups, function(x) lapply(densities, function(y)
   corr.matrix(resids.all[x], density=y)))
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[Hmisc]{rcorr}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

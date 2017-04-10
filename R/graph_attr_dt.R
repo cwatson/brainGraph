@@ -20,17 +20,22 @@ graph_attr_dt <- function(g.list, group=NULL) {
                                sapply(g.list, function(y)
                                       round(graph_attr(y, x), 4))))
 
+  if (length(g.list) == 1) {
+    g.dt <- as.data.table(t(g.dt))
+    colnames(g.dt) <- g.attr.num
+  }
+
   if ('name' %in% g.attrs) g.dt$Study.ID <- sapply(g.list, function(x) x$name)
   if ('atlas' %in% g.attrs) g.dt$atlas <- g.list[[1]]$atlas
   if ('modality' %in% g.attrs) {
     g.dt$modality <- sapply(g.list, function(x) x$modality)
   }
   if (is.null(group)) {
+    setkey(g.dt, density)
     if ('Group' %in% g.attrs) {
       g.dt$Group <- sapply(g.list, function(x) x$Group)
       setkey(g.dt, Group, density)
     }
-    setkey(g.dt, density)
   } else {
     g.dt$Group <- group
     setkey(g.dt, Group, density)

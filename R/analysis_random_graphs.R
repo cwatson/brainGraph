@@ -34,7 +34,7 @@
 #'   graphs generated}
 #'
 #' @seealso \code{\link{sim.rand.graph.par}, \link{small.world},
-#'   \link{rich.club.norm}}
+#'   \link{rich_club_norm}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -77,7 +77,7 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
         rand <- sim.rand.graph.par(g[[i]][[j]], N, ...)
         saveRDS(rand, file=paste0(savedir, '/',
                                   sprintf('rand%i_thr%02i%s', i, j, '.rds')))
-        phi.norm[[i]][[j]] <- rich.club.norm(g[[i]][[j]], rand=rand)
+        phi.norm[[i]][[j]] <- rich_club_norm(g[[i]][[j]], rand=rand)
         rm(rand)
         gc()
         setTxtProgressBar(progbar, j)
@@ -93,7 +93,7 @@ analysis_random_graphs <- function(g, N, covars, savedir='.', ...) {
           rand <- sim.rand.graph.par(g[[i]][[j]][[k]], N, ...)
           saveRDS(rand, file=paste0(savedir, '/',
                                     sprintf('rand%i_thr%02i_subj%03i%s', i, j, k, '.rds')))
-          phi.norm[[i]][[j]][[k]] <- rich.club.norm(g[[i]][[j]][[k]], rand=rand)
+          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g[[i]][[j]][[k]], rand=rand)
           rm(rand)
           gc()
           setTxtProgressBar(progbar, k)

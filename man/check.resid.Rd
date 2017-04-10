@@ -25,10 +25,9 @@ p.resids <- check.resid(resids.all)
 lapply(p.resids, function(x) {dev.new(); print(x)})
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[stats]{qqnorm}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

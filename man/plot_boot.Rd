@@ -38,10 +38,9 @@ boot.mod <- boot_global(densities, resids.all, measure='mod')
 boot.mod.plots <- plot_boot(boot.mod$dt, ylab='Modularity')
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link{boot_global}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

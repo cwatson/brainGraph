@@ -28,17 +28,15 @@ plot_corr_mat <- function(corrs, ordered=TRUE,
   base_size <- ifelse(nrow(corrs) > 90, 7.5, 9)
 
   if (isTRUE(ordered)) {
-    if (is.null(g)) {
-      stop('You must provide a graph object for vertex ordering!')
-    }
+    stopifnot(!is.null(g))
     Nv <- nrow(corrs)
     cols <- group.cols
 
     type <- match.arg(type)
     create.dt <- function(dat, graph, v.attr) {
       lobe <- memb1 <- memb2 <- Var1 <- Var2 <- value <- legend.t <- color <- color.text <- NULL
-      memb <- vertex_attr(graph, v.attr)
       if (v.attr %in% c('comm', 'comm.wt')) {
+        memb <- vertex_attr(graph, v.attr)
         tab <- table(memb)
         group.nums <- as.integer(names(tab))
         group.max <- length(group.nums)
@@ -46,21 +44,24 @@ plot_corr_mat <- function(corrs, ordered=TRUE,
         new.order <- order(match(memb, group.nums))
         legend.title <- 'Communities (#)'
       } else if (v.attr %in% c('lobe', 'network')) {
-        group.nums <- c(eval(parse(text=graph$atlas))[, levels(get(v.attr))])
+        atlas.dt <- eval(parse(text=graph$atlas))
+        memb <- atlas.dt[, as.numeric(get(v.attr))]
+        group.nums <- c(atlas.dt[, levels(get(v.attr))])
         group.max <- length(group.nums)
         group.nums <- c(group.nums, 'Inter', '')
         new.order <- order(memb)
         legend.title <- tools::toTitleCase(v.attr)
       }
+      names(memb) <- V(graph)$name
       dat <- dat[new.order, new.order]
       dat.m <- melt(dat)
       setDT(dat.m)
-      dat.m[, memb1 := group.nums[vertex_attr(graph, v.attr, as.character(Var1))]]
-      dat.m[, memb2 := group.nums[vertex_attr(graph, v.attr, as.character(Var2))]]
+      dat.m[, memb1 := group.nums[memb[as.character(Var1)]]]
+      dat.m[, memb2 := group.nums[memb[as.character(Var2)]]]
       dat.m[, memb := ifelse(value == 1,
                              ifelse(memb1 == memb2, memb1, group.nums[group.max + 1]),
                              group.nums[group.max + 2])]
-      if (v.attr == 'comm') {
+      if (v.attr %in% c('comm', 'comm.wt')) {
         dat.m[, memb := factor(memb, levels=seq_len(max(memb)))]
       } else {
         dat.m[, memb1 := factor(memb1, levels=group.nums)]

@@ -45,4 +45,3 @@ group differences.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

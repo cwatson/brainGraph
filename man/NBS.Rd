@@ -4,23 +4,30 @@
 \alias{NBS}
 \title{Network-based statistic for brain MRI data}
 \usage{
-NBS(A, covars, alternative = c("two.sided", "less", "greater"),
-  p.init = 0.001, N = 1000, symmetric = FALSE)
+NBS(A, covars, con.vec, X = NULL, p.init = 0.001, N = 1000,
+  symmetric = FALSE, alternative = c("two.sided", "less", "greater"), ...)
 }
 \arguments{
 \item{A}{Three-dimensional array of all subjects' connectivity matrices}
 
 \item{covars}{A \code{data.table} of covariates}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: 'two.sided')}
+\item{con.vec}{A numeric vector specifying the contrast of interest}
 
-\item{p.init}{Numeric; the initial p-value threshold (default: 0.001)}
+\item{X}{A numeric matrix (optional), if you would like to supply your own
+design matrix (default: \code{NULL})}
 
-\item{N}{Integer; the number of permutations (default: 1e3)}
+\item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
+
+\item{N}{Integer; the number of permutations (default: \code{1e3})}
 
 \item{symmetric}{Logical indicating if input matrices are symmetric (default:
-FALSE)}
+\code{FALSE})}
+
+\item{alternative}{Character string, whether to do a two- or one-sided test
+(default: \code{two.sided})}
+
+\item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 }
 \value{
 A list containing:
@@ -52,12 +59,14 @@ Additionally, each vertex will have a \code{p.nbs} attribute representing
 max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \references{
 Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
   statistic: identifying differences in brain networks}. NeuroImage,
   53(4):1197-1207.
 }
-
+\seealso{
+\code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

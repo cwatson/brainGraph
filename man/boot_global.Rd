@@ -35,11 +35,10 @@ The 95\% confidence intervals are calculated using the normal approximation.
 boot.E.global <- boot_global(densities, resids.all, 1e3, 'E.global')
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[boot]{boot}, \link[boot]{boot.ci},
 \link{permute.group}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

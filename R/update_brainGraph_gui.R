@@ -76,9 +76,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                                 function(x) V(g)$lobe == x, logical(Nv)), 1, any)
       sg.lobe <- induced.subgraph(g, memb.lobe)
     }
-    for (att in graph_attr_names(sg.lobe)) sg.lobe <- delete_graph_attr(sg.lobe, att)
-    for (att in vertex_attr_names(sg.lobe)) sg.lobe <- delete_vertex_attr(sg.lobe, att)
-    for (att in edge_attr_names(sg.lobe)) sg.lobe <- delete_edge_attr(sg.lobe, att)
+    sg.lobe <- delete_all_attr(sg.lobe)
     V(sg.lobe)$name <- V(g)$name[memb.lobe]
 
     #=======================================================
@@ -115,9 +113,7 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
                                                      which(V(g)$lobe == x)])))))
       sg.hemi <- subgraph.edges(g, eids)
       memb.hemi <- which(V(g)$name %in% V(sg.hemi)$name)
-      for (att in graph_attr_names(sg.hemi)) sg.hemi <- delete_graph_attr(sg.hemi, att)
-      for (att in vertex_attr_names(sg.hemi)) sg.hemi <- delete_vertex_attr(sg.hemi, att)
-      for (att in edge_attr_names(sg.hemi)) sg.hemi <- delete_edge_attr(sg.hemi, att)
+      sg.hemi <- delete_all_attr(sg.hemi)
       V(sg.hemi)$name <- V(g)$name[memb.hemi]
       g <- g %s% (sg.lobe %s% sg.hemi)
     }
@@ -178,17 +174,18 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
         verts <- n
         vnames <- V(g)[verts]$name
       }
-        if (n > 0 && V(g)[n]$degree < 2) {
-          g.sub <- make_ego_graph(g, order=1, nodes=n)[[1]]
-          n <- 0
-        } else {
-          g.sub <- graph_neighborhood_multiple(g, verts)
-          g.sub <- set.brainGraph.attributes(g.sub, g$atlas)
-        }
-        g <- g.sub
-        verts <- which(V(g)$name %in% vnames)
-        Nv <- vcount(g)
-        plotFunc <- plot_brainGraph
+      if (n > 0 && V(g)[n]$degree < 2) {
+        g.sub <- make_ego_graph(g, order=1, nodes=n)[[1]]
+        n <- 0
+      } else {
+        g.sub <- make_ego_brainGraph(g, verts)
+        g.sub <- set_brainGraph_attr(g.sub, g$atlas)
+      }
+      g <- g.sub
+      verts <- which(V(g)$name %in% vnames)
+      Nv <- vcount(g)
+      plotFunc <- plot_brainGraph
+      n <- 0
     } else {
       n <- 1
       verts <- NULL
@@ -289,18 +286,15 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
     # Vertex & edge colors
     if (vertColor$getActive() == 0) {
-      tmp <- rep('lightblue', Nv)
-      tmp[verts] <- 'yellow'
-      vertex.color <- tmp
-      edge.color <- rep('red', ecount(g))
+      V(g)$color <- rep('lightblue', Nv)
+      V(g)$color[verts] <- 'yellow'
+      E(g)$color <- rep('red', ecount(g))
     } else {
-      vertex.color <- edge.color <- switch(vertColor$getActive(),
-                                           'color.comm',
-                                           'color.lobe',
-                                           'color.comp',
-                                           'color.comm.wt',
-                                           'color.class',
-                                           'color.network')
+      vertex.color <- switch(vertColor$getActive(), 'color.comm', 'color.lobe',
+                             'color.comp', 'color.comm.wt', 'color.class',
+                             'color.network')
+      V(g)$color <- vertex_attr(g, vertex.color)
+      E(g)$color <- edge_attr(g, vertex.color)
     }
 
     # Show vertex labels?
@@ -311,8 +305,10 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
     if (n == 0) {
       main <- paste0('Neighborhoods of: ', paste(vnames, collapse=', '))
+      cex.main <- 1
     } else {
       main <- g$Group
+      cex.main <- 2.5
     }
 
     # Show a legend for vertex colors
@@ -323,8 +319,8 @@ update_brainGraph_gui <- function(plotDev, graph1, graph2, plotFunc, vertSize,
 
     plotFunc(g, plane=plane, hemi=plotHemi, subgraph=subgraph,
              vertex.label=vlabel, vertex.size=vsize, edge.width=ewidth,
-             vertex.color=vertex.color, edge.color=edge.color,
-             edge.curved=curv, main=main, show.legend=show.legend)
+             vertex.color='color', edge.color='color',
+             edge.curved=curv, main=main, cex.main=cex.main, show.legend=show.legend)
 
 
 

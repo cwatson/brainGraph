@@ -23,16 +23,13 @@
 
 plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
                              all.vals=TRUE,
-                             modality=c('thickness', 'volume', 'lgi', 'area'))
- {
-  region <- value <- Group <- ..density.. <- avg <- group.mean <- bwidth <- NULL
-  breaks <- x <- width <- NULL
+                             modality=c('thickness', 'volume', 'lgi', 'area')) {
+  region <- value <- Group <- ..density.. <- avg <- group.mean <- bwidth <-
+    breaks <- x <- width <- NULL
   if (!is.character(regions)) {
     regions <- dat[, unique(region)][regions]
   } else {
-    if (!all(regions %in% dat[, levels(region)])) {
-      stop(paste('All region names must be valid!'))
-    }
+    stopifnot(all(regions %in% dat[, levels(region)]))
   }
   subDT <- dat[region %in% regions]
 

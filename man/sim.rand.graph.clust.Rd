@@ -4,10 +4,10 @@
 \alias{sim.rand.graph.clust}
 \title{Simulate a random graph with given degree sequence and clustering.}
 \usage{
-sim.rand.graph.clust(graph, cl = graph$transitivity, max.iters = 100)
+sim.rand.graph.clust(g, cl = g$transitivity, max.iters = 100)
 }
 \arguments{
-\item{graph}{The graph from which null graphs are simulated}
+\item{g}{An \code{igraph} graph object from which null graphs are simulated}
 
 \item{cl}{The clustering measure (default: transitivity)}
 
@@ -21,8 +21,12 @@ This function will simulate a random graph with a given degree sequence and
 clustering coefficient. This function calls \link{choose.edges} to decide
 which edges will be re-wired.
 }
+\references{
+Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
+biological network structure with clustered random networks}. BMC
+Bioinformatics, 10:405-421.
+}
 \seealso{
 \code{\link{choose.edges}, \link[igraph]{rewire},
 \link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
 }
-

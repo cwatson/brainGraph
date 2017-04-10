@@ -17,11 +17,11 @@
 #'
 #' @param g The \code{igraph} graph object of interest
 #' @param node.color Character string indicating whether to color the vertices or
-#'   not; can be 'none', 'lobe', 'comm', 'comm.wt', 'comp', or 'network'
+#'   not (default: \code{'none'})
 #' @param node.size Character string indicating what size the vertices should be;
-#'   can be any vertex-level attribute (default: 'constant')
+#'   can be any vertex-level attribute (default: \code{'constant'})
 #' @param edge.wt Character string indicating the edge attribute to use to
-#'   return a weighted adjacency matrix
+#'   return a weighted adjacency matrix (default: \code{NULL})
 #' @param file.prefix Character string for the basename of the \emph{.node} and
 #'   \emph{.edge} files that are written
 #' @export
@@ -31,26 +31,25 @@
 #' visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
 #' @examples
 #' \dontrun{
-#' write.brainnet(g, node.color='community', node.size='degree',
+#' write_brainnet(g, node.color='community', node.size='degree',
 #'   edge.wt='t.stat')
 #' }
 
-write.brainnet <- function(g, node.color=c('none', 'comm', 'comm.wt', 'lobe', 'comp', 'network'),
-                           node.size='constant', edge.wt=NULL, file.prefix='') {
+write_brainnet <- function(g, node.color='none', node.size='constant',
+                           edge.wt=NULL, file.prefix='') {
   x.mni <- y.mni <- z.mni <- NULL
   stopifnot(is_igraph(g))
 
   atlas.dt <- eval(parse(text=g$atlas))
   coords.cur <- round(atlas.dt[, matrix(c(x.mni, y.mni, z.mni), ncol=3)])
 
-  node.color <- match.arg(node.color)
   if (node.color == 'none') {
     color <- rep(1, vcount(g))
   } else {
+    stopifnot(node.color %in% vertex_attr_names(g))
     color <- vertex_attr(g, node.color)
   }
 
-  node.size <- match.arg(node.size)
   if (node.size == 'constant') {
     size <- 5
   } else {
@@ -65,10 +64,7 @@ write.brainnet <- function(g, node.color=c('none', 'comm', 'comm.wt', 'lobe', 'c
     nodefile <- paste0(file.prefix, '.node')
     edgefile <- paste0(file.prefix, '.edge')
   }
-  write.table(cbind(coords.cur,
-                    color,
-                    size,
-                    V(g)$name),
+  write.table(cbind(coords.cur, color, size, V(g)$name),
               file=nodefile,
               row.names=F, col.names=F, sep='\t', quote=F)
 

@@ -3,30 +3,30 @@
 #' This function selects edges to be re-wired when simulating random graphs. It
 #' is based on the algorithm by Bansal et al. (2009), BMC Bioinformatics.
 #'
-#' @param g The random graph that has been generated
+#' @param A Numeric (adjacency) matrix
+#' @param degs Integer vector of the graph's degree sequence
+#' @param degs.large Integer vector of vertex numbers with degree greater than
+#'   one
 #'
 #' @return A data frame with four elements; two edges will be removed and two
 #' edges will be added between the four vertices.
+#' @seealso \code{\link{sim.rand.graph.clust}}
 #'
 #' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 #' biological network structure with clustered random networks}. BMC
 #' Bioinformatics, 10:405-421.
 
-choose.edges <- function(g) {
-  degs <- degree(g)
-  degs.large <- as.integer(which(degs > 1))
-   
-  #=============================================================================
+choose.edges <- function(A, degs, degs.large) {
+
   # Uniformly select random node with degree > 1
   #=============================================================================
-  get.node <- function(graph, degrees.large) {
+  get.node <- function(A, degs.large) {
     repeat {
-      x <- sample(degrees.large, 1)
-      neighb <- intersect(neighbors(graph, x), degrees.large)
+      x <- sample(degs.large, 1)
+      neighb <- intersect(which(A[x, ] == 1), degs.large)
       if (length(neighb) >= 2) return(list(x, neighb))
     }
   }
-  #=============================================================================
   # Uniformly select 2 random neighbors with degree > 1
   #=============================================================================
   get.neighbors <- function(nbrhood) {
@@ -36,8 +36,8 @@ choose.edges <- function(g) {
   #=============================================================================
   # Uniformly select a random neighbor from the y's with degree > 1
   #=============================================================================
-  get.neighbors.z1 <- function(graph, node, degrees, y1) {
-    y1.neighb <- as.integer(neighbors(graph, y1))
+  get.neighbors.z1 <- function(A, node, degrees, y1) {
+    y1.neighb <- which(A[y1, ] == 1)
     choices <- setdiff(y1.neighb, node)
     if (length(choices) <= 1) {
       return(choices)
@@ -46,9 +46,8 @@ choose.edges <- function(g) {
     }
   }
   #=============================================================================
-  get.neighbors.z2 <- function(graph, node, degrees, degrees.large, y2, z1) {
-    #iter <- 0
-    y2.neighb <- as.integer(neighbors(graph, y2))
+  get.neighbors.z2 <- function(A, node, degrees, degs.large, y2, z1) {
+    y2.neighb <- which(A[y2, ] == 1)
     repeat {
       choices <- setdiff(y2.neighb, c(node, z1))
       if (length(choices) == 1) {
@@ -56,31 +55,28 @@ choose.edges <- function(g) {
       } else if (length(choices) > 1) {
         return(sample(choices, 1))
       }
-      #iter <- iter + 1
-      #if (iter >= length(y2.neighb)) {
-        tmp <- get.node(graph, degrees.large)
-        node <- tmp[[1]]
-        neighb <- tmp[[2]]
-        n <- get.neighbors(neighb)
-        y1 <- n$y1
-        y2 <- n$y2
+      tmp <- get.node(A, degs.large)
+      node <- tmp[[1]]
+      neighb <- tmp[[2]]
+      n <- get.neighbors(neighb)
+      y1 <- n$y1
+      y2 <- n$y2
 
-        z1 <- get.neighbors.z1(graph, node, degrees, y1)
-        get.neighbors.z2(graph, node, degrees, degrees.large, y2, z1)
-      #}
+      z1 <- get.neighbors.z1(A, node, degrees, y1)
+      get.neighbors.z2(A, node, degrees, degs.large, y2, z1)
     }
   }
   #=============================================================================
   #=============================================================================
-  tmp <- get.node(g, degs.large)
+  tmp <- get.node(A, degs.large)
   x <- tmp[[1]]
   neighb <- tmp[[2]]
 
   n <- get.neighbors(neighb)
   y1 <- n$y1
   y2 <- n$y2
-  z1 <- get.neighbors.z1(g, x, degs, y1)
-  z2 <- get.neighbors.z2(g, x, degs, degs.large, y2, z1)
+  z1 <- get.neighbors.z1(A, x, degs, y1)
+  z2 <- get.neighbors.z2(A, x, degs, degs.large, y2, z1)
 
-  return(data.frame(x, y1, y2, z1, z2))
+  return(data.frame(y1, y2, z1, z2))
 }

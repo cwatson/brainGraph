@@ -4,21 +4,18 @@
 \alias{edge_asymmetry}
 \title{Calculate an asymmetry index based on edge counts}
 \usage{
-edge_asymmetry(g, level = c("hemi", "vertex"), use.parallel = TRUE)
+edge_asymmetry(g, level = c("hemi", "vertex"))
 }
 \arguments{
-\item{g}{The igraph graph object}
+\item{g}{An \code{igraph} graph object}
 
 \item{level}{A character string indicating whether to calculate asymmetry for
-each region, or the hemisphere as a whole (default: 'hemi')}
-
-\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
-(default: TRUE)}
+each region, or the hemisphere as a whole (default: \code{'hemi'})}
 }
 \value{
 A data table with edge counts for both hemispheres and the asymmetry
-index; if \emph{level} is 'vertex', the data table will have \emph{vcount(g)}
-rows.
+  index; if \code{level} is \emph{vertex}, the data table will have
+  \code{vcount(g)} rows.
 }
 \description{
 This function will calculate an asymmetry index that is a measure of whether
@@ -38,4 +35,3 @@ equal number of edges in each hemisphere.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

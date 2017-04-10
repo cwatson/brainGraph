@@ -1,22 +1,26 @@
-#' Calculate Euclidean distance of edges
+#' Calculate Euclidean distance of edges and vertices
 #'
-#' This function calculates the Euclidean distance of edges between vertices of
-#' a graph. The distances are in \emph{mm} and based on MNI space. The distances
-#' are \emph{NOT} along the cortical surface, so can only be considered
-#' approximations, particularly concerning inter-hemispheric connections. The
-#' input graph must have \emph{atlas} as a graph-level attribute.
+#' \code{edge_spatial_dist} calculates the Euclidean distance of an
+#' \code{igraph} graph object's edges. The distances are in \emph{mm} and based
+#' on MNI space. These distances are \emph{NOT} along the cortical surface, so
+#' can only be considered approximations, particularly concerning
+#' inter-hemispheric connections. The input graph must have \emph{atlas} as a
+#' graph-level attribute.
 #'
-#' @param g An igraph graph object
+#' @param g An \code{igraph} graph object
 #' @export
 #'
-#' @return A numeric vector with length equal to the edge count of the input
-#' graph
+#' @return \code{edge_spatial_dist} - a numeric vector with length equal to the
+#'   edge count of the input graph, consisting of the Euclidean distance (in
+#'   \emph{mm}) of each edge
 #'
+#' @name GraphDistances
+#' @aliases edge_spatial_dist
+#' @rdname spatial_dist
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 edge_spatial_dist <- function(g) {
-  stopifnot(is_igraph(g))
-  stopifnot('atlas' %in% graph_attr_names(g))
+  stopifnot(is_igraph(g), 'atlas' %in% graph_attr_names(g))
 
   name <- x.mni <- y.mni <- z.mni <- NULL
   coords <- eval(parse(text=g$atlas))[, list(name, x.mni, y.mni, z.mni)]
@@ -28,24 +32,27 @@ edge_spatial_dist <- function(g) {
 
 #' Calculate average Euclidean distance for each vertex
 #'
-#' This function calculates, for each vertex of a graph, the average Euclidean
-#' distance across all of that vertex's connections.
+#' \code{vertex_spatial_dist} calculates, for each vertex of a graph, the
+#' average Euclidean distance across all of that vertex's connections.
 #'
-#' @param g An \code{igraph} graph object
+#' @inheritParams edge_spatial_dist
 #' @export
 #'
-#' @return A named numeric vector of average distance (in \emph{mm})
+#' @return \code{vertex_spatial_dist} - a named numeric vector with length equal
+#'   to the number of vertices, consisting of the average distance (in
+#'   \emph{mm}) for each vertex
 #'
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @aliases vertex_spatial_dist
+#' @rdname spatial_dist
 #' @references Alexander-Bloch A.F., Vertes P.E., Stidd R. et al. (2013)
 #'   \emph{The anatomical distance of functional connections predicts brain
 #'   network topology in health and schizophrenia}. Cerebral Cortex, 23:127-138.
 
 vertex_spatial_dist <- function(g) {
-  stopifnot(is_igraph(g))
-  stopifnot('dist' %in% edge_attr_names(g))
+  from <- to <- dist <- NULL
+  stopifnot(is_igraph(g), 'dist' %in% edge_attr_names(g))
 
-  Nv <- vcount(g)
-  dists <- sapply(V(g)$name, function(x) mean(E(g)[x %--% seq_len(Nv)]$dist))
+  dt.e <- as.data.table(as_data_frame(g))
+  dists <- sapply(V(g)$name, function(x) dt.e[from == x | to == x, mean(dist)])
   return(dists)
 }

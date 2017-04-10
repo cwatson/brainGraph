@@ -19,7 +19,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' ggp.btwn <- plot_vertex_measures(dt.net.meas.tidy, facet.by='network',
+#' ggp.btwn <- plot_vertex_measures(dt.V.tidy, facet.by='network',
 #'   measure='E.nodal')
 #' }
 

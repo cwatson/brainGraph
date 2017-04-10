@@ -9,18 +9,25 @@ vertex_attr_dt(g, group = NULL)
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{group}{A character string indicating group membership (default: NULL)}
+\item{group}{A character string indicating group membership (default:
+\code{NULL})}
 }
 \value{
 A data table; each row is for a different vertex
 }
 \description{
-This is just a helper function that creates a data table in which each row is
-a vertex and each column is a different network measure (degree, centrality,
-etc.).
+This is just a helper function that creates a \code{data.table} in which each
+row is a vertex and each column is a different network measure (degree,
+centrality, etc.). It is partly a wrapper for
+\code{\link[igraph]{as_data_frame}}.
+}
+\examples{
+\dontrun{
+dt.V <- vertex_attr_dt(g)
+setcolorder(dt.V, c('modality', 'atlas', 'Group', names(dt.V)[1:28]))
+}
 }
 \seealso{
 \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
 \link[igraph]{as_data_frame}}
 }
-

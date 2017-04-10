@@ -1,53 +1,58 @@
 #' Create a data table with graph vertex measures
 #'
-#' This is just a helper function that creates a data table in which each row is
-#' a vertex and each column is a different network measure (degree, centrality,
-#' etc.).
+#' This is just a helper function that creates a \code{data.table} in which each
+#' row is a vertex and each column is a different network measure (degree,
+#' centrality, etc.). It is partly a wrapper for
+#' \code{\link[igraph]{as_data_frame}}.
 #'
 #' @param g An \code{igraph} graph object
-#' @param group A character string indicating group membership (default: NULL)
+#' @param group A character string indicating group membership (default:
+#'   \code{NULL})
 #' @export
 #'
 #' @return A data table; each row is for a different vertex
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
 #' \link[igraph]{as_data_frame}}
+#' @examples
+#' \dontrun{
+#' dt.V <- vertex_attr_dt(g)
+#' setcolorder(dt.V, c('modality', 'atlas', 'Group', names(dt.V)[1:28]))
+#' }
 
 vertex_attr_dt <- function(g, group=NULL) {
   lobe <- name <- Group <- network <- NULL
   atlas.dt <- eval(parse(text=g$atlas))
 
-  net.meas <- setDT(as_data_frame(g, what='vertices'))
-  net.meas[, c('x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni', 'lobe.hemi',
-               'circle.layout', 'comm', 'comm.wt', 'comp', 'circle.layout.comm',
-               'color.comm', 'color.comm.wt', 'color.comp', 'color.lobe') := NULL]
-  if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
-    net.meas[, 'color.class' := NULL]
-    net.meas$class <- atlas.dt[, levels(class)][V(g)$class]
+  dt.V <- setDT(as_data_frame(g, what='vertices'))
+  cols.char <- names(which(sapply(vertex_attr(g), class) == 'character'))
+  cols.rem <- c(cols.char, 'x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni',
+                'lobe.hemi', 'lobe', 'circle.layout', 'comm', 'comm.wt', 'comp',
+                'circle.layout.comm')
+  cols.rem <- setdiff(cols.rem, c('name', 'hemi'))
+  dt.V[, eval(cols.rem) := NULL]
+  if (isTRUE(grepl('destr', g$atlas))) {
+    dt.V$class <- atlas.dt[, levels(class)][V(g)$class]
   }
-  if (g$atlas == 'dosenbach160') {
-    net.meas[, 'color.network' := NULL]
-    net.meas$network <- atlas.dt[, levels(network)][V(g)$network]
-  }
-  net.meas$density <- g$density
-  net.meas$lobe <- atlas.dt[, levels(lobe)][V(g)$lobe]
-  setnames(net.meas, 'name', 'region')
-  setcolorder(net.meas,
+  if ('network' %in% cols.char) dt.V$network <- V(g)$network
+  dt.V$density <- g$density
+  dt.V$lobe <- V(g)$lobe
+  setnames(dt.V, 'name', 'region')
+  setcolorder(dt.V,
               c('density', 'region', 'lobe', 'hemi',
-                names(net.meas[, !c('density', 'region', 'lobe', 'hemi'),
-                      with=F])))
+                names(dt.V[, !c('density', 'region', 'lobe', 'hemi'), with=F])))
 
-  if ('name' %in% graph_attr_names(g)) net.meas$Study.ID <- g$name
-  if ('modality' %in% graph_attr_names(g)) net.meas$modality <- g$modality
-  if ('atlas' %in% graph_attr_names(g)) net.meas$atlas <- g$atlas
+  if ('name' %in% graph_attr_names(g)) dt.V$Study.ID <- g$name
+  if ('modality' %in% graph_attr_names(g)) dt.V$modality <- g$modality
+  if ('atlas' %in% graph_attr_names(g)) dt.V$atlas <- g$atlas
   if (is.null(group)) {
+    setkey(dt.V, 'region', 'lobe', 'hemi')
     if ('Group' %in% graph_attr_names(g)) {
-      net.meas$Group <- g$Group
-      setkey(net.meas, 'region', 'lobe', 'hemi', Group)
+      dt.V$Group <- g$Group
+      setkey(dt.V, 'region', 'lobe', 'hemi', Group)
     }
-    setkey(net.meas, 'region', 'lobe', 'hemi')
   } else {
-    net.meas$Group <- group
-    setkey(net.meas, 'region', 'lobe', 'hemi', Group)
+    dt.V$Group <- group
+    setkey(dt.V, 'region', 'lobe', 'hemi', Group)
   }
-  return(net.meas)
+  return(dt.V)
 }

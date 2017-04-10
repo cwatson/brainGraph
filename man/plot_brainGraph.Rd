@@ -12,30 +12,31 @@ plot_brainGraph(g, plane = c("axial", "sagittal", "circular"),
 \item{g}{An \code{igraph} graph object}
 
 \item{plane}{A character string indicating which orientation to plot
-(default: 'axial')}
+(default: \code{'axial'})}
 
 \item{hemi}{A character string indicating which hemisphere to plot (default:
-'both')}
+\code{'both'})}
 
 \item{subgraph}{A character string specifying an equation for deleting
-vertices (default: NULL)}
+vertices (default: \code{NULL})}
 
 \item{show.legend}{Logical indicating whether or not to show a legend
-(default: FALSE)}
+(default: \code{FALSE})}
 
-\item{rescale}{A logical, whether to rescale the coordinates (default: FALSE)}
+\item{rescale}{A logical, whether to rescale the coordinates (default:
+\code{FALSE})}
 
 \item{asp}{A numeric constant for the aspect ratio (default: 0)}
 
-\item{main}{Character string for the main title (default: NULL)}
+\item{main}{Character string for the main title (default: \code{NULL})}
 
-\item{sub}{Character string for the subtitle (default: 'default')}
+\item{sub}{Character string for the subtitle (default: \code{default})}
 
 \item{...}{Other parameters (passed to \code{\link{plot}}).}
 }
 \description{
 This function plots a graph when the spatial layout of the nodes is important
-(e.g. in the brain). The function \code{\link{set.brainGraph.attributes}}
+(e.g. in the brain). The function \code{\link{set_brainGraph_attr}}
 needs to be run on the graph, and a valid set of coordinates provided for the
 vertices. Most of the parameters valid here can be seen in
 \code{\link{igraph.plotting}}.
@@ -54,7 +55,10 @@ plot_brainGraph(g[[1]], hemi='R')
 plot_brainGraph(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
 }
 }
+\seealso{
+Other Plotting functions: \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph_list}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

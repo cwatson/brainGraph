@@ -13,49 +13,33 @@
 #' indicating more edges in the right hemisphere, and a value of 0 indicating
 #' equal number of edges in each hemisphere.
 #'
-#' @param g The igraph graph object
+#' @param g An \code{igraph} graph object
 #' @param level A character string indicating whether to calculate asymmetry for
-#' each region, or the hemisphere as a whole (default: 'hemi')
-#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
-#'   (default: TRUE)
+#'   each region, or the hemisphere as a whole (default: \code{'hemi'})
 #' @export
 #'
 #' @return A data table with edge counts for both hemispheres and the asymmetry
-#' index; if \emph{level} is 'vertex', the data table will have \emph{vcount(g)}
-#' rows.
+#'   index; if \code{level} is \emph{vertex}, the data table will have
+#'   \code{vcount(g)} rows.
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-edge_asymmetry <- function(g, level=c('hemi', 'vertex'), use.parallel=TRUE) {
-  stopifnot(is_igraph(g))
-  stopifnot('hemi' %in% vertex_attr_names(g))
+edge_asymmetry <- function(g, level=c('hemi', 'vertex')) {
+  stopifnot(is_igraph(g), 'hemi' %in% vertex_attr_names(g))
 
-  i <- region <- NULL
   level <- match.arg(level)
+  A <- as_adj(g, sparse=FALSE, names=FALSE)
+  L <- which(V(g)$hemi == 'L')
+  R <- which(V(g)$hemi == 'R')
   if (level == 'hemi') {
-    lh <- length(E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'L')])
-    rh <- length(E(g)[which(V(g)$hemi == 'R') %--% which(V(g)$hemi == 'R')])
+    lh <- sum(A[L, L]) / 2
+    rh <- sum(A[R, R]) / 2
     asymm <- data.table(region='all', lh=lh, rh=rh)
 
   } else if (level == 'vertex') {
-    inds <- which(V(g)$degree > 0)
-    asymm <- data.frame(lh=rep(0, vcount(g)), rh=rep(0, vcount(g)))
-    if (isTRUE(use.parallel)) {
-      asymm[inds, ] <- foreach (i=inds, .combine='rbind') %dopar% {
-        lh <- length(E(g)[i %--% which(V(g)$hemi == 'L')])
-        rh <- length(E(g)[i %--% which(V(g)$hemi == 'R')])
-        c(lh, rh)
-      }
-    } else {
-      asymm$lh[inds] <- vapply(V(g)[inds], function(x)
-                               length(E(g)[x %--% which(V(g)$hemi == 'L')]),
-                               numeric(1))
-      asymm$rh[inds] <- vapply(V(g)[inds], function(x)
-                               length(E(g)[x %--% which(V(g)$hemi == 'R')]),
-                               numeric(1))
-    }
-    setDT(asymm)
-    asymm[, region := V(g)$name]
+    lh <- rowSums(A[, L])
+    rh <- rowSums(A[, R])
+    asymm <- data.table(lh=lh, rh=rh, region=V(g)$name)
   }
   asymm[, asymm := 2 * (lh - rh) / (lh + rh)]
   return(asymm)

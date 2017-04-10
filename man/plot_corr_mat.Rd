@@ -33,10 +33,9 @@ matplot1 <- plot_corr_mat(corrs[[1]][[N]]$r.thresh, g=g[[1]][[N]],
                            group=groups[1])
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[ggplot2]{geom_tile}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

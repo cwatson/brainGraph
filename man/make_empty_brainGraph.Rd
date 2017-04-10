@@ -22,10 +22,9 @@ Basically a wrapper for \code{\link[igraph]{make_empty_graph}}.
 The input graph must have the graph attribute \emph{atlas} and vertex
 attribute \emph{name} already.
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[igraph]{make_empty_graph}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

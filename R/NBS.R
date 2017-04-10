@@ -16,14 +16,17 @@
 #'
 #' @param A Three-dimensional array of all subjects' connectivity matrices
 #' @param covars A \code{data.table} of covariates
-#' @param alternative Character string, whether to do a two- or one-sided test
-#' (default: 'two.sided')
-#' @param p.init Numeric; the initial p-value threshold (default: 0.001)
-#' @param N Integer; the number of permutations (default: 1e3)
+#' @param con.vec A numeric vector specifying the contrast of interest
+#' @param X A numeric matrix (optional), if you would like to supply your own
+#'   design matrix (default: \code{NULL})
+#' @param p.init Numeric; the initial p-value threshold (default: \code{0.001})
+#' @param N Integer; the number of permutations (default: \code{1e3})
 #' @param symmetric Logical indicating if input matrices are symmetric (default:
-#'   FALSE)
+#'   \code{FALSE})
+#' @param alternative Character string, whether to do a two- or one-sided test
+#'   (default: \code{two.sided})
+#' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #' @export
-#' @importFrom RcppEigen fastLmPure
 #' @importFrom permute shuffleSet
 #'
 #' @return A list containing:
@@ -34,6 +37,7 @@
 #' \item{p.perm}{Numeric vector of the permutation p-values for each component}
 #' \item{p.init}{Numeric; the initial p-value threshold used}
 #'
+#' @seealso \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
 #'   statistic: identifying differences in brain networks}. NeuroImage,
@@ -43,24 +47,17 @@
 #' max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 #' }
 
-NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
-                p.init=0.001, N=1e3, symmetric=FALSE) {
-  i <- k <- value <- Var1 <- Var2 <- Var3 <- se <- p <- NULL
-  if (!'Group' %in% names(covars)) stop('"covars" must have a "Group" column')
-  if (dim(A)[3] != nrow(covars)) stop('"covars" length doesn\'t match array length')
-
-  alt <- match.arg(alternative)
-  if (alt == 'two.sided') {
-    pfun <- function(q, df) return(2 * (pt(abs(q), df=df, lower.tail=F)))
-  } else if (alt == 'less') {
-    pfun <- function(q, df) return(pt(q, df=df, lower.tail=F))
-  } else if (alt == 'greater') {
-    pfun <- function(q, df) return(pt(q, df=df))
-  }
+NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE,
+                alternative=c('two.sided', 'less', 'greater'), ...) {
+  i <- k <- value <- Var1 <- Var2 <- Var3 <- p.val <- t.stat <- V1 <- NULL
+  stopifnot('Group' %in% names(covars), dim(A)[3] == nrow(covars))
   Nv <- nrow(A)
-  X <- cbind(1, as.matrix(covars[, lapply(.SD, as.numeric), .SDcols=2:ncol(covars)]))
-  df <- nrow(X) - ncol(X)
-  z <- which(names(covars) == 'Group')
+
+  covars <- droplevels(covars)
+  if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
+  if (is.vector(con.vec)) con.vec <- t(con.vec)
+  stopifnot(ncol(X) == ncol(con.vec))
+  alt <- match.arg(alternative)
 
   # Calculate initial p-values; threshold and create a graph
   #---------------------------------------------------------
@@ -73,20 +70,25 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
     A.m <- A.m[inds.upper]
     setkey(A.m, Var3)
   }
-  A.m.sub <- A.m[A.m[, sum(value) > 0, by=list(Var1, Var2)]$V1]
-  A.m.sub[, t := with(fastLmPure(X, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
-  A.m.sub[abs(t) > 1.5, p := pfun(t, df)]
-  T.dt <- A.m.sub[p < p.init, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
+  setkey(A.m, Var1, Var2, Var3)
+  pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1]
+  A.m.sub <- merge(A.m, pos.vals[, -3], by=c('Var1', 'Var2'))
+  T.dt <- A.m.sub[, brainGraph_GLM_fit(X, value, con.vec, alternative=alt), by=list(Var1, Var2)]
+  T.dt <- T.dt[p.val < p.init, list(Var1, Var2, t.stat, p.val)]
+  if (nrow(T.dt) == 0) {  # No sig. diff's observed
+    return(list(g.nbs=make_empty_graph(n=Nv, directed=FALSE), obs=0, perm=NULL,
+                p.perm=NULL, p.init=p.init))
+  }
   T.mat <- p.mat <- matrix(0, Nv, Nv)
   for (i in seq_len(nrow(T.dt))) {
-    T.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$t[i]
-    p.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$p[i]
+    T.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$t.stat[i]
+    p.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$p.val[i]
   }
-  inds.transpose <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
+  inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
 
   T.max <- ifelse(abs(T.mat) > t(abs(T.mat)), T.mat, t(T.mat))
-  for (i in seq_len(nrow(inds.transpose))) {
-    p.mat[inds.transpose[i, 2], inds.transpose[i, 1]] <- p.mat[inds.transpose[i, 1], inds.transpose[i, 2]]
+  for (i in seq_len(nrow(inds.tr))) {
+    p.mat[inds.tr[i, 2], inds.tr[i, 1]] <- p.mat[inds.tr[i, 1], inds.tr[i, 2]]
   }
   g.nbs <- graph_from_adjacency_matrix(T.max, diag=F, mode='undirected', weighted=TRUE)
   E(g.nbs)$t.stat <- E(g.nbs)$weight
@@ -98,24 +100,26 @@ NBS <- function(A, covars, alternative=c('two.sided', 'less', 'greater'),
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
   myPerms.nbs <- shuffleSet(n=nrow(covars), nset=N)
+  groupcol <- grep('Group', colnames(X))
   comps.perm <- foreach (k=seq_len(N), .combine='c') %dopar% {
-    X.tmp <- as.matrix(X[myPerms.nbs[k, ], ])
-    X.tmp[, 'Group'] <- X[, 'Group']
+    X.tmp <- X[myPerms.nbs[k, ], ]
+    X.tmp[, groupcol] <- X[, groupcol]
     A.m.tmp <- setDT(melt(A[, , myPerms.nbs[k, ]]))
     if (isTRUE(symmetric)) {
       setkey(A.m.tmp, Var1, Var2)
       A.m.tmp <- A.m.tmp[inds.upper]
       setkey(A.m.tmp, Var3)
     }
-    A.m.tmp.sub <- A.m.tmp[A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)]$V1]
-    A.m.tmp.sub[, t := with(fastLmPure(X.tmp, value, method=2), coefficients / se)[z], by=list(Var1, Var2)]
-    if (A.m.tmp.sub[, max(abs(t))] <= 1.5) {
+    setkey(A.m.tmp, Var1, Var2, Var3)
+    pos.vals <- A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1]
+    A.m.tmp.sub <- merge(A.m.tmp, pos.vals[, -3], by=c('Var1', 'Var2'))
+    T.dt.tmp <- A.m.tmp.sub[, brainGraph_GLM_fit(X.tmp, value, con.vec, alternative=alt), by=list(Var1, Var2)]
+    if (T.dt.tmp[, max(abs(t.stat))] <= 1.5) {
       0
     } else {
-      A.m.tmp.sub[abs(t) > 1.5, p := ifelse(pfun(t, df) < p.init, 1, 0)]
-      T.dt.tmp <- A.m.tmp.sub[p == 1, list(t=unique(t), p=unique(p)), by=list(Var1, Var2)]
+      T.dt.tmp <- T.dt.tmp[p.val < p.init, list(Var1, Var2, t.stat)]
       T.mat.tmp <- matrix(0, Nv, Nv)
-      for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t[i]
+      for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t.stat[i]
       T.max.tmp <- ifelse(abs(T.mat.tmp) > t(abs(T.mat.tmp)), T.mat.tmp, t(T.mat.tmp))
       max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
     }

@@ -53,10 +53,9 @@ perms.mod.btwn <- perms.sig(g[[1]], g[[2]], perms.btwn, 'btwn.cent',
   level='vertex')
 }
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link{permute.group}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

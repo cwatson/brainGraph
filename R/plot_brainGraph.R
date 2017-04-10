@@ -1,7 +1,7 @@
 #' Plot a brain graph with a specific spatial layout
 #'
 #' This function plots a graph when the spatial layout of the nodes is important
-#' (e.g. in the brain). The function \code{\link{set.brainGraph.attributes}}
+#' (e.g. in the brain). The function \code{\link{set_brainGraph_attr}}
 #' needs to be run on the graph, and a valid set of coordinates provided for the
 #' vertices. Most of the parameters valid here can be seen in
 #' \code{\link{igraph.plotting}}.
@@ -15,20 +15,22 @@
 #'
 #' @param g An \code{igraph} graph object
 #' @param plane A character string indicating which orientation to plot
-#'   (default: 'axial')
+#'   (default: \code{'axial'})
 #' @param hemi A character string indicating which hemisphere to plot (default:
-#'   'both')
+#'   \code{'both'})
 #' @param subgraph A character string specifying an equation for deleting
-#'   vertices (default: NULL)
+#'   vertices (default: \code{NULL})
 #' @param show.legend Logical indicating whether or not to show a legend
-#'   (default: FALSE)
-#' @param rescale A logical, whether to rescale the coordinates (default: FALSE)
+#'   (default: \code{FALSE})
+#' @param rescale A logical, whether to rescale the coordinates (default:
+#'   \code{FALSE})
 #' @param asp A numeric constant for the aspect ratio (default: 0)
-#' @param main Character string for the main title (default: NULL)
-#' @param sub Character string for the subtitle (default: 'default')
+#' @param main Character string for the main title (default: \code{NULL})
+#' @param sub Character string for the subtitle (default: \code{default})
 #' @param ... Other parameters (passed to \code{\link{plot}}).
 #' @export
 #'
+#' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -40,32 +42,30 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
                             hemi=c('both', 'L', 'R'),
                             subgraph=NULL, show.legend=FALSE,
                             rescale=FALSE, asp=0, main=NULL, sub='default', ...) {
-  stopifnot(is_igraph(g))
-  stopifnot('atlas' %in% graph_attr_names(g))
+  stopifnot(is_igraph(g), 'atlas' %in% graph_attr_names(g))
   lobe <- network <- NULL
 
+  #---------------------------------------------------------
   # Create a subgraph based on user-specified condition
+  #---------------------------------------------------------
   if (!is.null(subgraph)) {
-    if (nchar(subgraph) > 0) {
-      subs <- strsplit(subgraph, split='\\&|\\|')[[1]]
-      if (length(subs) > 1) {
-        nchars <- cumsum(sapply(subs, nchar))
-        splits <- sapply(seq_along(subs), function(x)
-                         substr(subgraph, start=nchars[x]+x, stop=nchars[x]+x))
-        subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
-        # In case there is a mix of '&' and '|'
-        cond.string <- paste(sapply(seq_along(subs), function(x)
-                                    paste0('V(g)$', subs[x], splits[x])),
-                             collapse='')
-      } else {
-        cond.string <- paste0('V(g)$', subs)
-      }
-      cond <- eval(parse(text=cond.string))
-      cond <- setdiff(seq_len(vcount(g)), which(cond))
-      g <- delete.vertices(g, cond)
+    stopifnot(nchar(subgraph) > 0)
+    subs <- strsplit(subgraph, split='\\&|\\|')[[1]]
+    if (length(subs) > 1) {
+      nchars <- cumsum(sapply(subs, nchar))
+      splits <- sapply(seq_along(subs), function(x)
+                       substr(subgraph, start=nchars[x]+x, stop=nchars[x]+x))
+      subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
+      # In case there is a mix of '&' and '|'
+      cond.string <- paste(sapply(seq_along(subs), function(x)
+                                  paste0('V(g)$', subs[x], splits[x])),
+                           collapse='')
     } else {
-      stop('"subgraph" must be a valid character string')
+      cond.string <- paste0('V(g)$', subs)
     }
+    cond <- eval(parse(text=cond.string))
+    cond <- setdiff(seq_len(vcount(g)), which(cond))
+    g <- delete.vertices(g, cond)
   }
 
   atlas <- graph_attr(g, 'atlas')
@@ -74,12 +74,13 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   Nv <- vcount(g)
   adjust <- 0
   mult <- 100
+  #---------------------------------------------------------
+  # Handle plotting of individual hemispheres
+  #---------------------------------------------------------
   if (hemi != 'both') {
     memb <- which(V(g)$hemi == hemi)
     sg <- induced.subgraph(g, memb)
-    for (att in graph_attr_names(sg)) sg <- delete_graph_attr(sg, att)
-    for (att in vertex_attr_names(sg)) sg <- delete_vertex_attr(sg, att)
-    for (att in edge_attr_names(sg)) sg <- delete_edge_attr(sg, att)
+    sg <- delete_all_attr(sg)
     V(sg)$name <- V(g)$name[memb]
     g <- g %s% sg
     g <- g - vertices(setdiff(seq_len(Nv), memb))
@@ -154,87 +155,67 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   # Handle extra arguments in case a subgraph was created
   #---------------------------------------------------------
   fargs <- list(...)
+  vcols <- 'lightblue'
   if (hasArg('vertex.color')) {
     if (is.character(fargs$vertex.color) & length(fargs$vertex.color) == 1) {
-      if (fargs$vertex.color %in% vertex_attr_names(g)) {
-        vcols <- vertex_attr(g, fargs$vertex.color)
-        if (adjust == 1) {
-          medial <- which(abs(V(g)$x.mni) < 20)
-          vcols[medial] <- adjustcolor(vcols[medial], alpha.f=0.4)
-        }
-      } else {
-        stop(paste0('Vertex attribute "', fargs$vertex.color, '" is not valid'))
+      stopifnot(fargs$vertex.color %in% vertex_attr_names(g))
+      vcols <- vertex_attr(g, fargs$vertex.color)
+      if (adjust == 1) {
+        medial <- which(abs(V(g)$x.mni) < 20)
+        vcols[medial] <- adjustcolor(vcols[medial], alpha.f=0.4)
       }
     } else {
       vcols <- fargs$vertex.color
     }
-  } else {
-    vcols <- 'lightblue'
   }
+  ecols <- 'red'
   if (hasArg('edge.color')) {
     if (is.character(fargs$edge.color) & length(fargs$edge.color) == 1) {
-      if (fargs$edge.color %in% edge_attr_names(g)) {
-        ecols <- edge_attr(g, fargs$edge.color)
-        if (adjust == 1) {
-          medial.es <- as.numeric(E(g)[medial %--% medial])
-          ecols[medial.es] <- adjustcolor(ecols[medial.es], alpha.f=0.4)
-        }
-      } else {
-        stop(paste0('Edge attribute "', fargs$edge.color, '" is not valid'))
+      stopifnot(fargs$edge.color %in% edge_attr_names(g))
+      ecols <- edge_attr(g, fargs$edge.color)
+      if (adjust == 1) {
+        medial.es <- as.numeric(E(g)[medial %--% medial])
+        ecols[medial.es] <- adjustcolor(ecols[medial.es], alpha.f=0.4)
       }
     } else {
       ecols <- fargs$edge.color
     }
-  } else {
-    ecols <- 'red'
   }
 
   # Vertex sizes
   #-------------------------------------
+  vsize <- mult * 10
   if (hasArg('vertex.size')) {
     if (is.character(fargs$vertex.size)) {
-      if (fargs$vertex.size %in% vertex_attr_names(g)) {
-        vsize <- mult * vertex_attr(g, fargs$vertex.size)
-      } else {
-        stop(paste0('Vertex attribute "', fargs$vertex.size, '" is not valid'))
-      }
+      stopifnot(fargs$vertex.size %in% vertex_attr_names(g))
+      vsize <- mult * vertex_attr(g, fargs$vertex.size)
       if (any(!is.finite(vsize))) g <- delete.vertices(g, which(!is.finite(vsize)))
       vsize <- mult * vec.transform(vsize, as.numeric(min(vsize) > 0), 15)
     } else {
       vsize <- mult * fargs$vertex.size
     }
-  } else {
-    vsize <- mult * 10
   }
+  ewidth <- 1.5
   if (hasArg('edge.width')) {
     if (is.character(fargs$edge.width)) {
-      if (fargs$edge.width %in% edge_attr_names(g)) {
-        ewidth <- edge_attr(g, fargs$edge.width)
-      } else {
-        stop(paste0('Edge attribute "', fargs$edge.width, '" is not valid'))
-      }
+      stopifnot(fargs$edge.width %in% edge_attr_names(g))
+      ewidth <- edge_attr(g, fargs$edge.width)
     } else {
       ewidth <- fargs$edge.width
     }
-  } else {
-    ewidth <- 1.5
   }
   # Vertex labels
   #-------------------------------------
+  vlabel <- V(g)$name
+  vlabel.dist <- ifelse(vsize >= mult * 10, 0, 5)
+  vlabel.col <- ifelse(vcols %in% c('red', 'blue', 'magenta'), 'white', 'blue')
+  vlabel.font <- 2
   if (hasArg('vertex.label')) {
     if (is.na(fargs$vertex.label)) {
       vlabel <- vlabel.cex <- vlabel.dist <- vlabel.col <- vlabel.font <- NA
     } else {
       vlabel <- vertex_attr(g, fargs$vertex.label)
-      vlabel.dist <- ifelse(vsize >= 10, 0, 0.75)
-      vlabel.col <- ifelse(vcols %in% c('red', 'blue', 'magenta'), 'white', 'blue')
-      vlabel.font <- 2
     }
-  } else {
-    vlabel <- V(g)$name
-    vlabel.dist <- ifelse(vsize >= 10, 0, 0.75)
-    vlabel.col <- ifelse(vcols %in% c('red', 'blue', 'magenta'), 'white', 'blue')
-    vlabel.font <- 2
   }
   if (hasArg('vertex.label.cex')) {
     vlabel.cex <- fargs$vertex.label.cex
@@ -257,18 +238,23 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
                    'Density: ', g.density)
     }
   }
-  title(main=main, sub=sub, col.main='white', col.sub='white', cex.main=2.5)
+  if (hasArg('cex.main')) {
+    cex.main <- fargs$cex.main
+  } else {
+    cex.main <- 2.5
+  }
+  title(main=main, sub=sub, col.main='white', col.sub='white', cex.main=cex.main)
 
   if (isTRUE(show.legend)) {
     if (hasArg('vertex.color')) {
       atlas.dt <- eval(parse(text=g$atlas))
       if (fargs$vertex.color == 'color.lobe') {
-        lobes <- sort(unique(V(g)$lobe))
-        classnames <- levels(atlas.dt[, lobe])[lobes]
-        total <- unname(atlas.dt[, table(lobe)])[lobes]
-        classnames <- paste0(classnames, ': ', table(V(g)$lobe),
+        lobes.g <- unique(V(g)$lobe)
+        classnames <- intersect(levels(atlas.dt$lobe), lobes.g)
+        total <- unname(atlas.dt[, table(lobe)][classnames])
+        classnames <- paste0(classnames, ': ', table(V(g)$lobe)[classnames],
                              ' / ', total)
-        cols <- unique(V(g)$color.lobe[order(V(g)$lobe)])
+        cols <- group.cols[which(levels(atlas.dt$lobe) %in% lobes.g)]
         cex <- vlabel.cex
       } else if (fargs$vertex.color == 'color.class') {
         classnames <- levels(atlas.dt[, class])
@@ -279,12 +265,12 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
         cols <- c('red', 'orange', 'green')
         cex <- 1.5
       } else if (fargs$vertex.color == 'color.network') {
-        networks <- sort(unique(V(g)$network))
-        classnames <- levels(atlas.dt[, network])[networks]
-        total <- unname(atlas.dt[, table(network)])[networks]
-        classnames <- paste0(classnames, ': ', table(V(g)$network),
+        networks.g <- unique(V(g)$network)
+        classnames <- intersect(levels(atlas.dt$network), networks.g)
+        total <- unname(atlas.dt[, table(network)][classnames])
+        classnames <- paste0(classnames, ': ', table(V(g)$network)[classnames],
                              ' / ', total)
-        cols <- unique(V(g)$color.network[order(V(g)$network)])
+        cols <- group.cols[which(levels(atlas.dt$network) %in% networks.g)]
         cex <- vlabel.cex
       }
       legend('topleft',

@@ -2,7 +2,7 @@
 #'
 #' Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the normalized rich club
 #' coefficient for up to two subject groups. Optionally will include a shaded
-#' region demarcating the \code{\link{rich.core}} cutoff.
+#' region demarcating the \code{\link{rich_core}} cutoff.
 #'
 #' @param rich.dt A \code{data.table} with rich-club coefficients
 #' @param facet.by A character string indicating whether the variable of
@@ -12,11 +12,12 @@
 #' @param fdr A logical, indicating whether or not to use the FDR-adjusted
 #'   p-value for determining significance (default: TRUE)
 #' @param g A list (of lists) of \code{igraph} graph objects; required if you
-#'   want to plot a shaded region demarcating the \code{\link{rich.core}}
+#'   want to plot a shaded region demarcating the \code{\link{rich_core}}
 #' @export
 #'
 #' @return A \code{\link[ggplot2]{ggplot}} object
 #'
+#' @family Rich-club functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -46,7 +47,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
     densities.g <- round(sapply(g[[1]], graph_attr, 'density'), 2)
     densities.g <- which(densities.g %in% round(densities, 2))
     g <- lapply(g, `[`, densities.g)
-    k <- lapply(g, sapply, function(x) rich.core(x)$k.r)
+    k <- lapply(g, sapply, function(x) rich_core(x)$k.r)
 
     if (length(densities) == 1) {
       max.k <- apply(as.matrix(sapply(k, function(x) x), nrow=1), 2, max)

@@ -32,4 +32,3 @@ residuals as a column and returns the data table.
 \seealso{
 \code{\link{rstudent}}
 }
-

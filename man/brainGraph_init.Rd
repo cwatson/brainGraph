@@ -5,8 +5,8 @@
 \title{Initialize variables for further use in brainGraph}
 \usage{
 brainGraph_init(atlas = c("aal116", "aal2.120", "aal2.94", "aal90",
-  "brainsuite", "destrieux", "destrieux.scgm", "dk", "dk.scgm", "dkt",
-  "dkt.scgm", "dosenbach160", "hoa112", "lpba40"), densities, datadir,
+  "brainsuite", "craddock200", "destrieux", "destrieux.scgm", "dk", "dk.scgm",
+  "dkt", "dkt.scgm", "dosenbach160", "hoa112", "lpba40"), densities, datadir,
   modality = c("thickness", "volume", "lgi", "area"), use.mean = FALSE,
   covars = NULL, exclude.subs = NULL)
 }
@@ -75,4 +75,3 @@ datadir='/home/cwatson/Data', modality='thickness', exclude.subs=c('Con07',
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

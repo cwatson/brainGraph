@@ -4,7 +4,9 @@
 #' significance of between-group differences of a global or vertex-wise graph
 #' measure. This function is intended for cortical thickness networks (in which
 #' there is only one graph per group), but can be extended to other types of
-#' data.
+#' data. If you would like to calculate differences in the area-under-the-curve
+#' (AUC) across densities, then supply a vector to the \code{densities}
+#' argument.
 #'
 #' The \emph{graph} "level" will calculate modularity (Louvain algorithm),
 #' clustering coefficient, average path length, degree assortativity, global
@@ -23,10 +25,10 @@
 #' haven't hard-coded (e.g. number of hubs between groups). It must take as its
 #' own arguments: "g1", "g2", and "density".
 #'
-#' @param permSet A matrix of the set of permutations to loop through; the
-#' number of rows equals the desired number of permutations and the number of
-#' columns equals the total number of subjects across groups
-#' @param density Numeric; the density of the resultant graphs
+#' @param permSet Numeric matrix of the set of permutations to loop through; the
+#'   number of rows equals the desired number of permutations and the number of
+#'   columns equals the total number of subjects across groups
+#' @param densities Numeric vector of graph densities
 #' @param resids A data table of the residuals (from \code{\link{get.resid}})
 #' @param level A character string for the attribute level to calculate
 #' differences; either 'graph', 'vertex', 'lobe', or 'other'
@@ -40,7 +42,7 @@
 #' efficiency, clustering, average path length, and assortativity (etc.)
 #'
 #' @seealso \code{\link[igraph]{centr_betw}, \link{vulnerability},
-#' \link{count_interlobar}, \link{edge_asymmetry}, \link{graph.efficiency}}
+#' \link{count_interlobar}, \link{edge_asymmetry}, \link{efficiency}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
@@ -53,7 +55,7 @@
 #'   .function=myFun)
 #' }
 
-permute.group <- function(permSet, density, resids,
+permute.group <- function(permSet, densities, resids,
                           level=c('graph', 'vertex', 'lobe', 'other'), atlas,
                           measure=c('btwn.cent', 'degree', 'E.nodal',
                                     'knn', 'transitivity', 'vulnerability'),
@@ -70,99 +72,93 @@ permute.group <- function(permSet, density, resids,
   groups <- as.numeric(resids$Group)
   out <- foreach(i=seq_len(nrow(permSet)), .combine='rbind',
                  .export='assign_lobes') %dopar% {
-    corrs1 <- corr.matrix(as.matrix(resids[which(groups[permSet[i, ]] == 1),
+    corrs <- lapply(unique(groups), function(x)
+                    lapply(densities, function(y)
+                           corr.matrix(as.matrix(resids[which(groups[permSet[i, ]] == x),
                           !c('Study.ID', 'Group'), with=F]),
-                          density=density)
-    corrs2 <- corr.matrix(as.matrix(resids[which(groups[permSet[i, ]] == 2),
-                          !c('Study.ID', 'Group'), with=F]),
-                          density=density)
-    g1 <- graph_from_adjacency_matrix(corrs1$r.thresh, mode='undirected', diag=F)
-    g2 <- graph_from_adjacency_matrix(corrs2$r.thresh, mode='undirected', diag=F)
+                          density=y)))
+    g <- lapply(corrs, lapply, function(x)
+                graph_from_adjacency_matrix(x$r.thresh, mode='undirected', diag=F))
 
     # Vertex-level
     #-----------------------------------
     if (level == 'vertex') {
       if (measure == 'vulnerability') {
-        g1$E.global <- graph.efficiency(g1, 'global')
-        g2$E.global <- graph.efficiency(g2, 'global')
-        V(g1)$degree <- degree(g1)
-        V(g2)$degree <- degree(g2)
-        vuln.diff <- vulnerability(g1, use.parallel=F) -
-          vulnerability(g2, use.parallel=F)
-        tmp <- as.data.table(cbind(density, t(vuln.diff)))
+        for (jj in seq_along(g)) {
+          for (kk in seq_along(g[jj])) {
+            g[[jj]][[kk]]$E.global <- efficiency(g[[jj]][[kk]], 'global')
+            V(g[[jj]][[kk]])$degree <- degree(g[[jj]][[kk]])
+          }
+        }
+        meas.list <- lapply(g, function(x) t(sapply(x, vulnerability)))
 
       } else if (measure == 'degree') {
-        deg.diff <- degree(g1) - degree(g2)
-        tmp <- as.data.table(cbind(density, t(deg.diff)))
-
+        meas.list <- lapply(g, function(x) t(sapply(x, degree)))
       } else if (measure == 'E.nodal') {
-        E.nodal.diff <- graph.efficiency(g1, 'nodal') - graph.efficiency(g2, 'nodal')
-        tmp <- as.data.table(cbind(density, t(E.nodal.diff)))
-
+        meas.list <- lapply(g, function(x) t(sapply(x, efficiency, 'nodal')))
       } else if (measure == 'knn') {
-        knn.diff <- graph.knn(g1)$knn - graph.knn(g2)$knn
-        tmp <- as.data.table(cbind(density, t(knn.diff)))
-
+        meas.list <- lapply(g, function(x) t(sapply(x, function(y) graph.knn(y)$knn)))
       } else if (measure == 'transitivity') {
-        transitivity.diff <- transitivity(g1, type='local', isolates='zero') -
-          transitivity(g2, type='local', isolates='zero')
-        tmp <- as.data.table(cbind(density, t(transitivity.diff)))
-
+        meas.list <- lapply(g, function(x)
+                            t(sapply(x, transitivity,type='local', isolates='zero')))
       } else {
-        btwn.diff <- centr_betw(g1)$res - centr_betw(g2)$res
-        tmp <- as.data.table(cbind(density, t(btwn.diff)))
+        meas.list <- lapply(g, function(x) t(sapply(x, function(y) centr_betw(y)$res)))
       }
+      my.diff <- sapply(seq_along(V(g[[1]][[1]])), function(x)
+                         auc_diff(densities, cbind(meas.list[[1]][, x], meas.list[[2]][, x])))
+      tmp <- as.data.table(t(my.diff))
+      setnames(tmp, 1:ncol(tmp), V(g[[1]][[1]])$name)
 
     # Custom function
     #-----------------------------------
     } else if (level == 'other') {
-      tmp <- .function(g1, g2, density)
+      tmp <- .function(g, densities)
 
     } else {
-      g1$atlas <- g2$atlas <- atlas
-      g1 <- assign_lobes(g1, rand=T)
-      g2 <- assign_lobes(g2, rand=T)
+      for (jj in seq_along(g)) {
+        for (kk in seq_along(g[[jj]])) {
+          g[[jj]][[kk]]$atlas <- atlas
+          g[[jj]][[kk]] <- assign_lobes(g[[jj]][[kk]], rand=TRUE)
+        }
+      }
 
       # Graph-level
       #-----------------------------------
       if (level == 'graph') {
-        mod1 <- modularity(cluster_louvain(g1))
-        mod2 <- modularity(cluster_louvain(g2))
-        mod.diff <- mod1 - mod2
-        Cp1 <- transitivity(g1, type='localaverage')
-        Cp2 <- transitivity(g2, type='localaverage')
-        Cp.diff <- Cp1 - Cp2
-        Lp1 <- mean_distance(g1)
-        Lp2 <- mean_distance(g2)
-        Lp.diff <- Lp1 - Lp2
-        assortativity1 <- assortativity.degree(g1)
-        assortativity2 <- assortativity.degree(g2)
-        assort.diff <- assortativity1 - assortativity2
-        E.global1 <- graph.efficiency(g1, 'global')
-        E.global2 <- graph.efficiency(g2, 'global')
-        E.global.diff <- E.global1 - E.global2
+        mod <- sapply(g, sapply, function(x) modularity(cluster_louvain(x)))
+        mod.diff <- auc_diff(densities, mod)
+        Cp <- sapply(g, sapply, function(x) transitivity(x, type='localaverage'))
+        Cp.diff <- auc_diff(densities, Cp)
+        Lp <- sapply(g, sapply, mean_distance)
+        Lp.diff <- auc_diff(densities, Lp)
+        assort <- sapply(g, sapply, assortativity_degree)
+        assort.diff <- auc_diff(densities, assort)
+        E.global <- sapply(g, sapply, efficiency, 'global')
+        E.global.diff <- auc_diff(densities, E.global)
+#        E.local <- sapply(g, sapply, efficiency, 'local', use.parallel=F)
+#        E.local.diff <- auc_diff(densities, E.local)
 
-        assort.lobe1 <- assortativity_nominal(g1, V(g1)$lobe)
-        assort.lobe2 <- assortativity_nominal(g2, V(g2)$lobe)
-        assort.lobe.diff <- assort.lobe1 - assort.lobe2
-        asymm1 <- edge_asymmetry(g1)$asymm
-        asymm2 <- edge_asymmetry(g2)$asymm
-        adiff <- asymm1 - asymm2
-        tmp <- data.table(density=density, mod=mod.diff, E.global=E.global.diff,
+        assort.lobe <- sapply(g, sapply, function(x)
+                              assortativity_nominal(x, as.integer(factor(V(x)$lobe))))
+        assort.lobe.diff <- auc_diff(densities, assort.lobe)
+        asymm <- sapply(g, sapply, function(x) edge_asymmetry(x)$asymm)
+        asymm.diff <- auc_diff(densities, asymm)
+        tmp <- data.table(mod=mod.diff, E.global=E.global.diff,# E.local=E.local.diff,
                    Cp=Cp.diff, Lp=Lp.diff, assortativity=assort.diff,
-                   assortativity.lobe=assort.lobe.diff, asymm=adiff)
+                   asymm=asymm.diff, assortativity.lobe=assort.lobe.diff)
 
       # "Lobe" level
       #-----------------------------------
-      } else if (level == 'lobe') {
-        t1 <- as.data.table(count_interlobar(g1, 'Temporal'))
-        t2 <- as.data.table(count_interlobar(g2, 'Temporal'))
-        tdiff <- t1 - t2
-        tmp <- data.table(density=density, diff=tdiff)
+#      } else if (level == 'lobe') {
+#        t1 <- as.data.table(count_interlobar(g1, 'Temporal'))
+#        t2 <- as.data.table(count_interlobar(g2, 'Temporal'))
+#        tdiff <- t1 - t2
+#        tmp <- data.table(density=density, diff=tdiff)
       }
     }
 
     tmp
   }
+  if (length(densities) == 1) out <- cbind(density=densities, out)
   return(out)
 }

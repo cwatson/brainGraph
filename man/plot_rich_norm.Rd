@@ -21,7 +21,7 @@ interest is "density" or "threshold" (e.g. with DTI data)}
 p-value for determining significance (default: TRUE)}
 
 \item{g}{A list (of lists) of \code{igraph} graph objects; required if you
-want to plot a shaded region demarcating the \code{\link{rich.core}}}
+want to plot a shaded region demarcating the \code{\link{rich_core}}}
 }
 \value{
 A \code{\link[ggplot2]{ggplot}} object
@@ -29,14 +29,18 @@ A \code{\link[ggplot2]{ggplot}} object
 \description{
 Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the normalized rich club
 coefficient for up to two subject groups. Optionally will include a shaded
-region demarcating the \code{\link{rich.core}} cutoff.
+region demarcating the \code{\link{rich_core}} cutoff.
 }
 \examples{
 \dontrun{
 plot_rich_norm(rich.dt, facet.by='density', densities[N:(N+1)], g=g)
 }
 }
+\seealso{
+Other Rich-club functions: \code{\link{rich_club_attrs}},
+  \code{\link{rich_club_coeff}},
+  \code{\link{rich_club_norm}}, \code{\link{rich_core}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

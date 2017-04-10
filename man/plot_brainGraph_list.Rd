@@ -13,7 +13,7 @@ plot_brainGraph_list(g.list, fname.base, diffs = FALSE, ...)
 \emph{png} output}
 
 \item{diffs}{A logical, indicating whether or not to highlight edge
-differences (default: FALSE)}
+differences (default: \code{FALSE})}
 
 \item{...}{Other parameters (passed to \code{\link{plot_brainGraph}})}
 }
@@ -31,7 +31,10 @@ This function may be particularly useful if the graph list contains graphs of
 a single subject group at incremental densities, or if the graph list
 contains graphs of each subject in a group.
 }
+\seealso{
+Other Plotting functions: \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

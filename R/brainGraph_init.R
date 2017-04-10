@@ -55,24 +55,23 @@
 #' }
 
 brainGraph_init <- function(atlas=c('aal116', 'aal2.120', 'aal2.94', 'aal90',
-                                    'brainsuite', 'destrieux', 'destrieux.scgm',
-                                    'dk', 'dk.scgm', 'dkt', 'dkt.scgm',
-                                    'dosenbach160', 'hoa112', 'lpba40'),
+                                    'brainsuite', 'craddock200', 'destrieux',
+                                    'destrieux.scgm', 'dk', 'dk.scgm', 'dkt',
+                                    'dkt.scgm', 'dosenbach160', 'hoa112',
+                                    'lpba40'),
                             densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, covars=NULL, exclude.subs=NULL) {
 
-  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <- NULL
-  value <- region <- NULL
+  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <-
+    value <- region <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas)
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 
   if (is.null(covars)) {
-    if (!file.exists(paste0(datadir, '/covars.csv'))) {
-      stop(sprintf('File "covars.csv" does not exist in %s', datadir))
-    }
+    stopifnot(file.exists(paste0(datadir, '/covars.csv')))
     covars <- fread(paste0(datadir, '/covars.csv'))
   }
   covars[, Group := as.factor(Group)]
@@ -81,16 +80,8 @@ brainGraph_init <- function(atlas=c('aal116', 'aal2.120', 'aal2.94', 'aal90',
   kNumGroups <- length(groups)
 
   modality <- match.arg(modality)
-  if (!file.exists(paste0(datadir, '/lh_', atlas, '_', modality, '.csv'))) {
-    stop(sprintf('File "%s" does not exist in %s',
-                 paste0(datadir, '/lh_', atlas, '_', modality, '.csv'),
-                 datadir))
-  }
-  if (!file.exists(paste0(datadir, '/rh_', atlas, '_', modality, '.csv'))) {
-    stop(sprintf('File "%s" does not exist in %s',
-                 paste0(datadir, '/rh_', atlas, '_', modality, '.csv'),
-                 datadir))
-  }
+  stopifnot(file.exists(paste0(datadir, '/lh_', atlas, '_', modality, '.csv')),
+            file.exists(paste0(datadir, '/rh_', atlas, '_', modality, '.csv')))
   lh <- fread(paste0(datadir, '/lh_', atlas, '_', modality, '.csv'))
   setkey(lh, Study.ID)
   rh <- fread(paste0(datadir, '/rh_', atlas, '_', modality, '.csv'))
@@ -113,10 +104,7 @@ brainGraph_init <- function(atlas=c('aal116', 'aal2.120', 'aal2.94', 'aal90',
             .SDcols=atlas.dt[hemi == 'R', name],
             by=Study.ID]$V1
     covars <- subset(all.dat, select=c(names(covars), 'mean.lh', 'mean.rh'))
-  } else {
-    covars <- subset(all.dat, select=names(covars))
   }
-  lhrh <- subset(all.dat, select=names(lhrh))
 
   # Get SCGM and its covariates, if included
   if (isTRUE(grepl('scgm', atlas))) {

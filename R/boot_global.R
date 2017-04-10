@@ -42,7 +42,7 @@ boot_global <- function(densities, resids, R=1e3,
     if (measure == 'mod') {
       res <- vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1))
     } else if (measure == 'E.global') {
-      res <- vapply(g.boot, graph.efficiency, numeric(1), 'global')
+      res <- vapply(g.boot, efficiency, numeric(1), 'global')
     } else if (measure == 'Cp') {
       res <- vapply(g.boot, transitivity, numeric(1), type='localaverage')
     } else if (measure == 'Lp') {

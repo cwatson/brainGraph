@@ -10,7 +10,7 @@ assign_lobes(g, rand = FALSE)
 \item{g}{An \emph{igraph} graph object.}
 
 \item{rand}{A character string indicating whether this function is being run
-for a random graph or a "graph of interest" (default: FALSE).}
+for a random graph or a "graph of interest" (default: \code{FALSE}).}
 }
 \value{
 An \emph{igraph} graph object with additional vertex attributes:
@@ -32,4 +32,3 @@ The input graph \code{g} \emph{must} have a graph attribute named \code{atlas}.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

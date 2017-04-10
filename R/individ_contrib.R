@@ -1,15 +1,15 @@
-#' "Leave-one-out" approach to estimate individual network contribution
+#' Approaches to estimate individual network contribution
 #'
-#' Calculates the individual contribution to group network data for each subject
-#' in each group using a "leave-one-out" approach. The residuals of a single
-#' subject are excluded, and a correlation matrix is created. This is compared
-#' to the original correlation matrix using the Mantel test.
+#' \code{loo} calculates the individual contribution to group network data for
+#' each subject in each group using a "leave-one-out" approach. The residuals of
+#' a single subject are excluded, and a correlation matrix is created. This is
+#' compared to the original correlation matrix using the Mantel test.
 #'
 #' @param resids Data table of model residuals
 #' @param corrs List of lists of correlation matrices (as output by
+#'   \code{\link{corr.matrix}}).
 #' @param level Character string; the level at which you want to calculate
-#' contributions (either \emph{global} or \emph{regional})
-#'   \code{\link{corr.matrix}}). The length should equal the number of groups.
+#'   contributions (either \code{global} or \code{regional})
 #' @export
 #' @importFrom ade4 mantel.rtest
 #'
@@ -18,6 +18,9 @@
 #'   \item{Group}{Group membership}
 #'   \item{IC}{The value of the individual contribution}
 #'
+#' @name IndividualContributions
+#' @aliases loo
+#' @rdname individ_contrib
 #' @examples
 #' \dontrun{
 #' IC <- loo(resids.all, corrs)
@@ -66,37 +69,24 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 
 #' "Add-one-patient" approach to estimate individual network contribution
 #'
-#' Calculates the individual contribution to group network data for each subject
-#' in each group using a "add-one-patient" approach. The residuals of a single
-#' patient are added to those of a control group, and a correlation matrix is
-#' created. This is compared to the original correlation matrix using the Mantel
-#' test.
+#' \code{aop} calculates the individual contribution using an "add-one-patient"
+#' approach. The residuals of a single patient are added to those of a control
+#' group, and a correlation matrix is created.
 #'
-#' @param resids Data table of model residuals
-#' @param index Integer; the row number (in the residuals data table) of the
-#'   subject to be added
-#' @param corr.mat Correlation matrix of the control group
-#' @param level Character string; the level at which you want to calculate
-#' contributions (either \emph{global} or \emph{regional})
+#' @param index Integer; the row number (in \code{resids}) of the subject to be
+#'   added
+#' @param corr.mat Numeric; correlation matrix of the \emph{control} group
 #' @export
 #' @importFrom ade4 mantel.rtest
 #'
-#' @return A \code{data.table} with columns for
-#'   \item{Study.ID}{Subject identifier}
-#'   \item{Group}{Group membership}
-#'   \item{IC}{The value of the individual contribution}
-#'
+#' @aliases aop
+#' @rdname individ_contrib
 #' @examples
 #' \dontrun{
 #' IC <- adply(which(resids.all[, Group == groups[2]]), .margins=1, function(x)
 #'             aop(resids.all, x, corrs[[1]][[1]]$R),
 #'             .parallel=T, .id=NULL)
 #' }
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
-#'   Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-#'   from group-based structural correlations networks}. NeuroImage, 120:274-284.
-#'   doi:10.1016/j.neuroimage.2015.07.006
 
 aop <- function(resids, index, corr.mat, level=c('global', 'regional')) {
   Group <- Study.ID <- NULL

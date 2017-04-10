@@ -16,10 +16,11 @@
 #' @param fname.base A character string specifying the base of the filename for
 #'   \emph{png} output
 #' @param diffs A logical, indicating whether or not to highlight edge
-#'   differences (default: FALSE)
+#'   differences (default: \code{FALSE})
 #' @param ... Other parameters (passed to \code{\link{plot_brainGraph}})
 #' @export
 #'
+#' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE, ...) {

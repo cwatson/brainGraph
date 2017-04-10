@@ -74,4 +74,3 @@ on-the-fly. It updates by calling the helper function \code{make.plot}.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

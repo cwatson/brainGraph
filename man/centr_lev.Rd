@@ -4,13 +4,10 @@
 \alias{centr_lev}
 \title{Calculate a vertex's leverage centrality}
 \usage{
-centr_lev(g, use.parallel = TRUE)
+centr_lev(g)
 }
 \arguments{
-\item{g}{The igraph graph object}
-
-\item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
-(default: TRUE)}
+\item{g}{An \code{igraph} graph object}
 }
 \value{
 A vector of the leverage centrality for all vertices.
@@ -28,11 +25,10 @@ set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 
 This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \references{
 Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

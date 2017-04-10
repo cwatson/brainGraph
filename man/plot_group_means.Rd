@@ -32,10 +32,9 @@ This function takes a "tidied" dataset of cortical volumetric measures
 (thickness, volume, LGI, etc.) and plots a histogram or violin plot for 1 or
 more groups, and of 1 or more brain regions.
 }
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
-}
 \seealso{
 \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
 }
-
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+}

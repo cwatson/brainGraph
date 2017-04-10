@@ -34,7 +34,7 @@ plot_global <- function(tidy.dt, xvar=c('density', 'threshold'), vline=NULL,
   subDT <- copy(tidy.dt)
   # Add asterisks if a data.table of permutation values is provided
   if (!is.null(perms)) {
-    if (is.null(g)) stop(paste0('Must provide a list of (lists of) graphs'))
+    stopifnot(!is.null(g))
 
     # Add necessary columns for plotting annotations
     subDT[, c('sig', 'trend') := '']

@@ -27,4 +27,3 @@ for output.
 \seealso{
 \code{\link[oro.nifti]{image.nifti}}
 }
-

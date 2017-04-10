@@ -14,8 +14,8 @@
 #' @export
 #'
 #' @return A list containing:
-#' {p}{The p-values}
-#' {z}{The z-score for the difference in correlation coefficients}
+#' \item{p}{The p-values}
+#' \item{z}{The z-score for the difference in correlation coefficients}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples

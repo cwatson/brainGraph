@@ -31,11 +31,10 @@ single density or threshold, grouped by the variable specified by
 }
 \examples{
 \dontrun{
-ggp.btwn <- plot_vertex_measures(dt.net.meas.tidy, facet.by='network',
+ggp.btwn <- plot_vertex_measures(dt.V.tidy, facet.by='network',
   measure='E.nodal')
 }
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-

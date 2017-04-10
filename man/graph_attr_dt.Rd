@@ -22,4 +22,3 @@ table of global measures for each graph, ordered by graph density.
 \seealso{
 \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 }
-

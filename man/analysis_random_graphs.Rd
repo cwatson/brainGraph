@@ -52,11 +52,10 @@ rand_all <- random_graph_analysis(g.norm, 1e2, covars.dti,
   savedir='~/dti/rand', clustering=F)
 }
 }
+\seealso{
+\code{\link{sim.rand.graph.par}, \link{small.world},
+  \link{rich_club_norm}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\seealso{
-\code{\link{sim.rand.graph.par}, \link{small.world},
-  \link{rich.club.norm}}
-}
-

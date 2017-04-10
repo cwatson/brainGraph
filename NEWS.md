@@ -1,3 +1,42 @@
+# brainGraph 1.0.0
+
+2017-04-10
+
+First *major* release; Fifth CRAN version
+
+## Bug fix
+* `plot_perm_diffs` previously didn't work with a low number of permutations, but now will work with any number
+* `sim.rand.graph.par` previously didn't work with graphs lacking a `degree` vertex attribute
+* Fixed problem with `plot_brainGraph_GUI` when plotting in the sagittal view for neighborhood graphs
+
+## Major changes
+* Multiple functions now run significantly faster after I updated the code to be more efficient
+* `permute.group.auc` has been removed, and now `permute.group` accepts multiple densities and returns the same results. It can still take a single density for the old behavior
+* The `lobe` and `network` vertex attributes are now *character* vectors
+* `NBS` now handles more complex designs and contrasts through `brainGraph_GLM_design` and `brainGraph_GLM_fit`. The function arguments are different from previous versions
+* `SPM` has been removed and is replaced by `brainGraph_GLM`
+* Added atlas `craddock200` (with coordinates from `DPABI/DPARSF`)
+
+## New functions
+* `brainGraph_GLM`: replaces `SPM` and allows for more complex designs and contrasts
+* `brainGraph_GLM_design`: function that creates a design matrix from a `data.table`
+* `brainGraph_GLM_fit`: function that calculates the statistics from a design matrix and response vector
+* `create_mats`: replaces `dti_create_mats` and adds functionality for resting-state fMRI data; also can create matrices that will have a specific graph density
+* `gateway_coeff`: calculate the *gateway coefficient* (Vargas & Wahl, 2014); graphs will have vertex attributes `GC` or `GC.wt` (if weighted graph)
+* `plot_brainGraph_multi`: function to write a PNG file of 3-panel brain graphs (see User Guide for example)
+
+## Minor changes
+* `efficiency` replaces `graph.efficiency`; the old function name is still accessible (but may be removed eventually)
+* `set_brainGraph_attr` replaces `set.brainGraph.attributes`; the old function name is still accessible (but may be removed eventually)
+* `part_coeff` replaces `part.coeff`
+* All of the `rich.` functions have been renamed. The period/point/dot in each of those functions is replaced by the *underscore*. So, `rich.club.norm` is now `rich_club_norm`, etc.
+* `set_vertex_color` and `set_edge_color` replace `color.vertices` and `color.edges` (these functions are not exported, in any case)
+* `contract_brainGraph` replaces `graph.contract.brain`
+* `make_ego_brainGraph` replaces `graph_neighborhood_multiple` (so it is a similar name to *igraph*'s function `make_ego_graph`)
+* `write_brainnet` replaces `write.brainnet`
+* In the GUI, ordering of vertices in circle plots now more closely reflect their anatomical position, being ordered by y- and x-coordinates (in addition to still being grouped by *lobe*)
+
+----
 # brainGraph 0.72.0
 
 2016-10-10

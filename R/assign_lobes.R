@@ -8,7 +8,7 @@
 #'
 #' @param g An \emph{igraph} graph object.
 #' @param rand A character string indicating whether this function is being run
-#' for a random graph or a "graph of interest" (default: FALSE).
+#' for a random graph or a "graph of interest" (default: \code{FALSE}).
 #'
 #' @return An \emph{igraph} graph object with additional vertex attributes:
 #'   \item{lobe}{Character string indicating the lobe}
@@ -20,87 +20,80 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 assign_lobes <- function(g, rand=FALSE) {
+  stopifnot(is_igraph(g), 'atlas' %in% graph_attr_names(g))
+  lobe <- hemi <- name <- index <- N <- class <- network <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
 
-  stopifnot(is_igraph(g))
-  stopifnot('atlas' %in% graph_attr_names(g))
-  lobe <- hemi <- name <- class <- network <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
-
-  # Check that vertex names match the atlas names
-  atlas.dt <- eval(parse(text=g$atlas))
-  nonmatches <- !V(g)$name %in% atlas.dt[, name]
+  DT <- eval(parse(text=g$atlas))
+  nonmatches <- !V(g)$name %in% DT[, name]
   if (any(nonmatches)) {
     stop(paste('Check the following vertex names: ',
                paste(V(g)$name[nonmatches], collapse=' ')))
   }
-  vorder <- match(V(g)$name, atlas.dt$name)
 
-  V(g)$lobe <- atlas.dt[vorder, as.numeric(lobe)]
-  V(g)$lobe.hemi <- as.numeric(atlas.dt[vorder, interaction(lobe, hemi)])
-  V(g)$hemi <- as.character(atlas.dt[vorder, hemi])
+  vorder <- match(V(g)$name, DT$name)
+  lobe.nums <- DT[vorder, as.numeric(lobe)]
+  V(g)$lobe <- DT[vorder, as.character(lobe)]
+  V(g)$lobe.hemi <- as.numeric(DT[vorder, interaction(lobe, hemi)])
+  V(g)$hemi <- DT[vorder, as.character(hemi)]
 
-  if (g$atlas %in% c('destrieux', 'destrieux.scgm')) V(g)$class <- atlas.dt[vorder, as.numeric(class)]
-  if (g$atlas == 'dosenbach160') V(g)$network <- atlas.dt[vorder, as.numeric(network)]
+  if (isTRUE(grepl('destr', g$atlas))) V(g)$class <- DT[vorder, as.numeric(class)]
+  if (g$atlas == 'dosenbach160') V(g)$network <- DT[vorder, as.character(network)]
 
   if (!isTRUE(rand)) {
-    # Add spatial coordinates for plotting over a brain slice
-    V(g)$x <- V(g)$x.mni <- atlas.dt[vorder, x.mni]
-    V(g)$y <- V(g)$y.mni <- atlas.dt[vorder, y.mni]
-    V(g)$z <- V(g)$z.mni <- atlas.dt[vorder, z.mni]
-    V(g)$color.lobe <- group.cols[V(g)$lobe]
-    E(g)$color.lobe <- color.edges(g, V(g)$lobe)
+    l.cir <- vector('integer')
+    lobes <- DT[, levels(lobe)]
+    V(g)$x <- V(g)$x.mni <- DT[vorder, x.mni]
+    V(g)$y <- V(g)$y.mni <- DT[vorder, y.mni]
+    V(g)$z <- V(g)$z.mni <- DT[vorder, z.mni]
+    V(g)$color.lobe <- group.cols[lobe.nums]
+    E(g)$color.lobe <- set_edge_color(g, lobe.nums)
     if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
       V(g)$color.class <- group.cols[V(g)$class]
-      E(g)$color.class <- color.edges(g, V(g)$class)
+      E(g)$color.class <- set_edge_color(g, V(g)$class)
     }
     if (g$atlas == 'dosenbach160') {
-      V(g)$color.network <- group.cols[V(g)$network]
-      E(g)$color.network <- color.edges(g, V(g)$network)
+      V(g)$color.network <- group.cols[DT[vorder, as.numeric(network)]]
+      E(g)$color.network <- set_edge_color(g, DT[vorder, as.numeric(network)])
+      l.cir <- c(l.cir, which(V(g)$hemi == 'B'))
     }
 
-    counts <- atlas.dt[order(lobe), .N, by=list(lobe, hemi)]$N
-    if (g$atlas %in% c('dkt', 'dk', 'destrieux')) {
-      V(g)$circle.layout <-
-        c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 6 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 3 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 2 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 4 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 4 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 2 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 3 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
-
-    } else if (g$atlas %in% c('aal90', 'aal2.94', 'aal116', 'aal2.120', 'lpba40',
-                              'hoa112', 'brainsuite', 'dk.scgm', 'dkt.scgm',
-                              'destrieux.scgm', 'dosenbach160')) {
-      V(g)$circle.layout <-
-        c(which(V(g)$lobe == 1 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 5 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 6 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 7 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 3 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 2 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 4 & V(g)$hemi == 'L'),
-          which(V(g)$lobe == 4 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 2 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 3 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 7 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 6 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 5 & V(g)$hemi == 'R'),
-          which(V(g)$lobe == 1 & V(g)$hemi == 'R'))
-      if (g$atlas %in% c('aal116', 'aal2.120', 'dosenbach160')) {
-        mid1 <- sum(counts[seq(1, 14, 2)])
-        mid2 <- sum(counts[seq(1, 15, 2)])
-        V(g)$circle.layout <-
-          c(V(g)$circle.layout[1:mid1],
-            which(V(g)$lobe == 8 & V(g)$hemi == 'L'),
-            V(g)$circle.layout[(mid2+1):(mid2+mid1)],
-            which(V(g)$lobe == 8 & V(g)$hemi == 'R'))
-      }
+    l.cir <- c(l.cir,
+      DT[lobe == 'Frontal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
+      DT[lobe %in% c('Insula', 'Central') & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
+      DT[lobe %in% c('Limbic', 'Cingulate') & hemi == 'L', .SD[order(-y.mni, x.mni), index]])
+    if ('SCGM' %in% lobes) {
+      l.cir <- c(l.cir, DT[lobe == 'SCGM' & hemi == 'L', .SD[order(-y.mni, x.mni), index]])
     }
+    l.cir <- c(l.cir,
+      DT[lobe == 'Temporal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
+      DT[lobe == 'Parietal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
+      DT[lobe == 'Occipital' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
+      DT[lobe == 'Occipital' & hemi == 'R', .SD[order(y.mni, x.mni), index]],
+      DT[lobe == 'Parietal' & hemi == 'R', .SD[order(y.mni, x.mni), index]],
+      DT[lobe == 'Temporal' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
+    if ('SCGM' %in% lobes) {
+      l.cir <- c(l.cir, DT[lobe == 'SCGM' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
+    }
+    l.cir <- c(l.cir,
+      DT[lobe %in% c('Limbic', 'Cingulate') & hemi == 'R', .SD[order(y.mni, x.mni), index]],
+      DT[lobe %in% c('Insula', 'Central') & hemi == 'R', .SD[order(y.mni, x.mni), index]],
+      DT[lobe == 'Frontal' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
+    if ('Cerebellum' %in% lobes) {
+      counts <- DT[order(lobe, hemi), .N, by=list(lobe, hemi)]
+      mid1 <- counts[!lobe %in% c('Cerebellum', 'Brainstem') & hemi != 'R', sum(N)]
+      mid2 <- counts[!lobe %in% c('Cerebellum', 'Brainstem') & hemi == 'R', sum(N)]
+      l.cir <- c(l.cir[1:mid1],
+                       which(V(g)$lobe == 'Cerebellum'),
+                       l.cir[(mid1+1):(mid2+mid1)])
+    }
+    if ('Brainstem' %in% lobes) {
+      mid1 <- counts[lobe != 'Brainstem' & hemi != 'R', sum(N)]
+      mid2 <- counts[lobe != 'Brainstem' & hemi == 'R', sum(N)]
+      l.cir <- c(l.cir[1:mid1],
+                       which(V(g)$lobe == 'Brainstem'),
+                       l.cir[(mid1+1):(mid2+mid1)])
+    }
+    V(g)$circle.layout <- l.cir
   }
 
   g

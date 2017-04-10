@@ -61,9 +61,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
   # Graph-level permutations
   #-------------------------------------
   if (level == 'graph') {
-    if (!measure %in% names(perm.dt)) {
-      stop(sprintf('Measure %s is not valid!', deparse(substitute(measure))))
-    }
+    stopifnot(measure %in% names(perm.dt))
     if (is_igraph(g1)) {
       meas.obs1 <- graph_attr(g1, measure)
       meas.obs2 <- graph_attr(g2, measure)
@@ -111,7 +109,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
     }
 
     perm.dt[, mean.diff := mean(perm.diff), by=density]
-    perm.dt[, c('ci.low', 'ci.high') := as.list(sort(perm.diff)[.N * ci]), by=density]
+    perm.dt[, c('ci.low', 'ci.high') := as.list(sort(perm.diff)[ceiling(.N * ci)]), by=density]
     sigplot2 <- ggplot(result.dt[, list(obs.diff=-diff(obs)), by=density],
                        aes(x=as.factor(density))) +
       geom_line(data=perm.dt[, list(ci.low=unique(ci.low)),  by=density],
@@ -120,11 +118,7 @@ plot_perm_diffs <- function(g1, g2, perm.dt, measure,
                 aes(x=density, y=ci.high), lty=2) +
       geom_line(aes(x=density, y=obs.diff), col='red') +
       geom_point(aes(x=density, y=obs.diff), col='red', size=3) +
-      geom_line(data=perm.dt, aes(x=density, y=mean.diff), lty=2) +
-      #geom_boxplot(data=perm.dt, aes(x=as.factor(density), y=perm.diff),
-      #             fill='cyan3', outlier.size=0) +
-      #scale_x_discrete(breaks=seq(densities.perm[1],
-      #                            densities.perm[length(densities.perm)], by=0.05)) +
+      geom_line(data=perm.dt, aes(x=density, y=mean.diff), lty=3) +
       labs(x='Density',
            y=sprintf('Permutation difference (%s - %s)', groups[1], groups[2]),
            plot.title=ylabel)

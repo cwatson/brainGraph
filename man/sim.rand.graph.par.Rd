@@ -7,33 +7,34 @@
 sim.rand.graph.par(g, N, clustering = TRUE, ...)
 }
 \arguments{
-\item{g}{A graph with the characteristics for simulation of random graphs}
+\item{g}{An \code{igraph} graph object}
 
-\item{N}{The number of iterations}
+\item{N}{Integer; the number of random graphs to simulate}
 
-\item{clustering}{Logical for whether or not to control for clustering}
+\item{clustering}{Logical; whether or not to control for clustering (default:
+\code{TRUE}}
 
 \item{...}{Other parameters (passed to \code{\link{sim.rand.graph.clust}})}
 }
 \value{
-A list of \emph{N} random graphs with vertex and graph attributes.
+A \emph{list} of \emph{N} random graphs with vertex and graph
+  attributes
 }
 \description{
 This function will simulate N simple random graphs with the same clustering
 and degree sequence as the input. Essentially a wrapper for
-\code{\link{sim.rand.graph.clust}} and
-\code{\link{set.brainGraph.attributes}}. It uses
-\code{\link[foreach]{foreach}} to speed it up. If you do not want to match by
-clustering, then it will do a simple rewiring of the given graph (the number
-of rewire's equaling the larger of 1e4 and 10 * number of edges).
+\code{\link{sim.rand.graph.clust}} and \code{\link{set_brainGraph_attr}}. It
+uses \code{\link[foreach]{foreach}} to speed it up. If you do not want to
+match by clustering, then it will do a simple rewiring of the given graph
+(the number of rewire's equaling the larger of 1e4 and 10 * number of edges).
 }
 \examples{
 \dontrun{
-rand1 <- sim.rand.graph.par(g1[[N]], N=1e3, clustering=F)
-rand1.cl <- sim.rand.graph.par(g1[[N]], N=1e2, max.iters=1e3)
+rand1 <- sim.rand.graph.par(g[[1]][[N]], N=1e3, clustering=F)
+rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2, max.iters=1e3)
 }
 }
 \seealso{
-\code{\link{sim.rand.graph.clust}, \link[igraph]{rewire}}
+\code{\link{sim.rand.graph.clust}, \link[igraph]{rewire},
+  \link[igraph]{sample_degseq}, \link[igraph]{keeping_degseq}}
 }
-

@@ -17,32 +17,30 @@
 #' Nodal efficiency for vertex \emph{i} is:
 #' \deqn{E_{nodal}(i) = \frac{1}{N-1} \sum_{j \in G} \frac{1}{d_{ij}}}
 #'
-#' @param g The graph on which to calculate efficiency
-#' @param type A character string; either 'local', 'nodal', or 'global'
-#' @param weights A numeric vector of edge weights; if 'NULL', and if the graph
-#' has edge attribute 'weight', then that will be used. To avoid using weights,
-#' this should be 'NA'
+#' @param g An \code{igraph} graph object
+#' @param type Character string; either \code{local}, \code{nodal}, or
+#'   \code{global} (default: \code{local})
+#' @param weights Numeric vector of edge weights; if \code{NULL} (the default),
+#'   and if the graph has edge attribute \code{weight}, then that will be used.
+#'   To avoid using weights, this should be \code{NA}.
 #' @param use.parallel Logical indicating whether or not to use \code{foreach}
-#' (default: TRUE)
+#'   (default: \code{TRUE})
+#' @param A Numeric matrix; the (weighted or unweighted) adjacency matrix of the
+#'   input graph (default: \code{NULL})
 #' @export
 #'
-#' @return A vector of the local efficiencies for each vertex of the graph (if
-#' \emph{type} is 'local|nodal') or a number (if \emph{type} is 'global').
+#' @return A numeric vector of the local efficiencies for each vertex of the
+#'   graph (if \emph{type} is \code{local|nodal}) or a single number (if
+#'   \emph{type} is \code{global}).
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
 #' small-world networks}. Phys Rev Lett, 87.19:198701.
 
-graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
-                             weights=NULL, use.parallel=TRUE) {
+efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
+                       use.parallel=TRUE, A=NULL) {
   stopifnot(is_igraph(g))
-  x <- NULL
-  if ('degree' %in% vertex_attr_names(g)) {
-    degs <- V(g)$degree
-  } else {
-    degs <- degree(g)
-  }
-
+  i <- NULL
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
     weights <- NULL
   } else {
@@ -55,37 +53,51 @@ graph.efficiency <- function(g, type=c('local', 'nodal', 'global'),
 
   type <- match.arg(type)
   if (type == 'local') {
+    if ('degree' %in% vertex_attr_names(g)) {
+      degs <- V(g)$degree
+    } else {
+      degs <- degree(g)
+    }
+
+    if (is.null(weights)) {
+      if (is.null(A)) A <- as_adj(g, names=FALSE, attr='weight')
+      weighted <- TRUE
+    } else {
+      A <- as_adj(g, names=FALSE, sparse=FALSE)
+      weighted <- NULL
+    }
     eff <- rep(0, length(degs))
     nodes <- which(degs > 1)
+    X <- apply(A, 1, function(x) which(x > 0))
 
     if (length(nodes) > 0) {
       if (isTRUE(use.parallel)) {
-        eff[nodes] <- foreach (x=nodes, .combine='c') %dopar% {
-          neighbs <- neighbors(g, v=x)
-          g.sub <- induced.subgraph(g, neighbs)
-          Nv <- vcount(g.sub)
-
-          paths <- distances(g.sub, weights=weights)
-          paths <- paths[upper.tri(paths)]
-          2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
+        eff[nodes] <- foreach (i=nodes, .combine='c') %dopar% {
+          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
+          efficiency(g.sub, 'global', weights=weights)
         }
       } else {
         for (i in nodes) {
-          neighbs <- neighbors(g, v=i)
-          g.sub <- induced.subgraph(g, neighbs)
-          Nv <- vcount(g.sub)
-
-          paths <- distances(g.sub, weights=weights)
-          paths <- paths[upper.tri(paths)]
-          eff[i] <- 2 / Nv / (Nv - 1) * sum(1 / paths[paths != 0])
+          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
+          eff[i] <- efficiency(g.sub, 'global', weights=weights)
         }
       }
     }
   } else {
-    Nv <- length(degs)
+    Nv <- vcount(g)
     eff <- apply(distances(g, weights=weights), 2, function(x)
                  sum(1 / x[x != 0]) / (Nv - 1))
-    if (type == 'global') eff <- mean(eff)
+    if (type == 'global') eff <- sum(eff) / length(eff)
   }
   return(eff)
+}
+
+#' @inheritParams efficiency
+#' @export
+#' @rdname efficiency
+
+graph.efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
+                             use.parallel=TRUE, A=NULL) {
+  .Deprecated('efficiency')
+  efficiency(g, type=type, weights=weights, use.parallel=use.parallel, A=A)
 }

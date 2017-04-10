@@ -4,16 +4,16 @@
 \alias{permute.group}
 \title{Permutation test for group difference of graph measures}
 \usage{
-permute.group(permSet, density, resids, level = c("graph", "vertex", "lobe",
+permute.group(permSet, densities, resids, level = c("graph", "vertex", "lobe",
   "other"), atlas, measure = c("btwn.cent", "degree", "E.nodal", "knn",
   "transitivity", "vulnerability"), .function = NULL)
 }
 \arguments{
-\item{permSet}{A matrix of the set of permutations to loop through; the
+\item{permSet}{Numeric matrix of the set of permutations to loop through; the
 number of rows equals the desired number of permutations and the number of
 columns equals the total number of subjects across groups}
 
-\item{density}{Numeric; the density of the resultant graphs}
+\item{densities}{Numeric vector of graph densities}
 
 \item{resids}{A data table of the residuals (from \code{\link{get.resid}})}
 
@@ -36,7 +36,9 @@ This function draws permutations from linear model residuals to determine the
 significance of between-group differences of a global or vertex-wise graph
 measure. This function is intended for cortical thickness networks (in which
 there is only one graph per group), but can be extended to other types of
-data.
+data. If you would like to calculate differences in the area-under-the-curve
+(AUC) across densities, then supply a vector to the \code{densities}
+argument.
 }
 \details{
 The \emph{graph} "level" will calculate modularity (Louvain algorithm),
@@ -66,11 +68,10 @@ out <- permute.group(myPerms, densities[N], m$resids, 'other',
   .function=myFun)
 }
 }
+\seealso{
+\code{\link[igraph]{centr_betw}, \link{vulnerability},
+\link{count_interlobar}, \link{edge_asymmetry}, \link{efficiency}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\seealso{
-\code{\link[igraph]{centr_betw}, \link{vulnerability},
-\link{count_interlobar}, \link{edge_asymmetry}, \link{graph.efficiency}}
-}
-

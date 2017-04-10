@@ -19,8 +19,6 @@ make_empty_brainGraph <- function(g) {
   g.new$atlas <- g$atlas
   V(g.new)$name <- V(g)$name
   g.new <- assign_lobes(g.new)
-  V(g.new)$color.lobe <- group.cols[V(g.new)$lobe]
-  E(g.new)$color.lobe <- color.edges(g.new, V(g.new)$lobe)
 
   return(g.new)
 }
