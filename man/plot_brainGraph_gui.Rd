@@ -16,5 +16,7 @@ vertex- and edge-level attributes (set by
 }
 \seealso{
 Other Plotting functions: \code{\link{plot_brainGraph_list}},
+  \code{\link{plot_brainGraph_mni}},
+  \code{\link{plot_brainGraph_multi}},
   \code{\link{plot_brainGraph}}
 }

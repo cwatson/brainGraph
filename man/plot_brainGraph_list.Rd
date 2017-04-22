@@ -33,6 +33,8 @@ contains graphs of each subject in a group.
 }
 \seealso{
 Other Plotting functions: \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph_mni}},
+  \code{\link{plot_brainGraph_multi}},
   \code{\link{plot_brainGraph}}
 }
 \author{

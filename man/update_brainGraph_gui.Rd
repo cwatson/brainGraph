@@ -4,32 +4,33 @@
 \alias{update_brainGraph_gui}
 \title{Function to dynamically plot a graph}
 \usage{
-update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
+update_brainGraph_gui(plotDev, g, g2, plotFunc, vsize.measure, ewidth.measure,
   vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min, edgeWidth.max,
-  vertSize.const = NULL, edgeWidth.const = NULL, vertLabels = NULL,
-  showLegend = NULL, comm = NULL, kNumComms = NULL, neighb = NULL,
-  neighbMult = NULL, slider = NULL, vertSize.other = NULL,
-  edgeWidth.other = NULL, vertSize.eqn = NULL, showDiameter = NULL,
-  edgeDiffs = NULL)
+  vertSize.const, edgeWidth.const, vertLabels, showLegend, comms, neighb,
+  neighbInd = NULL, slider, vertSize.other, edgeWidth.other, vertSize.eqn,
+  showDiameter, edgeDiffs)
 }
 \arguments{
 \item{plotDev}{A Cairo device for the plotting area}
 
-\item{graph1}{An igraph graph object for the first plotting area}
+\item{g}{An \code{igraph} graph object for the first plotting area}
 
-\item{graph2}{An igraph graph object for the  second plotting area}
+\item{g2}{An \code{igraph} graph object for the second plotting area}
 
 \item{plotFunc}{A function specifying which type of plot to use}
 
-\item{vertSize}{A GTK combo box for scaling vertex size}
+\item{vsize.measure}{Character string of the name of the attribute for vertex
+scaling}
 
-\item{edgeWidth}{A GTK entry for changing edge width}
+\item{ewidth.measure}{Character string of the name of the attribute for edge
+scaling}
 
 \item{vertColor}{A GTK combo box for changing vertex colors}
 
 \item{hemi}{A GTK combo box for plotting individual hemispheres}
 
-\item{lobe}{A GTK combo box for plotting individual lobes}
+\item{lobe}{Character string of the lobe name to select (comma-separated if
+multiple lobes are listed)}
 
 \item{orient}{A GTK combo box for plotting a specific orientation}
 
@@ -47,13 +48,11 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
 
 \item{showLegend}{A GTK check button for showing a legend}
 
-\item{comm}{A GTK combo box for plotting individual communities}
+\item{comms}{Integer vector of the communities to plot}
 
-\item{kNumComms}{Integer indicating the number of total communities (optional)}
+\item{neighb}{Character vector of vertex names for getting neighborhoods}
 
-\item{neighb}{A GTK combo box for plotting individual neighborhoods}
-
-\item{neighbMult}{A GTK entry for joint neighborhoods of multiple vertices}
+\item{neighbInd}{Integer vector of vertex indices of \code{neighb}}
 
 \item{slider}{A GTK horizontal slider widget for changing edge curvature}
 
@@ -68,8 +67,7 @@ update_brainGraph_gui(plotDev, graph1, graph2, plotFunc, vertSize, edgeWidth,
 \item{edgeDiffs}{A GTK check button for showing edge diffs between graphs}
 }
 \description{
-This function is called by \link{plot_brainGraph_gui} to update a plot
-on-the-fly. It updates by calling the helper function \code{make.plot}.
+This function is called by \link{plot_brainGraph_gui} to update the GUI.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

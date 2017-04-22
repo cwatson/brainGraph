@@ -4,13 +4,14 @@
 \alias{brainGraph_GLM}
 \title{Run linear models at each vertex of a graph}
 \usage{
-brainGraph_GLM(g, covars, measure, con.vec, outcome = measure, X = NULL,
-  con.name = NULL, alternative = c("two.sided", "less", "greater"),
-  alpha = 0.05, permute = FALSE, N = 5000, ...)
+brainGraph_GLM(g.list, covars, measure, con.vec, outcome = measure,
+  X = NULL, con.name = NULL, alternative = c("two.sided", "less",
+  "greater"), alpha = 0.05, level = c("vertex", "graph"), permute = FALSE,
+  N = 5000, perms = NULL, ...)
 }
 \arguments{
-\item{g}{A list of \code{igraph} graph objects for all subjects (if you have
-multiple groups, you must concatenate the separate group lists)}
+\item{g.list}{A list of \code{igraph} graph objects for all subjects (if you
+have multiple groups, you must concatenate the separate group lists)}
 
 \item{covars}{A \code{data.table} of covariates}
 
@@ -31,10 +32,16 @@ default, it is ignored}
 
 \item{alpha}{Numeric; the significance level (default: 0.05)}
 
+\item{level}{Character string; either \code{vertex} (default) or
+\code{graph}}
+
 \item{permute}{Logical indicating whether or not to permute group labels
 (default: \code{FALSE})}
 
 \item{N}{Integer; number of permutations to create (default: 5e3)}
+
+\item{perms}{Matrix of permutations, if you would like to provide your own
+(default: \code{NULL})}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 }
@@ -56,6 +63,8 @@ A list containing:
 \description{
 This function takes a list of \code{igraph} graphs and specifies a linear
 model at each vertex for a given vertex measure (e.g. \emph{degree}).
+Similarly, you may choose to test for a graph-level measure by specifying
+\code{level='graph'}.
 }
 \details{
 You will need to provide a \code{data.table} of covariates, of which
@@ -101,7 +110,11 @@ Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
 }
 \seealso{
 Other GLM functions: \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM_fit}}
+  \code{\link{brainGraph_GLM_fit}}, \code{\link{mtpc}}
+
+Other Group analysis functions: \code{\link{IndividualContributions}},
+  \code{\link{NBS}}, \code{\link{boot_global}},
+  \code{\link{mtpc}}, \code{\link{permute.group}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

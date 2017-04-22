@@ -39,7 +39,7 @@ plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE, ...) {
           ecols <- 'deeppink'
         }
         ewidth <- 5
-        plot_brainGraph(g.diff, add=T, vertex.label=NA, vertex.shape='none',
+        plot_brainGraph(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
                         edge.width=ewidth, edge.color=ecols)
       }
     }

@@ -4,7 +4,7 @@
 \alias{sim.rand.graph.par}
 \title{Simulate N random graphs w/ same clustering and degree sequence as the input.}
 \usage{
-sim.rand.graph.par(g, N, clustering = TRUE, ...)
+sim.rand.graph.par(g, N, clustering = FALSE, ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -12,7 +12,7 @@ sim.rand.graph.par(g, N, clustering = TRUE, ...)
 \item{N}{Integer; the number of random graphs to simulate}
 
 \item{clustering}{Logical; whether or not to control for clustering (default:
-\code{TRUE}}
+\code{FALSE})}
 
 \item{...}{Other parameters (passed to \code{\link{sim.rand.graph.clust}})}
 }
@@ -21,20 +21,32 @@ A \emph{list} of \emph{N} random graphs with vertex and graph
   attributes
 }
 \description{
-This function will simulate N simple random graphs with the same clustering
+Simulates \code{N} simple random graphs with the same clustering (optional)
 and degree sequence as the input. Essentially a wrapper for
-\code{\link{sim.rand.graph.clust}} and \code{\link{set_brainGraph_attr}}. It
-uses \code{\link[foreach]{foreach}} to speed it up. If you do not want to
-match by clustering, then it will do a simple rewiring of the given graph
-(the number of rewire's equaling the larger of 1e4 and 10 * number of edges).
+\code{\link[igraph]{sample_degseq}} (or \code{\link{sim.rand.graph.clust}})
+and \code{\link{set_brainGraph_attr}}. It uses \code{\link[foreach]{foreach}}
+for parallel processing.
+}
+\details{
+If you do not want to match by clustering, then simple rewiring of the input
+graph is performed (the number of rewire's equaling the larger of \code{1e4}
+and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
 }
 \examples{
 \dontrun{
-rand1 <- sim.rand.graph.par(g[[1]][[N]], N=1e3, clustering=F)
-rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2, max.iters=1e3)
+rand1 <- sim.rand.graph.par(g[[1]][[N]], N=1e3)
+rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2,
+  clustering=T, max.iters=1e3)
 }
 }
 \seealso{
-\code{\link{sim.rand.graph.clust}, \link[igraph]{rewire},
-  \link[igraph]{sample_degseq}, \link[igraph]{keeping_degseq}}
+\code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
+  \link[igraph]{keeping_degseq}}
+
+Other Null graph functions: \code{\link{analysis_random_graphs}},
+  \code{\link{choose.edges}}, \code{\link{rich_club_norm}},
+  \code{\link{sim.rand.graph.clust}}
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }

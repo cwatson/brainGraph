@@ -1,13 +1,7 @@
 #' Calculate graph global, local, or nodal efficiency
 #'
 #' This function calculates the global efficiency of a graph or the local or
-#' nodal efficiency of each vertex of a graph. The global efficiency is equal
-#' to the mean of all nodal efficiencies.
-#'
-#' Global efficiency for graph \emph{G} with \emph{N} vertices is:
-#' \deqn{E_{global}(G) = \frac{1}{N(N-1)} \sum_{i \ne j \in G} \frac{1}{d_{ij}}}
-#' where \eqn{d_{ij}} is the shortest path length between vertices \emph{i} and
-#' \emph{j}.
+#' nodal efficiency of each vertex of a graph.
 #'
 #' Local efficiency for vertex \emph{i} is:
 #' \deqn{E_{local}(i) = \frac{1}{N} \sum_{i \in G} E_{global}(G_i)}
@@ -16,6 +10,12 @@
 #'
 #' Nodal efficiency for vertex \emph{i} is:
 #' \deqn{E_{nodal}(i) = \frac{1}{N-1} \sum_{j \in G} \frac{1}{d_{ij}}}
+#'
+#' Global efficiency for graph \emph{G} with \emph{N} vertices is:
+#' \deqn{E_{global}(G) = \frac{1}{N(N-1)} \sum_{i \ne j \in G} \frac{1}{d_{ij}}}
+#' where \eqn{d_{ij}} is the shortest path length between vertices \emph{i} and
+#' \emph{j}. Alternatively, global efficiency is equal to the mean of all nodal
+#' efficiencies.
 #'
 #' @param g An \code{igraph} graph object
 #' @param type Character string; either \code{local}, \code{nodal}, or
@@ -29,13 +29,13 @@
 #'   input graph (default: \code{NULL})
 #' @export
 #'
-#' @return A numeric vector of the local efficiencies for each vertex of the
-#'   graph (if \emph{type} is \code{local|nodal}) or a single number (if
-#'   \emph{type} is \code{global}).
+#' @return A numeric vector of the efficiencies for each vertex of the graph
+#'   (if \emph{type} is \code{local|nodal}) or a single number (if \emph{type}
+#'   is \code{global}).
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
-#' small-world networks}. Phys Rev Lett, 87.19:198701.
+#'   small-world networks}. Phys Rev Lett, 87.19:198701.
 
 efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
                        use.parallel=TRUE, A=NULL) {

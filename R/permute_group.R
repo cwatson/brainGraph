@@ -41,6 +41,7 @@
 #' @return A data table with values for group differences in modularity, global
 #' efficiency, clustering, average path length, and assortativity (etc.)
 #'
+#' @family Group analysis functions
 #' @seealso \code{\link[igraph]{centr_betw}, \link{vulnerability},
 #' \link{count_interlobar}, \link{edge_asymmetry}, \link{efficiency}}
 #'

@@ -4,19 +4,21 @@
 \alias{corr.matrix}
 \title{Calculate correlation matrix and threshold}
 \usage{
-corr.matrix(dat, thresh = NULL, density = 0.1, exclusions = NULL, ...)
+corr.matrix(dat, density, thresh = NULL, exclusions = NULL, ...)
 }
 \arguments{
 \item{dat}{Data table of the data to correlate}
 
-\item{thresh}{Numeric; absolute correlation value to threshold by}
-
 \item{density}{Numeric indicating the resultant network density; keeps the
 top \emph{X}\% of correlations}
 
-\item{exclusions}{Numeric vector of indices (columns) to exclude (optional)}
+\item{thresh}{Numeric; absolute correlation value to threshold by (default:
+\code{NULL})}
 
-\item{...}{Other arguments to be passed to \code{\link[Hmisc]{rcorr}}}
+\item{exclusions}{Numeric vector of indices (columns) to exclude (default:
+\code{NULL})}
+
+\item{...}{Other arguments, passed to \code{\link[Hmisc]{rcorr}}}
 }
 \value{
 A list with the following components:
@@ -27,16 +29,17 @@ A list with the following components:
 \item{threshold}{Numeric; the threshold value used.}
 }
 \description{
-This function does a column-by-column correlation of a given data frame, and
-will threshold the matrix based on a given density; e.g. 0.1 if you want to
-keep only the 10\% strongest correlations.
+\code{corr.matrix} calculates the correlation between all column pairs of a
+given data frame, and thresholds the resultant correlation matrix based on a
+given density (e.g., \code{0.1} if you want to keep only the 10\% strongest
+correlations.
 }
 \details{
 If you wish to exclude regions from your analysis, you can give the indices
-of their columns. This function is essentially a wrapper for
-\code{\link[Hmisc]{rcorr}}, with some added functionality to work with this
-type of data more easily. By default, the Pearson correlation coefficients
-are calculated, but can return Spearman by passing an additional argument.
+of their columns with the \code{exclusions} argument.
+
+By default, the Pearson correlation coefficients are calculated, but can
+return Spearman by passing an additional argument.
 }
 \examples{
 \dontrun{
@@ -46,6 +49,9 @@ corrs <- lapply(groups, function(x) lapply(densities, function(y)
 }
 \seealso{
 \code{\link[Hmisc]{rcorr}}
+
+Other Volumetric functions: \code{\link{brainGraph_init}},
+  \code{\link{check.resid}}, \code{\link{get.resid}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

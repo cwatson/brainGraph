@@ -8,18 +8,18 @@ boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
   "Cp", "Lp", "assortativity"))
 }
 \arguments{
-\item{densities}{A vector of graph densities to loop through}
+\item{densities}{Numeric vector of graph densities to loop through}
 
 \item{resids}{A data.table of the residuals (from \code{\link{get.resid}})}
 
-\item{R}{The number of bootstrap replicates (default: 1e3)}
+\item{R}{Integer; the number of bootstrap replicates (default: 1e3)}
 
 \item{measure}{Character string of the measure to test (default: 'mod')}
 }
 \value{
 A list with two elements:
-\item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
-\item{dt}{A data table with length \emph{# densities * # groups}}
+  \item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
+  \item{dt}{A data table with length \emph{# densities * # groups}}
 }
 \description{
 This function performs bootstrapping to get group standard error estimates of
@@ -36,8 +36,11 @@ boot.E.global <- boot_global(densities, resids.all, 1e3, 'E.global')
 }
 }
 \seealso{
-\code{\link[boot]{boot}, \link[boot]{boot.ci},
-\link{permute.group}}
+\code{\link[boot]{boot}, \link[boot]{boot.ci}}
+
+Other Group analysis functions: \code{\link{IndividualContributions}},
+  \code{\link{NBS}}, \code{\link{brainGraph_GLM}},
+  \code{\link{mtpc}}, \code{\link{permute.group}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

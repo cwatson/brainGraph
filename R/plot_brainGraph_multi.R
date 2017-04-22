@@ -34,6 +34,7 @@
 #'   \code{\link{plot_brainGraph}}
 #' @export
 #'
+#' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -102,20 +103,20 @@ plot_brainGraph_multi <- function(g, groups=1, N=1, filename='tmp.png',
     # Left sag.
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:109, 1:91, L[, , 30], col=imcol, breaks=breaks, asp=0)
-    par(new=T)
+    par(new=TRUE)
     plot_brainGraph(g[[groups[i]]][[N]], plane='sagittal', hemi='L', main='\n\n\nLH',
                     subgraph=subgraph[[i]], ...)
 
     # Axial
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:91, 1:109, X[, , 46], col=imcol, breaks=breaks)
-    par(new=T)
+    par(new=TRUE)
     plot_brainGraph(g[[groups[i]]][[N]], main=main.title, subgraph=subgraph[[i]], ...)
 
     # Right sag.
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:109, 1:91, R[, , 30], col=imcol, breaks=breaks)
-    par(new=T)
+    par(new=TRUE)
     plot_brainGraph(g[[groups[i]]][[N]], plane='sagittal', hemi='R', main='\n\n\nRH',
                     subgraph=subgraph[[i]], ...)
   }

@@ -13,10 +13,13 @@ contract_brainGraph(g)
 A new \code{igraph} graph object
 }
 \description{
-This function creates a new graph after merging multiple vertices based on
-brain lobe and hemisphere membership. The new vertex size is equal to the
-number of vertices in each lobe. The x- and y- coordinates of the new
-vertices are equal to the mean of the lobe vertices of the original graph.
+Create a new graph after merging multiple vertices based on brain \emph{lobe}
+and \emph{hemisphere} membership.
+}
+\details{
+The vertex size of the resultant graph is equal to the number of vertices in
+each lobe (in the input graph). The x- and y- coordinates of the new vertices
+are equal to the mean coordinates of the lobe vertices of the original graph.
 The new edge weight is equal to the number of inter-lobular connections of
 the original graph.
 }

@@ -35,10 +35,10 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   } else {
     subDT[, star := ifelse(p < alpha, '*', '')]
   }
-  subDT[, yloc := min(phi, na.rm=T) - 0.05 * diff(range(phi, na.rm=T)), by=facet.by]
+  subDT[, yloc := min(phi, na.rm=TRUE) - 0.05 * diff(range(phi, na.rm=TRUE)), by=facet.by]
   if (nlevels(subDT$Group) > 1) {
     for (i in 2:nlevels(subDT$Group)) {
-      subDT[Group == levels(subDT$Group)[i], yloc := yloc - i * 0.05 * diff(range(phi, na.rm=T))]
+      subDT[Group == levels(subDT$Group)[i], yloc := yloc - i * 0.05 * diff(range(phi, na.rm=TRUE))]
     }
   }
   setkeyv(subDT, c(facet.by, 'Group'))

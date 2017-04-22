@@ -10,8 +10,10 @@
 #' @export
 #'
 #' @return An \code{igraph} graph object
-#' @seealso \code{\link{choose.edges}, \link[igraph]{rewire},
-#' \link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
+#'
+#' @family Null graph functions
+#' @seealso \code{\link[igraph]{rewire}, \link[igraph]{transitivity},
+#'   \link[igraph]{keeping_degseq}}
 #'
 #' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 #' biological network structure with clustered random networks}. BMC
@@ -30,7 +32,7 @@ sim.rand.graph.clust <- function(g, cl=g$transitivity, max.iters=100) {
 
       # If E(y1, y2) and E(z1, z2) don't exist, rewire 2 edges
       repeat {
-        e <- choose.edges(A, degs, degs.large)
+        e <- choose.edges(A, degs.large)
         if ( (A[e$y1, e$y2] == 0) && (A[e$z1, e$z2] == 0) &&
              (e$y1 != e$y2) && (e$z1 != e$z2) ) {
           break

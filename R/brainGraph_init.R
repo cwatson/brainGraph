@@ -1,72 +1,66 @@
 #' Initialize variables for further use in brainGraph
 #'
-#' This function initializes some variables that are important for further
-#' analysis with the \code{brainGraph} package. This mostly involves loading CSV
-#' files (of covariates/demographics, cortical thickness/volumes, etc.) and
-#' returning them as data tables.
+#' Initializes some variables that are important for further analysis of
+#' volumetric (e.g., \emph{cortical thickness}) data. This mostly involves
+#' loading CSV files (of covariates/demographics, cortical thickness/volumes,
+#' etc.) and returning them as data tables.
 #'
 #' The file containing covariates should be named \code{covars.csv}. However,
 #' you may also supply a \code{data.table} using the function argument
 #' \code{covars}. This is useful if you have multiple covariates in your file
 #' and wish to subset the data on your own.
 #'
-#' The files containing volumetric data should include hemisphere, atlas, and
-#' modality, e.g. \code{lh_dkt_thickness.csv}. If you would like to include
-#' subcortical gray matter, then you will need files \code{covars.scgm.csv} and
-#' \code{scgm.csv}.
+#' The filenames of files containing volumetric data should include hemisphere,
+#' atlas, and modality separated by the \emph{underscore} character, e.g.
+#' \code{lh_dkt_thickness.csv}. If you would like to include subcortical gray
+#' matter, then you will need files \code{covars.scgm.csv} and \code{scgm.csv}.
 #'
-#' @param atlas A character string indicating which brain atlas you are using
-#' @param densities A numeric vector of the graph densities you would like to
-#' investigate
-#' @param datadir A character string; the filesystem location of your input
-#' files
-#' @param modality A character string indicating the volumetric MRI
-#' modality/measure you are using to create the graphs ('thickness', 'volume',
-#' 'lgi', or 'area')
-#' @param use.mean A logical indicating whether or not you would like to
-#' calculate the mean hemispheric volumetric measure (for later use in linear
-#' models) (default: FALSE)
-#' @param covars (optional) A \code{data.table} of covariates; specify this if
-#'   you do not want to load your full covariates file (default: NULL)
-#' @param exclude.subs (optional) A character vector of the Study ID's of
-#' subjects who are to be excluded from the analysis
+#' @param atlas Character string indicating which brain atlas you are using
+#' @param densities Numeric vector of the graph densities you would like to
+#'   investigate
+#' @param datadir Character string; the filesystem location of your input files
+#' @param modality Character string indicating the volumetric MRI
+#'   modality/measure used to create the graphs (default: \code{thickness})
+#' @param use.mean Logical indicating whether or not you would like to
+#'   calculate the mean hemispheric volumetric measure (for later use in linear
+#'   models) (default: \code{FALSE})
+#' @param covars A \code{data.table} of covariates; specify this if you do not
+#'   want to load your full covariates file (default: \code{NULL})
+#' @param exclude.subs Character vector of the Study ID's of subjects who are to
+#'   be excluded from the analysis (default: \code{NULL})
 #' @export
 #'
 #' @return A list containing:
-#' \item{atlas}{A character string of the brain atlas name}
-#' \item{densities}{A numeric vector of the graph densities}
-#' \item{modality}{A character string of the modality you chose}
-#' \item{kNumDensities}{An integer indicating the number of densities}
+#' \item{atlas}{Character string of the brain atlas name}
+#' \item{densities}{Numeric vector of the graph densities}
+#' \item{modality}{Character string of the modality you chose}
+#' \item{kNumDensities}{Integer indicating the number of densities}
 #' \item{covars}{A \code{data.table} of covariates}
-#' \item{groups}{A character vector of subject group names}
-#' \item{kNumGroups}{An integer indicating the number of groups}
-#' \item{kNumVertices}{An integer; the number of vertices in the graphs}
+#' \item{groups}{Character vector of subject group names}
+#' \item{kNumGroups}{Integer indicating the number of groups}
+#' \item{kNumVertices}{Integer; the number of vertices in the graphs}
 #' \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
 #' data}
 #' \item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
-#' \item{all.dat.tidy}{A 'tidied' version of \code{all.dat}}
+#' \item{all.dat.tidy}{A "tidied" version of \code{all.dat}}
 #'
+#' @family Volumetric functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' init.vars <- brainGraph_init(atlas='dkt', densities=seq(0.07, 0.50, 0.01),
-#' datadir='/home/cwatson/Data', modality='thickness', exclude.subs=c('Con07',
-#' 'Con23', 'Pat15'), use.mean=FALSE)
+#'   datadir='/home/cwatson/Data', modality='thickness', exclude.subs=c('Con07',
+#'   'Con23', 'Pat15'), use.mean=FALSE)
 #' }
 
-brainGraph_init <- function(atlas=c('aal116', 'aal2.120', 'aal2.94', 'aal90',
-                                    'brainsuite', 'craddock200', 'destrieux',
-                                    'destrieux.scgm', 'dk', 'dk.scgm', 'dkt',
-                                    'dkt.scgm', 'dosenbach160', 'hoa112',
-                                    'lpba40'),
-                            densities, datadir,
+brainGraph_init <- function(atlas, densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
                             use.mean=FALSE, covars=NULL, exclude.subs=NULL) {
 
   Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <-
     value <- region <- NULL
   kNumDensities <- length(densities)
-  atlas <- match.arg(atlas)
+  atlas <- match.arg(atlas, choices=data(package='brainGraph')$results[, 3])
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 

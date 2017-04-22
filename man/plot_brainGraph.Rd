@@ -57,7 +57,9 @@ plot_brainGraph(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
 }
 \seealso{
 Other Plotting functions: \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}}
+  \code{\link{plot_brainGraph_list}},
+  \code{\link{plot_brainGraph_mni}},
+  \code{\link{plot_brainGraph_multi}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

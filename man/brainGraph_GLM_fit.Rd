@@ -8,7 +8,7 @@ brainGraph_GLM_fit(X, y, con.vec, alpha = 0.05, alternative = c("two.sided",
   "less", "greater"))
 }
 \arguments{
-\item{X}{The design matrix}
+\item{X}{Numeric matrix; the "design matrix"}
 
 \item{y}{Numeric vector of the outcome variable}
 
@@ -34,13 +34,12 @@ fitting a linear model and return the contrast of parameter estimates,
 standard error, t-statistic, and p-value (given a contrast of interest).
 }
 \details{
-For speed purposes (if it is called from
-\code{\link[brainGraph]{brainGraph_GLM}} and permutation testing is done),
-this function does not do argument checking.
+For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and
+permutation testing is done), this function does not do argument checking.
 }
 \seealso{
 Other GLM functions: \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM}}
+  \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

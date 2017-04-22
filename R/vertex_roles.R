@@ -58,6 +58,7 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
     }
   }
   N <- max(memb)
+  if (N == 1) return(rep(0, length(memb)))
   Cn <- max(vapply(seq_len(N), function(x) sum(cent[which(memb == x)]), numeric(1)))
 
   A <- as_adj(g, sparse=FALSE, names=FALSE)

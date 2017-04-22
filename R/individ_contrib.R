@@ -26,6 +26,7 @@
 #' IC <- loo(resids.all, corrs)
 #' RC <- loo(resids.all, corrs, level='regional')
 #' }
+#' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
 #'   Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions

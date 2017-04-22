@@ -4,10 +4,10 @@
 \alias{analysis_random_graphs}
 \title{Perform an analysis with random graphs for brain MRI data}
 \usage{
-analysis_random_graphs(g, N, covars, savedir = ".", ...)
+analysis_random_graphs(g.list, N, covars, savedir = ".", ...)
 }
 \arguments{
-\item{g}{A list object containing all graphs (may be nested)}
+\item{g.list}{List of lists containing \code{igraph} graph objects}
 
 \item{N}{Integer specifying number of random graphs to generate per
 individual graph}
@@ -18,7 +18,7 @@ individual graph}
 generated graphs (default: current working directory)}
 
 \item{...}{Other arguments passed to \code{\link{sim.rand.graph.par}} (e.g.
-\emph{clustering=F})}
+\code{clustering=T})}
 }
 \value{
 A list containing:
@@ -35,26 +35,33 @@ generate equivalent random graphs. This includes calculating \emph{small
 world} parameters and normalized \emph{rich club} coefficients.
 }
 \details{
-First, a number of random graphs are generated for each group and
-density/threshold (and subject if you have subject-specific graphs). These
-graphs are all written to disk in a location you specify. All of these are
-read back into \code{R} and combined into large lists; these large lists are
-also written to disk (in a sub-directory named \code{ALL}), so you can delete
-the individual \code{.rds} files afterwards. Once all of the random graphs
-have been generated, the \emph{small world} parameters are calculated, along
-with values for a few global graph measures that may be of interest.
-Additionally, the \emph{normalized rich club coefficients} and associated
-p-values will be calculated.
+The steps that are performed are:
+\enumerate{
+  \item \code{N} random graphs are generated for each group and
+  density/threshold (and \emph{subject} if you have subject-specific graphs).
+  \item These graphs are all written to disk in \code{savedir}. All of these
+  are read back into \code{R} and combined into lists; these lists are also
+  written to disk (in a sub-directory named \code{ALL}), so you can delete
+  the individual \code{.rds} files afterwards.
+  \item \emph{Small world} parameters are calculated, along with values for
+  a few global graph measures that may be of interest.
+  \item \emph{Normalized rich club coefficients} and associated p-values will
+  be calculated.
+}
 }
 \examples{
 \dontrun{
-rand_all <- random_graph_analysis(g.norm, 1e2, covars.dti,
-  savedir='~/dti/rand', clustering=F)
+rand_all <- analysis_random_graphs(g.norm, 1e2, covars.dti,
+  savedir='/home/cwatson/dti/rand', clustering=F)
 }
 }
 \seealso{
-\code{\link{sim.rand.graph.par}, \link{small.world},
-  \link{rich_club_norm}}
+\code{\link{small.world}}
+
+Other Null graph functions: \code{\link{choose.edges}},
+  \code{\link{rich_club_norm}},
+  \code{\link{sim.rand.graph.clust}},
+  \code{\link{sim.rand.graph.par}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

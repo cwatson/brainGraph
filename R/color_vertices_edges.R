@@ -31,7 +31,6 @@ set_vertex_color <- function(memb) {
 #' colored gray.
 #'
 #' @param g An \code{igraph} graph object
-#' @inheritParams set_vertex_color
 #'
 #' @return \code{set_edge_color} - a character vector of colors with length
 #'   equal to the edge count of \code{g}

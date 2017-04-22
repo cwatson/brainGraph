@@ -11,8 +11,12 @@
 
 auc_diff <- function(x, y) {
   if (length(x) > 1) {
-    return(-diff(apply(y, 2, function(z)
-                       sum(diff(x) * (head(z, -1) + tail(z, -1))) / 2)))
+    if (is.null(dim(y))) {  # A single vector, for MTPC
+      return(sum(-diff(x) * (head(y, -1) + tail(y, -1))) / 2)
+    } else {
+      return(-diff(apply(y, 2, function(z)
+                         sum(diff(x) * (head(z, -1) + tail(z, -1))) / 2)))
+    }
   } else {
     return(y[1] - y[2])
   }
@@ -21,7 +25,7 @@ auc_diff <- function(x, y) {
 #' Delete all attributes of a graph
 #'
 #' Deletes all graph-, vertex-, and edge-level attributes of an \code{igraph}
-#' graph objects.
+#' graph object.
 #'
 #' @param g An \code{igraph} graph object
 #' @param keep.names Logical indicating whether to keep the \code{name} vertex
@@ -75,9 +79,9 @@ rotation <- function(x, theta) {
 #' @return A vector of the transformed input.
 
 vec.transform <- function(x, min.val=0, max.val=1) {
-  if (diff(range(x, na.rm=T)) == 0) {
+  if (diff(range(x, na.rm=TRUE)) == 0) {
     return(rep(max.val, length=length(x)))
   } else {
-    return(((x - min(x, na.rm=T)) * (max.val - min.val) / diff(range(x, na.rm=T))) + min.val)
+    return(((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diff(range(x, na.rm=TRUE))) + min.val)
   }
 }

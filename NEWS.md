@@ -1,3 +1,31 @@
+# brainGraph 1.1.0
+
+2017-04-22
+
+## Bug fix
+* `plot_brainGraph_gui` had multiple issues and a few features have been changed:
+    * Overall execution should be faster than in previous versions
+    * *Lobe*, *neighborhood*, and *community* selection are now in "scrolled windows" instead of drop-down lists. Multiple selections can be made either by pressing `Ctrl` and clicking, or by holding `Shift` and moving the arrow keys
+    * Fixed problem with vertex colors
+    * When choosing to plot *neighborhoods*, you can color the vertices based on which neighborhood they belong to (useful if multiple vertices are selected)
+* `gateway_coeff` returned an error if the number of communities equals 1; this has been fixed
+
+## New functions
+* `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009). This requires that the package `expm` is installed.
+* `communicability`: calculate network *communicability* (Estrada & Hatano, 2008)
+* `mtpc`: the *multi-threshold permutation correction (MTPC)* method for statistical inference of either vertex- or graph-level measures (Drakesmith et al., 2015)
+* `symmetrize_mats`: symmetrize a connectivity matrix by either the *maximum*, *minimum*, or *average* of the off-diagonal elements. You may select one of these three as an argument to the function `create_mats`.
+
+## Minor changes
+* `brainGraph_GLM`:
+    * new function argument *level*, which now allows you to perform inference for graph-level measures
+    * new argument *perms*, to specify the permutation set if you would like to use the same one for multiple graph/vertex measures.
+* `get.resid`: no longer requires a *covars* argument, as it was redundant
+* `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
+* Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
+
+
+----
 # brainGraph 1.0.0
 
 2017-04-10

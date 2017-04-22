@@ -42,7 +42,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 
     if (isTRUE(weighted)) {
       Wr <- sum(E(rich.club.graph)$weight)
-      weights <- sort(E(g)$weight, decreasing=T)[1:Ek]
+      weights <- sort(E(g)$weight, decreasing=TRUE)[1:Ek]
       phi <- Wr / sum(weights)
     } else {
       phi <- graph.density(rich.club.graph)
@@ -78,7 +78,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 #' \item{p}{The p-value based on the \emph{N} random graphs generated.}
 #'
 #' @family Rich-club functions
-#' @seealso \code{\link{sim.rand.graph.par}}
+#' @family Null graph functions
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
@@ -103,7 +103,7 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
     phi.rand <- laply(rand, function(x)
                             vapply(seq_len(max.deg), function(y)
                                    rich_club_coeff(x, y, ...)$phi, numeric(1)),
-                            .parallel=T)
+                            .parallel=TRUE)
   }
   phi.orig <- g$rich$phi
   phi.norm <- phi.orig / colMeans(phi.rand)

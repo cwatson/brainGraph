@@ -17,6 +17,7 @@
 #' \item{p}{The p-values}
 #' \item{z}{The z-score for the difference in correlation coefficients}
 #'
+#' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{

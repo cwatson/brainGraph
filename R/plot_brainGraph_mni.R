@@ -1,16 +1,19 @@
 #' Draw an axial or sagittal slice of the MNI152 T1 image
 #'
 #' This function draws an axial or sagittal slice from the MNI152 T1 image, to
-#' plot the vertices of a graph over it. It will optionally write to a filename
-#' for output.
+#' plot the vertices of a graph over it. It will optionally write to a file to
+#' save the output.
 #'
 #' @param plane Character string, either 'axial' or 'sagittal'
-#' @param slice The x or z-coordinate of the slice to use
+#' @param slice Integer; the x or z-coordinate of the slice to use
 #' @param hemi Character string, either 'L' or 'R'
 #' @param save.graph Logical indicating whether or not a png file should be
-#'   saved (default: FALSE)
-#' @param fname The name of the file to be saved
+#'   saved (default: \code{FALSE})
+#' @param fname Character string; the name of the file to be saved (default:
+#'   \code{NULL})
 #' @export
+#'
+#' @family Plotting functions
 #' @seealso \code{\link[oro.nifti]{image.nifti}}
 
 plot_brainGraph_mni <- function(plane=c('axial', 'sagittal'), slice,
@@ -43,5 +46,5 @@ plot_brainGraph_mni <- function(plane=c('axial', 'sagittal'), slice,
     }
 
     image(X, plot.type='single', plane=plane, z=slice, zlim=c(3500, slicemax))
-    par(new=T, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))
+    par(new=TRUE, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))
 }

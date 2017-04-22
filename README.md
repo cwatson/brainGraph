@@ -13,10 +13,12 @@ this for tractography data from *FSL*'s *probtrackx2* and resting-state fMRI dat
 from *DPABI*.
 
 # Installation
-The package should work "out-of-the-box" on Linux systems, since almost all
-development (and use) has been on computers running CentOS 6 and CentOS 7. I
-have also had success running it (and did some development) on Windows 7, and
-have heard from users that it works on some versions of Mac OS and on Ubuntu.
+The package ***should*** work "out-of-the-box" on Linux systems (at least on Red
+Hat-based systems; i.e., CentOS, RHEL, Scientific Linux, etc.) since almost all
+development (and use) has been on computers running CentOS 6 and (currently)
+CentOS 7. I have also had success running it (and did some development) on
+Windows 7, and have heard from users that it works on some versions of Mac OS
+and on Ubuntu.
 
 There are two ways to install this package:
 
@@ -36,35 +38,44 @@ itself. For more details, see the User Guide (link to PDF in next section).
 # Usage
 I have a User Guide that contains extensive code examples for analyses common to
 brain MRI studies. I also include some code for getting your data *into* R *from*
-Freesurfer and FSL, and some suggestions for workflow organization. To access
-the *User Guide*, please use
+Freesurfer, FSL, and DPABI, and some suggestions for workflow organization. To
+access the *User Guide*, please use
 [this link.](https://dl.dropboxusercontent.com/s/wmupawb39bcdho3/brainGraph_UserGuide.pdf)
 (NOTE: you will be asked to download the PDF)
 
 # Graph measures
 In addition to the extensive list of measures available in *igraph*, I have
 functions for calculating/performing:
-* Between-group differences in vertex measures (e.g., *degree*,
-    *betweenness centrality*, etc.) using the General Linear Model. See Chapter
-    7 of the User Guide, which was modeled after the GLM help page on FSL's wiki
-* Leverage centrality (see Joyce et al., 2010)
-* Asymmetry index
-* Efficiency (global, nodal, and local; see Latora & Marchiori, 2001)
+
+## Group analyses
+* Between-group differences in vertex- or graph-level measures (e.g., *degree*,
+    *betweenness centrality*, *global efficiency*, etc.) using the General
+    Linear Model. See Chapter 7 of the User Guide, which was modeled after the
+    GLM help page on FSL's wiki
+* The *multi-threshold permutation correction (MTPC)* method for statistical
+    inference (see Drakesmith et al., 2015)
+* The *network-based statistic (NBS)* (see Zalesky et al., 2010)
+* Bootstrapping of graph-level metrics (e.g., *modularity*)
+* Permutation analysis of between-group differences in vertex- or graph-level measures
 * "Individual contributions (*leave-one-out [LOO]* and *add-one-patient [AOP]*;
     see Saggar et al., 2015)
-* The *network-based statistic (NBS)* (see Zalesky et al., 2010)
+
+## Null graph-related measures
+* Null/random graph generation (both the "standard" method, and also a method controlling for clustering; see Bansal et al., 2009)
+* Small-worldness (the "original" of Watts & Strogatz, 1998 and Humphries et al., 2008; and "omega" introduced in Telesford et al., 2011)
 * Rich-club coefficients and normalization (see Zhou & Mondragon, 2004; and
     Colizza et al., 2006)
+
+## Other measures
+* Efficiency (global, nodal, and local; see Latora & Marchiori, 2001)
 * The "rich-core" (see Ma & Mondragon, 2015)
-* Robustness ("targeted attack" and "random failure")
-* Small-worldness
+* Leverage centrality (see Joyce et al., 2010)
+* Asymmetry index
+* Robustness ("targeted attack" and "random failure") and vulnerability
 * Euclidean distances of edges
 * Participation coefficient and within-module degree z-score (see Guimera & Amaral, 2005)
 * Gateway coefficient (see Vargas & Wahl, 2014)
-* Vulnerability
-* Random graph generation (also controlling for clustering; see Bansal et al., 2009)
-* Bootstrapping of graph-level metrics (e.g., *modularity*)
-* Permutation analysis
+* Communicability and communicability betweenness (see Estrada & Hatano, 2008; Estrada et al., 2009; Crofts & Higham, 2009)
 
 # Visualization
 There is a plotting GUI for fast and easy data exploration that will *not* work

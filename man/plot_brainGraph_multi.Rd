@@ -60,6 +60,12 @@ plot_brainGraph_multi(g, groups=c(1, 1), N=5, filename='5_6core.png',
   main=list('k-core 5', 'k-core 6'))
 }
 }
+\seealso{
+Other Plotting functions: \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph_list}},
+  \code{\link{plot_brainGraph_mni}},
+  \code{\link{plot_brainGraph}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }

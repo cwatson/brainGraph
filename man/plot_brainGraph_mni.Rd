@@ -10,20 +10,26 @@ plot_brainGraph_mni(plane = c("axial", "sagittal"), slice, hemi = c("L",
 \arguments{
 \item{plane}{Character string, either 'axial' or 'sagittal'}
 
-\item{slice}{The x or z-coordinate of the slice to use}
+\item{slice}{Integer; the x or z-coordinate of the slice to use}
 
 \item{hemi}{Character string, either 'L' or 'R'}
 
 \item{save.graph}{Logical indicating whether or not a png file should be
-saved (default: FALSE)}
+saved (default: \code{FALSE})}
 
-\item{fname}{The name of the file to be saved}
+\item{fname}{Character string; the name of the file to be saved (default:
+\code{NULL})}
 }
 \description{
 This function draws an axial or sagittal slice from the MNI152 T1 image, to
-plot the vertices of a graph over it. It will optionally write to a filename
-for output.
+plot the vertices of a graph over it. It will optionally write to a file to
+save the output.
 }
 \seealso{
 \code{\link[oro.nifti]{image.nifti}}
+
+Other Plotting functions: \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph_list}},
+  \code{\link{plot_brainGraph_multi}},
+  \code{\link{plot_brainGraph}}
 }

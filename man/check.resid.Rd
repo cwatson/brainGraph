@@ -15,9 +15,9 @@ check.resid(resids, cols = FALSE)
 A list of \code{\link[ggplot2]{ggplot}} objects
 }
 \description{
-This function checks the model residuals for each brain region in the
-analysis. It simply does a qqplot of the studentized residuals (but uses
-\code{ggplot2} functions).
+This function checks the model residuals for each brain region in a
+volumetric analysis. It simply does a \emph{qqplot} of the studentized
+residuals (using \code{ggplot2} functions).
 }
 \examples{
 \dontrun{
@@ -27,6 +27,9 @@ lapply(p.resids, function(x) {dev.new(); print(x)})
 }
 \seealso{
 \code{\link[stats]{qqnorm}}
+
+Other Volumetric functions: \code{\link{brainGraph_init}},
+  \code{\link{corr.matrix}}, \code{\link{get.resid}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

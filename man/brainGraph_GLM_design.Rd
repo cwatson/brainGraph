@@ -36,9 +36,9 @@ or \emph{cell-means} (chosen by the argument \code{coding}). To understand
 the difference, see Chapter 7 of the User Guide.
 
 The argument \code{mean.center} allows you to mean-center any non-factor
-variables (including dummy/indicator covariates). The argument
-\code{binarize} will turn given factor variables into dummy/indicator
-variables.
+variables (including any dummy/indicator covariates). The argument
+\code{binarize} will convert the given factor variable(s) into numeric
+variable(s).
 
 The \code{int} argument specifies which variables should interact with the
 \emph{Group} factor variable. This argument accepts either numeric variables
@@ -47,7 +47,7 @@ running a two-way ANOVA. See Chapter 7 of the User Guide for examples.
 }
 \seealso{
 Other GLM functions: \code{\link{brainGraph_GLM_fit}},
-  \code{\link{brainGraph_GLM}}
+  \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

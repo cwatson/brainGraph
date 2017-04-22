@@ -27,6 +27,10 @@ biological network structure with clustered random networks}. BMC
 Bioinformatics, 10:405-421.
 }
 \seealso{
-\code{\link{choose.edges}, \link[igraph]{rewire},
-\link[igraph]{transitivity}, \link[igraph]{keeping_degseq}}
+\code{\link[igraph]{rewire}, \link[igraph]{transitivity},
+  \link[igraph]{keeping_degseq}}
+
+Other Null graph functions: \code{\link{analysis_random_graphs}},
+  \code{\link{choose.edges}}, \code{\link{rich_club_norm}},
+  \code{\link{sim.rand.graph.par}}
 }

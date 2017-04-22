@@ -2,6 +2,8 @@
 #'
 #' This function takes a list of \code{igraph} graphs and specifies a linear
 #' model at each vertex for a given vertex measure (e.g. \emph{degree}).
+#' Similarly, you may choose to test for a graph-level measure by specifying
+#' \code{level='graph'}.
 #'
 #' You will need to provide a \code{data.table} of covariates, of which
 #' \emph{Study.ID} needs to be the first column. Additionally, all graphs must
@@ -22,8 +24,8 @@
 #' group. This is the same principle as that of Nichols & Holmes (2001) used in
 #' voxelwise MRI analyses and implemented in FSL's \emph{randomise}.
 #'
-#' @param g A list of \code{igraph} graph objects for all subjects (if you have
-#'   multiple groups, you must concatenate the separate group lists)
+#' @param g.list A list of \code{igraph} graph objects for all subjects (if you
+#'   have multiple groups, you must concatenate the separate group lists)
 #' @param covars A \code{data.table} of covariates
 #' @param measure A character string of the vertex measure of interest
 #' @param con.vec A numeric vector specifying the contrast of interest
@@ -35,9 +37,13 @@
 #' @param alternative Character string, whether to do a two- or one-sided test
 #'   (default: \code{'two.sided'})
 #' @param alpha Numeric; the significance level (default: 0.05)
+#' @param level Character string; either \code{vertex} (default) or
+#'   \code{graph}
 #' @param permute Logical indicating whether or not to permute group labels
 #'   (default: \code{FALSE})
 #' @param N Integer; number of permutations to create (default: 5e3)
+#' @param perms Matrix of permutations, if you would like to provide your own
+#'   (default: \code{NULL})
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #' @export
 #' @importFrom permute shuffleSet
@@ -57,6 +63,7 @@
 #'   to \eqn{100 \times (1 - \alpha)}\% of the null distribution)}
 #'
 #' @family GLM functions
+#' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
 #'   tests for functional neuroimaging: A primer with examples.} Human Brain
@@ -77,27 +84,33 @@
 #' g.lm <- brainGraph_GLM(g.norm[[2]][[6]], measure='E.nodal.wt',
 #'   covars=covars, con.vec=c(0, 0, 0, 0, 1))
 #' }
-brainGraph_GLM <- function(g, covars, measure, con.vec, outcome=measure, X=NULL,
-                 con.name=NULL, alternative=c('two.sided', 'less', 'greater'),
-                 alpha=0.05, permute=FALSE, N=5e3, ...) {
+brainGraph_GLM <- function(g.list, covars, measure, con.vec, outcome=measure,
+        X=NULL, con.name=NULL, alternative=c('two.sided', 'less', 'greater'),
+        alpha=0.05, level=c('vertex', 'graph'),
+        permute=FALSE, N=5e3, perms=NULL, ...) {
   Study.ID <- region <- Outcome <- Covariate <- p.fdr <- p <- Contrast <- i <-
     t.stat <- p.perm <- NULL
   covars <- droplevels(covars)
-  setkey(covars, Study.ID)
   incomp <- covars[!complete.cases(covars), Study.ID]
 
-  if (is.null(X)) X <- brainGraph_GLM_design(covars[!Study.ID %in% incomp], ...)
+  level <- match.arg(level)
+  if (level == 'vertex') {
+    A <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
+    DT <- data.table(Study.ID=vapply(g.list, graph_attr, character(1), 'name'))
+    DT <- cbind(DT, A)
+    setnames(DT, 2:ncol(DT), V(g.list[[1]])$name)
+  } else if (level == 'graph') {
+    DT <- data.table(Study.ID=vapply(g.list, graph_attr, character(1), 'name'),
+                     graph=vapply(g.list, graph_attr, numeric(1), measure))
+  }
+
+  alt <- match.arg(alternative)
+  DT.cov <- merge(covars, DT, by='Study.ID')
+
+  if (is.null(X)) X <- brainGraph_GLM_design(DT.cov[!Study.ID %in% incomp, names(covars), with=F], ...)
   if (is.vector(con.vec)) con.vec <- t(con.vec)
   stopifnot(ncol(X) == ncol(con.vec))
 
-  A <- t(vapply(g, vertex_attr, numeric(vcount(g[[1]])), measure))
-  DT <- data.table(Study.ID=vapply(g, graph_attr, character(1), 'name'))
-  DT <- cbind(DT, A)
-  setnames(DT, 2:ncol(DT), V(g[[1]])$name)
-  setkey(DT, Study.ID)
-
-  alt <- match.arg(alternative)
-  DT.cov <- covars[DT]
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='region', value.name=measure)
   DT.m <- DT.m[!Study.ID %in% incomp]
   if (outcome != measure) {
@@ -113,7 +126,7 @@ brainGraph_GLM <- function(g, covars, measure, con.vec, outcome=measure, X=NULL,
   if (!is.null(con.name)) DT.lm[, Contrast := con.name]
 
   # Return a graph w/ vertex attributes of statistics
-  g.diffs <- make_empty_brainGraph(g[[1]])
+  g.diffs <- make_empty_brainGraph(g.list[[1]])
   if (!is.null(con.name)) g.diffs$name <- con.name
   g.diffs$outcome <- measure
   V(g.diffs)$p <- 1 - DT.lm$p
@@ -126,13 +139,13 @@ brainGraph_GLM <- function(g, covars, measure, con.vec, outcome=measure, X=NULL,
   # Permutation testing (similar to FSL's randomise)
   tmax.null.dist <- tmax.thresh <- NA
   if (isTRUE(permute)) {
+    if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
     groupcol <- grep('Group', colnames(X))
-    tmax.obs <- DT.lm[, max(t.stat, na.rm=T)]
-    perm.order <- shuffleSet(n=nrow(X), nset=N)
+    tmax.obs <- DT.lm[, max(t.stat, na.rm=TRUE)]
     tmax.null.dist <- foreach (i=seq_len(N), .combine='c') %dopar% {
-      X.shuff <- X[perm.order[i, ], ]
+      X.shuff <- X[perms[i, ], ]
       X.shuff[, groupcol] <- X[, groupcol]
-      DT.shuff <- DT.cov[perm.order[i, ]]
+      DT.shuff <- DT.cov[perms[i, ]]
       DT.shuff$Group <- DT.cov$Group
       #setkeyv(DT.shuff, key(DT.cov))
       DT.m.shuff <- melt(DT.shuff, id.vars=names(covars),
@@ -154,11 +167,10 @@ brainGraph_GLM <- function(g, covars, measure, con.vec, outcome=measure, X=NULL,
 #' fitting a linear model and return the contrast of parameter estimates,
 #' standard error, t-statistic, and p-value (given a contrast of interest).
 #'
-#' For speed purposes (if it is called from
-#' \code{\link[brainGraph]{brainGraph_GLM}} and permutation testing is done),
-#' this function does not do argument checking.
+#' For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and
+#' permutation testing is done), this function does not do argument checking.
 #'
-#' @param X The design matrix
+#' @param X Numeric matrix; the "design matrix"
 #' @param y Numeric vector of the outcome variable
 #' @param con.vec Numeric vector of the contrast of interest
 #' @param alpha Numeric; the significance level (default: 0.05)
@@ -215,9 +227,9 @@ brainGraph_GLM_fit <- function(X, y, con.vec, alpha=0.05,
 #' the difference, see Chapter 7 of the User Guide.
 #'
 #' The argument \code{mean.center} allows you to mean-center any non-factor
-#' variables (including dummy/indicator covariates). The argument
-#' \code{binarize} will turn given factor variables into dummy/indicator
-#' variables.
+#' variables (including any dummy/indicator covariates). The argument
+#' \code{binarize} will convert the given factor variable(s) into numeric
+#' variable(s).
 #'
 #' The \code{int} argument specifies which variables should interact with the
 #' \emph{Group} factor variable. This argument accepts either numeric variables

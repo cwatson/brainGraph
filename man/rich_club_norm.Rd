@@ -38,11 +38,14 @@ Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
 2:110-115.
 }
 \seealso{
-\code{\link{sim.rand.graph.par}}
-
 Other Rich-club functions: \code{\link{plot_rich_norm}},
   \code{\link{rich_club_attrs}},
   \code{\link{rich_club_coeff}}, \code{\link{rich_core}}
+
+Other Null graph functions: \code{\link{analysis_random_graphs}},
+  \code{\link{choose.edges}},
+  \code{\link{sim.rand.graph.clust}},
+  \code{\link{sim.rand.graph.par}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

@@ -66,6 +66,10 @@ Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
 }
 \seealso{
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
+
+Other Group analysis functions: \code{\link{IndividualContributions}},
+  \code{\link{boot_global}}, \code{\link{brainGraph_GLM}},
+  \code{\link{mtpc}}, \code{\link{permute.group}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

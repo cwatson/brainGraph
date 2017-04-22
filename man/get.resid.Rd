@@ -4,31 +4,38 @@
 \alias{get.resid}
 \title{Linear model residuals across brain regions}
 \usage{
-get.resid(tidy.dt, covars, use.mean = FALSE, exclude = NULL)
+get.resid(tidy.dt, use.mean = FALSE, exclude = NULL)
 }
 \arguments{
 \item{tidy.dt}{A \code{data.table} that has been "tidied", containing all
 covariates and the brain measure of interest}
 
-\item{covars}{A \code{data.table} of covariates}
+\item{use.mean}{Logical indicating whether to control for the mean
+hemispheric brain value (e.g. mean LH/RH cortical thickness) (default:
+\code{NULL})}
 
-\item{use.mean}{A logical indicating whether to control for the mean
-hemispheric brain value (e.g. mean LH/RH cortical thickness) (default: NULL)}
-
-\item{exclude}{A character vector of columns to exclude (default: NULL)}
+\item{exclude}{A character vector of columns to exclude (default:
+\code{NULL})}
 }
 \value{
 A list with components:
-\item{all.dat.tidy}{The tidied \code{data.table} with 'resids' column added}
-\item{formulas}{Character string of the \code{\link{lm}} formulas used}
-\item{resids.all}{The "wide" \code{data.table} of residuals}
+  \item{all.dat.tidy}{The tidied \code{data.table} with \emph{resids} column
+    added}
+  \item{formulas}{Character string of the \code{\link{lm}} formulas used}
+  \item{resids.all}{The "wide" \code{data.table} of residuals}
 }
 \description{
-This function runs linear models across brain regions listed in a
-\code{data.table} (e.g. cortical thickness), in order to adjust for relevant
-variables (e.g. age, sex, group, etc.). It adds the \emph{studentized}
-residuals as a column and returns the data table.
+Runs linear models across brain regions listed in a \code{data.table} (e.g.
+cortical thickness), in order to adjust for relevant variables (e.g. age,
+sex, group, etc.). It adds the \emph{studentized} residuals as a column and
+returns the data table.
 }
 \seealso{
-\code{\link{rstudent}}
+\code{\link{lm}, \link{rstudent}}
+
+Other Volumetric functions: \code{\link{brainGraph_init}},
+  \code{\link{check.resid}}, \code{\link{corr.matrix}}
+}
+\author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
 }

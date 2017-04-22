@@ -57,6 +57,11 @@ Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
   from group-based structural correlations networks}. NeuroImage, 120:274-284.
   doi:10.1016/j.neuroimage.2015.07.006
 }
+\seealso{
+Other Group analysis functions: \code{\link{NBS}},
+  \code{\link{boot_global}}, \code{\link{brainGraph_GLM}},
+  \code{\link{mtpc}}, \code{\link{permute.group}}
+}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }

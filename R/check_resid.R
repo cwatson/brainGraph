@@ -1,14 +1,16 @@
 #' Check model residuals for each brain region
 #'
-#' This function checks the model residuals for each brain region in the
-#' analysis. It simply does a qqplot of the studentized residuals (but uses
-#' \code{ggplot2} functions).
+#' This function checks the model residuals for each brain region in a
+#' volumetric analysis. It simply does a \emph{qqplot} of the studentized
+#' residuals (using \code{ggplot2} functions).
 #'
 #' @param resids Data table of model residuals for all brain regions
 #' @param cols Logical indicating whether to color by group (default: FALSE)
 #' @export
 #'
 #' @return A list of \code{\link[ggplot2]{ggplot}} objects
+#'
+#' @family Volumetric functions
 #' @seealso \code{\link[stats]{qqnorm}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples

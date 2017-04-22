@@ -1,27 +1,34 @@
 #' Linear model residuals across brain regions
 #'
-#' This function runs linear models across brain regions listed in a
-#' \code{data.table} (e.g. cortical thickness), in order to adjust for relevant
-#' variables (e.g. age, sex, group, etc.). It adds the \emph{studentized}
-#' residuals as a column and returns the data table.
+#' Runs linear models across brain regions listed in a \code{data.table} (e.g.
+#' cortical thickness), in order to adjust for relevant variables (e.g. age,
+#' sex, group, etc.). It adds the \emph{studentized} residuals as a column and
+#' returns the data table.
 #'
 #' @param tidy.dt A \code{data.table} that has been "tidied", containing all
-#' covariates and the brain measure of interest
-#' @param covars A \code{data.table} of covariates
-#' @param use.mean A logical indicating whether to control for the mean
-#' hemispheric brain value (e.g. mean LH/RH cortical thickness) (default: NULL)
-#' @param exclude A character vector of columns to exclude (default: NULL)
+#'   covariates and the brain measure of interest
+#' @param use.mean Logical indicating whether to control for the mean
+#'   hemispheric brain value (e.g. mean LH/RH cortical thickness) (default:
+#'   \code{NULL})
+#' @param exclude A character vector of columns to exclude (default:
+#'   \code{NULL})
 #' @export
 #'
 #' @return A list with components:
-#' \item{all.dat.tidy}{The tidied \code{data.table} with 'resids' column added}
-#' \item{formulas}{Character string of the \code{\link{lm}} formulas used}
-#' \item{resids.all}{The "wide" \code{data.table} of residuals}
-#' @seealso \code{\link{rstudent}}
+#'   \item{all.dat.tidy}{The tidied \code{data.table} with \emph{resids} column
+#'     added}
+#'   \item{formulas}{Character string of the \code{\link{lm}} formulas used}
+#'   \item{resids.all}{The "wide" \code{data.table} of residuals}
+#'
+#' @family Volumetric functions
+#' @seealso \code{\link{lm}, \link{rstudent}}
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-get.resid <- function(tidy.dt, covars, use.mean=FALSE, exclude=NULL) {
+get.resid <- function(tidy.dt, use.mean=FALSE, exclude=NULL) {
   region <- resids <- Group <- Study.ID <- NULL
   myDT <- copy(tidy.dt)
+  x <- which(names(tidy.dt) == 'region') - 1
+  covars <- tidy.dt[, 1:x, with=F]
   exclude <- c('Study.ID', exclude)
 
   # Adjust by mean hemispheric values

@@ -37,6 +37,7 @@
 #' \item{p.perm}{Numeric vector of the permutation p-values for each component}
 #' \item{p.init}{Numeric; the initial p-value threshold used}
 #'
+#' @family Group analysis functions
 #' @seealso \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
@@ -95,7 +96,7 @@ NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE
   E(g.nbs)$p <- 1 - E(graph_from_adjacency_matrix(p.mat, diag=F, mode='undirected', weighted=TRUE))$weight
   if (any(E(g.nbs)$weight < 0)) g.nbs <- delete_edge_attr(g.nbs, 'weight')
   clusts <- components(g.nbs)
-  comps <- sort(unique(clusts$csize), decreasing=T)
+  comps <- sort(unique(clusts$csize), decreasing=TRUE)
 
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------

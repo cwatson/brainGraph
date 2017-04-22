@@ -9,7 +9,7 @@ edge_asymmetry(g, level = c("hemi", "vertex"))
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{level}{A character string indicating whether to calculate asymmetry for
+\item{level}{Character string indicating whether to calculate asymmetry for
 each region, or the hemisphere as a whole (default: \code{'hemi'})}
 }
 \value{
@@ -18,10 +18,8 @@ A data table with edge counts for both hemispheres and the asymmetry
   \code{vcount(g)} rows.
 }
 \description{
-This function will calculate an asymmetry index that is a measure of whether
-or not more edges are present in the left or right hemisphere of a graph for
-brain MRI data. You can choose a value for each vertex, or for the whole
-hemisphere.
+Calculate an \emph{asymmetry index}, a ratio of intra-hemispheric edges in
+the left to right hemisphere of a graph for brain MRI data.
 }
 \details{
 The equation is:
@@ -31,6 +29,9 @@ The range of this measure is \eqn{[-2, 2]} (although the limits will only be
 reached if all edges are in one hemisphere), with negative numbers
 indicating more edges in the right hemisphere, and a value of 0 indicating
 equal number of edges in each hemisphere.
+
+The \code{level} argument specifies whether to calculate asymmetry for each
+vertex, or for the whole hemisphere.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

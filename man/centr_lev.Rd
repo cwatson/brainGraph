@@ -13,7 +13,7 @@ centr_lev(g)
 A vector of the leverage centrality for all vertices.
 }
 \description{
-This function calculates the leverage centrality of each vertex in a graph.
+Calculates the leverage centrality of each vertex in a graph.
 }
 \details{
 The leverage centrality relates a vertex's degree with the degree of its
@@ -28,6 +28,9 @@ This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 \references{
 Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
+}
+\seealso{
+Other Centrality functions: \code{\link{centr_betw_comm}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

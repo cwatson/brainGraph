@@ -64,13 +64,13 @@ plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
       width <- diff(breaks)
 
       out <- data.frame(count=as.numeric(tapply(rep(1, length(bins)), bins, sum,
-                                                na.rm=T)),
+                                                na.rm=TRUE)),
                         x=x,
                         width=width)
       out$count[is.na(out$count)] <- 0
-      out$density <- out$count / out$width / sum(abs(out$count), na.rm=T)
-      out$ndensity <- out$density / max(abs(out$density), na.rm=T)
-      out$ncount <- out$count / max(abs(out$count), na.rm=T)
+      out$density <- out$count / out$width / sum(abs(out$count), na.rm=TRUE)
+      out$ndensity <- out$density / max(abs(out$density), na.rm=TRUE)
+      out$ncount <- out$count / max(abs(out$count), na.rm=TRUE)
       return(out)
     }
     my.df <- subDT[, create_bins(value, unique(bwidth)), by=list(Group, region)]

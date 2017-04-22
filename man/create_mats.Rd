@@ -7,7 +7,7 @@
 create_mats(A.files, modality = c("dti", "fmri"), divisor = c("none",
   "waytotal", "size", "rowSums"), div.files = NULL, threshold.by = c("raw",
   "density"), mat.thresh = 0, sub.thresh = 0.5, inds,
-  algo = c("probabilistic", "deterministic"), P = 5000)
+  algo = c("probabilistic", "deterministic"), P = 5000, ...)
 }
 \arguments{
 \item{A.files}{Character vector of the filenames with connection matrices}
@@ -36,9 +36,11 @@ numbers (default: 0.5)}
 element should be a vector of length equal to the group sizes}
 
 \item{algo}{Character string of the tractography algorithm used (default:
-\code{'probabilistic'})}
+\code{'probabilistic'}). Ignored if \emph{modality} is \code{fmri}.}
 
-\item{P}{Integer; number of samples generated using FSL (default: 5000)}
+\item{P}{Integer; number of samples per seed voxel (default: 5000)}
+
+\item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
 }
 \value{
 A list containing:
@@ -72,11 +74,15 @@ connections for which at least \emph{X}\% of subjects have a positive entry
 \examples{
 \dontrun{
 thresholds <- seq(from=0.001, to=0.01, by=0.001)
-my.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
+fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 }
+}
+\seealso{
+Other Matrix functions: \code{\link{cor.diff.test}},
+  \code{\link{symmetrize_mats}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

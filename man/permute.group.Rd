@@ -71,6 +71,10 @@ out <- permute.group(myPerms, densities[N], m$resids, 'other',
 \seealso{
 \code{\link[igraph]{centr_betw}, \link{vulnerability},
 \link{count_interlobar}, \link{edge_asymmetry}, \link{efficiency}}
+
+Other Group analysis functions: \code{\link{IndividualContributions}},
+  \code{\link{NBS}}, \code{\link{boot_global}},
+  \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

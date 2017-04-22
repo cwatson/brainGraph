@@ -7,17 +7,18 @@
 #'
 #' The 95\% confidence intervals are calculated using the normal approximation.
 #'
-#' @param densities A vector of graph densities to loop through
+#' @param densities Numeric vector of graph densities to loop through
 #' @param resids A data.table of the residuals (from \code{\link{get.resid}})
-#' @param R The number of bootstrap replicates (default: 1e3)
+#' @param R Integer; the number of bootstrap replicates (default: 1e3)
 #' @param measure Character string of the measure to test (default: 'mod')
 #' @export
 #'
 #' @return A list with two elements:
-#' \item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
-#' \item{dt}{A data table with length \emph{# densities * # groups}}
-#' @seealso \code{\link[boot]{boot}, \link[boot]{boot.ci},
-#' \link{permute.group}}
+#'   \item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
+#'   \item{dt}{A data table with length \emph{# densities * # groups}}
+#'
+#' @family Group analysis functions
+#' @seealso \code{\link[boot]{boot}, \link[boot]{boot.ci}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{

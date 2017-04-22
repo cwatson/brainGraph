@@ -30,8 +30,9 @@
 #' @param inds List (length equal to number of groups) of integers; each list
 #'   element should be a vector of length equal to the group sizes
 #' @param algo Character string of the tractography algorithm used (default:
-#'   \code{'probabilistic'})
-#' @param P Integer; number of samples generated using FSL (default: 5000)
+#'   \code{'probabilistic'}). Ignored if \emph{modality} is \code{fmri}.
+#' @param P Integer; number of samples per seed voxel (default: 5000)
+#' @param ... Arguments passed to \code{\link{symmetrize_mats}}
 #' @export
 #'
 #' @return A list containing:
@@ -48,11 +49,12 @@
 #' \item{A.norm.mean}{A list of 2-d arrays of the normalized connection matrices
 #'   averaged for each group}
 #'
+#' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' thresholds <- seq(from=0.001, to=0.01, by=0.001)
-#' my.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
+#' fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 #' dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
@@ -62,7 +64,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                         divisor=c('none', 'waytotal', 'size', 'rowSums'),
                         div.files=NULL, threshold.by=c('raw', 'density'),
                         mat.thresh=0, sub.thresh=0.5, inds,
-                        algo=c('probabilistic', 'deterministic'), P=5e3) {
+                        algo=c('probabilistic', 'deterministic'), P=5e3, ...) {
 
   kNumSubjs <- lengths(inds)
   stopifnot(isTRUE(all(sapply(A.files, file.exists))),
@@ -73,8 +75,8 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 
   Nv <- length(readLines(A.files[1]))
   A <- array(sapply(A.files, function(x)
-                    matrix(scan(x, what=numeric(0), n=Nv*Nv, quiet=T),
-                           Nv, Nv, byrow=T)),
+                    matrix(scan(x, what=numeric(0), n=Nv*Nv, quiet=TRUE),
+                           Nv, Nv, byrow=TRUE)),
              dim=c(Nv, Nv, sum(kNumSubjs)))
 
   A[is.nan(A)] <- 0
@@ -131,9 +133,10 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
     stopifnot(all(mat.thresh >= 0) && all(mat.thresh <= 1))
     emax <- Nv * (Nv - 1) / 2
 
+    Asym <- array(apply(A, 3, symmetrize_mats, ...), dim=dim(A))
     A.norm.sub <-
       lapply(mat.thresh, function(x)
-             array(apply(A, 3, function(y) {
+             array(apply(Asym, 3, function(y) {
                            thresh <- sort(y[lower.tri(y)])[emax - x * emax]
                            ifelse(y > thresh, y, 0)
                          }), dim=dim(A)))
@@ -157,10 +160,51 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
               #A.group=A.group))
 }
 
+#' Create a symmetric matrix
+#'
+#' \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
+#' off-diagonal elements values of either the \code{max}, \code{min}, or
+#' \code{average} of \eqn{\{A(i, j), A(j, i)\}}. The default is \code{max}
+#' because that is the default for
+#' \code{\link[igraph]{graph_from_adjacency_matrix}}.
+#'
+#' @param A Numeric matrix
+#' @param symm.by Character string; how to create symmetric off-diagonal
+#'   elements (default: \code{max})
+#' @export
+#'
+#' @family Matrix functions
+#' @seealso \code{\link[igraph]{graph_from_adjacency_matrix}}
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+
+symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
+  stopifnot(nrow(A) == ncol(A))
+  Asym <- A
+
+  symm.by <- match.arg(symm.by)
+  if (symm.by == 'avg') {
+    for (i in 1:nrow(A)) {
+      for (j in i:ncol(A)) {
+        Asym[i, j] <- Asym[j, i] <- (A[i, j] + A[j, i]) / 2
+      }
+    }
+  } else {
+    if (symm.by == 'max') {
+      inds.tr <- which(abs(A) > t(abs(A)), arr.ind=TRUE)
+    } else if (symm.by == 'min') {
+      inds.tr <- which(abs(A) < t(abs(A)), arr.ind=TRUE)
+    }
+    for (i in seq_len(nrow(inds.tr))) {
+      Asym[inds.tr[i, 2], inds.tr[i, 1]] <- Asym[inds.tr[i, 1], inds.tr[i, 2]]
+    }
+  }
+  return(Asym)
+}
+
 normalize_mats_prob <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
   div <- array(sapply(div.files, function(x)
-                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=T),
-                             Nv, 1, byrow=T)),
+                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=TRUE),
+                             Nv, 1, byrow=TRUE)),
                dim=c(Nv, 1, sum(kNumSubjs)))
 
   if (divisor == 'waytotal') {
@@ -183,8 +227,8 @@ normalize_mats_prob <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
 
 normalize_mats_det <- function(A.norm, div.files, Nv, kNumSubjs) {
   div <- array(sapply(div.files, function(x)
-                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=T),
-                             Nv, 1, byrow=T)),
+                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=TRUE),
+                             Nv, 1, byrow=TRUE)),
                dim=c(Nv, 1, sum(kNumSubjs)))
   R <- array(apply(div, 3, function(x)
                    cbind(sapply(seq_len(Nv), function(y) x + x[y]))), dim=dim(A.norm))

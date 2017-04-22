@@ -50,7 +50,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       max.comp.removed <- colMeans(max.comp)
 
     } else {
-      ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=T)]
+      ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=TRUE)]
       max.comp.removed <- vector('integer', length=n+1)
       max.comp.removed[1] <- 1
       for (i in seq_len(n - 1)) {
@@ -80,7 +80,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       max.comp.removed <- colMeans(max.comp)
 
     } else {
-      ord <- order(E(g)$btwn, decreasing=T)
+      ord <- order(E(g)$btwn, decreasing=TRUE)
       verts <- as_edgelist(g)[ord, ]
       max.comp.removed <- vector('integer', length=m+1)
       max.comp.removed[1] <- 1

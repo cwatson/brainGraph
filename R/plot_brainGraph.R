@@ -50,19 +50,37 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   #---------------------------------------------------------
   if (!is.null(subgraph)) {
     stopifnot(nchar(subgraph) > 0)
-    subs <- strsplit(subgraph, split='\\&|\\|')[[1]]
-    if (length(subs) > 1) {
-      nchars <- cumsum(sapply(subs, nchar))
-      splits <- sapply(seq_along(subs), function(x)
-                       substr(subgraph, start=nchars[x]+x, stop=nchars[x]+x))
-      subs <- gsub('^\\s+|\\s+$', '', subs) # Remove unnecessary whitespace
-      # In case there is a mix of '&' and '|'
-      cond.string <- paste(sapply(seq_along(subs), function(x)
-                                  paste0('V(g)$', subs[x], splits[x])),
-                           collapse='')
-    } else {
-      cond.string <- paste0('V(g)$', subs)
+    # Function for creating the condition string to later subset the graph
+    get_cond_string <- function(orig) {
+      substrings <- strsplit(orig, split='\\s\\&\\s|\\s\\|\\s')[[1]]
+      if (length(substrings) > 1) {  # Multiple conditions
+        if (!isTRUE(grepl('\\s\\&\\s|\\s\\|\\s', orig))) {
+          stop('Logical operators must be surrounded by spaces!')
+        }
+        nchars <- cumsum(sapply(substrings, nchar))
+        splits <- sapply(seq_along(substrings), function(x)
+                         substr(orig, start=nchars[x]+(3*x-1), stop=nchars[x]+(3*x-1)))
+        substrings <- gsub('^\\s+|\\s+$', '', substrings) # Remove unnecessary whitespace
+
+        cond.string <- paste(sapply(seq_along(substrings), function(x)
+                                    paste0('V(g)$', substrings[x], splits[x])),
+                             collapse='')
+      } else {
+        cond.string <- paste0('V(g)$', substrings)
+      }
+      return(cond.string)
     }
+
+    # Handle when logical expressions are separated by parentheses
+    if (isTRUE(grepl('\\(.*\\)', subgraph))) {
+      subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
+      subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
+      cond.strings <- sapply(subs, get_cond_string)
+      cond.string <- paste0('(', cond.strings[1], ') & (', cond.strings[2], ')')
+    } else {
+      cond.string <- get_cond_string(subgraph)
+    }
+
     cond <- eval(parse(text=cond.string))
     cond <- setdiff(seq_len(vcount(g)), which(cond))
     g <- delete.vertices(g, cond)
@@ -233,7 +251,7 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
     if (sub == 'default') {
       Ne <- ecount(g)
       g.density <- round(graph.density(g), digits=3)
-      par(new=T, mar=c(5, 0, 3, 0)+0.1)
+      par(new=TRUE, mar=c(5, 0, 3, 0)+0.1)
       sub <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
                    'Density: ', g.density)
     }

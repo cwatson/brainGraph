@@ -1,6 +1,6 @@
 #' Calculate a vertex's leverage centrality
 #'
-#' This function calculates the leverage centrality of each vertex in a graph.
+#' Calculates the leverage centrality of each vertex in a graph.
 #'
 #' The leverage centrality relates a vertex's degree with the degree of its
 #' neighbors. The equation is:
@@ -16,6 +16,7 @@
 #'
 #' @return A vector of the leverage centrality for all vertices.
 #'
+#' @family Centrality functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 #' \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
