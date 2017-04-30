@@ -75,7 +75,8 @@ functions for calculating/performing:
 * Euclidean distances of edges
 * Participation coefficient and within-module degree z-score (see Guimera & Amaral, 2005)
 * Gateway coefficient (see Vargas & Wahl, 2014)
-* Communicability and communicability betweenness (see Estrada & Hatano, 2008; Estrada et al., 2009; Crofts & Higham, 2009)
+* *Communicability* and *communicability betweenness* (see Estrada & Hatano, 2008; Estrada et al., 2009; Crofts & Higham, 2009)
+* Vertex *s-core* membership (see Eidsaa & Almaas, 2013)
 
 # Visualization
 There is a plotting GUI for fast and easy data exploration that will *not* work

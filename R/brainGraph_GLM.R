@@ -114,6 +114,8 @@ brainGraph_GLM <- function(g.list, covars, measure, con.vec, outcome=measure,
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='region', value.name=measure)
   DT.m <- DT.m[!Study.ID %in% incomp]
   if (outcome != measure) {
+    i <- which(colnames(X) == outcome)
+    X <- X[, -i]
     DT.lm <- DT.m[, brainGraph_GLM_fit(cbind(X, get(measure)), get(outcome), con.vec, alpha, alt), by=region]
     DT.lm[, Outcome := outcome]
     DT.lm[, Covariate := measure]
@@ -126,7 +128,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.vec, outcome=measure,
   if (!is.null(con.name)) DT.lm[, Contrast := con.name]
 
   # Return a graph w/ vertex attributes of statistics
-  g.diffs <- make_empty_brainGraph(g.list[[1]])
+  g.diffs <- make_empty_brainGraph(g.list[[1]]$atlas)
   if (!is.null(con.name)) g.diffs$name <- con.name
   g.diffs$outcome <- measure
   V(g.diffs)$p <- 1 - DT.lm$p

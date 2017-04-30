@@ -79,6 +79,7 @@ mtpc <- function(g.list, thresholds, N=500, perms=NULL, alpha=0.05, ...) {
   null.dist.all <- vapply(res.glm, function(x) x$perm$null.dist, numeric(N))
   null.dist.max <- apply(null.dist.all, 1, max)
   S.crit <- sort(null.dist.max)[floor(N * (1 - alpha)) + 1]
+  mtpc.all[, S.crit := S.crit]
 
   crit.regions <- mtpc.all[, rle(t.stat > S.crit), by=region][values == TRUE & lengths > 2, unique(region)]
   mtpc.all[, A.mtpc := 0]

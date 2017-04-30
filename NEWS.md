@@ -1,6 +1,6 @@
-# brainGraph 1.1.0
+# brainGraph 1.2.0
 
-2017-04-22
+2017-04-29
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -8,18 +8,27 @@
     * *Lobe*, *neighborhood*, and *community* selection are now in "scrolled windows" instead of drop-down lists. Multiple selections can be made either by pressing `Ctrl` and clicking, or by holding `Shift` and moving the arrow keys
     * Fixed problem with vertex colors
     * When choosing to plot *neighborhoods*, you can color the vertices based on which neighborhood they belong to (useful if multiple vertices are selected)
+* `plot_brainGraph`: now returns `NA` (instead of throwing an error) if the specified *subgraph* expression results in a network with 0 vertices.
 * `gateway_coeff` returned an error if the number of communities equals 1; this has been fixed
+* `edge_asymmetry` contained a bug if the input graph had only one contralateral connection (usually only encountered in the GUI with neighborhood plots); this has been fixed for those situations.
+
+## Major changes
+* `brainGraph_GLM`:
+    * new function argument *level*, which now allows you to perform inference for graph-level measures
+    * new argument *perms*, to specify the permutation set if you would like to use the same one for multiple graph/vertex measures (to improve the speed of the new `mtpc` function).
+* `create_mats`
+    * From v1.1.1 onward, all `A.norm.sub` matrices will be symmetrized, regardless of the value of `threshold.by` (previously they were only symmetrized if using `threshold.by='density'`). This should not pose a problem as the default (to take the *maximum* of the off-diagonal elements) is also the default when creating graphs in `igraph`.
+    * From v1.2.0 onward, you can specify `mean` as the value for `sub.thresh`. This will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > threshold`, for each of the `threshold` values specified. See the references in the User Guide for examples in the literature.
 
 ## New functions
 * `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009). This requires that the package `expm` is installed.
 * `communicability`: calculate network *communicability* (Estrada & Hatano, 2008)
+* `make_empty_brainGraph`: this is not a new function, but rather was not exported in previous versions. Now it is accessible without the "triple-colon" operator (i.e., it is no longer necessary to call with `brainGraph:::make_empty_brainGraph`).
 * `mtpc`: the *multi-threshold permutation correction (MTPC)* method for statistical inference of either vertex- or graph-level measures (Drakesmith et al., 2015)
 * `symmetrize_mats`: symmetrize a connectivity matrix by either the *maximum*, *minimum*, or *average* of the off-diagonal elements. You may select one of these three as an argument to the function `create_mats`.
+* `s_core`: calculate the *s-core* membership of a graph's vertices (Eidsaa & Almaas, 2013); the graphs will have vertex attributes called `s.core`. This is analogous to the *k-core* but for weighted networks. The vertex attribute for *k-core* has been changed from `coreness` to `k.core`.
 
 ## Minor changes
-* `brainGraph_GLM`:
-    * new function argument *level*, which now allows you to perform inference for graph-level measures
-    * new argument *perms*, to specify the permutation set if you would like to use the same one for multiple graph/vertex measures.
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 * Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).

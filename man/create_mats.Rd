@@ -30,7 +30,7 @@ to have the same density (default: \code{raw})}
 (default: 0)}
 
 \item{sub.thresh}{Numeric (between 0 and 1) for thresholding by subject
-numbers (default: 0.5)}
+numbers (default: 0.5); can also be a character string \code{"mean"}.}
 
 \item{inds}{List (length equal to number of groups) of integers; each list
 element should be a vector of length equal to the group sizes}
@@ -69,7 +69,12 @@ The argument \code{mat.thresh} allows you to choose a numeric threshold,
 below which the connections will be replaced with 0; this argument will also
 accept a numeric vector. The argument \code{sub.thresh} will keep only those
 connections for which at least \emph{X}\% of subjects have a positive entry
-(the default is 0.5, or 50\%).
+(the default is 0.5, or 50\%). Furthermore, you can set this argument to
+\code{"mean"}, and instead of a percent of subjects as the threshold, it will
+keep only connections for which the cross-subject mean are at least 2
+standard deviations higher than the threshold,
+\deqn{mean(A_{ij}) + 2*SD(A_{ij}) > threshold}
+Note that this enforces, for \emph{all study subjects}, the same connections.
 }
 \examples{
 \dontrun{

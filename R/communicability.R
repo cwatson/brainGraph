@@ -63,7 +63,7 @@ communicability <- function(g, weights=NULL) {
 #'
 #' @family Centrality functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Estrada E., Higham D.J., Hatano N. \emph{Communicability
+#' @references Estrada E., Higham D.J., Hatano N. (2009) \emph{Communicability
 #'   betweenness in complex networks}. Physica A, 388:764-774.
 
 centr_betw_comm <- function(g, A=NULL) {

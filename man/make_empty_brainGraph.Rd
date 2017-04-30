@@ -4,17 +4,18 @@
 \alias{make_empty_brainGraph}
 \title{Create an empty graph with attributes for brainGraph}
 \usage{
-make_empty_brainGraph(g)
+make_empty_brainGraph(atlas)
 }
 \arguments{
-\item{g}{An \code{igraph} graph object}
+\item{atlas}{Character string of the atlas to create a graph from}
 }
 \value{
 An empty \code{igraph} graph object with several additional
   attributes
 }
 \description{
-This function creates an empty graph and includes some graph-, vertex-, and
+This function creates an empty undirected graph with vertex count equal to
+the atlas specified, and includes some graph-, vertex-, and
 edge-level attributes that are important for \code{brainGraph} functions.
 Basically a wrapper for \code{\link[igraph]{make_empty_graph}}.
 }

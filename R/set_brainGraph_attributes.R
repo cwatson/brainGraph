@@ -23,13 +23,13 @@
 #' diameter, \# of triangles, transitivity, average path length, assortativity,
 #' clique number, global & local efficiency, modularity, vulnerability, hub score,
 #' rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-#' \item{Vertex-level}{Degree, strength, betweenness/eigenvector and leverage
-#' centralities, hubs, transitivity (local), coreness, local & nodal efficiency,
-#' color (community), color (lobe), color (component), membership (community),
-#' membership (component), gateway and participation coefficients, within-module
-#' degree z-score, vulnerability, and coordinates (x, y, and z)}
-#' \item{Edge-level}{Color (community), color (lobe), color (component), edge
-#' betweenness, Euclidean distance (in mm)}
+#' \item{Vertex-level}{Degree, strength; betweenness, eigenvector, and leverage
+#' centralities; hubs; transitivity (local); k-core, s-core; local & nodal
+#' efficiency; color (community, lobe, component); membership (community,
+#' lobe, component); gateway and participation coefficients, within-module
+#' degree z-score; vulnerability; and coordinates (x, y, and z)}
+#' \item{Edge-level}{Color (community, lobe, component), edge betweenness,
+#' Euclidean distance (in mm), weight (if weighted)}
 #'
 #' @seealso \code{\link[igraph]{components}, \link[igraph]{diameter},
 #' \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part_coeff},
@@ -38,7 +38,7 @@
 #' \link[igraph]{authority.score}, \link[igraph]{transitivity},
 #' \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 #' \link[igraph]{cluster_louvain}, \link{efficiency},
-#' \link{set_edge_color}, \link{rich_club_coeff},
+#' \link{set_edge_color}, \link{rich_club_coeff}, \link{s_core},
 #' \link{within_module_deg_z_score}, \link[igraph]{coreness},
 #' \link{edge_spatial_dist}, \link{vulnerability}, \link{centr_lev},
 #' \link{edge_asymmetry}, \link[igraph]{graph.knn}, \link{vertex_spatial_dist}}
@@ -90,6 +90,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
       V(g)$strength <- graph.strength(g)
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
+      V(g)$s.core <- s_core(g, A)
       R <- lapply(1:max(V(g)$degree),
                   function(x) rich_club_coeff(g, x, weighted=TRUE))
       phi <- vapply(R, with, numeric(1), phi)
@@ -173,7 +174,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     g$num.hubs <- sum(V(g)$hubs)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$lev.cent <- centr_lev(g)
-    V(g)$coreness <- coreness(g)
+    V(g)$k.core <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
     V(g)$E.local <- efficiency(g, type='local', weights=NA,
                                      use.parallel=use.parallel, A=A)

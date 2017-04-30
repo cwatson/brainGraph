@@ -364,12 +364,12 @@ plot_brainGraph_gui <- function() {
   # Vertex size?
   #-----------------------------------------------------------------------------
   choices <- c('Constant', 'Degree', 'EV centrality', 'Btwn centrality',
-               'Coreness', 'Clustering coeff.', 'PC', 'GC', 'E.local', 'E.nodal',
+               'K-core', 'Clustering coeff.', 'PC', 'GC', 'E.local', 'E.nodal',
                'Within-module degree z-score', 'Hub score', 'Vulnerability',
                'NN degree', 'Asymmetry', 'Eccentricity', 'Distance',
                'Distance strength', 'Lp', 'Other', 'Equation')
   if (is_weighted(graphs[[1]])) {
-    choices <- c(choices, 'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt')
+    choices <- c(choices, 'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt', 'S-core')
   }
   Vsize <- add_frame(vbox, 'Vertex size', choices, '5', max=10)
 
@@ -408,10 +408,10 @@ plot_brainGraph_gui <- function() {
   })
 
   vsize.opts <<- c('const', 'degree', 'ev.cent', 'btwn.cent',
-                  'coreness', 'transitivity', 'PC', 'GC', 'E.local', 'E.nodal',
+                  'k.core', 'transitivity', 'PC', 'GC', 'E.local', 'E.nodal',
                   'z.score', 'hub.score', 'vulnerability', 'knn', 'asymm',
                   'eccentricity', 'dist', 'dist.strength', 'Lp', 'other', 'eqn',
-                  'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt')
+                  'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt', 's.core')
   vsize.measure <<- 'const'
   gSignalConnect(Vsize[[2]], 'changed', function(widget, ...) {
       vsize.measure <<- vsize.opts[widget$getActive() + 1]

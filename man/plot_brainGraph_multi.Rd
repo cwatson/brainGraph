@@ -4,19 +4,19 @@
 \alias{plot_brainGraph_multi}
 \title{Save PNG of three views of a brain graph}
 \usage{
-plot_brainGraph_multi(g, groups = 1, N = 1, filename = "tmp.png",
+plot_brainGraph_multi(g.list, groups = 1, N = 1, filename = "tmp.png",
   subgraph = NULL, main = NULL, ...)
 }
 \arguments{
-\item{g}{A list of lists of \code{igraph} graph objects}
+\item{g.list}{A list of lists of \code{igraph} graph objects}
 
 \item{groups}{An integer vector indicating which groups to plot; corresponds
-to the first element of the list \code{g} (default: 1)}
+to the first element of the list \code{g.list} (default: 1)}
 
-\item{N}{An integer corresponding to the second element of the list \code{g}
-(default: 1)}
+\item{N}{Integer corresponding to the second element of the list
+\code{g.list} (default: 1)}
 
-\item{filename}{A character string of the filename of the PNG to be written
+\item{filename}{Character string of the filename of the PNG to be written
 (default: 'tmp.png')}
 
 \item{subgraph}{A list of character strings to (optionally) subset the
@@ -36,10 +36,10 @@ plot.
 }
 \details{
 The function argument \code{N} tells the function to use the \code{N-th}
-element of the input list \code{g} for each group. So, for example, if
-\code{g} consists of lists of graphs for two groups, and \code{N} is 4, then
-the plots for \code{g[[1]][[4]]} and \code{g[[2]][[4]]} will be written to
-the file.
+element of the input list \code{g.list} for each group. So, for example, if
+\code{g.list} consists of lists of graphs for two groups, and \code{N} is 4,
+then the plots for \code{g.list[[1]][[4]]} and \code{g.list[[2]][[4]]} will
+be written to the file.
 
 The \code{subgraph} argument can be used to apply one or more conditions for
 subsetting the graph. If you would like multiple conditions, then it must be
@@ -54,6 +54,7 @@ plot title, which appears in the \emph{axial} view along with the
 plot_brainGraph_multi(g.hubs, groups=1:2, filename='Figure01_hubs.png',
   subgraph='N > 0', vertex.color='color.lobe', vertex.size=15,
   show.legend=TRUE, vertex.label.cex=1.5)
+## Single group, different subgraphs for each plot
 plot_brainGraph_multi(g, groups=c(1, 1), N=5, filename='5_6core.png',
   vertex.color='color.lobe', edge.color='color.lobe', vertex.label=NA,
   subgraph=list('coreness > 5', 'coreness > 6'),

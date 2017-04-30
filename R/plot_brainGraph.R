@@ -82,8 +82,13 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
     }
 
     cond <- eval(parse(text=cond.string))
-    cond <- setdiff(seq_len(vcount(g)), which(cond))
-    g <- delete.vertices(g, cond)
+    if (sum(cond) == 0) {
+      warning('No vertices meet criteria! No plot generated.')
+      return(NA)
+    } else {
+      cond <- setdiff(seq_len(vcount(g)), which(cond))
+      g <- delete.vertices(g, cond)
+    }
   }
 
   atlas <- graph_attr(g, 'atlas')

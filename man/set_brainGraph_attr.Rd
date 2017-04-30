@@ -38,13 +38,13 @@ g An \code{igraph} graph object with the following attributes:
 diameter, \# of triangles, transitivity, average path length, assortativity,
 clique number, global & local efficiency, modularity, vulnerability, hub score,
 rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-\item{Vertex-level}{Degree, strength, betweenness/eigenvector and leverage
-centralities, hubs, transitivity (local), coreness, local & nodal efficiency,
-color (community), color (lobe), color (component), membership (community),
-membership (component), gateway and participation coefficients, within-module
-degree z-score, vulnerability, and coordinates (x, y, and z)}
-\item{Edge-level}{Color (community), color (lobe), color (component), edge
-betweenness, Euclidean distance (in mm)}
+\item{Vertex-level}{Degree, strength; betweenness, eigenvector, and leverage
+centralities; hubs; transitivity (local); k-core, s-core; local & nodal
+efficiency; color (community, lobe, component); membership (community,
+lobe, component); gateway and participation coefficients, within-module
+degree z-score; vulnerability; and coordinates (x, y, and z)}
+\item{Edge-level}{Color (community, lobe, component), edge betweenness,
+Euclidean distance (in mm), weight (if weighted)}
 }
 \description{
 This function sets a number of graph, vertex, and edge attributes for a
@@ -59,7 +59,7 @@ MRI analyses of brain networks.
 \link[igraph]{authority.score}, \link[igraph]{transitivity},
 \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
 \link[igraph]{cluster_louvain}, \link{efficiency},
-\link{set_edge_color}, \link{rich_club_coeff},
+\link{set_edge_color}, \link{rich_club_coeff}, \link{s_core},
 \link{within_module_deg_z_score}, \link[igraph]{coreness},
 \link{edge_spatial_dist}, \link{vulnerability}, \link{centr_lev},
 \link{edge_asymmetry}, \link[igraph]{graph.knn}, \link{vertex_spatial_dist}}

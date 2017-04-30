@@ -10,7 +10,12 @@
 #' below which the connections will be replaced with 0; this argument will also
 #' accept a numeric vector. The argument \code{sub.thresh} will keep only those
 #' connections for which at least \emph{X}\% of subjects have a positive entry
-#' (the default is 0.5, or 50\%).
+#' (the default is 0.5, or 50\%). Furthermore, you can set this argument to
+#' \code{"mean"}, and instead of a percent of subjects as the threshold, it will
+#' keep only connections for which the cross-subject mean are at least 2
+#' standard deviations higher than the threshold,
+#' \deqn{mean(A_{ij}) + 2*SD(A_{ij}) > threshold}
+#' Note that this enforces, for \emph{all study subjects}, the same connections.
 #'
 #' @param A.files Character vector of the filenames with connection matrices
 #' @param modality Character string indicating data modality (default:
@@ -26,7 +31,7 @@
 #' @param mat.thresh Numeric (vector) for thresholding connection matrices
 #'   (default: 0)
 #' @param sub.thresh Numeric (between 0 and 1) for thresholding by subject
-#'   numbers (default: 0.5)
+#'   numbers (default: 0.5); can also be a character string \code{"mean"}.
 #' @param inds List (length equal to number of groups) of integers; each list
 #'   element should be a vector of length equal to the group sizes
 #' @param algo Character string of the tractography algorithm used (default:
@@ -70,7 +75,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   stopifnot(isTRUE(all(sapply(A.files, file.exists))),
             isTRUE(all(sapply(div.files, file.exists))),
             sum(kNumSubjs) == length(A.files),
-            sub.thresh >= 0 && sub.thresh <= 1)
+            sub.thresh == 'mean' || (sub.thresh >= 0 && sub.thresh <= 1))
   A.bin <- A.bin.sums <- A.inds <- NULL
 
   Nv <- length(readLines(A.files[1]))
@@ -89,45 +94,51 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
     A.norm <- normalize_mats_prob(A, divisor, div.files, Nv, kNumSubjs, P)
     A.norm[is.nan(A.norm)] <- 0
   }
+  if (modality == 'dti' & algo == 'deterministic' & divisor == 'size') {
+    A.norm <- normalize_mats_det(A.norm, div.files, Nv, kNumSubjs)
+  }
 
   threshold.by <- match.arg(threshold.by)
   if (threshold.by == 'raw') {
-    # Binarize the array, then keep entries w/ >= "sub.thresh"% for each group
-    # These are lists of arrays; each list element is a different threshold
-    A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0)
-    A.bin.sums <- lapply(seq_along(mat.thresh), function(y)
-                         lapply(inds, function(x)
-                                rowSums(A.bin[[y]][, , x], dims=2)))
+    if (sub.thresh == 'mean') {
+      all.mean <- rowMeans(A.norm, dims=2)
+      all.sd <- apply(A.norm, 1:2, sd)
+      all.thresh <- all.mean + (2 * all.sd)
 
-    # In case deterministic tractography was used and the user would like to
-    # adjust for ROI size
-    if (modality == 'dti' & algo == 'deterministic' & divisor == 'size') {
-      A.norm <- normalize_mats_det(A.norm, div.files, Nv, kNumSubjs)
-    }
-
-    # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
-    if (sub.thresh == 0) {
-      A.inds <- lapply(seq_along(mat.thresh), function(y)
-                       lapply(seq_along(inds), function(x)
-                              ifelse(A.bin.sums[[y]][[x]] > 0, 1, 0)))
+      A.norm.sub <-
+        lapply(mat.thresh, function(z)
+               array(apply(A.norm, 3, function(x) x * (all.thresh > z)), dim=dim(A.norm)))
     } else {
-      A.inds <- lapply(seq_along(mat.thresh), function(y)
-                       lapply(seq_along(inds), function(x)
-                              ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x],
-                                     1,
-                                     0)))
-    }
+      # Binarize the array, then keep entries w/ >= "sub.thresh"% for each group
+      # These are lists of arrays; each list element is a different threshold
+      A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0)
+      A.bin.sums <- lapply(seq_along(mat.thresh), function(y)
+                           lapply(inds, function(x)
+                                  rowSums(A.bin[[y]][, , x], dims=2)))
 
-    # Back to a list of arrays for all subjects
-    A.norm.sub <-
-      lapply(seq_along(mat.thresh), function(z)
-             lapply(seq_along(inds), function(x)
-                    array(sapply(inds[[x]], function(y)
-                                 ifelse(A.inds[[z]][[x]] == 1,
-                                        A.norm[, , y],
-                                        0)),
-                          dim=dim(A.norm[, , inds[[x]]]))))
-    A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind::abind, x))
+      # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
+      if (sub.thresh == 0) {
+        A.inds <- lapply(seq_along(mat.thresh), function(y)
+                         lapply(seq_along(inds), function(x)
+                                ifelse(A.bin.sums[[y]][[x]] > 0, 1, 0)))
+      } else {
+        A.inds <- lapply(seq_along(mat.thresh), function(y)
+                         lapply(seq_along(inds), function(x)
+                                ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x], 1, 0)))
+      }
+
+      # Back to a list of arrays for all subjects
+      A.norm.sub <-
+        lapply(seq_along(mat.thresh), function(z)
+               lapply(seq_along(inds), function(x)
+                      array(sapply(inds[[x]], function(y)
+                                   ifelse(A.inds[[z]][[x]] == 1, A.norm[, , y], 0)),
+                            dim=dim(A.norm[, , inds[[x]]]))))
+      A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind::abind, x))
+      for (i in seq_along(mat.thresh)) {
+        A.norm.sub[[i]] <- array(apply(A.norm.sub[[i]], 3, symmetrize_mats, ...), dim=dim(A.norm.sub[[i]]))
+      }
+    }
 
   } else if (threshold.by == 'density') {
     stopifnot(all(mat.thresh >= 0) && all(mat.thresh <= 1))
@@ -140,12 +151,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                            thresh <- sort(y[lower.tri(y)])[emax - x * emax]
                            ifelse(y > thresh, y, 0)
                          }), dim=dim(A)))
-#    A.norm.sub <- lapply(A.bin, function(x)
-#                    array(apply(x, 3, function(y)
-#                                ifelse(y == 1, y, 0)),
-#                          dim=dim(x)))
   }
-
 
   # Group means; first take the means of the unthresholded data
   #A.norm.mean <- lapply(inds, function(x) apply(A.norm[, , x], c(1, 2), mean))
