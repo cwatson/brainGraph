@@ -22,6 +22,21 @@ auc_diff <- function(x, y) {
   }
 }
 
+#' Calculate coefficient of variation
+#'
+#' Calculates the \emph{coefficient of variation}, defined as
+#' \deqn{CV(x) = \frac{sd(x)}{mean(x)}}
+#'
+#' @param x Numeric vector
+#'
+#' @return A numeric value
+
+coeff_var <- function(x) {
+  N <- length(x)
+  mu <- sum(x) / N
+  return(sqrt(1 / (N - 1) * (sum((x - mu)^2))) / mu)
+}
+
 #' Delete all attributes of a graph
 #'
 #' Deletes all graph-, vertex-, and edge-level attributes of an \code{igraph}

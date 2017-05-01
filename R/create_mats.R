@@ -1,21 +1,32 @@
 #' Create connection matrices for tractography or fMRI data
 #'
-#' This function will take a vector of filenames which contain connection
+#' \code{create_mats} will take a vector of filenames which contain connection
 #' matrices (e.g. the \emph{fdt_network_matrix} files from FSL or the
 #' \emph{ROICorrelation.txt} files from DPABI) and create arrays of this data.
 #' You may choose to normalize these matrices by the \emph{waytotal} or
-#' \emph{region size} (tractography), or not at all (fMRI).
+#' \emph{region size} (tractography), or not at all.
+#'
+#' The argument \code{threshold.by} has 4 options:
+#' \enumerate{
+#'   \item \code{consensus} Threshold based on the raw (normalized, if selected)
+#'     values in the matrices. If this is selected, it uses the
+#'     \code{sub.thresh} value to perform "consensus" thresholding.
+#'   \item \code{density} Threshold the matrices to yield a specific graph
+#'     density (given by the \code{mat.thresh} argument).
+#'   \item \code{mean} Keep only connections for which the cross-subject mean is
+#'     at least 2 standard deviations higher than the threshold (specified by
+#'     \code{mat.thresh})
+#'   \item \code{consistency} Threshold based on the coefficient of variation to
+#'     yield a graph with a specific density (given by \code{mat.thresh}). The
+#'     edge weights will still represent those of the input matrices. See
+#'     Roberts et al. (2017) for more on "consistency-based" thresholding.
+#' }
 #'
 #' The argument \code{mat.thresh} allows you to choose a numeric threshold,
 #' below which the connections will be replaced with 0; this argument will also
 #' accept a numeric vector. The argument \code{sub.thresh} will keep only those
 #' connections for which at least \emph{X}\% of subjects have a positive entry
-#' (the default is 0.5, or 50\%). Furthermore, you can set this argument to
-#' \code{"mean"}, and instead of a percent of subjects as the threshold, it will
-#' keep only connections for which the cross-subject mean are at least 2
-#' standard deviations higher than the threshold,
-#' \deqn{mean(A_{ij}) + 2*SD(A_{ij}) > threshold}
-#' Note that this enforces, for \emph{all study subjects}, the same connections.
+#' (the default is 0.5, or 50\%).
 #'
 #' @param A.files Character vector of the filenames with connection matrices
 #' @param modality Character string indicating data modality (default:
@@ -26,12 +37,12 @@
 #' @param div.files Character vector of the filenames with the data to
 #'   normalize by (e.g. a list of \emph{waytotal} files) (default: \code{NULL})
 #' @param threshold.by Character string indicating how to threshold the data;
-#'   choose \code{density} if you want all resulting matrices in a subject group
-#'   to have the same density (default: \code{raw})
+#'   choose \code{density}, \code{mean}, or \code{consistency} if you want all
+#'   resulting matrices to have the same densities (default: \code{consensus})
 #' @param mat.thresh Numeric (vector) for thresholding connection matrices
 #'   (default: 0)
 #' @param sub.thresh Numeric (between 0 and 1) for thresholding by subject
-#'   numbers (default: 0.5); can also be a character string \code{"mean"}.
+#'   numbers (default: 0.5)
 #' @param inds List (length equal to number of groups) of integers; each list
 #'   element should be a vector of length equal to the group sizes
 #' @param algo Character string of the tractography algorithm used (default:
@@ -56,10 +67,13 @@
 #'
 #' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @references Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
+#'   \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
+#'   145:118-129.
 #' @examples
 #' \dontrun{
 #' thresholds <- seq(from=0.001, to=0.01, by=0.001)
-#' fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
+#' fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='consensus',
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 #' dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
@@ -67,15 +81,18 @@
 
 create_mats <- function(A.files, modality=c('dti', 'fmri'),
                         divisor=c('none', 'waytotal', 'size', 'rowSums'),
-                        div.files=NULL, threshold.by=c('raw', 'density'),
-                        mat.thresh=0, sub.thresh=0.5, inds,
+                        div.files=NULL,
+                        threshold.by=c('consensus', 'density', 'mean', 'consistency'),
+                        mat.thresh=0, sub.thresh=0.5, inds=list(1:length(A.files)),
                         algo=c('probabilistic', 'deterministic'), P=5e3, ...) {
 
+  # Argument checking
+  #-----------------------------------------------------------------------------
   kNumSubjs <- lengths(inds)
   stopifnot(isTRUE(all(sapply(A.files, file.exists))),
             isTRUE(all(sapply(div.files, file.exists))),
             sum(kNumSubjs) == length(A.files),
-            sub.thresh == 'mean' || (sub.thresh >= 0 && sub.thresh <= 1))
+            sub.thresh >= 0 && sub.thresh <= 1)
   A.bin <- A.bin.sums <- A.inds <- NULL
 
   Nv <- length(readLines(A.files[1]))
@@ -90,31 +107,57 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   modality <- match.arg(modality)
   algo <- match.arg(algo)
   divisor <- match.arg(divisor)
-  if (modality == 'dti' & algo == 'probabilistic' & divisor != 'none') {
-    A.norm <- normalize_mats_prob(A, divisor, div.files, Nv, kNumSubjs, P)
+
+  # Normalize DTI matrices
+  #-------------------------------------
+  if (modality == 'dti' && algo == 'probabilistic' && divisor != 'none') {
+    A.norm <- normalize_mats(A, divisor, div.files, Nv, kNumSubjs, P)
     A.norm[is.nan(A.norm)] <- 0
   }
-  if (modality == 'dti' & algo == 'deterministic' & divisor == 'size') {
-    A.norm <- normalize_mats_det(A.norm, div.files, Nv, kNumSubjs)
-  }
 
+  # Matrix thresholding
+  #-----------------------------------------------------------------------------
   threshold.by <- match.arg(threshold.by)
-  if (threshold.by == 'raw') {
-    if (sub.thresh == 'mean') {
-      all.mean <- rowMeans(A.norm, dims=2)
-      all.sd <- apply(A.norm, 1:2, sd)
-      all.thresh <- all.mean + (2 * all.sd)
+  if (threshold.by %in% c('density', 'consistency')) {
+    stopifnot(all(mat.thresh >= 0) && all(mat.thresh <= 1))
+    emax <- Nv * (Nv - 1) / 2
 
+    if (threshold.by == 'density') {
+      Asym <- symmetrize_array(A.norm, ...)
       A.norm.sub <-
-        lapply(mat.thresh, function(z)
-               array(apply(A.norm, 3, function(x) x * (all.thresh > z)), dim=dim(A.norm)))
-    } else {
+        lapply(mat.thresh, function(x)
+               array(apply(Asym, 3, function(y) {
+                             thresh <- sort(y[lower.tri(y)])[emax - x * emax]
+                             ifelse(y > thresh, y, 0)
+                           }), dim=dim(A.norm)))
+
+    } else if (threshold.by == 'consistency') {
+      all.cv <- apply(A.norm, 1:2, coeff_var)
+      all.cv <- symmetrize_mats(all.cv, 'min')
+      A.inds <- lapply(mat.thresh, function(x) {
+                         thresh <- sort(all.cv[lower.tri(all.cv)], decreasing=TRUE)[emax - x * emax]
+                         ifelse(all.cv < thresh, 1, 0)})
+      A.norm.sub <- lapply(seq_along(mat.thresh), function(z)
+                           array(sapply(unlist(inds), function(y)
+                                        ifelse(A.inds[[z]] == 1, A.norm[, , y], 0)),
+                                 dim=dim(A.norm)))
+
+      for (i in seq_along(mat.thresh)) A.norm.sub[[i]] <- symmetrize_array(A.norm.sub[[i]], ...)
+    }
+  } else {
+    if (threshold.by == 'consensus') {
+      # Use the given thresholds as-is
+      #---------------------------------
       # Binarize the array, then keep entries w/ >= "sub.thresh"% for each group
-      # These are lists of arrays; each list element is a different threshold
       A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0)
       A.bin.sums <- lapply(seq_along(mat.thresh), function(y)
                            lapply(inds, function(x)
                                   rowSums(A.bin[[y]][, , x], dims=2)))
+
+      # For deterministic, threshold by size *after* binarizing
+      if (modality == 'dti' & algo == 'deterministic' & divisor == 'size') {
+        A.norm <- normalize_mats(A.norm, div.files, Nv, kNumSubjs, P=1)
+      }
 
       # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
       if (sub.thresh == 0) {
@@ -135,35 +178,27 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                                    ifelse(A.inds[[z]][[x]] == 1, A.norm[, , y], 0)),
                             dim=dim(A.norm[, , inds[[x]]]))))
       A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind::abind, x))
-      for (i in seq_along(mat.thresh)) {
-        A.norm.sub[[i]] <- array(apply(A.norm.sub[[i]], 3, symmetrize_mats, ...), dim=dim(A.norm.sub[[i]]))
-      }
+
+    } else if (threshold.by == 'mean') {
+      # Threshold: mean + 2SD > mat.thresh
+      #---------------------------------
+      all.mean <- rowMeans(A.norm, dims=2)
+      all.sd <- apply(A.norm, 1:2, sd)
+      all.thresh <- all.mean + (2 * all.sd)
+
+      A.norm.sub <-
+        lapply(mat.thresh, function(z)
+               array(apply(A.norm, 3, function(x) x * (all.thresh > z)), dim=dim(A.norm)))
     }
-
-  } else if (threshold.by == 'density') {
-    stopifnot(all(mat.thresh >= 0) && all(mat.thresh <= 1))
-    emax <- Nv * (Nv - 1) / 2
-
-    Asym <- array(apply(A, 3, symmetrize_mats, ...), dim=dim(A))
-    A.norm.sub <-
-      lapply(mat.thresh, function(x)
-             array(apply(Asym, 3, function(y) {
-                           thresh <- sort(y[lower.tri(y)])[emax - x * emax]
-                           ifelse(y > thresh, y, 0)
-                         }), dim=dim(A)))
+    for (i in seq_along(mat.thresh)) A.norm.sub[[i]] <- symmetrize_array(A.norm.sub[[i]], ...)
   }
 
-  # Group means; first take the means of the unthresholded data
-  #A.norm.mean <- lapply(inds, function(x) apply(A.norm[, , x], c(1, 2), mean))
-  #A.group <- lapply(seq_len(length(inds)), function(x)
-  #                  lapply(mat.thresh, function(y) (A.norm.mean[[x]] > y) + 0))
   A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
                         lapply(inds, function(y)
                                rowMeans(A.norm.sub[[x]][, , y], dims=2)))
 
   return(list(A=A, A.norm=A.norm, A.bin=A.bin, A.bin.sums=A.bin.sums,
               A.inds=A.inds, A.norm.sub=A.norm.sub, A.norm.mean=A.norm.mean))#,
-              #A.group=A.group))
 }
 
 #' Create a symmetric matrix
@@ -207,7 +242,11 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
   return(Asym)
 }
 
-normalize_mats_prob <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
+symmetrize_array <- function(A, ...) {
+  return(array(apply(A, 3, symmetrize_mats, ...), dim=dim(A)))
+}
+
+normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
   div <- array(sapply(div.files, function(x)
                       matrix(scan(x, what=numeric(0), n=Nv*1, quiet=TRUE),
                              Nv, 1, byrow=TRUE)),
@@ -228,16 +267,5 @@ normalize_mats_prob <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
   } else if (divisor == 'rowSums') {
     A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
   }
-  return(A.norm)
-}
-
-normalize_mats_det <- function(A.norm, div.files, Nv, kNumSubjs) {
-  div <- array(sapply(div.files, function(x)
-                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=TRUE),
-                             Nv, 1, byrow=TRUE)),
-               dim=c(Nv, 1, sum(kNumSubjs)))
-  R <- array(apply(div, 3, function(x)
-                   cbind(sapply(seq_len(Nv), function(y) x + x[y]))), dim=dim(A.norm))
-  A.norm <- 2 * A.norm / R
   return(A.norm)
 }

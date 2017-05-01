@@ -1,6 +1,6 @@
-# brainGraph 1.2.0
+# brainGraph 1.3.0
 
-2017-04-29
+2017-04-30
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -11,6 +11,7 @@
 * `plot_brainGraph`: now returns `NA` (instead of throwing an error) if the specified *subgraph* expression results in a network with 0 vertices.
 * `gateway_coeff` returned an error if the number of communities equals 1; this has been fixed
 * `edge_asymmetry` contained a bug if the input graph had only one contralateral connection (usually only encountered in the GUI with neighborhood plots); this has been fixed for those situations.
+* `create_mats`: fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
 
 ## Major changes
 * `brainGraph_GLM`:
@@ -18,7 +19,9 @@
     * new argument *perms*, to specify the permutation set if you would like to use the same one for multiple graph/vertex measures (to improve the speed of the new `mtpc` function).
 * `create_mats`
     * From v1.1.1 onward, all `A.norm.sub` matrices will be symmetrized, regardless of the value of `threshold.by` (previously they were only symmetrized if using `threshold.by='density'`). This should not pose a problem as the default (to take the *maximum* of the off-diagonal elements) is also the default when creating graphs in `igraph`.
-    * From v1.2.0 onward, you can specify `mean` as the value for `sub.thresh`. This will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > threshold`, for each of the `threshold` values specified. See the references in the User Guide for examples in the literature.
+    * From v1.2.0 onward, you can specify `mean` as the value for `threshold.by`. This will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > threshold`, for each of the `threshold` values specified. See the references in the User Guide for examples in the literature.
+    * From v1.3.0 onward, the `threshold.by` default name has been changed from `raw` to `consensus`, as this functionality is what is called "consensus-based" thresholding in the literature.
+    * From v1.3.0, you may also specify `threshold.by='consistency'` to perform *consistency-based* thresholding. See Roberts et al., 2017.
 
 ## New functions
 * `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009). This requires that the package `expm` is installed.

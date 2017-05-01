@@ -5,8 +5,9 @@
 \title{Create connection matrices for tractography or fMRI data}
 \usage{
 create_mats(A.files, modality = c("dti", "fmri"), divisor = c("none",
-  "waytotal", "size", "rowSums"), div.files = NULL, threshold.by = c("raw",
-  "density"), mat.thresh = 0, sub.thresh = 0.5, inds,
+  "waytotal", "size", "rowSums"), div.files = NULL,
+  threshold.by = c("consensus", "density", "mean", "consistency"),
+  mat.thresh = 0, sub.thresh = 0.5, inds = list(1:length(A.files)),
   algo = c("probabilistic", "deterministic"), P = 5000, ...)
 }
 \arguments{
@@ -23,14 +24,14 @@ matrices; either 'none' (default), 'waytotal', 'size', or 'rowSums'
 normalize by (e.g. a list of \emph{waytotal} files) (default: \code{NULL})}
 
 \item{threshold.by}{Character string indicating how to threshold the data;
-choose \code{density} if you want all resulting matrices in a subject group
-to have the same density (default: \code{raw})}
+choose \code{density}, \code{mean}, or \code{consistency} if you want all
+resulting matrices to have the same densities (default: \code{consensus})}
 
 \item{mat.thresh}{Numeric (vector) for thresholding connection matrices
 (default: 0)}
 
 \item{sub.thresh}{Numeric (between 0 and 1) for thresholding by subject
-numbers (default: 0.5); can also be a character string \code{"mean"}.}
+numbers (default: 0.5)}
 
 \item{inds}{List (length equal to number of groups) of integers; each list
 element should be a vector of length equal to the group sizes}
@@ -58,32 +59,48 @@ A list containing:
   averaged for each group}
 }
 \description{
-This function will take a vector of filenames which contain connection
+\code{create_mats} will take a vector of filenames which contain connection
 matrices (e.g. the \emph{fdt_network_matrix} files from FSL or the
 \emph{ROICorrelation.txt} files from DPABI) and create arrays of this data.
 You may choose to normalize these matrices by the \emph{waytotal} or
-\emph{region size} (tractography), or not at all (fMRI).
+\emph{region size} (tractography), or not at all.
 }
 \details{
+The argument \code{threshold.by} has 4 options:
+\enumerate{
+  \item \code{consensus} Threshold based on the raw (normalized, if selected)
+    values in the matrices. If this is selected, it uses the
+    \code{sub.thresh} value to perform "consensus" thresholding.
+  \item \code{density} Threshold the matrices to yield a specific graph
+    density (given by the \code{mat.thresh} argument).
+  \item \code{mean} Keep only connections for which the cross-subject mean is
+    at least 2 standard deviations higher than the threshold (specified by
+    \code{mat.thresh})
+  \item \code{consistency} Threshold based on the coefficient of variation to
+    yield a graph with a specific density (given by \code{mat.thresh}). The
+    edge weights will still represent those of the input matrices. See
+    Roberts et al. (2017) for more on "consistency-based" thresholding.
+}
+
 The argument \code{mat.thresh} allows you to choose a numeric threshold,
 below which the connections will be replaced with 0; this argument will also
 accept a numeric vector. The argument \code{sub.thresh} will keep only those
 connections for which at least \emph{X}\% of subjects have a positive entry
-(the default is 0.5, or 50\%). Furthermore, you can set this argument to
-\code{"mean"}, and instead of a percent of subjects as the threshold, it will
-keep only connections for which the cross-subject mean are at least 2
-standard deviations higher than the threshold,
-\deqn{mean(A_{ij}) + 2*SD(A_{ij}) > threshold}
-Note that this enforces, for \emph{all study subjects}, the same connections.
+(the default is 0.5, or 50\%).
 }
 \examples{
 \dontrun{
 thresholds <- seq(from=0.001, to=0.01, by=0.001)
-fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='raw',
+fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='consensus',
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 }
+}
+\references{
+Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
+  \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
+  145:118-129.
 }
 \seealso{
 Other Matrix functions: \code{\link{cor.diff.test}},
