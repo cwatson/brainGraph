@@ -80,7 +80,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     g$conn.comp <- data.frame(size=as.integer(names(comps)),
                               number=as.integer(comps))
     g$max.comp <- g$conn.comp[1, 1]
-    g$clique.num <- clique_num(g)
+    #g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g, weights=NA)
     g$transitivity <- transitivity(g)

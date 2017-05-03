@@ -1,8 +1,9 @@
 # brainGraph
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![Linux Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-ago/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
+[![GPL License](https://img.shields.io/cran/l/brainGraph.svg)](https://opensource.org/licenses/GPL-3.0/)
+[![CRAN Downloads](http://cranlogs.r-pkg.org/badges/grand-total/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
 
 *brainGraph* is an R package for performing graph theory analyses of brain MRI
 data. It is most useful in atlas-based analyses (e.g. using an atlas such as *AAL*

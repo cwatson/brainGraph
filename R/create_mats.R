@@ -196,6 +196,13 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
                         lapply(inds, function(y)
                                rowMeans(A.norm.sub[[x]][, , y], dims=2)))
+  if (threshold.by == 'density') {
+    A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
+                          lapply(A.norm.mean[[x]], function(y) {
+                                   thresh <- sort(y[lower.tri(y)])[emax - mat.thresh[x] * emax]
+                                   ifelse(y > thresh, y, 0)
+                                 }))
+  }
 
   return(list(A=A, A.norm=A.norm, A.bin=A.bin, A.bin.sums=A.bin.sums,
               A.inds=A.inds, A.norm.sub=A.norm.sub, A.norm.mean=A.norm.mean))#,

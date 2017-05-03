@@ -11,7 +11,9 @@
 * `plot_brainGraph`: now returns `NA` (instead of throwing an error) if the specified *subgraph* expression results in a network with 0 vertices.
 * `gateway_coeff` returned an error if the number of communities equals 1; this has been fixed
 * `edge_asymmetry` contained a bug if the input graph had only one contralateral connection (usually only encountered in the GUI with neighborhood plots); this has been fixed for those situations.
-* `create_mats`: fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
+* `create_mats`:
+    * Fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
+    * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
 
 ## Major changes
 * `brainGraph_GLM`:
@@ -35,6 +37,7 @@
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 * Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
+* `set_brainGraph_attr`: no longer calculates the graph's *clique number*. This operation takes exceedingly long (in graphs with more vertices, e.g., `craddock200`
 
 
 ----
