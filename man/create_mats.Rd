@@ -53,10 +53,9 @@ A list containing:
   number of list elements equals the length of \code{mat.thresh}}
 \item{A.inds}{A list of arrays of binarized connection matrices, containing 1
   if that entry is to be included}
-\item{A.norm.sub}{A list of 3-d arrays of the normalized connection matrices
+\item{A.norm.sub}{List of 3-d arrays of the normalized connection matrices
   for all given thresholds}
-\item{A.norm.mean}{A list of 2-d arrays of the normalized connection matrices
-  averaged for each group}
+\item{A.norm.mean}{List of lists of numeric matrices averaged for each group}
 }
 \description{
 \code{create_mats} will take a vector of filenames which contain connection
@@ -103,7 +102,8 @@ Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
   145:118-129.
 }
 \seealso{
-Other Matrix functions: \code{\link{cor.diff.test}},
+Other Matrix functions: \code{\link{apply_thresholds}},
+  \code{\link{cor.diff.test}},
   \code{\link{symmetrize_mats}}
 }
 \author{

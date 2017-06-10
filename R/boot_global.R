@@ -28,7 +28,6 @@
 boot_global <- function(densities, resids, R=1e3,
                         measure=c('mod', 'E.global', 'Cp', 'Lp',
                                   'assortativity')) {
-
   Group <- t0 <- NULL
   groups <- resids[, levels(Group)]
   measure <- match.arg(measure)
@@ -38,8 +37,7 @@ boot_global <- function(densities, resids, R=1e3,
     group <- as.matrix(x[i, !c('Study.ID', 'Group'), with=F])
     corrs <- lapply(densities, function(x) corr.matrix(group, density=x))
     g.boot <- lapply(corrs, function(x)
-                     graph_from_adjacency_matrix(x$r.thresh, mode='undirected',
-                                                 diag=F))
+                     graph_from_adjacency_matrix(x$r.thresh, mode='undirected', diag=F))
     if (measure == 'mod') {
       res <- vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1))
     } else if (measure == 'E.global') {
@@ -78,10 +76,8 @@ boot_global <- function(densities, resids, R=1e3,
   for (i in seq_along(groups)) {
     counter <- 0
     progbar <- txtProgressBar(min=0, max=R, style=3)
-
-    my.boot[[i]] <- boot(resids[groups[i]], intfun,
-                       measure=measure, R=R, parallel=my.parallel, ncpus=ncpus,
-                       cl=cl)
+    my.boot[[i]] <- boot(resids[groups[i]], intfun, measure=measure, R=R,
+                         parallel=my.parallel, ncpus=ncpus, cl=cl)
     close(progbar)
   }
 

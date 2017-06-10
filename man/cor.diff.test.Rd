@@ -42,8 +42,8 @@ edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
 }
 }
 \seealso{
-Other Matrix functions: \code{\link{create_mats}},
-  \code{\link{symmetrize_mats}}
+Other Matrix functions: \code{\link{apply_thresholds}},
+  \code{\link{create_mats}}, \code{\link{symmetrize_mats}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

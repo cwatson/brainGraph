@@ -60,10 +60,9 @@
 #'   number of list elements equals the length of \code{mat.thresh}}
 #' \item{A.inds}{A list of arrays of binarized connection matrices, containing 1
 #'   if that entry is to be included}
-#' \item{A.norm.sub}{A list of 3-d arrays of the normalized connection matrices
+#' \item{A.norm.sub}{List of 3-d arrays of the normalized connection matrices
 #'   for all given thresholds}
-#' \item{A.norm.mean}{A list of 2-d arrays of the normalized connection matrices
-#'   averaged for each group}
+#' \item{A.norm.mean}{List of lists of numeric matrices averaged for each group}
 #'
 #' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -95,12 +94,8 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
             sub.thresh >= 0 && sub.thresh <= 1)
   A.bin <- A.bin.sums <- A.inds <- NULL
 
-  Nv <- length(readLines(A.files[1]))
-  A <- array(sapply(A.files, function(x)
-                    matrix(scan(x, what=numeric(0), n=Nv*Nv, quiet=TRUE),
-                           Nv, Nv, byrow=TRUE)),
-             dim=c(Nv, Nv, sum(kNumSubjs)))
-
+  A <- read.array(A.files)
+  Nv <- nrow(A)
   A[is.nan(A)] <- 0
   A.norm <- A
 
@@ -254,10 +249,7 @@ symmetrize_array <- function(A, ...) {
 }
 
 normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
-  div <- array(sapply(div.files, function(x)
-                      matrix(scan(x, what=numeric(0), n=Nv*1, quiet=TRUE),
-                             Nv, 1, byrow=TRUE)),
-               dim=c(Nv, 1, sum(kNumSubjs)))
+  div <- read.array(div.files, ncols=1)
 
   if (divisor == 'waytotal') {
     # Control for streamline count by waytotal
@@ -275,4 +267,57 @@ normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
     A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
   }
   return(A.norm)
+}
+
+read.array <- function(infiles, ncols=NULL) {
+  Nv <- length(readLines(infiles[1]))
+  if (is.null(ncols)) ncols <- Nv
+  A <- array(sapply(infiles, function(x)
+                    matrix(scan(x, what=numeric(0), n=Nv*ncols, quiet=TRUE),
+                           Nv, ncols, byrow=TRUE)),
+             dim=c(Nv, ncols, length(infiles)))
+  return(A)
+}
+
+#' Threshold additional set of matrices
+#'
+#' \code{apply_thresholds} will threshold an additional set of matrices (e.g.,
+#' FA-weighted matrices for DTI tractography) based on the matrices that have
+#' been returned from \code{\link{create_mats}}. This ensures that the same
+#' connections are present in both sets of matrices.
+#'
+#' @param sub.mats List (equal to number of thresholds) of numeric arrays
+#'   (3-dim) for all subjects
+#' @param group.mats List (equal to number of thresholds) of lists (equal to
+#'   number of groups) of numeric matrices for group-level data
+#' @param W.files Character vector of the filenames with connection matrices
+#' @param inds List (length equal to number of groups) of integers; each list
+#'   element should be a vector of length equal to the group sizes
+#' @export
+#'
+#' @return List containing:
+#' \item{W}{A 3-d array of the raw connection matrices}
+#' \item{W.norm.sub}{List of 3-d arrays of the normalized connection matrices
+#'   for all given thresholds}
+#' \item{W.norm.mean}{List of lists of numeric matrices averaged for each group}
+#'
+#' @family Matrix functions
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#'   W.mats <- apply_thresholds(A.norm.sub, A.norm.mean, f.W, inds)
+#' }
+
+apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
+  W <- read.array(W.files)
+  W.norm.sub <- lapply(sub.mats, function(x)
+                       array(sapply(seq_len(dim(x)[3]), function(y)
+                                    ifelse(x[, , y] > 0, W[, , y], 0)),
+                             dim=dim(x)))
+  W.norm.mean <- lapply(seq_along(group.mats), function(x)
+                        lapply(seq_along(group.mats[[x]]), function(y)
+                               ifelse(group.mats[[x]][[y]] > 0,
+                                      rowMeans(W.norm.sub[[x]][, , inds[[y]]], dims=2),
+                                      0)))
+  return(list(W=W, W.norm.sub=W.norm.sub, W.norm.mean=W.norm.mean))
 }

@@ -104,7 +104,7 @@ brainGraph_init <- function(atlas, densities, datadir,
   if (isTRUE(grepl('scgm', atlas))) {
     scgm <- fread(paste0(datadir, '/scgm.csv'))
     setkey(scgm, Study.ID)
-    if (is.null(covars)) {
+    if (is.null(covars)) { #FIXME: this branch will never be selected
       covars.scgm <- fread(paste0(datadir, '/covars.scgm.csv'))
     } else {
       covars.scgm <- fread(paste0(datadir, '/covars.csv'))

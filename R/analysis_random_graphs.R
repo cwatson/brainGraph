@@ -21,8 +21,7 @@
 #'
 #' @param g.list List of lists containing \code{igraph} graph objects
 #' @param N Integer specifying number of random graphs to generate per
-#'   individual graph
-#' @param covars Data table of covariates (used for Group and subject names)
+#'   individual graph (default: 100)
 #' @param savedir Character string specifying the directory in which to save the
 #'   generated graphs (default: current working directory)
 #' @param ... Other arguments passed to \code{\link{sim.rand.graph.par}} (e.g.
@@ -41,38 +40,39 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' rand_all <- analysis_random_graphs(g.norm, 1e2, covars.dti,
+#' rand_all <- analysis_random_graphs(g.norm, 1e2,
 #'   savedir='/home/cwatson/dti/rand', clustering=F)
 #' }
 
-analysis_random_graphs <- function(g.list, N, covars, savedir='.', ...) {
+analysis_random_graphs <- function(g.list, N=100, savedir='.', ...) {
   Group <- Study.ID <- threshold <- NULL
   if (!isTRUE(dir.exists(paste0(savedir, '/ALL')))) {
     dir.create(paste0(savedir, '/ALL/'), recursive=TRUE)
   }
 
   # Convenience function
-  create.rand.dt <- function(rand, group, V1, kNumRand) {
-    rand.mod <- sapply(rand, sapply, graph_attr, 'mod')
-    rand.E.global <- sapply(rand, sapply, graph_attr, 'E.global')
-    rand.Cp <- sapply(rand, sapply, graph_attr, 'Cp')
-    rand.Lp <- sapply(rand, sapply, graph_attr, 'Lp')
-    rand.dt <- data.table(V1=rep(V1, each=kNumRand),
-                          Group=rep(group, kNumRand), mod=as.vector(rand.mod),
-                          Cp=as.vector(rand.Cp), Lp=as.vector(rand.Lp),
-                          E.global=as.vector(rand.E.global))
+  create.rand.dt <- function(rand, group, V1, N) {
+    rand.mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'mod'))
+    rand.Cp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Cp'))
+    rand.E.glob <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'E.global'))
+    rand.Lp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Lp'))
+    rand.dt <- data.table(V1=rep(V1, each=N),
+                          Group=rep(group, N), mod=rand.mod,
+                          Cp=rand.Cp, Lp=rand.Lp,
+                          E.global=rand.E.glob)
     return(rand.dt)
   }
-  # Check if the graphs have 3 or 2 nested levels
   nesting <- 2
   if (is_igraph(g.list[[1]][[1]][[1]])) nesting <- 3
 
   # Loop through all graphs, generate random graphs, calculate rich club coeff's
   phi.norm <- vector('list', length=length(g.list))
+  groups <- vector('character', length=length(g.list))
   for (i in seq_along(g.list)) {
     phi.norm[[i]] <- vector('list', length=length(g.list[[i]]))
 
     if (nesting == 2) {
+      groups[i] <- g.list[[i]][[1]]$Group
       print(paste0('Random graphs for group #', i, '; ',
                    format(Sys.time(), '%H:%M:%S')))
       progbar <- txtProgressBar(min=0, max=length(g.list[[i]]), style=3)
@@ -81,13 +81,15 @@ analysis_random_graphs <- function(g.list, N, covars, savedir='.', ...) {
         saveRDS(rand, file=paste0(savedir, '/',
                                   sprintf('rand%i_thr%02i%s', i, j, '.rds')))
         phi.norm[[i]][[j]] <- rich_club_norm(g.list[[i]][[j]], rand=rand)
-        rm(rand)
+        rm(list='rand')
         gc()
         setTxtProgressBar(progbar, j)
       }
     } else {
+      groups[i] <- g.list[[i]][[1]][[1]]$Group
+      kNumSubjs <- length(g.list[[i]][[1]])
       for (j in seq_along(g.list[[i]])) {
-        phi.norm[[i]][[j]] <- vector('list', length=length(g.list[[i]][[j]]))
+        phi.norm[[i]][[j]] <- vector('list', length=kNumSubjs)
         print(paste0('Random graphs for group #', i, '; threshold #', j, '; ',
                      format(Sys.time(), '%H:%M:%S')))
         progbar <- txtProgressBar(min=0, max=length(g.list[[i]][[j]]), style=3)
@@ -96,8 +98,8 @@ analysis_random_graphs <- function(g.list, N, covars, savedir='.', ...) {
           rand <- sim.rand.graph.par(g.list[[i]][[j]][[k]], N, ...)
           saveRDS(rand, file=paste0(savedir, '/',
                                     sprintf('rand%i_thr%02i_subj%03i%s', i, j, k, '.rds')))
-          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g.list[[i]][[j]][[k]], rand=rand)
-          rm(rand)
+          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g.list[[i]][[j]][[k]], rand=rand[[k]])
+          rm(list='rand')
           gc()
           setTxtProgressBar(progbar, k)
         }
@@ -107,20 +109,19 @@ analysis_random_graphs <- function(g.list, N, covars, savedir='.', ...) {
 
   # Get all small-worldness and random measures, all thresholds
   #-----------------------------------------------------------------------------
-  groups <- covars[, levels(Group)]
-  fnames <- rand.dt <- small.dt <- vector('list', length=length(g.list))
+  rand.dt <- small.dt <- ids <- vector('list', length=length(g.list))
   if (nesting == 2) {
     densities <- sapply(g.list[[1]], graph_attr, 'density')
     for (i in seq_along(g.list)) {
       fnames <- list.files(savedir, sprintf('rand%i_thr.*', i), full.names=TRUE)
-      rand_all <- lapply(fnames, readRDS)
-      saveRDS(rand_all, file=paste0(savedir, '/ALL/rand', i, '_all.rds'))
-      small.dt[[i]] <- small.world(g.list[[i]], rand_all)
+      rand.all <- lapply(fnames, readRDS)
+      saveRDS(rand.all, file=paste0(savedir, '/ALL/rand', i, '_all.rds'))
+      small.dt[[i]] <- small.world(g.list[[i]], rand.all)
 
-      rand.dt[[i]] <- create.rand.dt(rand_all, groups[i], V1=densities, N)
+      rand.dt[[i]] <- create.rand.dt(rand.all, groups[i], V1=densities, N)
       setnames(rand.dt[[i]], 1, 'density')
       setkey(rand.dt[[i]], density)
-      rm(rand_all)
+      rm(list='rand.all')
       gc()
     }
     rand.dt <- rbindlist(rand.dt)
@@ -130,21 +131,24 @@ analysis_random_graphs <- function(g.list, N, covars, savedir='.', ...) {
 
   } else {
     for (i in seq_along(g.list)) {
-      fnames[[i]] <- rand.dt[[i]] <- small.dt[[i]] <- vector('list', length=length(g.list[[i]]))
+      if ('name' %in% graph_attr_names(g.list[[i]][[1]][[1]])) {
+        ids[[i]] <- sapply(g.list[[i]][[1]], graph_attr, 'name')
+      } else {
+        ids[[i]] <- seq_along(g.list[[i]][[1]])
+      }
+      rand.dt[[i]] <- small.dt[[i]] <- vector('list', length=length(g.list[[i]]))
       for (j in seq_along(g.list[[i]])) {
-        fnames[[i]][[j]] <- list.files(savedir,
-                                       sprintf('rand%i_thr%02i.*', i, j), full.names=TRUE)
-        rand.all <- lapply(fnames[[i]][[j]], readRDS)
+        fnames <- list.files(savedir, sprintf('rand%i_thr%02i.*', i, j), full.names=TRUE)
+        rand.all <- lapply(fnames, readRDS)
         saveRDS(rand.all, file=paste0(savedir, '/ALL/',
                                       sprintf('rand%i_thr%02i%s', i, j, '.rds')))
         small.dt[[i]][[j]] <- small.world(g.list[[i]][[j]], rand.all)
         small.dt[[i]][[j]]$threshold <- j
-        small.dt[[i]][[j]]$Study.ID <- covars[Group == groups[i], Study.ID]
-        rand.dt[[i]][[j]] <- create.rand.dt(rand.all, groups[i],
-                                            V1=covars[Group == groups[i], Study.ID], N)
+        small.dt[[i]][[j]]$Study.ID <- ids[[i]]
+        rand.dt[[i]][[j]] <- create.rand.dt(rand.all, groups[i], V1=ids[[i]], N)
         setnames(rand.dt[[i]][[j]], 1, 'Study.ID')
         rand.dt[[i]][[j]]$threshold <- j
-        rm(rand.all)
+        rm(list='rand.all')
         gc()
       }
     }

@@ -11,7 +11,7 @@
 #' and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
 #'
 #' @param g An \code{igraph} graph object
-#' @param N Integer; the number of random graphs to simulate
+#' @param N Integer; the number of random graphs to simulate (default: 100)
 #' @param clustering Logical; whether or not to control for clustering (default:
 #'   \code{FALSE})
 #' @param ... Other parameters (passed to \code{\link{sim.rand.graph.clust}})
@@ -31,7 +31,7 @@
 #'   clustering=T, max.iters=1e3)
 #' }
 
-sim.rand.graph.par <- function(g, N, clustering=FALSE, ...) {
+sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
   stopifnot(is_igraph(g))
   if (isTRUE(clustering)) {
     r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {

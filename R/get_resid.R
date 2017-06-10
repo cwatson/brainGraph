@@ -64,9 +64,8 @@ get.resid <- function(tidy.dt, use.mean=FALSE, exclude=NULL) {
   }
 
   # Return data to "wide" format with just the residuals
-  all.dat.wide <- dcast.data.table(myDT, paste(paste(names(covars),
-                                                     collapse='+'),
-                                               '~ region'),
+  all.dat.wide <- dcast.data.table(myDT,
+                                   paste(paste(names(covars), collapse='+'), '~ region'),
                                    value.var='resids')
   resids.all <- all.dat.wide[, !setdiff(names(covars), c('Study.ID', 'Group')), with=F]
   setkey(resids.all, Group, Study.ID)

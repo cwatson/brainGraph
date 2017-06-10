@@ -202,6 +202,10 @@ brainGraph_GLM_fit <- function(X, y, con.vec, alpha=0.05,
   gamma <- as.numeric(con.vec %*% b)
   sigma.squared <- est$s^2
   var.covar <- sigma.squared * solve(crossprod(X))
+  #TODO: if `con.vec` is a col vec instead, can use crossprod here too, it's faster
+  #se <- as.numeric(sqrt(crossprod(con.vec, var.covar) %*% con.vec))
+  #TODO: can also try `tcrossprod`
+  #se <- as.numeric(sqrt(con.vec %*% tcrossprod(var.covar, con.vec)))
   se <- as.numeric(sqrt(con.vec %*% var.covar %*% t(con.vec)))
   t.stat <- as.numeric(gamma / se)
 

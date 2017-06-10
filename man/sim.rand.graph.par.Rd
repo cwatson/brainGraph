@@ -4,12 +4,12 @@
 \alias{sim.rand.graph.par}
 \title{Simulate N random graphs w/ same clustering and degree sequence as the input.}
 \usage{
-sim.rand.graph.par(g, N, clustering = FALSE, ...)
+sim.rand.graph.par(g, N = 100, clustering = FALSE, ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{N}{Integer; the number of random graphs to simulate}
+\item{N}{Integer; the number of random graphs to simulate (default: 100)}
 
 \item{clustering}{Logical; whether or not to control for clustering (default:
 \code{FALSE})}

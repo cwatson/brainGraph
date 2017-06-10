@@ -4,15 +4,13 @@
 \alias{analysis_random_graphs}
 \title{Perform an analysis with random graphs for brain MRI data}
 \usage{
-analysis_random_graphs(g.list, N, covars, savedir = ".", ...)
+analysis_random_graphs(g.list, N = 100, savedir = ".", ...)
 }
 \arguments{
 \item{g.list}{List of lists containing \code{igraph} graph objects}
 
 \item{N}{Integer specifying number of random graphs to generate per
-individual graph}
-
-\item{covars}{Data table of covariates (used for Group and subject names)}
+individual graph (default: 100)}
 
 \item{savedir}{Character string specifying the directory in which to save the
 generated graphs (default: current working directory)}
@@ -51,7 +49,7 @@ The steps that are performed are:
 }
 \examples{
 \dontrun{
-rand_all <- analysis_random_graphs(g.norm, 1e2, covars.dti,
+rand_all <- analysis_random_graphs(g.norm, 1e2,
   savedir='/home/cwatson/dti/rand', clustering=F)
 }
 }

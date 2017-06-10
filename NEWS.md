@@ -1,6 +1,6 @@
-# brainGraph 1.3.0
+# brainGraph 1.4.0
 
-2017-04-30
+2017-06-10
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -14,6 +14,7 @@
 * `create_mats`:
     * Fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
     * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
+* `mtpc`: fixed a bug that would incorrectly calculate `A.crit`
 
 ## Major changes
 * `brainGraph_GLM`:
@@ -26,6 +27,7 @@
     * From v1.3.0, you may also specify `threshold.by='consistency'` to perform *consistency-based* thresholding. See Roberts et al., 2017.
 
 ## New functions
+* `apply_thresholds`: threshold an additional set of matrices (e.g., FA-weighted matrices in DTI tractography) based on a set of matrices that have already been thresholded (e.g., streamline-weighted matrices in DTI tractography)
 * `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009). This requires that the package `expm` is installed.
 * `communicability`: calculate network *communicability* (Estrada & Hatano, 2008)
 * `make_empty_brainGraph`: this is not a new function, but rather was not exported in previous versions. Now it is accessible without the "triple-colon" operator (i.e., it is no longer necessary to call with `brainGraph:::make_empty_brainGraph`).
@@ -34,10 +36,11 @@
 * `s_core`: calculate the *s-core* membership of a graph's vertices (Eidsaa & Almaas, 2013); the graphs will have vertex attributes called `s.core`. This is analogous to the *k-core* but for weighted networks. The vertex attribute for *k-core* has been changed from `coreness` to `k.core`.
 
 ## Minor changes
+* `analysis_random_graphs`: no longer requires a *covars* argument
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 * Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
-* `set_brainGraph_attr`: no longer calculates the graph's *clique number*. This operation takes exceedingly long (in graphs with more vertices, e.g., `craddock200`
+* `set_brainGraph_attr`: no longer calculates the graph's *clique number*. This operation is usually fast but takes exceedingly long in dense graphs and graphs with more vertices (e.g., `craddock200`)
 
 
 ----

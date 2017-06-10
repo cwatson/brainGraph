@@ -88,11 +88,17 @@ mtpc <- function(g.list, thresholds, N=500, perms=NULL, alpha=0.05, ...) {
   S.mtpc <- mtpc.all[, max(t.stat, na.rm=TRUE)]
   tau.mtpc <- mtpc.all[t.stat == S.mtpc, threshold]
 
-  mtpc.all[, A.crit := 0]
   null.crit <- which(apply(null.dist.all, 1, function(x)
-                           any(with(rle(x > S.crit), values == TRUE & lengths > 1))))
+                           any(with(rle(x > S.crit), values == TRUE & lengths > 2))))
   if (length(null.crit) > 0) {
-    mtpc.all[, A.crit := mean(apply(null.dist.all[null.crit, ], 1, auc_rle, S.crit, thresholds))]
+    if (length(null.crit) > 1) {
+      A.crit <- mean(apply(null.dist.all[null.crit, ], 1, auc_rle, S.crit, thresholds))
+    } else {
+      A.crit <- auc_rle(null.dist.all[null.crit, ], S.crit, thresholds)
+    }
+    mtpc.all[, A.crit := A.crit]
+  } else {
+    mtpc.all[, A.crit := 0]
   }
 
   mtpc.stats <- list(S.mtpc=S.mtpc, tau.mtpc=tau.mtpc,

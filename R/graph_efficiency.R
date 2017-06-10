@@ -84,9 +84,10 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       }
     }
   } else {
-    Nv <- vcount(g)
-    eff <- apply(distances(g, weights=weights), 2, function(x)
-                 sum(1 / x[x != 0]) / (Nv - 1))
+    D <- distances(g, weights=weights)
+    Nv <- nrow(D)
+    Dinv <- 1 / D
+    eff <- colSums(Dinv * is.finite(Dinv), na.rm=T) / (Nv - 1)
     if (type == 'global') eff <- sum(eff) / length(eff)
   }
   return(eff)

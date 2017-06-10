@@ -1,5 +1,6 @@
 export(analysis_random_graphs)
 export(aop)
+export(apply_thresholds)
 export(boot_global)
 export(brainGraph_GLM)
 export(brainGraph_GLM_design)
