@@ -27,19 +27,12 @@ graph_attr_dt <- function(g.list, group=NULL) {
 
   if ('name' %in% g.attrs) g.dt$Study.ID <- sapply(g.list, function(x) x$name)
   if ('atlas' %in% g.attrs) g.dt$atlas <- g.list[[1]]$atlas
-  if ('modality' %in% g.attrs) {
-    g.dt$modality <- sapply(g.list, function(x) x$modality)
-  }
+  if ('modality' %in% g.attrs) g.dt$modality <- sapply(g.list, function(x) x$modality)
+  if ('weighting' %in% g.attrs) g.dt$weighting <- g.list[[1]]$weighting
   if (is.null(group)) {
-    setkey(g.dt, density)
-    if ('Group' %in% g.attrs) {
-      g.dt$Group <- sapply(g.list, function(x) x$Group)
-      setkey(g.dt, Group, density)
-    }
+    if ('Group' %in% g.attrs) g.dt$Group <- sapply(g.list, function(x) x$Group)
   } else {
     g.dt$Group <- group
-    setkey(g.dt, Group, density)
   }
-
   return(g.dt)
 }

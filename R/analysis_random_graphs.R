@@ -98,7 +98,7 @@ analysis_random_graphs <- function(g.list, N=100, savedir='.', ...) {
           rand <- sim.rand.graph.par(g.list[[i]][[j]][[k]], N, ...)
           saveRDS(rand, file=paste0(savedir, '/',
                                     sprintf('rand%i_thr%02i_subj%03i%s', i, j, k, '.rds')))
-          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g.list[[i]][[j]][[k]], rand=rand[[k]])
+          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g.list[[i]][[j]][[k]], rand=rand)
           rm(list='rand')
           gc()
           setTxtProgressBar(progbar, k)

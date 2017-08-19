@@ -38,17 +38,12 @@ boot_global <- function(densities, resids, R=1e3,
     corrs <- lapply(densities, function(x) corr.matrix(group, density=x))
     g.boot <- lapply(corrs, function(x)
                      graph_from_adjacency_matrix(x$r.thresh, mode='undirected', diag=F))
-    if (measure == 'mod') {
-      res <- vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1))
-    } else if (measure == 'E.global') {
-      res <- vapply(g.boot, efficiency, numeric(1), 'global')
-    } else if (measure == 'Cp') {
-      res <- vapply(g.boot, transitivity, numeric(1), type='localaverage')
-    } else if (measure == 'Lp') {
-      res <- vapply(g.boot, average.path.length, numeric(1))
-    } else if (measure == 'assortativity') {
-      res <- vapply(g.boot, assortativity.degree, numeric(1))
-    }
+    res <- switch(measure,
+        mod=vapply(g.boot, function(x) modularity(cluster_louvain(x)), numeric(1)),
+        E.global=vapply(g.boot, efficiency, numeric(1), 'global'),
+        Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
+        Lp=vapply(g.boot, average.path.length, numeric(1)),
+        assortativity=vapply(g.boot, assortativity.degree, numeric(1)))
     return(res)
   }
 

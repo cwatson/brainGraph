@@ -43,16 +43,13 @@ vertex_attr_dt <- function(g, group=NULL) {
 
   if ('name' %in% graph_attr_names(g)) dt.V$Study.ID <- g$name
   if ('modality' %in% graph_attr_names(g)) dt.V$modality <- g$modality
+  if ('weighting' %in% graph_attr_names(g)) dt.V$weighting <- g$weighting
+  if ('threshold' %in% graph_attr_names(g)) dt.V$threshold <- g$threshold
   if ('atlas' %in% graph_attr_names(g)) dt.V$atlas <- g$atlas
   if (is.null(group)) {
-    setkey(dt.V, 'region', 'lobe', 'hemi')
-    if ('Group' %in% graph_attr_names(g)) {
-      dt.V$Group <- g$Group
-      setkey(dt.V, 'region', 'lobe', 'hemi', Group)
-    }
+    if ('Group' %in% graph_attr_names(g)) dt.V$Group <- g$Group
   } else {
     dt.V$Group <- group
-    setkey(dt.V, 'region', 'lobe', 'hemi', Group)
   }
   return(dt.V)
 }

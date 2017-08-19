@@ -85,7 +85,7 @@ without data from a standard atlas (ideally to be fixed some time in the future)
 You may use a custom atlas if you follow the same format as the other atlases in
 the package (see Chapter 4 of the *User Guide*). A screenshot of the GUI is here:
 
-<img src="https://www.dropbox.com/s/e0hdng7flrxsgd2/brainGraph_GUI.png?dl=1" width="843" height="372" />
+![brainGraph GUI](http://imgur.com/a/X0I6t "brainGraph GUI")
 
 # Getting Help
 For bug reports, feature requests, help with usage/code/etc., please join the

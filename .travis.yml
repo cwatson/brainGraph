@@ -6,13 +6,16 @@ sudo: required
 
 r_binary_packages:
   - igraph
-  - RGtk2
   - cairoDevice
+  - RGtk2
 
 addons:
   apt:
     packages:
       -  libcairo2-dev
+      -  libgtk-3-dev
+      -  r-cran-cairodevice
+      -  r-cran-rgtk2
 
 env:
  global:
