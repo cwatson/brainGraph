@@ -50,6 +50,7 @@
 #' @param P Integer; number of samples per seed voxel (default: 5000)
 #' @param ... Arguments passed to \code{\link{symmetrize_mats}}
 #' @export
+#' @importFrom abind abind
 #'
 #' @return A list containing:
 #' \item{A}{A 3-d array of the raw connection matrices}
@@ -172,7 +173,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                       array(sapply(inds[[x]], function(y)
                                    ifelse(A.inds[[z]][[x]] == 1, A.norm[, , y], 0)),
                             dim=dim(A.norm[, , inds[[x]]]))))
-      A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind::abind, x))
+      A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind, x))
 
     } else if (threshold.by == 'mean') {
       # Threshold: mean + 2SD > mat.thresh
@@ -244,8 +245,29 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
   return(Asym)
 }
 
+#' Symmetrize each matrix in a 3D array
+#'
+#' \code{symmetrize_array} is a convenience function which applies
+#' \code{\link{symmetrize_mats}} along the 3rd dimension of an array.
+#'
+#' @param ... Arguments passed to \code{\link{symmetrize_mats}}
+#' @inheritParams symmetrize_mats
+#' @export
+#' @family Matrix functions
+#' @rdname symmetrize_mats
+
 symmetrize_array <- function(A, ...) {
   return(array(apply(A, 3, symmetrize_mats, ...), dim=dim(A)))
+}
+
+read.array <- function(infiles, ncols=NULL) {
+  Nv <- length(readLines(infiles[1]))
+  if (is.null(ncols)) ncols <- Nv
+  A <- array(sapply(infiles, function(x)
+                    matrix(scan(x, what=numeric(0), n=Nv*ncols, quiet=TRUE),
+                           Nv, ncols, byrow=TRUE)),
+             dim=c(Nv, ncols, length(infiles)))
+  return(A)
 }
 
 normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
@@ -267,16 +289,6 @@ normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
     A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
   }
   return(A.norm)
-}
-
-read.array <- function(infiles, ncols=NULL) {
-  Nv <- length(readLines(infiles[1]))
-  if (is.null(ncols)) ncols <- Nv
-  A <- array(sapply(infiles, function(x)
-                    matrix(scan(x, what=numeric(0), n=Nv*ncols, quiet=TRUE),
-                           Nv, ncols, byrow=TRUE)),
-             dim=c(Nv, ncols, length(infiles)))
-  return(A)
 }
 
 #' Threshold additional set of matrices

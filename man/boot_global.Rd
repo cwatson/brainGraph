@@ -5,7 +5,8 @@
 \title{Bootstrapping for global graph measures}
 \usage{
 boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
-  "Cp", "Lp", "assortativity"))
+  "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
+  .progress = TRUE, ...)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities to loop through}
@@ -15,10 +16,16 @@ boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
 \item{R}{Integer; the number of bootstrap replicates (default: 1e3)}
 
 \item{measure}{Character string of the measure to test (default: 'mod')}
+
+\item{.progress}{Logical indicating whether or not to show a progress bar
+(default: \code{TRUE})}
+
+\item{...}{Arguments passed to \code{\link[boot]{boot.ci}} (specifically,
+\code{conf})}
 }
 \value{
 A list with two elements:
-  \item{g}{A list of \code{\link[boot]{boot}} objects (one for each group)}
+  \item{boot}{A list of \code{\link[boot]{boot}} objects (one for each group)}
   \item{dt}{A data table with length \emph{# densities * # groups}}
 }
 \description{

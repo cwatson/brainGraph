@@ -4,18 +4,43 @@
 #' given \code{igraph} graph object. These are all measures that are common in
 #' MRI analyses of brain networks.
 #'
+#' For the \code{modality} argument, you can choose anything you like, but the
+#' \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
+#' \code{thickness}, \code{area}, and \code{volume}.
+#'
+#' For the \code{weighting} argument, you can choose anything you like, but
+#' \code{summary.brainGraph} knows about \code{fa}, \code{sld} (streamline
+#' density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
+#' \code{partial} (partial correlation coefficient).
+#'
+#' \code{xfm.type} allows you to choose from 3 options for transforming edge
+#' weights when calculating distance-based metrics (e.g., shortest paths). There
+#' is no "best-practice" for choosing one over the other, but the reciprocal is
+#' probably most common.
+#' \itemize{
+#'   \item \code{1/w}: reciprocal (default)
+#'   \item \code{-log(w)}: the negative (natural) logarithm
+#'   \item \code{1-w}: subtract weights from 1
+#' }
+#'
 #' @param g An \code{igraph} graph object
 #' @param atlas Character vector indicating which atlas was used (default:
 #'   \code{NULL})
 #' @param modality Character vector indicating imaging modality (e.g. 'dti')
 #'   (default: \code{NULL})
+#' @param weighting Character string indicating how the edges are weighted
+#'   (e.g., 'fa', 'pearson', etc.) (default: \code{NULL})
+#' @param threshold Numeric indicating the level at which the matrices were
+#'   thresholded (if at all) (default: \code{NULL})
 #' @param subject Character vector indicating subject ID (default: \code{NULL})
 #' @param group Character vector indicating group membership (default: NULL)
 #' @param rand Logical indicating if the graph is random or not (default: FALSE)
 #' @param use.parallel Logical indicating whether or not to use \emph{foreach}
-#'   (default: TRUE)
+#'   (default: \code{TRUE})
 #' @param A Numeric matrix; the (weighted) adjacency matrix, which can be used
 #'   for faster calculation of local efficiency (default: \code{NULL})
+#' @param xfm.type Character string indicating how to transform edge weights
+#'   (default: \code{1/w} [reciprocal])
 #' @export
 #'
 #' @return g An \code{igraph} graph object with the following attributes:
@@ -36,7 +61,8 @@
 #' \link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
 #' \link{gateway_coeff}, \link[igraph]{hub.score},
 #' \link[igraph]{authority.score}, \link[igraph]{transitivity},
-#' \link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
+#' \link[igraph]{mean_distance}, \link[igraph]{assortativity_degree},
+#' \link[igraph]{assortativity_nominal},
 #' \link[igraph]{cluster_louvain}, \link{efficiency},
 #' \link{set_edge_color}, \link{rich_club_coeff}, \link{s_core},
 #' \link{within_module_deg_z_score}, \link[igraph]{coreness},
@@ -45,9 +71,10 @@
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
-                                subject=NULL, group=NULL, rand=FALSE,
-                                use.parallel=TRUE, A=NULL) {
+set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
+                                threshold=NULL, subject=NULL, group=NULL,
+                                rand=FALSE, use.parallel=TRUE, A=NULL,
+                                xfm.type=c('1/w', '-log(w)', '1-w')) {
   name <- NULL
   stopifnot(is_igraph(g))
 
@@ -69,6 +96,8 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     if (!is.null(group)) g$Group <- group
     if (!is.null(subject)) g$name <- subject
     if (!is.null(modality)) g$modality <- modality
+    if (!is.null(weighting)) g$weighting <- weighting
+    if (!is.null(threshold)) g$threshold <- threshold
 
     # Graph-level attributes
     #-----------------------------------------------------------------------------
@@ -86,7 +115,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     g$transitivity <- transitivity(g)
     g$assortativity <- assortativity_degree(g)
 
-    if (is.weighted(g)) {
+    if (is_weighted(g)) {
       V(g)$strength <- graph.strength(g)
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
@@ -109,9 +138,10 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
       V(g)$transitivity.wt <- transitivity(g, type='weighted')
 
       # Need to convert weights for distance measures
-      E(g)$weight <- 1 / E(g)$weight
+      xfm.type <- match.arg(xfm.type)
+      g <- xfm.weights(g, xfm.type)
       V(g)$E.local.wt <- efficiency(g, type='local',
-                                          use.parallel=use.parallel, A=A)
+                                    use.parallel=use.parallel, A=A)
       g$E.local.wt <- mean(V(g)$E.local.wt)
       V(g)$E.nodal.wt <- efficiency(g, 'nodal')
       g$E.global.wt <- mean(V(g)$E.nodal.wt)
@@ -121,7 +151,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
       V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
 
       # Convert back to connection strength
-      E(g)$weight <- 1 / E(g)$weight
+      g <- xfm.weights(g, xfm.type, invert=TRUE)
     }
 
     if (is_directed(g)) {
@@ -177,7 +207,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     V(g)$k.core <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
     V(g)$E.local <- efficiency(g, type='local', weights=NA,
-                                     use.parallel=use.parallel, A=A)
+                               use.parallel=use.parallel, A=A)
     V(g)$E.nodal <- efficiency(g, type='nodal', weights=NA)
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g, use.parallel=use.parallel)
@@ -202,16 +232,16 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL,
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
   }
 
-  g
+  return(g)
 }
 
 #' @inheritParams set_brainGraph_attr
 #' @export
 #' @rdname set_brainGraph_attr
 
-set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL,
-                                      subject=NULL, group=NULL, rand=FALSE,
-                                      use.parallel=TRUE) {
+set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
+                                      threshold=NULL, subject=NULL, group=NULL,
+                                      rand=FALSE, use.parallel=TRUE) {
   .Deprecated('set_brainGraph_attr')
-  set_brainGraph_attr(g, atlas, modality, subject, group, rand, use.parallel)
+  set_brainGraph_attr(g, atlas, modality, weighting, threshold, subject, group, rand, use.parallel)
 }

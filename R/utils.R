@@ -100,3 +100,47 @@ vec.transform <- function(x, min.val=0, max.val=1) {
     return(((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diff(range(x, na.rm=TRUE))) + min.val)
   }
 }
+
+#' Transform edge weights
+#'
+#' For distance-based measures, it is important to transform the edge weights so
+#' that the \emph{strongest} connections are re-mapped to having the
+#' \emph{lowest} weights. Then you may calculate e.g., the \emph{shortest path
+#' length} which will include the strongest connections.
+#'
+#' To transform the weights back to original values, specify \code{invert=TRUE}.
+#'
+#' @param g An \code{igraph} graph object
+#' @param xfm.type Character string specifying how to transform the weights
+#'   (default: \code{1/w})
+#' @param invert Logical indicating whether or not to invert the transformation
+#'   (default: \code{FALSE})
+#' @export
+#'
+#' @return An \code{igraph} graph object with transformed edge weights
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+
+xfm.weights <- function(g, xfm.type=c('1/w', '-log(w)', '1-w'), invert=FALSE) {
+  stopifnot(is_igraph(g), is_weighted(g))
+  if (xfm.type == '1/w') {
+    E(g)$weight <- 1 / E(g)$weight
+  } else if (xfm.type == '-log(w)') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- exp(-E(g)$weight)
+    } else {
+      E(g)$weight <- -log(E(g)$weight)
+    }
+  } else if (xfm.type == '1-w') {
+    E(g)$weight <- 1 - E(g)$weight
+  }
+#  } else {
+#    if (xfm.type == '1/w') {
+#      E(g)$weight <- 1 / E(g)$weight
+#    } else if (xfm.type == '-log(w)') {
+#      E(g)$weight <- -log(E(g)$weight)
+#    } else if (xfm.type == '1-w') {
+#      E(g)$weight <- 1 - E(g)$weight
+#    }
+#  }
+  return(g)
+}

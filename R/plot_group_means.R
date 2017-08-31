@@ -16,6 +16,7 @@
 #' @param modality A character string indicating the type of volumetric measure
 #' ('thickness', 'volume', 'lgi', or 'area')
 #' @export
+#' @importFrom scales fullseq
 #'
 #' @return A ggplot object
 #' @seealso \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
@@ -56,7 +57,7 @@ plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
                           times=subDT[, .N, by=region]$N)]
     # A partial recreation of Hadley's ggplot2:::bin function
     create_bins <- function(x, binwidth) {
-      breaks <- sort(scales::fullseq(range(x), binwidth, pad=TRUE))
+      breaks <- sort(fullseq(range(x), binwidth, pad=TRUE))
       bins <- cut(x, breaks, include.lowest=TRUE, right=FALSE)
       left <- breaks[-length(breaks)]
       right <- breaks[-1]

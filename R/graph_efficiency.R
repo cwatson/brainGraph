@@ -53,12 +53,6 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
 
   type <- match.arg(type)
   if (type == 'local') {
-    if ('degree' %in% vertex_attr_names(g)) {
-      degs <- V(g)$degree
-    } else {
-      degs <- degree(g)
-    }
-
     if (is.null(weights)) {
       if (is.null(A)) A <- as_adj(g, names=FALSE, attr='weight')
       weighted <- TRUE
@@ -66,8 +60,8 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       A <- as_adj(g, names=FALSE, sparse=FALSE)
       weighted <- NULL
     }
-    eff <- rep(0, length(degs))
-    nodes <- which(degs > 1)
+    eff <- rep(0, nrow(A))
+    nodes <- which(rowSums((A > 0) + 0) > 1)
     X <- apply(A, 1, function(x) which(x > 0))
 
     if (length(nodes) > 0) {

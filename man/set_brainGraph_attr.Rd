@@ -5,11 +5,13 @@
 \alias{set.brainGraph.attributes}
 \title{Set graph, vertex, and edge attributes common in MRI analyses}
 \usage{
-set_brainGraph_attr(g, atlas = NULL, modality = NULL, subject = NULL,
-  group = NULL, rand = FALSE, use.parallel = TRUE, A = NULL)
+set_brainGraph_attr(g, atlas = NULL, modality = NULL, weighting = NULL,
+  threshold = NULL, subject = NULL, group = NULL, rand = FALSE,
+  use.parallel = TRUE, A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"))
 
 set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
-  subject = NULL, group = NULL, rand = FALSE, use.parallel = TRUE)
+  weighting = NULL, threshold = NULL, subject = NULL, group = NULL,
+  rand = FALSE, use.parallel = TRUE)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -20,6 +22,12 @@ set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
 \item{modality}{Character vector indicating imaging modality (e.g. 'dti')
 (default: \code{NULL})}
 
+\item{weighting}{Character string indicating how the edges are weighted
+(e.g., 'fa', 'pearson', etc.) (default: \code{NULL})}
+
+\item{threshold}{Numeric indicating the level at which the matrices were
+thresholded (if at all) (default: \code{NULL})}
+
 \item{subject}{Character vector indicating subject ID (default: \code{NULL})}
 
 \item{group}{Character vector indicating group membership (default: NULL)}
@@ -27,10 +35,13 @@ set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
 \item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
 
 \item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
-(default: TRUE)}
+(default: \code{TRUE})}
 
 \item{A}{Numeric matrix; the (weighted) adjacency matrix, which can be used
 for faster calculation of local efficiency (default: \code{NULL})}
+
+\item{xfm.type}{Character string indicating how to transform edge weights
+(default: \code{1/w} [reciprocal])}
 }
 \value{
 g An \code{igraph} graph object with the following attributes:
@@ -51,13 +62,34 @@ This function sets a number of graph, vertex, and edge attributes for a
 given \code{igraph} graph object. These are all measures that are common in
 MRI analyses of brain networks.
 }
+\details{
+For the \code{modality} argument, you can choose anything you like, but the
+\code{summary.brainGraph} knows about \code{dti}, \code{fmri},
+\code{thickness}, \code{area}, and \code{volume}.
+
+For the \code{weighting} argument, you can choose anything you like, but
+\code{summary.brainGraph} knows about \code{fa}, \code{sld} (streamline
+density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
+\code{partial} (partial correlation coefficient).
+
+\code{xfm.type} allows you to choose from 3 options for transforming edge
+weights when calculating distance-based metrics (e.g., shortest paths). There
+is no "best-practice" for choosing one over the other, but the reciprocal is
+probably most common.
+\itemize{
+  \item \code{1/w}: reciprocal (default)
+  \item \code{-log(w)}: the negative (natural) logarithm
+  \item \code{1-w}: subtract weights from 1
+}
+}
 \seealso{
 \code{\link[igraph]{components}, \link[igraph]{diameter},
 \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part_coeff},
 \link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
 \link{gateway_coeff}, \link[igraph]{hub.score},
 \link[igraph]{authority.score}, \link[igraph]{transitivity},
-\link[igraph]{mean_distance}, \link[igraph]{assortativity.degree},
+\link[igraph]{mean_distance}, \link[igraph]{assortativity_degree},
+\link[igraph]{assortativity_nominal},
 \link[igraph]{cluster_louvain}, \link{efficiency},
 \link{set_edge_color}, \link{rich_club_coeff}, \link{s_core},
 \link{within_module_deg_z_score}, \link[igraph]{coreness},

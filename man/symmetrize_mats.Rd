@@ -2,15 +2,20 @@
 % Please edit documentation in R/create_mats.R
 \name{symmetrize_mats}
 \alias{symmetrize_mats}
+\alias{symmetrize_array}
 \title{Create a symmetric matrix}
 \usage{
 symmetrize_mats(A, symm.by = c("max", "min", "avg"))
+
+symmetrize_array(A, ...)
 }
 \arguments{
 \item{A}{Numeric matrix}
 
 \item{symm.by}{Character string; how to create symmetric off-diagonal
 elements (default: \code{max})}
+
+\item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
 }
 \description{
 \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
@@ -18,9 +23,15 @@ off-diagonal elements values of either the \code{max}, \code{min}, or
 \code{average} of \eqn{\{A(i, j), A(j, i)\}}. The default is \code{max}
 because that is the default for
 \code{\link[igraph]{graph_from_adjacency_matrix}}.
+
+\code{symmetrize_array} is a convenience function which applies
+\code{\link{symmetrize_mats}} along the 3rd dimension of an array.
 }
 \seealso{
 \code{\link[igraph]{graph_from_adjacency_matrix}}
+
+Other Matrix functions: \code{\link{apply_thresholds}},
+  \code{\link{cor.diff.test}}, \code{\link{create_mats}}
 
 Other Matrix functions: \code{\link{apply_thresholds}},
   \code{\link{cor.diff.test}}, \code{\link{create_mats}}

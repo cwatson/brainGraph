@@ -1,6 +1,6 @@
-# brainGraph 1.4.0
+# brainGraph 1.5.0
 
-2017-06-10
+2017-08-31
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -15,6 +15,7 @@
     * Fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
     * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
 * `mtpc`: fixed a bug that would incorrectly calculate `A.crit`
+* `boot_global`: fixed bug in *modularity* calculation
 
 ## Major changes
 * `brainGraph_GLM`:
@@ -25,6 +26,12 @@
     * From v1.2.0 onward, you can specify `mean` as the value for `threshold.by`. This will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > threshold`, for each of the `threshold` values specified. See the references in the User Guide for examples in the literature.
     * From v1.3.0 onward, the `threshold.by` default name has been changed from `raw` to `consensus`, as this functionality is what is called "consensus-based" thresholding in the literature.
     * From v1.3.0, you may also specify `threshold.by='consistency'` to perform *consistency-based* thresholding. See Roberts et al., 2017.
+* `boot_global`:
+    * can omit displaying the progress bar (by setting `.progress=FALSE`)
+    * can now create weighted networks; to do so, you must choose a weighted metric in the function argument `measure`
+    * added some weighted metrics as options for `measure` (*strength*, *mod.wt*, *E.global.wt*)
+    * can specify the confidence level (for calculating confidence intervals) via the `conf` argument (default: 0.95)
+* `set_brainGraph_attr`: new argument `xfm.type`, which allows you to choose how edge weights should be transformed for calculating distance-based metrics. The default is the *reciprocal* (which is what was hard-coded in previous versions). Other options are: `1-w` (subtract weights from 1); and `-log(w)` (take the negative natural logarithm of weights).
 
 ## New functions
 * `apply_thresholds`: threshold an additional set of matrices (e.g., FA-weighted matrices in DTI tractography) based on a set of matrices that have already been thresholded (e.g., streamline-weighted matrices in DTI tractography)
@@ -33,14 +40,19 @@
 * `make_empty_brainGraph`: this is not a new function, but rather was not exported in previous versions. Now it is accessible without the "triple-colon" operator (i.e., it is no longer necessary to call with `brainGraph:::make_empty_brainGraph`).
 * `mtpc`: the *multi-threshold permutation correction (MTPC)* method for statistical inference of either vertex- or graph-level measures (Drakesmith et al., 2015)
 * `symmetrize_mats`: symmetrize a connectivity matrix by either the *maximum*, *minimum*, or *average* of the off-diagonal elements. You may select one of these three as an argument to the function `create_mats`.
+* `symmetrize_array`: a convenience function that applies `symmetrize_mats` along the third dimension of an array
 * `s_core`: calculate the *s-core* membership of a graph's vertices (Eidsaa & Almaas, 2013); the graphs will have vertex attributes called `s.core`. This is analogous to the *k-core* but for weighted networks. The vertex attribute for *k-core* has been changed from `coreness` to `k.core`.
+* `xfm.weights`: utility function to transform edge weights (necessary when calculating distance-based metrics).
 
 ## Minor changes
 * `analysis_random_graphs`: no longer requires a *covars* argument
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
+* `graph_attr_dt` and `vertex_attr_dt` will now include `weighting`, if present
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 * Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
-* `set_brainGraph_attr`: no longer calculates the graph's *clique number*. This operation is usually fast but takes exceedingly long in dense graphs and graphs with more vertices (e.g., `craddock200`)
+* `set_brainGraph_attr`
+    * no longer calculates the graph's *clique number*. This operation is usually fast but takes exceedingly long in dense graphs and graphs with more vertices (e.g., `craddock200`)
+    * new arguments `weighting` and `threshold` will create graph-level attributes to indicate how the edges are weighted (e.g., 'fa' for FA-weighted tractography networks) and the threshold used to create the network (if applicable), respectively.
 
 
 ----

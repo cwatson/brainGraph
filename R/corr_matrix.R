@@ -20,6 +20,7 @@
 #'   \code{NULL})
 #' @param ... Other arguments, passed to \code{\link[Hmisc]{rcorr}}
 #' @export
+#' @importFrom Hmisc rcorr
 #'
 #' @return A list with the following components:
 #' \item{R}{Numeric matrix of correlation coefficients.}
@@ -43,9 +44,9 @@ corr.matrix <- function(dat, density, thresh=NULL, exclusions=NULL, ...) {
   if ('Study.ID' %in% names(dat)) dat[, Study.ID := NULL]
 
   if (is.null(exclusions)) {
-    corrs <- Hmisc::rcorr(as.matrix(dat), ...)
+    corrs <- rcorr(as.matrix(dat), ...)
   } else {
-    corrs <- Hmisc::rcorr(as.matrix(dat[, -exclusions, with=F]), ...)
+    corrs <- rcorr(as.matrix(dat[, -exclusions, with=F]), ...)
   }
   r <- corrs$r
   p <- corrs$P
