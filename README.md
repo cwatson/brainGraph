@@ -13,10 +13,25 @@ is compatible with [igraph](https://github.com/igraph/rigraph). I also have used
 this for tractography data from *FSL*'s *probtrackx2* and resting-state fMRI data
 from *DPABI*.
 
+Table of Contents
+====
+<!-- vim-markdown-toc GFM -->
+
+* [Installation](#installation)
+* [Usage](#usage)
+* [Graph measures](#graph-measures)
+    * [Group analyses](#group-analyses)
+    * [Null graph-related measures](#null-graph-related-measures)
+    * [Other measures](#other-measures)
+* [Visualization](#visualization)
+* [Getting Help](#getting-help)
+* [Future versions](#future-versions)
+
+<!-- vim-markdown-toc -->
 # Installation
 The package ***should*** work "out-of-the-box" on Linux systems (at least on Red
 Hat-based systems; i.e., CentOS, RHEL, Scientific Linux, etc.) since almost all
-development (and use) has been on computers running CentOS 6 and (currently)
+development (and use, by me) has been on computers running CentOS 6 and (currently)
 CentOS 7. I have also had success running it (and did some development) on
 Windows 7, and have heard from users that it works on some versions of Mac OS
 and on Ubuntu.
@@ -91,3 +106,11 @@ the package (see Chapter 4 of the *User Guide*). A screenshot of the GUI is here
 For bug reports, feature requests, help with usage/code/etc., please join the
 *Google Group*
 [brainGraph-help](https://groups.google.com/forum/?hl=en#!forum/brainGraph-help).
+
+# Future versions
+An incomplete list of features/functionality I plan on adding to future versions:
+* Mediation analysis at both the graph- and vertex-level (currently only simple linear models)
+* Thresholding and graph creation using the *minimum spanning tree* as a base
+* Create *methods* for objects of class `brainGraph`, making it simpler to, for example, show a text summary of a graph or to plot the graph over the MNI slice, etc.
+    * `plot_brainGraph_mni` will be removed as it will be a redundant step
+* Use *methods* for GLM-related functions/objects. For example, I am writing a function for `GLM diagnostics` which will mimic the functionality of the base R function `plot.lm`
