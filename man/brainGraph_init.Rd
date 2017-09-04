@@ -5,10 +5,14 @@
 \title{Initialize variables for further use in brainGraph}
 \usage{
 brainGraph_init(atlas, densities, datadir, modality = c("thickness", "volume",
-  "lgi", "area"), use.mean = FALSE, covars = NULL, exclude.subs = NULL)
+  "lgi", "area"), use.mean = FALSE, covars = NULL, exclude.subs = NULL,
+  custom.atlas = NULL)
 }
 \arguments{
-\item{atlas}{Character string indicating which brain atlas you are using}
+\item{atlas}{Character string indicating which brain atlas you are using.
+This can be an atlas present with the package or a custom atlas; in this
+case you must specify \code{custom} here and assign the name to the
+argument \code{custom.atlas}.}
 
 \item{densities}{Numeric vector of the graph densities you would like to
 investigate}
@@ -27,6 +31,9 @@ want to load your full covariates file (default: \code{NULL})}
 
 \item{exclude.subs}{Character vector of the Study ID's of subjects who are to
 be excluded from the analysis (default: \code{NULL})}
+
+\item{custom.atlas}{Character string of the name of the custom atlas you wish
+to use, if applicable (default: \code{NULL})}
 }
 \value{
 A list containing:
@@ -50,6 +57,11 @@ loading CSV files (of covariates/demographics, cortical thickness/volumes,
 etc.) and returning them as data tables.
 }
 \details{
+You can use any atlas that is already present in the package; you can check
+by typing \code{data(package="brainGraph")$results[, 3]}. If you have a
+custom atlas, specify \code{atlas="custom"} and supply the R object's name
+for the argument \code{custom.atlas}.
+
 The file containing covariates should be named \code{covars.csv}. However,
 you may also supply a \code{data.table} using the function argument
 \code{covars}. This is useful if you have multiple covariates in your file

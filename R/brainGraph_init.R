@@ -5,6 +5,11 @@
 #' loading CSV files (of covariates/demographics, cortical thickness/volumes,
 #' etc.) and returning them as data tables.
 #'
+#' You can use any atlas that is already present in the package; you can check
+#' by typing \code{data(package="brainGraph")$results[, 3]}. If you have a
+#' custom atlas, specify \code{atlas="custom"} and supply the R object's name
+#' for the argument \code{custom.atlas}.
+#'
 #' The file containing covariates should be named \code{covars.csv}. However,
 #' you may also supply a \code{data.table} using the function argument
 #' \code{covars}. This is useful if you have multiple covariates in your file
@@ -15,7 +20,10 @@
 #' \code{lh_dkt_thickness.csv}. If you would like to include subcortical gray
 #' matter, then you will need files \code{covars.scgm.csv} and \code{scgm.csv}.
 #'
-#' @param atlas Character string indicating which brain atlas you are using
+#' @param atlas Character string indicating which brain atlas you are using.
+#'   This can be an atlas present with the package or a custom atlas; in this
+#'   case you must specify \code{custom} here and assign the name to the
+#'   argument \code{custom.atlas}.
 #' @param densities Numeric vector of the graph densities you would like to
 #'   investigate
 #' @param datadir Character string; the filesystem location of your input files
@@ -28,6 +36,8 @@
 #'   want to load your full covariates file (default: \code{NULL})
 #' @param exclude.subs Character vector of the Study ID's of subjects who are to
 #'   be excluded from the analysis (default: \code{NULL})
+#' @param custom.atlas Character string of the name of the custom atlas you wish
+#'   to use, if applicable (default: \code{NULL})
 #' @export
 #'
 #' @return A list containing:
@@ -55,12 +65,14 @@
 
 brainGraph_init <- function(atlas, densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
-                            use.mean=FALSE, covars=NULL, exclude.subs=NULL) {
+                            use.mean=FALSE, covars=NULL, exclude.subs=NULL,
+                            custom.atlas=NULL) {
 
   Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <-
     value <- region <- NULL
   kNumDensities <- length(densities)
-  atlas <- match.arg(atlas, choices=data(package='brainGraph')$results[, 3])
+  atlas <- match.arg(atlas, choices=c(data(package='brainGraph')$results[, 3], 'custom'))
+  if (atlas == 'custom') stopifnot(!is.null(custom.atlas), !exists(custom.atlas))
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 

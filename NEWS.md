@@ -1,6 +1,6 @@
-# brainGraph 1.5.0
+# brainGraph 1.6.0
 
-2017-08-31
+2017-09-04
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -46,6 +46,7 @@
 
 ## Minor changes
 * `analysis_random_graphs`: no longer requires a *covars* argument
+* `brainGraph_init`: new argument `custom.atlas` which allows you to use an atlas that is not in the package (you must also specify `atlas="custom"`). This requires that the atlas you specify already be loaded into the R environment and meet the specifications of the package's atlases (e.g., it should be a `data.table`, it should at least have columns *name*, *x.mni*, *y.mni*, *z.mni*, *lobe*, *hemi*).
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
 * `graph_attr_dt` and `vertex_attr_dt` will now include `weighting`, if present
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
