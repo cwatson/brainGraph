@@ -1,6 +1,6 @@
-# brainGraph 1.6.1
+# brainGraph 1.6.2
 
-2017-09-13
+2017-09-14
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
