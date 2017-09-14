@@ -72,7 +72,7 @@ brainGraph_init <- function(atlas, densities, datadir,
     value <- region <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas, choices=c(data(package='brainGraph')$results[, 3], 'custom'))
-  if (atlas == 'custom') stopifnot(is.null(custom.atlas), exists(custom.atlas))
+  if (atlas == 'custom') stopifnot(!is.null(custom.atlas), exists(custom.atlas))
   atlas.dt <- eval(parse(text=atlas))
   kNumVertices <- nrow(atlas.dt)
 
