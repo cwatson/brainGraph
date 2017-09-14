@@ -1,6 +1,6 @@
-# brainGraph 1.6.0
+# brainGraph 1.6.1
 
-2017-09-04
+2017-09-13
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -16,6 +16,7 @@
     * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
 * `mtpc`: fixed a bug that would incorrectly calculate `A.crit`
 * `boot_global`: fixed bug in *modularity* calculation
+* `brainGraph_init`: fixed bug regarding the use of a custom atlas
 
 ## Major changes
 * `brainGraph_GLM`:
@@ -49,6 +50,7 @@
 * `brainGraph_init`: new argument `custom.atlas` which allows you to use an atlas that is not in the package (you must also specify `atlas="custom"`). This requires that the atlas you specify already be loaded into the R environment and meet the specifications of the package's atlases (e.g., it should be a `data.table`, it should at least have columns *name*, *x.mni*, *y.mni*, *z.mni*, *lobe*, *hemi*).
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
 * `graph_attr_dt` and `vertex_attr_dt` will now include `weighting`, if present
+* `permute.group`: can now calculate `ev.cent`
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 * Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
 * `set_brainGraph_attr`

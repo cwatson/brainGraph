@@ -58,7 +58,7 @@
 
 permute.group <- function(permSet, densities, resids,
                           level=c('graph', 'vertex', 'lobe', 'other'), atlas,
-                          measure=c('btwn.cent', 'degree', 'E.nodal',
+                          measure=c('btwn.cent', 'degree', 'E.nodal', 'ev.cent',
                                     'knn', 'transitivity', 'vulnerability'),
                           .function=NULL) {
   i <- NULL
@@ -88,7 +88,6 @@ permute.group <- function(permSet, densities, resids,
         for (jj in seq_along(g)) {
           for (kk in seq_along(g[jj])) {
             g[[jj]][[kk]]$E.global <- efficiency(g[[jj]][[kk]], 'global')
-            V(g[[jj]][[kk]])$degree <- degree(g[[jj]][[kk]])
           }
         }
         meas.list <- lapply(g, function(x) t(sapply(x, vulnerability)))
@@ -97,6 +96,9 @@ permute.group <- function(permSet, densities, resids,
         meas.list <- lapply(g, function(x) t(sapply(x, degree)))
       } else if (measure == 'E.nodal') {
         meas.list <- lapply(g, function(x) t(sapply(x, efficiency, 'nodal')))
+        #TODO: add more
+      } else if (measure == 'ev.cent') {
+        meas.list <- lapply(g, function(x) t(sapply(x, function(y) centr_eigen(y)$vector)))
       } else if (measure == 'knn') {
         meas.list <- lapply(g, function(x) t(sapply(x, function(y) graph.knn(y)$knn)))
       } else if (measure == 'transitivity') {

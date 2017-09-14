@@ -5,8 +5,8 @@
 \title{Permutation test for group difference of graph measures}
 \usage{
 permute.group(permSet, densities, resids, level = c("graph", "vertex", "lobe",
-  "other"), atlas, measure = c("btwn.cent", "degree", "E.nodal", "knn",
-  "transitivity", "vulnerability"), .function = NULL)
+  "other"), atlas, measure = c("btwn.cent", "degree", "E.nodal", "ev.cent",
+  "knn", "transitivity", "vulnerability"), .function = NULL)
 }
 \arguments{
 \item{permSet}{Numeric matrix of the set of permutations to loop through; the

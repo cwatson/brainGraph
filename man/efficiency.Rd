@@ -54,6 +54,9 @@ efficiencies.
 \references{
 Latora V., Marchiori M. (2001) \emph{Efficient behavior of
   small-world networks}. Phys Rev Lett, 87.19:198701.
+
+Latora V., Marchiori M. (2003) \emph{Economic small-world
+  behavior in weighted networks}. Eur Phys J B, 32:249-263.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

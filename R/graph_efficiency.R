@@ -28,6 +28,7 @@
 #' @param A Numeric matrix; the (weighted or unweighted) adjacency matrix of the
 #'   input graph (default: \code{NULL})
 #' @export
+#' @importFrom Matrix rowSums
 #'
 #' @return A numeric vector of the efficiencies for each vertex of the graph
 #'   (if \emph{type} is \code{local|nodal}) or a single number (if \emph{type}
@@ -36,6 +37,8 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
 #'   small-world networks}. Phys Rev Lett, 87.19:198701.
+#' @references Latora V., Marchiori M. (2003) \emph{Economic small-world
+#'   behavior in weighted networks}. Eur Phys J B, 32:249-263.
 
 efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
                        use.parallel=TRUE, A=NULL) {

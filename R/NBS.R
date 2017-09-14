@@ -64,7 +64,7 @@ NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE
   #---------------------------------------------------------
   A.m <- setDT(melt(A))
   if (isTRUE(symmetric)) {
-    inds.upper <- setDT(which(upper.tri(A[, , 1]), arr.ind=TRUE))
+    inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
     setnames(inds.upper, c('Var1', 'Var2'))
     setkey(inds.upper, Var1, Var2)
     setkey(A.m, Var1, Var2)
@@ -72,8 +72,8 @@ NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE
     setkey(A.m, Var3)
   }
   setkey(A.m, Var1, Var2, Var3)
-  pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1]
-  A.m.sub <- merge(A.m, pos.vals[, -3], by=c('Var1', 'Var2'))
+  pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
+  A.m.sub <- A.m[pos.vals]
   T.dt <- A.m.sub[, brainGraph_GLM_fit(X, value, con.vec, alternative=alt), by=list(Var1, Var2)]
   T.dt <- T.dt[p.val < p.init, list(Var1, Var2, t.stat, p.val)]
   if (nrow(T.dt) == 0) {  # No sig. diff's observed
@@ -112,8 +112,8 @@ NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE
       setkey(A.m.tmp, Var3)
     }
     setkey(A.m.tmp, Var1, Var2, Var3)
-    pos.vals <- A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1]
-    A.m.tmp.sub <- merge(A.m.tmp, pos.vals[, -3], by=c('Var1', 'Var2'))
+    pos.vals <- A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
+    A.m.tmp.sub <- A.m.tmp[pos.vals]
     T.dt.tmp <- A.m.tmp.sub[, brainGraph_GLM_fit(X.tmp, value, con.vec, alternative=alt), by=list(Var1, Var2)]
     if (T.dt.tmp[, max(abs(t.stat))] <= 1.5) {
       0
