@@ -4,39 +4,58 @@
 \alias{NBS}
 \title{Network-based statistic for brain MRI data}
 \usage{
-NBS(A, covars, con.vec, X = NULL, p.init = 0.001, N = 1000,
-  symmetric = FALSE, alternative = c("two.sided", "less", "greater"), ...)
+NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL, con.name = NULL,
+  p.init = 0.001, N = 1000, perms = NULL, symm.by = c("max", "min",
+  "avg"), alternative = c("two.sided", "less", "greater"), long = FALSE,
+  ...)
 }
 \arguments{
 \item{A}{Three-dimensional array of all subjects' connectivity matrices}
 
 \item{covars}{A \code{data.table} of covariates}
 
-\item{con.vec}{A numeric vector specifying the contrast of interest}
+\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+only one contrast is desired, you can supply a vector}
 
-\item{X}{A numeric matrix (optional), if you would like to supply your own
-design matrix (default: \code{NULL})}
+\item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
+F-statistics). Default: \code{'t'}}
+
+\item{X}{Numeric matrix, if you wish to supply your own design matrix
+(default: \code{NULL})}
+
+\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+has row names, those will be used for reporting results (default:
+\code{NULL})}
 
 \item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
 
-\item{N}{Integer; the number of permutations (default: \code{1e3})}
+\item{N}{Integer; number of permutations to create (default: 5e3)}
 
-\item{symmetric}{Logical indicating if input matrices are symmetric (default:
-\code{FALSE})}
+\item{perms}{Matrix of permutations, if you would like to provide your own
+(default: \code{NULL})}
+
+\item{symm.by}{Character string; how to create symmetric off-diagonal
+elements (default: \code{max})}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{two.sided})}
+(default: \code{'two.sided'})}
+
+\item{long}{Logical indicating whether or not to return all permutation
+results (default: \code{FALSE})}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 }
 \value{
-A list containing:
-\item{g.nbs}{The \code{igraph} graph object based on the initial threshold}
-\item{obs}{Integer vector of the observed connected component sizes}
-\item{perm}{Integer vector of the permutation distribution of largest
-  connected component sizes}
-\item{p.perm}{Numeric vector of the permutation p-values for each component}
-\item{p.init}{Numeric; the initial p-value threshold used}
+An object of class \code{NBS} with some input arguments in addition
+  to:
+  \item{X}{The design matrix}
+  \item{removed}{Character vector of subject ID's removed due to incomplete
+    data (if any)}
+  \item{T.mat}{List of numeric matrices (symmetric) containing the statistics
+    for each edge}
+  \item{p.mat}{List of numeric matrices (symmetric) containing the P-values}
+  \item{components}{List containing data tables of the observed and permuted
+    connected component sizes and P-values}
 }
 \description{
 Calculates the \emph{network-based statistic (NBS)}, which allows for
@@ -65,11 +84,13 @@ Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
   53(4):1197-1207.
 }
 \seealso{
-\code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
+\code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 
 Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{boot_global}}, \code{\link{brainGraph_GLM}},
-  \code{\link{mtpc}}, \code{\link{permute.group}}
+  \code{\link{brainGraph_GLM}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_mediate}},
+  \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

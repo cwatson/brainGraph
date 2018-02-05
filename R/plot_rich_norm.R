@@ -26,19 +26,19 @@
 
 plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
                            densities, alpha=0.05, fdr=TRUE, g=NULL) {
-  p.fdr <- yloc <- Group <- phi <- xstart <- xend <- Study.ID <- NULL
+  p.fdr <- yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
 
   facet.by <- match.arg(facet.by)
-  subDT <- rich.dt[eval(parse(text=facet.by)) %in% densities]
+  subDT <- rich.dt[abs(get(facet.by) - densities) < .005]
   if (isTRUE(fdr)) {
     subDT[, star := ifelse(p.fdr < alpha, '*', '')]
   } else {
     subDT[, star := ifelse(p < alpha, '*', '')]
   }
-  subDT[, yloc := min(phi, na.rm=TRUE) - 0.05 * diff(range(phi, na.rm=TRUE)), by=facet.by]
+  subDT[, yloc := min(norm, na.rm=TRUE) - 0.05 * diff(range(norm, na.rm=TRUE)), by=facet.by]
   if (nlevels(subDT$Group) > 1) {
     for (i in 2:nlevels(subDT$Group)) {
-      subDT[Group == levels(subDT$Group)[i], yloc := yloc - i * 0.05 * diff(range(phi, na.rm=TRUE))]
+      subDT[Group == levels(subDT$Group)[i], yloc := yloc - i * 0.05 * diff(range(norm, na.rm=TRUE))]
     }
   }
   setkeyv(subDT, c(facet.by, 'Group'))
@@ -54,23 +54,23 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
     } else {
       max.k <- apply(sapply(k, function(x) x), 1, max)
     }
-    rects <- data.table(density=densities, xstart=max.k,
+    rects <- data.table(density=subDT[, unique(density)], xstart=max.k,
                         xend=subDT[, max(k), by=density]$V1,
                         Group=rep(subDT[, unique(Group)],
                                   each=length(densities)))
   } else {
-    rects <- data.table(density=densities, xstart=0, xend=0,
+    rects <- data.table(density=subDT[, unique(density)], xstart=0, xend=0,
                         Group=rep(subDT[, unique(Group)],
                                   each=length(densities)))
   }
   setnames(rects, 'density', facet.by)
-  setkeyv(rects, c(facet.by, 'Group'))
+  setkeyv(rects, key(subDT))
 
   if ('Study.ID' %in% names(subDT)) {
     rects <- subDT[rects]
-    p <- ggplot(data=rects, aes(x=k, y=phi, group=Study.ID))
+    p <- ggplot(data=rects, aes(x=k, y=norm, group=Study.ID))
   } else {
-    p <- ggplot(data=subDT[rects], aes(x=k, y=phi))
+    p <- ggplot(data=subDT[rects], aes(x=k, y=norm))
   }
   p <- p +
     geom_line(aes(col=Group)) +

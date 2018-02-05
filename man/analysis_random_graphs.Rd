@@ -20,7 +20,7 @@ generated graphs (default: current working directory)}
 }
 \value{
 A list containing:
-\item{rich}{A list object containing normalized rich-club coefficients and
+\item{rich}{A data table containing normalized rich-club coefficients and
   p-values}
 \item{small}{A data table with small-world parameters}
 \item{rand}{A data table with some global graph measures for all random
@@ -36,15 +36,15 @@ world} parameters and normalized \emph{rich club} coefficients.
 The steps that are performed are:
 \enumerate{
   \item \code{N} random graphs are generated for each group and
-  density/threshold (and \emph{subject} if you have subject-specific graphs).
+    density/threshold (and subject if you have subject-specific graphs).
   \item These graphs are all written to disk in \code{savedir}. All of these
-  are read back into \code{R} and combined into lists; these lists are also
-  written to disk (in a sub-directory named \code{ALL}), so you can delete
-  the individual \code{.rds} files afterwards.
+    are read back into \code{R} and combined into lists; these lists are also
+    written to disk (in a sub-directory named \code{ALL}), so you can delete
+    the individual \code{.rds} files afterwards.
   \item \emph{Small world} parameters are calculated, along with values for
-  a few global graph measures that may be of interest.
+    a few global graph measures that may be of interest.
   \item \emph{Normalized rich club coefficients} and associated p-values will
-  be calculated.
+    be calculated.
 }
 }
 \examples{
@@ -56,10 +56,8 @@ rand_all <- analysis_random_graphs(g.norm, 1e2,
 \seealso{
 \code{\link{small.world}}
 
-Other Null graph functions: \code{\link{choose.edges}},
-  \code{\link{rich_club_norm}},
-  \code{\link{sim.rand.graph.clust}},
-  \code{\link{sim.rand.graph.par}}
+Other Random graph functions: \code{\link{RandomGraphs}},
+  \code{\link{rich_club_norm}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

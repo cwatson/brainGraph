@@ -4,15 +4,15 @@
 \alias{corr.matrix}
 \title{Calculate correlation matrix and threshold}
 \usage{
-corr.matrix(dat, density, thresh = NULL, exclusions = NULL, ...)
+corr.matrix(resids, densities, thresholds = NULL, exclusions = NULL, ...)
 }
 \arguments{
-\item{dat}{Data table of the data to correlate}
+\item{resids}{Data table of the residuals (from \code{\link{get.resid}})}
 
-\item{density}{Numeric indicating the resultant network density; keeps the
-top \emph{X}\% of correlations}
+\item{densities}{Numeric vector indicating the resultant network
+density(ies); keeps the top \emph{X}\% of correlations}
 
-\item{thresh}{Numeric; absolute correlation value to threshold by (default:
+\item{thresholds}{Numeric; absolute correlation value to threshold by (default:
 \code{NULL})}
 
 \item{exclusions}{Numeric vector of indices (columns) to exclude (default:
@@ -22,36 +22,45 @@ top \emph{X}\% of correlations}
 }
 \value{
 A list with the following components:
-\item{R}{Numeric matrix of correlation coefficients.}
-\item{P}{Numeric matrix of p-values.}
-\item{r.thresh}{Binary matrix indicating correlations that are above a
-  certain threshold.}
-\item{threshold}{Numeric; the threshold value used.}
+  \item{R}{Numeric matrix of correlation coefficients.}
+  \item{P}{Numeric matrix of p-values.}
+  \item{r.thresh}{A 3-d binary array indicating correlations that are above a
+    certain threshold. The length of the 3rd dimension equals the number of
+    thresholds/densities supplied.}
+  \item{thresholds}{Numeric vector; the thresholds supplied.}
+  \item{densities}{Numeric vector; the densities supplied.}
 }
 \description{
 \code{corr.matrix} calculates the correlation between all column pairs of a
 given data frame, and thresholds the resultant correlation matrix based on a
 given density (e.g., \code{0.1} if you want to keep only the 10\% strongest
-correlations.
+correlations). If you want to threshold by a specific correlation coefficient
+(via the \code{thresholds} argument), then the \code{densities} argument is
+ignored.
 }
 \details{
 If you wish to exclude regions from your analysis, you can give the indices
 of their columns with the \code{exclusions} argument.
 
-By default, the Pearson correlation coefficients are calculated, but can
+By default, the Pearson correlation coefficients are calculated, but you can
 return Spearman by passing an additional argument.
 }
 \examples{
 \dontrun{
 corrs <- lapply(groups, function(x) lapply(densities, function(y)
-  corr.matrix(resids.all[x], density=y)))
+  corr.matrix(resids.all[x], densities=y)))
 }
 }
 \seealso{
 \code{\link[Hmisc]{rcorr}}
 
-Other Volumetric functions: \code{\link{brainGraph_init}},
-  \code{\link{check.resid}}, \code{\link{get.resid}}
+Other Structural covariance network functions: \code{\link{IndividualContributions}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_init}},
+  \code{\link{brainGraph_permute}},
+  \code{\link{get.resid}},
+  \code{\link{plot.brainGraph_resids}},
+  \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

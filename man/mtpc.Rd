@@ -4,7 +4,10 @@
 \alias{mtpc}
 \title{Multi-threshold permutation correction}
 \usage{
-mtpc(g.list, thresholds, N = 500, perms = NULL, alpha = 0.05, ...)
+mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t", "f"),
+  con.name = NULL, level = c("vertex", "graph"), clust.size = 3L,
+  N = 500, perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE,
+  ...)
 }
 \arguments{
 \item{g.list}{A list of lists of \code{igraph} graph objects for all
@@ -13,22 +16,52 @@ thresholds and subjects}
 \item{thresholds}{Numeric vector of the thresholds applied to the raw
 connectivity matrices.}
 
-\item{N}{Integer; number of permutations (default: 500)}
+\item{covars}{A \code{data.table} of covariates}
 
-\item{perms}{Matrix of permutations if you would like to provide your own
+\item{measure}{Character string of the graph measure of interest}
+
+\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+only one contrast is desired, you can supply a vector}
+
+\item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
+F-statistics). Default: \code{'t'}}
+
+\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+has row names, those will be used for reporting results (default:
+\code{NULL})}
+
+\item{level}{Character string; either \code{vertex} (default) or
+\code{graph}}
+
+\item{clust.size}{Integer indicating the size of "clusters" (i.e.,
+consecutive thresholds for which the observed statistic exceeds the null)
+(default: \code{3L})}
+
+\item{N}{Integer; number of permutations to create (default: 5e3)}
+
+\item{perms}{Matrix of permutations, if you would like to provide your own
 (default: \code{NULL})}
 
 \item{alpha}{Numeric; the significance level (default: 0.05)}
 
-\item{...}{Other arguments passed to \code{\link{brainGraph_GLM}}}
+\item{res.glm}{A list of \code{bg_GLM} objects, as output by a previous run
+of \code{mtpc}. Useful if you want to change the cluster size without
+re-running all of the GLM's and permutations (default: \code{NULL})}
+
+\item{long}{Logical indicating whether or not to return all permutation
+results (default: \code{FALSE})}
+
+\item{...}{Other arguments passed to \code{\link{brainGraph_GLM}} and/or
+\code{\link{brainGraph_GLM_design}}}
 }
 \value{
-A list with the following elements:
+An object of class \code{mtpc} with some input arguments plus the
+  following elements:
   \item{res.glm}{List with length equal to the number of thresholds; each
     list element is the output from \code{\link{brainGraph_GLM}}}
   \item{DT}{A \code{data.table} for all thresholds, combined from the outputs
     of \code{\link{brainGraph_GLM}}}
-  \item{stats}{A list containing \code{S.mtpc} (the max. observed
+  \item{stats}{A data.table containing \code{S.mtpc} (the max. observed
     statistic), \code{tau.mtpc} (the threshold of the max. observed
     statistic), \code{S.crit} (the critical statistic value), and
     \code{A.crit} (the critical AUC)}
@@ -67,8 +100,9 @@ This is a multi-step procedure: (steps 3-4 are the time-consuming steps)
 \dontrun{
 diffs.mtpc <- mtpc(g.list=g.norm, thresholds=thresholds, N=N,
      covars=covars.dti, measure='E.nodal.wt', coding='effects',
-     con.vec=c(0, 0, 0, 0, -2), alt='greater',
+     con.mat=c(0, 0, 0, 0, -2), alt='greater',
      binarize=c('Sex', 'Scanner'), con.name='Group 1 > Group 2')
+sig.regions <- diffs.mtpc$DT[A.mtpc > A.crit]
 }
 }
 \references{
@@ -79,11 +113,13 @@ Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
 }
 \seealso{
 Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{NBS}}, \code{\link{boot_global}},
-  \code{\link{brainGraph_GLM}}, \code{\link{permute.group}}
+  \code{\link{NBS}}, \code{\link{brainGraph_GLM}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_mediate}},
+  \code{\link{brainGraph_permute}}
 
-Other GLM functions: \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM_fit}},
+Other GLM functions: \code{\link{GLMfit}},
+  \code{\link{brainGraph_GLM_design}},
   \code{\link{brainGraph_GLM}}
 }
 \author{

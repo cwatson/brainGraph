@@ -27,26 +27,28 @@ covariate(s) to test for an interaction (default: \code{NULL})}
 A numeric matrix
 }
 \description{
-This function takes a \code{data.table} of covariates and returns a
-\emph{design matrix} to be used in linear model analysis.
+\code{brainGraph_GLM_design} takes a \code{data.table} of covariates and
+returns a \emph{design matrix} to be used in linear model analysis.
 }
 \details{
 There are three different ways to code factors: \emph{dummy}, \emph{effects},
 or \emph{cell-means} (chosen by the argument \code{coding}). To understand
 the difference, see Chapter 7 of the User Guide.
 
-The argument \code{mean.center} allows you to mean-center any non-factor
-variables (including any dummy/indicator covariates). The argument
-\code{binarize} will convert the given factor variable(s) into numeric
-variable(s).
+The argument \code{mean.center} will mean-center (i.e., subtract the mean of
+the entire dataset from each variable) any non-factor variables (including
+any dummy/indicator covariates). \code{binarize} will convert the given
+factor variable(s) into numeric variable(s), which is performed \emph{before}
+mean-centering.
 
-The \code{int} argument specifies which variables should interact with the
-\emph{Group} factor variable. This argument accepts either numeric variables
-(e.g., \emph{Age}) and other factor variables (e.g., \emph{Sex}) if you are
-running a two-way ANOVA. See Chapter 7 of the User Guide for examples.
+\code{int} specifies which variables should interact with one another. This
+argument accepts both numeric (e.g., \emph{Age}) and factor variables (e.g.,
+\emph{Sex}). All interaction combinations will be generated: if you supply 3
+variables, all two-way and the single three-way interaction will be
+generated. This variable must have at least two elements.
 }
 \seealso{
-Other GLM functions: \code{\link{brainGraph_GLM_fit}},
+Other GLM functions: \code{\link{GLMfit}},
   \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}
 }
 \author{

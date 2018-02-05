@@ -32,10 +32,13 @@ a single subject group at incremental densities, or if the graph list
 contains graphs of each subject in a group.
 }
 \seealso{
-Other Plotting functions: \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_mni}},
-  \code{\link{plot_brainGraph_multi}},
-  \code{\link{plot_brainGraph}}
+Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
+  \code{\link{plot.brainGraph_NBS}},
+  \code{\link{plot.brainGraph_mediate}},
+  \code{\link{plot.brainGraph_mtpc}},
+  \code{\link{plot.brainGraph}},
+  \code{\link{plot_brainGraph_gui}},
+  \code{\link{plot_brainGraph_multi}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

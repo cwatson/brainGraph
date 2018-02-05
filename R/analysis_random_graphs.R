@@ -8,15 +8,15 @@
 #' The steps that are performed are:
 #' \enumerate{
 #'   \item \code{N} random graphs are generated for each group and
-#'   density/threshold (and \emph{subject} if you have subject-specific graphs).
+#'     density/threshold (and subject if you have subject-specific graphs).
 #'   \item These graphs are all written to disk in \code{savedir}. All of these
-#'   are read back into \code{R} and combined into lists; these lists are also
-#'   written to disk (in a sub-directory named \code{ALL}), so you can delete
-#'   the individual \code{.rds} files afterwards.
+#'     are read back into \code{R} and combined into lists; these lists are also
+#'     written to disk (in a sub-directory named \code{ALL}), so you can delete
+#'     the individual \code{.rds} files afterwards.
 #'   \item \emph{Small world} parameters are calculated, along with values for
-#'   a few global graph measures that may be of interest.
+#'     a few global graph measures that may be of interest.
 #'   \item \emph{Normalized rich club coefficients} and associated p-values will
-#'   be calculated.
+#'     be calculated.
 #' }
 #'
 #' @param g.list List of lists containing \code{igraph} graph objects
@@ -29,13 +29,13 @@
 #' @export
 #'
 #' @return A list containing:
-#' \item{rich}{A list object containing normalized rich-club coefficients and
+#' \item{rich}{A data table containing normalized rich-club coefficients and
 #'   p-values}
 #' \item{small}{A data table with small-world parameters}
 #' \item{rand}{A data table with some global graph measures for all random
 #'   graphs generated}
 #'
-#' @family Null graph functions
+#' @family Random graph functions
 #' @seealso \code{\link{small.world}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
@@ -128,6 +128,7 @@ analysis_random_graphs <- function(g.list, N=100, savedir='.', ...) {
     small.dt <- rbindlist(small.dt)
     small.dt[, Group := rep(groups, times=lengths(g.list))]
     setkey(small.dt, Group, density)
+    rich.dt <- rbindlist(lapply(phi.norm, rbindlist))
 
   } else {
     for (i in seq_along(g.list)) {
@@ -164,7 +165,8 @@ analysis_random_graphs <- function(g.list, N=100, savedir='.', ...) {
     small.dt[, Group := as.factor(Group)]
     small.dt[, Study.ID := as.factor(Study.ID)]
     setkey(small.dt, Group, threshold)
+    rich.dt <- rbindlist(lapply(phi.norm, function(x) rbindlist(lapply(x, rbindlist))))
   }
 
-  return(list(rich=phi.norm, small=small.dt, rand=rand.dt))
+  return(list(rich=rich.dt, small=small.dt, rand=rand.dt))
 }

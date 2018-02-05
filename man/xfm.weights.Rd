@@ -16,7 +16,8 @@ xfm.weights(g, xfm.type = c("1/w", "-log(w)", "1-w"), invert = FALSE)
 (default: \code{FALSE})}
 }
 \value{
-An \code{igraph} graph object with transformed edge weights
+An \code{igraph} graph object with transformed edge weights and a
+  graph attribute, \code{xfm.type}, of the type of transform
 }
 \description{
 For distance-based measures, it is important to transform the edge weights so
@@ -25,6 +26,13 @@ that the \emph{strongest} connections are re-mapped to having the
 length} which will include the strongest connections.
 }
 \details{
+There are 3 options for the type of transform to apply:
+\enumerate{
+  \item \code{1/w}: calculate the inverse
+  \item \code{-log(w)}: calculate the negative (natural) logarithm
+  \item \code{1-w}: subtract each weight from 1
+}
+
 To transform the weights back to original values, specify \code{invert=TRUE}.
 }
 \author{

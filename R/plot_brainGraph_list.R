@@ -28,19 +28,19 @@ plot_brainGraph_list <- function(g.list, fname.base, diffs=FALSE, ...) {
   for (i in seq_along(g.list)) {
     png(filename=sprintf('%s_%03d.png', fname.base, i))
 
-    plot_brainGraph_mni('axial')
-    plot_brainGraph(g.list[[i]], main=g.list[[i]]$Group, ...)
+    plot(g.list[[i]], main=g.list[[i]]$Group, ...)
     if (isTRUE(diffs)) {
       if (i > 1) {
         g.diff <- graph.difference(g.list[[i]], g.list[[i-1]])
+        class(g.diff) <- c('brainGraph', class(g.diff))
         if (hasArg('edge.color')) {
           ecols <- list(...)$edge.color
         } else {
-          ecols <- 'deeppink'
+          ecols <- rep('deeppink', ecount(g.diff))
         }
         ewidth <- 5
-        plot_brainGraph(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
-                        edge.width=ewidth, edge.color=ecols)
+        plot(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
+                        edge.width=ewidth, edge.color=ecols, mni=FALSE)
       }
     }
     dev.off()

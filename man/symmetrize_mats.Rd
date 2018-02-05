@@ -17,6 +17,11 @@ elements (default: \code{max})}
 
 \item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
 }
+\value{
+A symmetric matrix
+
+An array of symmetric matrices
+}
 \description{
 \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
 off-diagonal elements values of either the \code{max}, \code{min}, or

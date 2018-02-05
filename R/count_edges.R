@@ -48,7 +48,7 @@ count_interlobar <- function(g, lobe) {
             'atlas' %in% graph_attr_names(g),
             'lobe' %in% vertex_attr_names(g))
 
-  lobe.names <- eval(parse(text=g$atlas))[, levels(lobe)]
+  lobe.names <- get(g$atlas)[, levels(lobe)]
   stopifnot(lobe %in% lobe.names)
 
   total <- length(E(g)[which(V(g)$lobe == lobe) %--% V(g)])

@@ -8,7 +8,7 @@
 \usage{
 loo(resids, corrs, level = c("global", "regional"))
 
-aop(resids, index, corr.mat, level = c("global", "regional"))
+aop(resids, corr.mat, level = c("global", "regional"), control.value = 1)
 }
 \arguments{
 \item{resids}{Data table of model residuals}
@@ -19,16 +19,17 @@ aop(resids, index, corr.mat, level = c("global", "regional"))
 \item{level}{Character string; the level at which you want to calculate
 contributions (either \code{global} or \code{regional})}
 
-\item{index}{Integer; the row number (in \code{resids}) of the subject to be
-added}
-
 \item{corr.mat}{Numeric; correlation matrix of the \emph{control} group}
+
+\item{control.value}{Integer or character string specifying the control group
+(default: 1)}
 }
 \value{
 A \code{data.table} with columns for
   \item{Study.ID}{Subject identifier}
   \item{Group}{Group membership}
-  \item{IC}{The value of the individual contribution}
+  \item{region}{If \code{level='regional'}}
+  \item{IC,RC}{The value of the individual/regional contributions}
 }
 \description{
 \code{loo} calculates the individual contribution to group network data for
@@ -38,7 +39,8 @@ compared to the original correlation matrix using the Mantel test.
 
 \code{aop} calculates the individual contribution using an "add-one-patient"
 approach. The residuals of a single patient are added to those of a control
-group, and a correlation matrix is created.
+group, and a correlation matrix is created. This is repeated for all
+individual patients and each patient group.
 }
 \examples{
 \dontrun{
@@ -46,9 +48,8 @@ IC <- loo(resids.all, corrs)
 RC <- loo(resids.all, corrs, level='regional')
 }
 \dontrun{
-IC <- adply(which(resids.all[, Group == groups[2]]), .margins=1, function(x)
-            aop(resids.all, x, corrs[[1]][[1]]$R),
-            .parallel=T, .id=NULL)
+IC <- aop(resids.all, corrs[[1]]$R)
+RC <- aop(resids.all, corrs[[1]]$R, level='regional')
 }
 }
 \references{
@@ -58,9 +59,18 @@ Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
   doi:10.1016/j.neuroimage.2015.07.006
 }
 \seealso{
+Other Structural covariance network functions: \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_init}},
+  \code{\link{brainGraph_permute}},
+  \code{\link{corr.matrix}}, \code{\link{get.resid}},
+  \code{\link{plot.brainGraph_resids}},
+  \code{\link{plot_volumetric}}
+
 Other Group analysis functions: \code{\link{NBS}},
-  \code{\link{boot_global}}, \code{\link{brainGraph_GLM}},
-  \code{\link{mtpc}}, \code{\link{permute.group}}
+  \code{\link{brainGraph_GLM}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_mediate}},
+  \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

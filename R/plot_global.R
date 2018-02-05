@@ -39,11 +39,10 @@ plot_global <- function(tidy.dt, xvar=c('density', 'threshold'), vline=NULL,
     # Add necessary columns for plotting annotations
     subDT[, c('sig', 'trend') := '']
     subDT[, yloc := round(min(value) - 0.05 * diff(range(value)), 3), by=variable]
-    vars <- setdiff(names(perms), 'density')
+    vars <- setdiff(names(perms$DT), 'densities')
     if (is.null(alt)) alt <- rep('two.sided', length(vars))
     for (i in seq_along(vars)) {
-      dt <- plot_perm_diffs(g[[1]], g[[2]], perms, vars[i],
-                            groups=subDT[, unique(Group)], alternative=alt[i])$dt
+      dt <- plot(perms, measure=vars[i], alternative=alt[i])[[1]]$data[variable == 'obs.diff']
       subDT[variable == vars[i], sig := dt$sig]
       subDT[variable == vars[i], trend := dt$trend]
       subDT[variable == vars[i], yloc := dt$yloc]
@@ -51,7 +50,7 @@ plot_global <- function(tidy.dt, xvar=c('density', 'threshold'), vline=NULL,
   }
 
   # Change the factor level names if desired
-  subDT <- subDT[!variable %in% exclude]
+  subDT <- droplevels(subDT[!variable %in% exclude])
   if (!is.null(level.names)) levels(subDT$variable) <- level.names
 
   xvar <- match.arg(xvar)

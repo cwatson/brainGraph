@@ -16,8 +16,10 @@
 #' @return A \code{data.table} with columns for
 #'   \item{Study.ID}{Subject identifier}
 #'   \item{Group}{Group membership}
-#'   \item{IC}{The value of the individual contribution}
+#'   \item{region}{If \code{level='regional'}}
+#'   \item{IC,RC}{The value of the individual/regional contributions}
 #'
+#' @family Structural covariance network functions
 #' @name IndividualContributions
 #' @aliases loo
 #' @rdname individ_contrib
@@ -36,16 +38,14 @@
 loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL
   level <- match.arg(level)
+  group.vec <- resids$Group
   if (level == 'global') {
     IC <- foreach (i=seq_len(nrow(resids)), .combine='c') %dopar% {
-      cur.group <- resids[i, Group]
       resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[Group == cur.group,
-                                           !c('Study.ID', 'Group'),
-                                           with=F],
-                               density=0.1)$R
+      new.corrs <- corr.matrix(resids.excl[Group == group.vec[i]],
+                               densities=0.1)$R
 
-      1 - mantel.rtest(as.dist(corrs[[as.numeric(cur.group)]][[1]]$R),
+      1 - mantel.rtest(as.dist(corrs[[as.numeric(group.vec[i])]]$R),
                        as.dist(new.corrs),
                        nrepet=1e3)$obs
     }
@@ -53,13 +53,10 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
     return(data.table(resids[, list(Study.ID, Group)], IC=IC))
   } else if (level == 'regional') {
     RC <- foreach (i=seq_len(nrow(resids)), .combine='rbind') %dopar% {
-      cur.group <- resids[i, Group]
       resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[Group == cur.group,
-                                           !c('Study.ID', 'Group'),
-                                           with=F],
-                               density=0.1)$R
-      colSums(abs(corrs[[as.numeric(cur.group)]][[1]]$R - new.corrs))
+      new.corrs <- corr.matrix(resids.excl[Group == group.vec[i]],
+                               densities=0.1)$R
+      colSums(abs(corrs[[as.numeric(group.vec[i])]]$R - new.corrs))
     }
     RC.dt <- cbind(resids[, list(Study.ID, Group)], RC)
     RC.m <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
@@ -72,11 +69,12 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #'
 #' \code{aop} calculates the individual contribution using an "add-one-patient"
 #' approach. The residuals of a single patient are added to those of a control
-#' group, and a correlation matrix is created.
+#' group, and a correlation matrix is created. This is repeated for all
+#' individual patients and each patient group.
 #'
-#' @param index Integer; the row number (in \code{resids}) of the subject to be
-#'   added
 #' @param corr.mat Numeric; correlation matrix of the \emph{control} group
+#' @param control.value Integer or character string specifying the control group
+#'   (default: 1)
 #' @export
 #' @importFrom ade4 mantel.rtest
 #'
@@ -84,29 +82,56 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' @rdname individ_contrib
 #' @examples
 #' \dontrun{
-#' IC <- adply(which(resids.all[, Group == groups[2]]), .margins=1, function(x)
-#'             aop(resids.all, x, corrs[[1]][[1]]$R),
-#'             .parallel=T, .id=NULL)
+#' IC <- aop(resids.all, corrs[[1]]$R)
+#' RC <- aop(resids.all, corrs[[1]]$R, level='regional')
 #' }
 
-aop <- function(resids, index, corr.mat, level=c('global', 'regional')) {
-  Group <- Study.ID <- NULL
-  ctrl <- resids[, levels(Group)[1]]
-  resids.aop <- rbind(resids[index], resids[ctrl])
-  new.corr <- corr.matrix(resids.aop[, !c('Study.ID', 'Group'), with=F],
-                           density=0.1)$R
+aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1) {
+  Group <- Study.ID <- i <- NULL
 
+  groups <- resids[, levels(Group)]
+  kNumSubj <- resids[, as.integer(table(Group))]
+  if (is.numeric(control.value)) {
+    control.int <- control.value
+    control.str <- groups[control.int]
+  } else {
+    control.int <- which(groups %in% control.value)
+  }
+
+  patient.str <- groups[-control.int]
+  patient.int <- which(groups %in% patient.str)
+
+  resids.con <- resids[control.str]
   level <- match.arg(level)
   if (level == 'global') {
-    r <- 1 - mantel.rtest(as.dist(corr.mat),
-                          as.dist(new.corr),
-                          nrepet=1e3)$obs
-    return(data.table(resids[index, list(Study.ID, Group)], IC=r))
+    IC <- sapply(groups[-control.int], function(x) NULL)
+    for (j in patient.int) {
+      resids.pat <- resids[groups[j]]
+      IC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='c') %dopar% {
+        resids.aop <- rbind(resids.pat[i], resids.con)
+        new.corr <- corr.matrix(resids.aop, densities=0.1)$R
+        1 - mantel.rtest(as.dist(corr.mat),
+                         as.dist(new.corr),
+                         nrepet=1e3)$obs
+      }
+      IC[[groups[j]]] <- data.table(Study.ID=resids.pat[, Study.ID], Group=groups[j], IC=IC[[groups[j]]])
+    }
+    out <- rbindlist(IC)
+
   } else if (level == 'regional') {
-    RC <- colSums(abs(corr.mat - new.corr))
-    RC.dt <- cbind(resids[index, list(Study.ID, Group)], t(RC))
-    RC.m <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
-                 variable.name='region', value.name='RC')
-    return(RC.m)
+    RC <- sapply(groups[-control.int], function(x) NULL)
+    for (j in patient.int) {
+      resids.pat <- resids[groups[j]]
+      RC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='rbind') %dopar% {
+        resids.aop <- rbind(resids.pat[i], resids.con)
+        new.corr <- corr.matrix(resids.aop, densities=0.1)$R
+        data.table(t(colSums(abs(corr.mat - new.corr))))
+      }
+      RC[[groups[j]]] <- cbind(data.table(Study.ID=resids.pat[, Study.ID], Group=groups[j]), RC[[groups[j]]])
+    }
+    RC.dt <- rbindlist(RC)
+    out <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
+                variable.name='region', value.name='RC')
   }
+  return(out)
 }

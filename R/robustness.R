@@ -11,15 +11,17 @@
 #'
 #' In a random failure analysis, vertices/edges are removed in a random order.
 #'
-#' @param g The igraph graph object of interest
-#' @param type A character string; either 'vertex' or 'edge' removals
-#' @param measure A character string; sort by either 'btwn.cent' or 'degree', or
-#' choose 'random'
+#' @param g An \code{igraph} graph object
+#' @param type Character string; either 'vertex' or 'edge' removals (default:
+#'   \code{vertex})
+#' @param measure Character string; sort by either 'btwn.cent' or 'degree', or
+#'   choose 'random' (default: \code{btwn.cent})
 #' @param N Integer; the number of iterations if \emph{random} is chosen
+#'   (default: \code{1e3})
 #' @export
 #'
-#' @return A vector representing the ratio of maximal component size after each
-#' removal to the graph's original maximal component
+#' @return Numeric vector representing the ratio of maximal component size after
+#' each removal to the observed graph's maximal component size
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Albert R., Jeong H., Barabasi A. (2000) \emph{Error and attack

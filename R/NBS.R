@@ -15,30 +15,26 @@
 #' \eqn{1 - } the p-value associated with that vertex's component.
 #'
 #' @param A Three-dimensional array of all subjects' connectivity matrices
-#' @param covars A \code{data.table} of covariates
-#' @param con.vec A numeric vector specifying the contrast of interest
-#' @param X A numeric matrix (optional), if you would like to supply your own
-#'   design matrix (default: \code{NULL})
 #' @param p.init Numeric; the initial p-value threshold (default: \code{0.001})
-#' @param N Integer; the number of permutations (default: \code{1e3})
-#' @param symmetric Logical indicating if input matrices are symmetric (default:
-#'   \code{FALSE})
-#' @param alternative Character string, whether to do a two- or one-sided test
-#'   (default: \code{two.sided})
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
+#' @inheritParams brainGraph_GLM
+#' @inheritParams symmetrize_mats
 #' @export
 #' @importFrom permute shuffleSet
 #'
-#' @return A list containing:
-#' \item{g.nbs}{The \code{igraph} graph object based on the initial threshold}
-#' \item{obs}{Integer vector of the observed connected component sizes}
-#' \item{perm}{Integer vector of the permutation distribution of largest
-#'   connected component sizes}
-#' \item{p.perm}{Numeric vector of the permutation p-values for each component}
-#' \item{p.init}{Numeric; the initial p-value threshold used}
+#' @return An object of class \code{NBS} with some input arguments in addition
+#'   to:
+#'   \item{X}{The design matrix}
+#'   \item{removed}{Character vector of subject ID's removed due to incomplete
+#'     data (if any)}
+#'   \item{T.mat}{List of numeric matrices (symmetric) containing the statistics
+#'     for each edge}
+#'   \item{p.mat}{List of numeric matrices (symmetric) containing the P-values}
+#'   \item{components}{List containing data tables of the observed and permuted
+#'     connected component sizes and P-values}
 #'
 #' @family Group analysis functions
-#' @seealso \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit}}
+#' @seealso \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
 #'   statistic: identifying differences in brain networks}. NeuroImage,
@@ -48,88 +44,258 @@
 #' max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 #' }
 
-NBS <- function(A, covars, con.vec, X=NULL, p.init=0.001, N=1e3, symmetric=FALSE,
-                alternative=c('two.sided', 'less', 'greater'), ...) {
-  i <- k <- value <- Var1 <- Var2 <- Var3 <- p.val <- t.stat <- V1 <- NULL
-  stopifnot('Group' %in% names(covars), dim(A)[3] == nrow(covars))
+NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
+                p.init=0.001, N=1e3, perms=NULL, symm.by=c('max', 'min', 'avg'),
+                alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
+  skip <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
+  stopifnot(dim(A)[3] == nrow(covars))
   Nv <- nrow(A)
 
-  covars <- droplevels(covars)
-  if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
-  if (is.vector(con.vec)) con.vec <- t(con.vec)
-  stopifnot(ncol(X) == ncol(con.vec))
-  alt <- match.arg(alternative)
-
-  # Calculate initial p-values; threshold and create a graph
-  #---------------------------------------------------------
-  A.m <- setDT(melt(A))
-  if (isTRUE(symmetric)) {
-    inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
-    setnames(inds.upper, c('Var1', 'Var2'))
-    setkey(inds.upper, Var1, Var2)
-    setkey(A.m, Var1, Var2)
-    A.m <- A.m[inds.upper]
-    setkey(A.m, Var3)
+  # Initial GLM setup
+  ctype <- match.arg(con.type)
+  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, ...)
+  X <- glmSetup$X; incomp <- glmSetup$incomp
+  if (length(incomp) > 0) {
+    inc.ind <- covars[, which(Study.ID %in% incomp)]
+    A <- A[, , -inc.ind]
   }
+  covars <- glmSetup$covars; con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name
+
+  alt <- match.arg(alternative)
+  out <- list(X=X, p.init=p.init, con.type=ctype, con.mat=con.mat, con.name=con.name, alt=alt, N=N, removed=incomp)
+
+  # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
+  A <- symmetrize_array(A, symm.by)
+  for (k in seq_len(dim(A)[3])) {
+    x <- A[, , k]
+    x[lower.tri(x)] <- 0
+    A[, , k] <- x
+  }
+  A.m <- setDT(melt(A))
+  inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
+  setnames(inds.upper, c('Var1', 'Var2'))
+  setkey(inds.upper, Var1, Var2)
+  setkey(A.m, Var1, Var2)
+  A.m <- A.m[inds.upper]
   setkey(A.m, Var1, Var2, Var3)
   pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
   A.m.sub <- A.m[pos.vals]
-  T.dt <- A.m.sub[, brainGraph_GLM_fit(X, value, con.vec, alternative=alt), by=list(Var1, Var2)]
-  T.dt <- T.dt[p.val < p.init, list(Var1, Var2, t.stat, p.val)]
-  if (nrow(T.dt) == 0) {  # No sig. diff's observed
-    return(list(g.nbs=make_empty_graph(n=Nv, directed=FALSE), obs=0, perm=NULL,
-                p.perm=NULL, p.init=p.init))
-  }
-  T.mat <- p.mat <- matrix(0, Nv, Nv)
-  for (i in seq_len(nrow(T.dt))) {
-    T.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$t.stat[i]
-    p.mat[T.dt$Var1[i], T.dt$Var2[i]] <- T.dt$p.val[i]
-  }
-  inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
 
-  T.max <- ifelse(abs(T.mat) > t(abs(T.mat)), T.mat, t(T.mat))
-  for (i in seq_len(nrow(inds.tr))) {
-    p.mat[inds.tr[i, 2], inds.tr[i, 1]] <- p.mat[inds.tr[i, 1], inds.tr[i, 2]]
+  # Do the model fitting/estimation
+  glmFits <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')
+  DT.lm <- glmFits$DT.lm
+  if (ctype == 't') {
+    nC <- nrow(con.mat)
+  } else if (ctype == 'f') {
+    nC <- 1
+    alt <- 'two.sided'
   }
-  g.nbs <- graph_from_adjacency_matrix(T.max, diag=F, mode='undirected', weighted=TRUE)
-  E(g.nbs)$t.stat <- E(g.nbs)$weight
-  E(g.nbs)$p <- 1 - E(graph_from_adjacency_matrix(p.mat, diag=F, mode='undirected', weighted=TRUE))$weight
-  if (any(E(g.nbs)$weight < 0)) g.nbs <- delete_edge_attr(g.nbs, 'weight')
-  clusts <- components(g.nbs)
-  comps <- sort(unique(clusts$csize), decreasing=TRUE)
+
+  # Filter based on "p.init", and create stat and p-val matrices
+  DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
+  T.max <- p.mat <- comps.obs <- vector('list', length=length(con.name))
+  for (j in seq_len(nC)) {
+    if (nrow(DT.lm[contrast == j]) == 0) {
+      warning(sprintf('No significant differences observed for contrast %i!', j))
+      T.max[[j]] <- matrix(0, Nv, Nv)
+      p.mat[[j]] <- matrix(0, Nv, Nv)
+      comps.obs[[j]] <- data.table(contrast=j, csize=0)
+      skip <- c(skip, j)
+      next
+    }
+    T.mat <- p.mat[[j]] <- matrix(0, Nv, Nv)
+    T.mat[DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, stat]
+    p.mat[[j]][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
+
+    if (alt == 'two.sided') {
+      inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
+      T.max[[j]] <- ifelse(abs(T.mat) > t(abs(T.mat)), T.mat, t(T.mat))
+    } else if (alt == 'less') {
+      inds.tr <- which(T.mat < t(T.mat), arr.ind=TRUE)
+      T.max[[j]] <- ifelse(T.mat < t(T.mat), T.mat, t(T.mat))
+    } else if (alt == 'greater') {
+      inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
+      T.max[[j]] <- ifelse(T.mat > t(T.mat), T.mat, t(T.mat))
+    }
+    for (i in seq_len(nrow(inds.tr))) {
+      p.mat[[j]][inds.tr[i, 2], inds.tr[i, 1]] <- p.mat[[j]][inds.tr[i, 1], inds.tr[i, 2]]
+    }
+
+    clusts <- components(graph_from_adjacency_matrix(T.max[[j]], diag=F, mode='undirected', weighted=TRUE))
+    comps.obs[[j]] <- data.table(contrast=j, csize=sort(unique(clusts$csize), decreasing=TRUE))
+  }
+  comps.obs <- rbindlist(comps.obs)
+
+  if (length(skip) == length(con.name)) {
+    out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=list(observed=comps.obs, permuted=NULL)))
+    class(out) <- c('NBS', class(out))
+    return(out)
+  }
 
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
-  myPerms.nbs <- shuffleSet(n=nrow(covars), nset=N)
-  groupcol <- grep('Group', colnames(X))
-  comps.perm <- foreach (k=seq_len(N), .combine='c') %dopar% {
-    X.tmp <- X[myPerms.nbs[k, ], ]
-    X.tmp[, groupcol] <- X[, groupcol]
-    A.m.tmp <- setDT(melt(A[, , myPerms.nbs[k, ]]))
-    if (isTRUE(symmetric)) {
-      setkey(A.m.tmp, Var1, Var2)
-      A.m.tmp <- A.m.tmp[inds.upper]
-      setkey(A.m.tmp, Var3)
-    }
-    setkey(A.m.tmp, Var1, Var2, Var3)
-    pos.vals <- A.m.tmp[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
-    A.m.tmp.sub <- A.m.tmp[pos.vals]
-    T.dt.tmp <- A.m.tmp.sub[, brainGraph_GLM_fit(X.tmp, value, con.vec, alternative=alt), by=list(Var1, Var2)]
-    if (T.dt.tmp[, max(abs(t.stat))] <= 1.5) {
-      0
+  if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
+
+  randMats <- setup_randomise(X, con.mat, nC)
+  comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, randMats, p.init, alt, Nv)
+
+  for (j in seq_along(con.name)) {
+    kNumComps <- comps.obs[contrast == j, .N]
+    comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
+                                              csize,
+                                              rep(list(comps.perm[contrast == j, perm]), kNumComps))]
+  }
+
+  if (isTRUE(long)) {
+    comps.out <- list(observed=comps.obs, permuted=comps.perm)
+  } else {
+    comps.out <- list(observed=comps.obs)
+  }
+  out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=comps.out))
+  class(out) <- c('NBS', class(out))
+  return(out)
+}
+
+################################################################################
+# HELPER FUNCTION
+################################################################################
+randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, Nv) {
+  se <- perm <- Var1 <- Var2 <- i <- value <- stat <- numer <- NULL
+  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC
+  dfR <- nrow(Mp[[1]]) - ncol(Mp[[1]])
+  if (ctype == 't') {
+    statfun <- switch(alt,
+                      two.sided=function(stat, df) {abs(stat) > qt(p.init / 2, df, lower.tail=FALSE)},
+                      less=function(stat, df) {stat <- qt(p.init, df)},
+                      greater=function(stat, df) {stat > qt(p.init, df, lower.tail=FALSE)})
+  } else {
+    statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
+    CMtM <- solve(eC[[1]] %*% MtM[[1]] %*% t(eC[[1]]))
+    rkC <- qr(eC[[1]])$rank
+  }
+  maxfun.mat <- switch(alt,
+                       two.sided=function(mat) {ifelse(abs(mat) > t(abs(mat)), mat, t(mat))},
+                       less=function(mat) {ifelse(mat < t(mat), mat, t(mat))},
+                       greater=function(mat) {ifelse(mat > t(mat), mat, t(mat))})
+  null.dist <- comps.perm <- vector('list', length=nC)
+  perm.order <- rep(seq_len(N), each=DT[, length(unique(interaction(Var1, Var2)))])
+
+  for (j in seq_len(nC)) {
+    if (j %in% skip) next
+    # T-contrasts
+    if (ctype == 't') {
+      null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
+        DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, MtM[[j]], eC[[j]]), by=list(Var1, Var2)]
+      }
+      null.dist[[j]][, stat := gamma / se]
+      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
+      null.dist[[j]] <- null.dist[[j]][statfun(stat, dfR), list(Var1, Var2, stat, perm)]
+
+    # F-contrasts
     } else {
-      T.dt.tmp <- T.dt.tmp[p.val < p.init, list(Var1, Var2, t.stat)]
+      null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
+        DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, dfR, eC[[j]], rkC, CMtM), by=list(Var1, Var2)]
+      }
+      null.dist[[j]][, stat := numer / (se / dfR)]
+      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
+      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC, dfR), list(Var1, Var2, stat, perm)]
+    }
+
+    comps.perm[[j]] <- foreach(i=null.dist[[j]][, unique(perm)], .combine='c') %dopar% {
       T.mat.tmp <- matrix(0, Nv, Nv)
-      for (i in seq_len(nrow(T.dt.tmp))) T.mat.tmp[T.dt.tmp$Var1[i], T.dt.tmp$Var2[i]] <- T.dt.tmp$t.stat[i]
-      T.max.tmp <- ifelse(abs(T.mat.tmp) > t(abs(T.mat.tmp)), T.mat.tmp, t(T.mat.tmp))
+      T.mat.tmp[null.dist[[j]][perm == i, cbind(Var1, Var2)]] <- null.dist[[j]][perm == i, stat]
+      T.max.tmp <- maxfun.mat(T.mat.tmp)
       max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
     }
+    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
+    comps.perm[[j]] <- data.table(contrast=j, perm=comps.perm[[j]])
   }
-  p.perm <- sapply(comps, function(x) (sum(x <= comps.perm) + 1) / (N + 1))
-  x <- clusts$membership
-  V(g.nbs)$comp <- match(x, order(table(x), decreasing=TRUE))
-  V(g.nbs)$p.nbs <- NA
-  for (i in seq_along(comps)) V(g.nbs)[V(g.nbs)$comp == i]$p.nbs <- 1 - p.perm[i]
+  comps.perm <- rbindlist(comps.perm)
+  return(comps.perm)
+}
 
-  return(list(g.nbs=g.nbs, obs=comps, perm=comps.perm, p.perm=p.perm, p.init=p.init))
+################################################################################
+# METHODS
+################################################################################
+
+#' Print a summary of NBS analysis
+#'
+#' @param object A \code{NBS} object
+#' @inheritParams summary.bg_GLM
+#' @export
+#' @method summary NBS
+
+summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
+  contrast <- csize <- NULL
+
+  # Observed component sizes
+  #--------------------------------------
+  ecounts <- vector('list', length(object$con.name))
+  for (j in seq_along(object$con.name)) {
+    if (sum(object$T.mat[[j]] == 0)) next  # No edges met initial criteria
+    g.nbs <- graph_from_adjacency_matrix(object$T.mat[[j]], diag=F, mode='undirected', weighted=TRUE)
+    clusts <- components(g.nbs)
+    comps <- sort(unique(clusts$csize), decreasing=TRUE)
+    z <- clusts$membership
+    zsort <- match(z, order(table(z), decreasing=TRUE))
+    z.ind <- unique(table(zsort))
+    ecounts[[j]] <- rep(0, sum(z.ind > 1))
+    for (i in seq_along(ecounts[[j]])) {
+      ecounts[[j]][i] <- ecount(induced_subgraph(g.nbs, which(zsort == i)))
+    }
+  }
+
+  nbs.dt <- with(object,
+                 data.table(alt=alt, N=N, components$observed))
+  nbs.dt[, ecount := 0]
+  for (j in seq_along(object$con.name)) {
+    if (sum(object$T.mat[[j]] == 0)) next  # No edges met initial criteria
+    nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
+  }
+  nbs.sum <- list(contrast=contrast, res.nbs=object, dt=nbs.dt, digits=digits)
+  class(nbs.sum) <- c('summary.NBS', class(nbs.sum))
+  return(nbs.sum)
+}
+
+#' @aliases summary.NBS
+#' @method print summary.NBS
+
+print.summary.NBS <- function(x, ...) {
+  `p-value` <- `# edges` <- csize <- p.perm <- NULL
+  title <- 'Network-based statistic results'
+  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  cat('Number of permutations: ', prettyNum(x$res.nbs$N, ','), '\n')
+  cat('Initial p-value: ', x$res.nbs$p.init, '\n\n')
+
+  alt <- switch(x$res.nbs$alt,
+                two.sided='C != 0',
+                greater='C > 0',
+                less='C < 0')
+  cat('Alternative hypothesis: ', alt, '\n')
+  cat('Contrast matrix: ', '\n')
+  print(x$res.nbs$con.mat)
+
+  xdt <- x$dt[csize > 1]
+  setnames(xdt, c('csize', 'ecount'), c('# vertices', '# edges'))
+  xdt[, `p-value` := signif(p.perm)]
+  xdt[, c('alt', 'N', 'p.perm') := NULL]
+
+  # Print results for each contrast
+  message('\n', 'Statistics', '\n', rep('-', getOption('width') / 4))
+  if (is.null(x$contrast)) {
+    contrast <- xdt[, unique(contrast)]
+  } else {
+    contrast <- x$contrast
+  }
+
+  for (i in contrast) {
+    message(paste0('\n', x$res.nbs$con.name[i]))
+    if (nrow(xdt[contrast == i]) == 0) {
+      message('\tNo signficant results!\n')
+    } else {
+      printCoefmat(xdt[contrast == i, !'contrast'], tst.ind=2, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)
+      cat('\n')
+    }
+  }
+  invisible(x)
 }

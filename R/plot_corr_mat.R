@@ -17,8 +17,8 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' matplot1 <- plot_corr_mat(corrs[[1]][[N]]$r.thresh, g=g[[1]][[N]],
-#'                            group=groups[1])
+#' matplot1 <- plot_corr_mat(corrs[[1]]$r.thresh[, , N], g=g[[1]][[N]],
+#'                           group=groups[1])
 #' }
 
 plot_corr_mat <- function(corrs, ordered=TRUE,
@@ -29,6 +29,7 @@ plot_corr_mat <- function(corrs, ordered=TRUE,
 
   if (isTRUE(ordered)) {
     stopifnot(!is.null(g))
+    if (is.null(rownames(corrs))) rownames(corrs) <- colnames(corrs) <- V(g)$name
     Nv <- nrow(corrs)
     cols <- group.cols
 
@@ -40,11 +41,11 @@ plot_corr_mat <- function(corrs, ordered=TRUE,
         tab <- table(memb)
         group.nums <- as.integer(names(tab))
         group.max <- length(group.nums)
-        group.nums <- c(group.nums, group.max + 1, group.max + 2)
+        group.nums <- c(group.nums, group.max + c(1, 2))
         new.order <- order(match(memb, group.nums))
         legend.title <- 'Communities (#)'
       } else if (v.attr %in% c('lobe', 'network')) {
-        atlas.dt <- eval(parse(text=graph$atlas))
+        atlas.dt <- get(graph$atlas)
         memb <- atlas.dt[, as.numeric(get(v.attr))]
         group.nums <- c(atlas.dt[, levels(get(v.attr))])
         group.max <- length(group.nums)

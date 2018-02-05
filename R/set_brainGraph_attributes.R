@@ -4,15 +4,6 @@
 #' given \code{igraph} graph object. These are all measures that are common in
 #' MRI analyses of brain networks.
 #'
-#' For the \code{modality} argument, you can choose anything you like, but the
-#' \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
-#' \code{thickness}, \code{area}, and \code{volume}.
-#'
-#' For the \code{weighting} argument, you can choose anything you like, but
-#' \code{summary.brainGraph} knows about \code{fa}, \code{sld} (streamline
-#' density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
-#' \code{partial} (partial correlation coefficient).
-#'
 #' \code{xfm.type} allows you to choose from 3 options for transforming edge
 #' weights when calculating distance-based metrics (e.g., shortest paths). There
 #' is no "best-practice" for choosing one over the other, but the reciprocal is
@@ -26,35 +17,30 @@
 #' @param g An \code{igraph} graph object
 #' @param atlas Character vector indicating which atlas was used (default:
 #'   \code{NULL})
-#' @param modality Character vector indicating imaging modality (e.g. 'dti')
-#'   (default: \code{NULL})
-#' @param weighting Character string indicating how the edges are weighted
-#'   (e.g., 'fa', 'pearson', etc.) (default: \code{NULL})
-#' @param threshold Numeric indicating the level at which the matrices were
-#'   thresholded (if at all) (default: \code{NULL})
-#' @param subject Character vector indicating subject ID (default: \code{NULL})
-#' @param group Character vector indicating group membership (default: NULL)
-#' @param rand Logical indicating if the graph is random or not (default: FALSE)
+#' @param rand Logical indicating if the graph is random or not (default:
+#'   \code{FALSE})
 #' @param use.parallel Logical indicating whether or not to use \emph{foreach}
 #'   (default: \code{TRUE})
 #' @param A Numeric matrix; the (weighted) adjacency matrix, which can be used
 #'   for faster calculation of local efficiency (default: \code{NULL})
 #' @param xfm.type Character string indicating how to transform edge weights
 #'   (default: \code{1/w} [reciprocal])
+#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @export
 #'
 #' @return g An \code{igraph} graph object with the following attributes:
-#' \item{Graph-level}{Package version, atlas, density, connected component sizes,
-#' diameter, \# of triangles, transitivity, average path length, assortativity,
-#' clique number, global & local efficiency, modularity, vulnerability, hub score,
-#' rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-#' \item{Vertex-level}{Degree, strength; betweenness, eigenvector, and leverage
-#' centralities; hubs; transitivity (local); k-core, s-core; local & nodal
-#' efficiency; color (community, lobe, component); membership (community,
-#' lobe, component); gateway and participation coefficients, within-module
-#' degree z-score; vulnerability; and coordinates (x, y, and z)}
-#' \item{Edge-level}{Color (community, lobe, component), edge betweenness,
-#' Euclidean distance (in mm), weight (if weighted)}
+#'   \item{Graph-level}{Density, connected component sizes, diameter, \# of
+#'     triangles, transitivity, average path length, assortativity, global &
+#'     local efficiency, modularity, vulnerability, hub score, rich-club
+#'     coefficient, \# of hubs, edge asymmetry, and modality}
+#'   \item{Vertex-level}{Degree, strength; betweenness, eigenvector, and
+#'     leverage centralities; hubs; transitivity (local); k-core, s-core; local
+#'     & nodal efficiency; color (community, lobe, component); membership
+#'     (community, lobe, component); gateway and participation coefficients,
+#'     within-module degree z-score; vulnerability; and coordinates (x, y, and
+#'     z)}
+#'   \item{Edge-level}{Color (community, lobe, component), edge betweenness,
+#'     Euclidean distance (in mm), weight (if weighted)}
 #'
 #' @seealso \code{\link[igraph]{components}, \link[igraph]{diameter},
 #' \link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part_coeff},
@@ -71,14 +57,11 @@
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
-                                threshold=NULL, subject=NULL, group=NULL,
-                                rand=FALSE, use.parallel=TRUE, A=NULL,
-                                xfm.type=c('1/w', '-log(w)', '1-w')) {
+set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=NULL,
+                                xfm.type=c('1/w', '-log(w)', '1-w'), ...) {
   name <- NULL
   stopifnot(is_igraph(g))
 
-  g$version <- packageVersion('brainGraph')
   if (!'degree' %in% vertex_attr_names(g)) V(g)$degree <- degree(g)
   g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- mean_distance(g)
@@ -93,12 +76,6 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
-    if (!is.null(group)) g$Group <- group
-    if (!is.null(subject)) g$name <- subject
-    if (!is.null(modality)) g$modality <- modality
-    if (!is.null(weighting)) g$weighting <- weighting
-    if (!is.null(threshold)) g$threshold <- threshold
-
     # Graph-level attributes
     #-----------------------------------------------------------------------------
     g$density <- round(graph.density(g), digits=3)
@@ -130,8 +107,8 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
-      V(g)$color.comm.wt <- set_vertex_color(V(g)$comm.wt)[V(g)$comm.wt]
-      E(g)$color.comm.wt <- set_edge_color(g, V(g)$comm.wt)
+      g <- set_vertex_color(g, 'color.comm.wt', V(g)$comm.wt)
+      g <- set_edge_color(g, 'color.comm.wt', V(g)$comm.wt)
       V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt)
       V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt)
       V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt)
@@ -168,10 +145,10 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
     # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
     if (!is.null(atlas)) {
       g$atlas <- atlas
-      atlas.dt <- eval(parse(text=atlas))
+      atlas.dt <- get(atlas)
       if (!is_named(g)) V(g)$name <- atlas.dt[, name]
 
-      g <- assign_lobes(g)
+      g <- make_brainGraph(g, atlas, ...)
       g$assortativity.lobe <- assortativity_nominal(g, as.integer(factor(V(g)$lobe)))
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
 
@@ -217,13 +194,13 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
     # Community stuff
     x <- comm$membership
     V(g)$comm <- match(x, order(table(x), decreasing=TRUE))
-    V(g)$color.comm <- set_vertex_color(V(g)$comm)[V(g)$comm]
-    E(g)$color.comm <- set_edge_color(g, V(g)$comm)
+    g <- set_vertex_color(g, 'color.comm', V(g)$comm)
+    g <- set_edge_color(g, 'color.comm', V(g)$comm)
 
     x <- clusts$membership
     V(g)$comp <- match(x, order(table(x), decreasing=TRUE))
-    V(g)$color.comp <- set_vertex_color(V(g)$comp)[V(g)$comp]
-    E(g)$color.comp <- set_edge_color(g, V(g)$comp)
+    g <- set_vertex_color(g, 'color.comp', V(g)$comp)
+    g <- set_edge_color(g, 'color.comp', V(g)$comp)
 
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
 
@@ -233,15 +210,4 @@ set_brainGraph_attr <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
   }
 
   return(g)
-}
-
-#' @inheritParams set_brainGraph_attr
-#' @export
-#' @rdname set_brainGraph_attr
-
-set.brainGraph.attributes <- function(g, atlas=NULL, modality=NULL, weighting=NULL,
-                                      threshold=NULL, subject=NULL, group=NULL,
-                                      rand=FALSE, use.parallel=TRUE) {
-  .Deprecated('set_brainGraph_attr')
-  set_brainGraph_attr(g, atlas, modality, weighting, threshold, subject, group, rand, use.parallel)
 }

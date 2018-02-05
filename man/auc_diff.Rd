@@ -9,13 +9,19 @@ auc_diff(x, y)
 \arguments{
 \item{x}{Numeric vector of the x-values}
 
-\item{y}{A 2-column numeric matrix; each column contains the values for one
-group}
+\item{y}{A numeric matrix}
 }
 \value{
-A numeric value of the difference between two groups
+A numeric value of the difference between two groups, or a numeric
+  vector of the AUC across vertices
 }
 \description{
 This function takes two vectors, calculates the area-under-the-curve (AUC),
 and calculates the difference between the two.
 }
+\details{
+If \code{y} has 2 columns, then each column should be the values for each
+subject group. If \code{y} has multiple columns (e.g., equal to the number of
+vertices of a graph), it will calculate the AUC for each column.
+}
+\keyword{internal}

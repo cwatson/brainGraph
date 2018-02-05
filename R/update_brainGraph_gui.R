@@ -5,7 +5,7 @@
 #' @param plotDev A Cairo device for the plotting area
 #' @param g An \code{igraph} graph object for the first plotting area
 #' @param g2 An \code{igraph} graph object for the second plotting area
-#' @param plotFunc A function specifying which type of plot to use
+#' @param plotFunc A character string specifying which type of plot to use
 #' @param vsize.measure Character string of the name of the attribute for vertex
 #'   scaling
 #' @param ewidth.measure Character string of the name of the attribute for edge
@@ -31,7 +31,7 @@
 #' @param vertSize.eqn A GTK entry for equations to exclude vertices
 #' @param showDiameter A GTK check button for showing the graph's diameter
 #' @param edgeDiffs A GTK check button for showing edge diffs between graphs
-#'
+#' @keywords internal
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidth.measure,
@@ -55,7 +55,7 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
   #=======================================================
   # Hemisphere to plot
   #=======================================================
-  plotHemi <- switch(hemi$getActive() + 1, 'both', 'L', 'R', rep('both', 6))
+  plotHemi <- switch(hemi$getActive() + 1, 'both', 'L', 'R', 'both', 'both', 'both', 'both', 'both', 'both')
   if (hemi$getActive() > 2) {
     groups <- switch(hemi$getActive() - 2,
                      seq_len(Nv),
@@ -75,7 +75,7 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
                                                    which(V(g)$comm == x)])))),
                    unique(unlist(sapply(groups, function(x)
                                         as.numeric(E(g)[which(V(g)$lobe == x) %--%
-                                                   which(V(g)$lobe %in% groups[-x])])))),
+                                                   which(V(g)$lobe != x)])))),
                    unique(unlist(sapply(groups, function(x)
                                         as.numeric(E(g)[which(V(g)$lobe == x) %--%
                                                    which(V(g)$lobe == x)])))))
@@ -84,6 +84,7 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
     sg.hemi <- delete_all_attr(sg.hemi)
     V(sg.hemi)$name <- V(g)$name[memb.hemi]
     g <- sg.hemi %s% g
+    class(g) <- c('brainGraph', class(g))
   }
 
   #====================================================
@@ -92,36 +93,23 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
   plane <- switch(orient$getActive() + 1, 'axial', 'sagittal', 'sagittal', 'circular')
   plotHemi <- switch(orient$getActive() + 1, plotHemi, 'L', 'R', plotHemi)
   imSlice <- switch(orient$getActive() + 1, 46, 30, 30, NULL)
-  if (orient$getActive() == 3) { # CIRCULAR LAYOUT
-    par(bg='black')
-    circ <- V(g)$circle.layout
-    layout.g <- rotation(layout.circle(g, order=circ), -pi/2 - pi/Nv)
-    V(g)$x <- layout.g[, 1]
-    V(g)$y <- layout.g[, 2]
-  } else {
-    plot_brainGraph_mni(plane=plane, slice=imSlice, hemi=plotHemi)
-  }
   par(pty='s', mar=rep(0, 4))
 
   #=======================================================
-  # Vertex neighborhoods, if applicable
   if (!is.function(plotFunc) && plotFunc == 'plot_neighborhood') {
     if (length(neighbInd) == 1 && V(g)[neighbInd]$degree < 2) {
       g.sub <- make_ego_graph(g, order=1, nodes=neighbInd)[[1]]
     } else {
       g.sub <- make_ego_brainGraph(g, neighbInd)
-      g.sub <- set_brainGraph_attr(g.sub, g$atlas)
     }
+    g.sub <- set_brainGraph_attr(g.sub, g$atlas)
     g <- g.sub
     neighbInd <- which(V(g)$name %in% neighb)
     Nv <- vcount(g)
-  }
 
-  # Community number, if applicable
-  if (!is.function(plotFunc) && plotFunc == 'plot_community') {
+  } else if (!is.function(plotFunc) && plotFunc == 'plot_community') {
     subgraph <- paste(paste0('comm == ', comms), collapse=' | ')
   }
-  plotFunc <- plot_brainGraph
   #=======================================================
 
   #-----------------------------------
@@ -189,19 +177,20 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
     vertex.color[neighbInd] <- 'yellow'
     edge.color <- rep('red', ecount(g))
   } else {
-    edge.color <- vertex.color <- switch(vertColor$getActive(), 'color.comm', 'color.lobe',
-                           'color.comp', 'color.comm.wt', 'color.class',
-                           'color.network', 'color.nbhood')
+    edge.color <- vertex.color <-
+      switch(vertColor$getActive(), 'color.comm', 'color.lobe', 'color.comp',
+             'color.comm.wt', 'color.class', 'color.network', 'color.nbhood')
     if (vertex.color == 'color.nbhood') {
       nbs.l <- lapply(neighbInd, function(x) neighbors(g, x))
-      vertex.color <- rep('lightblue', Nv)
-      for (i in seq_along(nbs.l)) {
-        vertex.color[c(neighbInd[i], nbs.l[[i]])] <- group.cols[i]
-      }
-      edge.color <- set_edge_color(g, as.numeric(factor(vertex.color, levels=group.cols)))
+      tab <- table(unlist(sapply(nbs.l, as.numeric)))
+      V(g)$nbhood <- 1
+      for (i in seq_along(nbs.l)) V(g)[as.numeric(nbs.l[[i]])]$nbhood <- i + 1
+      V(g)[as.numeric(names(tab[tab > 1]))]$nbhood <- i + 2
+      V(g)[neighbInd]$nbhood <- 1 + 1:length(neighbInd)
+      V(g)$nbhood <- V(g)$nbhood - 1
+      g <- set_vertex_color(g, 'color.nbhood', V(g)$nbhood)
+      g <- set_edge_color(g, 'color.nbhood', V(g)$nbhood)
     }
-    #V(g)$color <- vertex_attr(g, vertex.color)
-    #E(g)$color <- edge_attr(g, vertex.color)
   }
 
   # Show vertex labels?
@@ -223,10 +212,10 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
     show.legend <- TRUE
   }
 
-  plotFunc(g, plane=plane, hemi=plotHemi, subgraph=subgraph,
-           vertex.label=vlabel, vertex.size=vsize, edge.width='width',
-           vertex.color=vertex.color, edge.color=edge.color,
-           edge.curved=curv, main=main, cex.main=cex.main, show.legend=show.legend)
+  plot(g, plane=plane, hemi=plotHemi, subgraph=subgraph,
+       vertex.label=vlabel, vertex.size=vsize, edge.width='width',
+       vertex.color=vertex.color, edge.color=edge.color,
+       edge.curved=curv, main=main, cex.main=cex.main, show.legend=show.legend)
 
   if (!is.null(showDiameter) && (showDiameter$active == TRUE | edgeDiffs$active == TRUE)) {
     if (showDiameter$active == TRUE) {
@@ -236,9 +225,10 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
       g.sub <- subgraph.edges(g, es)
     }
     if (edgeDiffs$active == TRUE) g.sub <- graph.difference(g, g2)
-    plotFunc(g.sub, add=TRUE, vertex.label=NA,
-             vertex.shape='none', edge.width=5,
-             vertex.color='deeppink', edge.color='deeppink',
-             edge.curved=curv, sub=NULL)
+    class(g.sub) <- c('brainGraph', class(g.sub))
+    plot(g.sub, add=TRUE, vertex.label=NA,
+         vertex.shape='none', edge.width=5,
+         vertex.color=rep('deeppink', vcount(g.sub)), edge.color=rep('deeppink', ecount(g.sub)),
+         edge.curved=curv, sub=NULL, mni=FALSE)
   }
 }

@@ -1,119 +1,101 @@
 #' Plot a brain graph with a specific spatial layout
 #'
-#' This function plots a graph when the spatial layout of the nodes is important
-#' (e.g. in the brain). The function \code{\link{set_brainGraph_attr}}
-#' needs to be run on the graph, and a valid set of coordinates provided for the
-#' vertices. Most of the parameters valid here can be seen in
-#' \code{\link{igraph.plotting}}.
+#' \code{plot.brainGraph} plots a graph in which the spatial layout of the nodes
+#' is important. The network itself is plotted over a brain MRI slice from the
+#' MNI152 template if \code{mni=TRUE}.
 #'
 #' With the argument \code{subgraph}, you can specify a simple logical equation
 #' for which vertices to show. For example, \emph{'degree > 10'} will plot only
 #' vertices with a \emph{degree} greater than 10. Combinations of \emph{AND}
 #' (i.e., \code{&}) and \emph{OR} (i.e., \code{|}) are allowed.
 #'
-#' To remove the subtitle at the bottom, simply specify \code{sub=NULL}.
+#' To remove the subtitle at the bottom, simply specify \code{subt=NULL}.
 #'
-#' @param g An \code{igraph} graph object
-#' @param plane A character string indicating which orientation to plot
+#' @param x A \code{brainGraph} graph object
+#' @param plane Character string indicating which orientation to plot
 #'   (default: \code{'axial'})
-#' @param hemi A character string indicating which hemisphere to plot (default:
+#' @param hemi Character string indicating which hemisphere to plot (default:
 #'   \code{'both'})
-#' @param subgraph A character string specifying an equation for deleting
-#'   vertices (default: \code{NULL})
+#' @param subgraph Character string specifying an equation for vertices to plot
+#'   (default: \code{NULL})
 #' @param show.legend Logical indicating whether or not to show a legend
 #'   (default: \code{FALSE})
-#' @param rescale A logical, whether to rescale the coordinates (default:
+#' @param rescale Logical, whether to rescale the coordinates (default:
 #'   \code{FALSE})
-#' @param asp A numeric constant for the aspect ratio (default: 0)
-#' @param main Character string for the main title (default: \code{NULL})
-#' @param sub Character string for the subtitle (default: \code{default})
-#' @param ... Other parameters (passed to \code{\link{plot}}).
+#' @param asp Numeric constant; the aspect ratio (default: 0)
+#' @param main Character string; the main title (default: \code{NULL})
+#' @param subt Character string; the subtitle (default: \code{default})
+#' @param mni Logical indicating whether or not to plot over a slice of the
+#'   brain (default: \code{TRUE})
+#' @param ... Other parameters (passed to \code{\link[igraph]{plot.igraph}}).
+#'   See \code{\link[igraph]{igraph.plotting}} for details.
 #' @export
+#' @importFrom oro.nifti image nifti
 #'
 #' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' plot_brainGraph(g[[1]], hemi='R')
-#' plot_brainGraph(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
+#' plot(g[[1]], hemi='R')
+#' plot(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
 #' }
 
-plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
+plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
                             hemi=c('both', 'L', 'R'),
                             subgraph=NULL, show.legend=FALSE,
-                            rescale=FALSE, asp=0, main=NULL, sub='default', ...) {
-  stopifnot(is_igraph(g), 'atlas' %in% graph_attr_names(g))
+                            rescale=FALSE, asp=0, main=NULL, subt='default', mni=TRUE, ...) {
+  stopifnot(is.brainGraph(x), 'atlas' %in% graph_attr_names(x))
   lobe <- network <- NULL
+
+  plane <- match.arg(plane)
+  hemi <- match.arg(hemi)
+  mult <- 100
+
+  if (isTRUE(mni) & plane != 'circular') {
+    if (plane == 'axial') {
+      slice <- 46
+      X <- mni152
+      slicemax <- max(X[, , slice])
+    } else {
+      if (hemi == 'R') {
+        X <- mni152
+      } else if (hemi == 'L') {
+        tmp <- mni152@.Data
+        X <- nifti(tmp[rev(seq_len(nrow(tmp))), rev(seq_len(ncol(tmp))), ])
+      }
+      slice <- 30
+      slicemax <- max(X[slice, , ])
+    }
+    image(X, plot.type='single', plane=plane, z=slice, zlim=c(3500, slicemax))
+    par(new=TRUE, mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0))
+  }
 
   #---------------------------------------------------------
   # Create a subgraph based on user-specified condition
   #---------------------------------------------------------
-  if (!is.null(subgraph)) {
-    stopifnot(nchar(subgraph) > 0)
-    # Function for creating the condition string to later subset the graph
-    get_cond_string <- function(orig) {
-      substrings <- strsplit(orig, split='\\s\\&\\s|\\s\\|\\s')[[1]]
-      if (length(substrings) > 1) {  # Multiple conditions
-        if (!isTRUE(grepl('\\s\\&\\s|\\s\\|\\s', orig))) {
-          stop('Logical operators must be surrounded by spaces!')
-        }
-        nchars <- cumsum(sapply(substrings, nchar))
-        splits <- sapply(seq_along(substrings), function(x)
-                         substr(orig, start=nchars[x]+(3*x-1), stop=nchars[x]+(3*x-1)))
-        substrings <- gsub('^\\s+|\\s+$', '', substrings) # Remove unnecessary whitespace
+  if (!is.null(subgraph)) x <- subset_graph(x, subgraph)$g
+  if (is.null(x)) return()  # No vertices met criteria
 
-        cond.string <- paste(sapply(seq_along(substrings), function(x)
-                                    paste0('V(g)$', substrings[x], splits[x])),
-                             collapse='')
-      } else {
-        cond.string <- paste0('V(g)$', substrings)
-      }
-      return(cond.string)
-    }
-
-    # Handle when logical expressions are separated by parentheses
-    if (isTRUE(grepl('\\(.*\\)', subgraph))) {
-      subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
-      subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
-      cond.strings <- sapply(subs, get_cond_string)
-      cond.string <- paste0('(', cond.strings[1], ') & (', cond.strings[2], ')')
-    } else {
-      cond.string <- get_cond_string(subgraph)
-    }
-
-    cond <- eval(parse(text=cond.string))
-    if (sum(cond) == 0) {
-      warning('No vertices meet criteria! No plot generated.')
-      return(NA)
-    } else {
-      cond <- setdiff(seq_len(vcount(g)), which(cond))
-      g <- delete.vertices(g, cond)
-    }
-  }
-
-  atlas <- graph_attr(g, 'atlas')
-  plane <- match.arg(plane)
-  hemi <- match.arg(hemi)
-  Nv <- vcount(g)
+  atlas <- graph_attr(x, 'atlas')
+  Nv <- vcount(x)
   adjust <- 0
-  mult <- 100
   #---------------------------------------------------------
   # Handle plotting of individual hemispheres
   #---------------------------------------------------------
   if (hemi != 'both') {
-    memb <- which(V(g)$hemi == hemi)
-    sg <- induced.subgraph(g, memb)
+    memb <- which(V(x)$hemi == hemi)
+    sg <- induced.subgraph(x, memb)
     sg <- delete_all_attr(sg)
-    V(sg)$name <- V(g)$name[memb]
-    g <- g %s% sg
-    g <- g - vertices(setdiff(seq_len(Nv), memb))
+    V(sg)$name <- V(x)$name[memb]
+    x <- x %s% sg
+    x <- x - vertices(setdiff(seq_len(Nv), memb))
 
     if (plane == 'sagittal') {
       adjust <- 1
-      V(g)$y <- V(g)$z.mni
+      V(x)$y <- V(x)$z.mni
 
       if (hemi == 'L') {
-        V(g)$x <- -V(g)$y.mni
+        V(x)$x <- -V(x)$y.mni
         xlim.g <- switch(atlas,
                          destrieux=, destrieux.scgm=, dosenbach160=c(-85, 120),
                          hoa112=c(-85, 125),
@@ -125,7 +107,7 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
                          lpba40=c(-80, 100),
                          c(-85, 125))
       } else if (hemi == 'R') {
-        V(g)$x <- V(g)$y.mni
+        V(x)$x <- V(x)$y.mni
         xlim.g <- switch(atlas,
                          hoa112=c(-125, 85),
                          lpba40=c(-125, 75),
@@ -150,15 +132,9 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
                        hoa112=c(-122, 77),
                        lpba40=c(-115, 70),
                        c(-125, 85))
-    } else {
-      mult <- 1
-      xlim.g <- ylim.g <- c(-1.25, 1.25)
     }
   } else {
-    if (plane == 'circular') {
-      mult <- 1
-      xlim.g <- ylim.g <- c(-1.25, 1.25)
-    } else {
+    if (plane != 'circular') {
       xlim.g <- switch(atlas,
                        dk=, dk.scgm=, dkt=, dkt.scgm=c(-105, 105),
                        hoa112=, lpba40=c(-100, 100),
@@ -173,6 +149,15 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
                        c(-125, 85))
     }
   }
+  if (plane == 'circular') {
+    par(bg='black')
+    mult <- 1
+    layout.x <- rotation(layout.circle(x, order=V(x)$circle.layout), -pi/2 - pi/Nv)
+    V(x)$x <- layout.x[, 1]
+    V(x)$y <- layout.x[, 2]
+    xlim.g <- c(-1.5, 1.2)
+    ylim.g <- c(-1, 1.25)
+  }
 
   #---------------------------------------------------------
   # Handle extra arguments in case a subgraph was created
@@ -181,10 +166,10 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   vcols <- 'lightblue'
   if (hasArg('vertex.color')) {
     if (is.character(fargs$vertex.color) & length(fargs$vertex.color) == 1) {
-      stopifnot(fargs$vertex.color %in% vertex_attr_names(g))
-      vcols <- vertex_attr(g, fargs$vertex.color)
+      stopifnot(fargs$vertex.color %in% vertex_attr_names(x))
+      vcols <- vertex_attr(x, fargs$vertex.color)
       if (adjust == 1) {
-        medial <- which(abs(V(g)$x.mni) < 20)
+        medial <- which(abs(V(x)$x.mni) < 20)
         vcols[medial] <- adjustcolor(vcols[medial], alpha.f=0.4)
       }
     } else {
@@ -194,10 +179,10 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   ecols <- 'red'
   if (hasArg('edge.color')) {
     if (is.character(fargs$edge.color) & length(fargs$edge.color) == 1) {
-      stopifnot(fargs$edge.color %in% edge_attr_names(g))
-      ecols <- edge_attr(g, fargs$edge.color)
+      stopifnot(fargs$edge.color %in% edge_attr_names(x))
+      ecols <- edge_attr(x, fargs$edge.color)
       if (adjust == 1) {
-        medial.es <- as.numeric(E(g)[medial %--% medial])
+        medial.es <- as.numeric(E(x)[medial %--% medial])
         ecols[medial.es] <- adjustcolor(ecols[medial.es], alpha.f=0.4)
       }
     } else {
@@ -210,9 +195,9 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   vsize <- mult * 10
   if (hasArg('vertex.size')) {
     if (is.character(fargs$vertex.size)) {
-      stopifnot(fargs$vertex.size %in% vertex_attr_names(g))
-      vsize <- mult * vertex_attr(g, fargs$vertex.size)
-      if (any(!is.finite(vsize))) g <- delete.vertices(g, which(!is.finite(vsize)))
+      stopifnot(fargs$vertex.size %in% vertex_attr_names(x))
+      vsize <- mult * vertex_attr(x, fargs$vertex.size)
+      if (any(!is.finite(vsize))) x <- delete.vertices(x, which(!is.finite(vsize)))
       vsize <- mult * vec.transform(vsize, as.numeric(min(vsize) > 0), 15)
     } else {
       vsize <- mult * fargs$vertex.size
@@ -221,15 +206,15 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   ewidth <- 1.5
   if (hasArg('edge.width')) {
     if (is.character(fargs$edge.width)) {
-      stopifnot(fargs$edge.width %in% edge_attr_names(g))
-      ewidth <- edge_attr(g, fargs$edge.width)
+      stopifnot(fargs$edge.width %in% edge_attr_names(x))
+      ewidth <- edge_attr(x, fargs$edge.width)
     } else {
       ewidth <- fargs$edge.width
     }
   }
   # Vertex labels
   #-------------------------------------
-  vlabel <- V(g)$name
+  vlabel <- V(x)$name
   vlabel.dist <- ifelse(vsize >= mult * 10, 0, 5)
   vlabel.col <- ifelse(vcols %in% c('red', 'blue', 'magenta'), 'white', 'blue')
   vlabel.font <- 2
@@ -237,7 +222,7 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
     if (is.na(fargs$vertex.label)) {
       vlabel <- vlabel.cex <- vlabel.dist <- vlabel.col <- vlabel.font <- NA
     } else {
-      vlabel <- vertex_attr(g, fargs$vertex.label)
+      vlabel <- vertex_attr(x, fargs$vertex.label)
     }
   }
   if (hasArg('vertex.label.cex')) {
@@ -246,18 +231,18 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
     vlabel.cex <- 1
   }
 
-  plot(g, asp=asp, rescale=rescale, xlim=xlim.g, ylim=ylim.g,
+  NextMethod(generic='plot', object=x, asp=asp, rescale=rescale, xlim=xlim.g, ylim=ylim.g,
        vertex.color=vcols, edge.color=ecols, vertex.size=vsize,
        edge.width=ewidth, vertex.label=vlabel, vertex.label.cex=vlabel.cex,
        vertex.label.dist=vlabel.dist, vertex.label.font=vlabel.font,
        vertex.label.color=vlabel.col, ...)
 
-  if (!is.null(sub)) {
-    if (sub == 'default') {
-      Ne <- ecount(g)
-      g.density <- round(graph.density(g), digits=3)
+  if (!is.null(subt)) {
+    if (subt == 'default') {
+      Ne <- ecount(x)
+      g.density <- round(graph.density(x), digits=3)
       par(new=TRUE, mar=c(5, 0, 3, 0)+0.1)
-      sub <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
+      subt <- paste('# vertices: ', Nv, '# edges: ', Ne, '\n',
                    'Density: ', g.density)
     }
   }
@@ -266,16 +251,16 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
   } else {
     cex.main <- 2.5
   }
-  title(main=main, sub=sub, col.main='white', col.sub='white', cex.main=cex.main)
+  title(main=main, sub=subt, col.main='white', col.sub='white', cex.main=cex.main)
 
   if (isTRUE(show.legend)) {
     if (hasArg('vertex.color')) {
-      atlas.dt <- eval(parse(text=g$atlas))
+      atlas.dt <- get(atlas)
       if (fargs$vertex.color == 'color.lobe') {
-        lobes.g <- unique(V(g)$lobe)
+        lobes.g <- unique(V(x)$lobe)
         classnames <- intersect(levels(atlas.dt$lobe), lobes.g)
         total <- unname(atlas.dt[, table(lobe)][classnames])
-        classnames <- paste0(classnames, ': ', table(V(g)$lobe)[classnames],
+        classnames <- paste0(classnames, ': ', table(V(x)$lobe)[classnames],
                              ' / ', total)
         cols <- group.cols[which(levels(atlas.dt$lobe) %in% lobes.g)]
         cex <- vlabel.cex
@@ -288,20 +273,146 @@ plot_brainGraph <- function(g, plane=c('axial', 'sagittal', 'circular'),
         cols <- c('red', 'orange', 'green')
         cex <- 1.5
       } else if (fargs$vertex.color == 'color.network') {
-        networks.g <- unique(V(g)$network)
+        networks.g <- unique(V(x)$network)
         classnames <- intersect(levels(atlas.dt$network), networks.g)
         total <- unname(atlas.dt[, table(network)][classnames])
-        classnames <- paste0(classnames, ': ', table(V(g)$network)[classnames],
+        classnames <- paste0(classnames, ': ', table(V(x)$network)[classnames],
                              ' / ', total)
         cols <- group.cols[which(levels(atlas.dt$network) %in% networks.g)]
         cex <- vlabel.cex
+      } else if (fargs$vertex.color == 'color.comm') {
+        memb <- V(x)$comm
+        tab <- table(memb)
+        tab <- tab[tab >= 3]
+        group.nums <- as.integer(names(tab))
+        classnames <- paste('Community', group.nums)
+        cols <- group.cols[group.nums]
+        cex <- vlabel.cex
       }
+      l.inset <- ifelse(plane == 'circular', c(-0.1, 0), c(-0.01, 0))
       legend('topleft',
              classnames,
              fill=cols,
              bg='black',
              text.col='white',
-             cex=cex)
+             cex=cex,
+             inset=l.inset)
     }
   }
+}
+
+#' @inheritParams plot.brainGraph
+#' @export
+#' @rdname plot.brainGraph
+
+plot_brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
+                            hemi=c('both', 'L', 'R'),
+                            subgraph=NULL, show.legend=FALSE,
+                            rescale=FALSE, asp=0, main=NULL, subt='default', mni=TRUE, ...) {
+  plot.brainGraph(x, plane, hemi, subgraph, show.legend, rescale, asp, main, subt, mni, ...)
+}
+
+#' Plot a graph with results from the network-based statistic
+#'
+#' This is a convenience function for plotting a graph based on results from
+#' \code{\link{NBS}}. There are several default arguments that are set:
+#' vertex/edge colors will correspond to connected component membership, and
+#' only those vertices in which \code{V(g)$p.nbs > 1 - alpha} will be shown.
+#' Finally, vertex names will be omitted.
+#'
+#' @param x An \code{igraph} graph object (from
+#'   \code{\link{make_nbs_brainGraph}})
+#' @param alpha Numeric; the significance level (default: 0.05)
+#' @param subgraph Character string specifying the condition for subsetting the
+#'   graph. By default, it will show only the vertices which are members of
+#'   components determined to be significant based on \code{alpha}.
+#' @param vertex.label Character vector of the vertex labels to be displayed.
+#'   Default behavior is to omit them.
+#' @param vertex.color Character string specifying the vertex attribute to color
+#'   the vertices by (default: \code{color.comp}, which groups vertices by
+#'   connected component)
+#' @param edge.color Character string specifying the edge attribute to color
+#'   the edges by (default: \code{color.comp}, which groups edges by connected
+#'   component)
+#' @param cex.main Numeric; the scaling factor for text size (default: 2)
+#' @param ... Other arguments passed to \code{\link{plot.brainGraph}}
+#' @inheritParams plot.brainGraph
+#' @export
+#' @method plot brainGraph_NBS
+#' @family Plotting functions
+
+plot.brainGraph_NBS <- function(x, alpha=0.05, subgraph=paste('p.nbs >', 1 - alpha),
+                                vertex.label=NA,
+                                vertex.color='color.comp', edge.color='color.comp', subt=NULL,
+                                main=paste0('\n\nNBS: ', x$name), cex.main=2, ...) {
+  NextMethod(generic='plot', object=x, subgraph=subgraph,
+             vertex.label=vertex.label, vertex.color=vertex.color, edge.color=edge.color,
+             subt=subt, main=main, cex.main=cex.main, ...)
+}
+
+#' Plot a graph with results from brainGraph_GLM
+#'
+#' This is a convenience function for plotting a graph based on results from
+#' \code{\link{brainGraph_GLM}}. There are a few argument defaults: to plot only those
+#' vertices for which \eqn{p < \alpha}; a plot title with the outcome
+#' measure and contrast name, and to omit the plot subtitle.
+#'
+#' @param x An \code{igraph} graph object (from
+#'   \code{\link{make_glm_brainGraph}})
+#' @param p.sig Character string indicating which p-value to use for determining
+#'   significance (default: \code{p})
+#' @param cex.main Numeric indicating the scaling for plot title size (see
+#'   \code{\link[graphics]{par}}.
+#' @inheritParams plot.brainGraph
+#' @export
+#' @method plot brainGraph_GLM
+#' @family Plotting functions
+
+plot.brainGraph_GLM <- function(x, p.sig=c('p', 'p.fdr', 'p.perm'),
+                                subgraph=NULL,
+                                main=paste0('\n\n', x$outcome, ': ', x$name),
+                                subt=NULL, cex.main=2, ...) {
+  p.sig <- match.arg(p.sig)
+  if (is.null(subgraph)) subgraph <- paste0(p.sig, ' > 1 -', x$alpha)
+  NextMethod(generic='plot', object=x, subgraph=subgraph,
+             main=main, subt=subt, cex.main=cex.main, ...)
+}
+
+#' Plot a graph with results from MTPC
+#'
+#' This is a convenience function for plotting a graph based on results from
+#' \code{\link{mtpc}}. There are a few argument defaults: to plot only those
+#' vertices for which \eqn{A_{mtpc} > A_{crit}}; a plot title with the outcome
+#' measure and contrast name, and to omit the plot subtitle.
+#'
+#' @param x An \code{igraph} graph object (from
+#'   \code{\link{make_glm_brainGraph}})
+#' @param cex.main Numeric indicating the scaling for plot title size (see
+#'   \code{\link[graphics]{par}}.
+#' @inheritParams plot.brainGraph
+#' @export
+#' @method plot brainGraph_mtpc
+#' @family Plotting functions
+
+plot.brainGraph_mtpc <- function(x, subgraph='sig == 1',
+                                 main=paste0('\n\n', x$outcome, ': ', x$name),
+                                 subt=NULL, cex.main=2, ...) {
+  NextMethod(generic='plot', object=x, subgraph=subgraph,
+             main=main, subt=subt, cex.main=cex.main, ...)
+}
+
+#' Plot a graph with results from a mediation analysis
+#'
+#' @param x An graph object (from \code{\link{make_mediate_brainGraph}})
+#' @param cex.main Numeric indicating the scaling for plot title size (see
+#'   \code{\link[graphics]{par}}.
+#' @inheritParams plot.brainGraph
+#' @export
+#' @method plot brainGraph_mediate
+#' @family Plotting functions
+
+plot.brainGraph_mediate <- function(x, subgraph='p.acme > 0.95',
+                                    main=sprintf('\n\n\nEffect of "%s" on\n"%s"\nmediated by "%s"', x$treat, x$outcome, x$mediator),
+                                    subt=NULL, cex.main=1, ...) {
+  NextMethod(generic='plot', object=x, subgraph=subgraph, main=main, subt=subt, cex.main=cex.main, ...)
 }

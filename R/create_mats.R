@@ -216,6 +216,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 #' @param symm.by Character string; how to create symmetric off-diagonal
 #'   elements (default: \code{max})
 #' @export
+#' @return A symmetric matrix
 #'
 #' @family Matrix functions
 #' @seealso \code{\link[igraph]{graph_from_adjacency_matrix}}
@@ -253,6 +254,7 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
 #' @param ... Arguments passed to \code{\link{symmetrize_mats}}
 #' @inheritParams symmetrize_mats
 #' @export
+#' @return An array of symmetric matrices
 #' @family Matrix functions
 #' @rdname symmetrize_mats
 
@@ -298,13 +300,14 @@ normalize_mats <- function(A, divisor, div.files, Nv, kNumSubjs, P) {
 #' been returned from \code{\link{create_mats}}. This ensures that the same
 #' connections are present in both sets of matrices.
 #'
-#' @param sub.mats List (equal to number of thresholds) of numeric arrays
+#' @param sub.mats List (length equal to number of thresholds) of numeric arrays
 #'   (3-dim) for all subjects
 #' @param group.mats List (equal to number of thresholds) of lists (equal to
 #'   number of groups) of numeric matrices for group-level data
-#' @param W.files Character vector of the filenames with connection matrices
+#' @param W.files Character vector of the filenames of the files containing your
+#'   connectivity matrices
 #' @param inds List (length equal to number of groups) of integers; each list
-#'   element should be a vector of length equal to the group sizes
+#'   element should be an integer vector of length equal to the group sizes
 #' @export
 #'
 #' @return List containing:

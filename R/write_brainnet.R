@@ -40,7 +40,7 @@ write_brainnet <- function(g, node.color='none', node.size='constant',
   x.mni <- y.mni <- z.mni <- NULL
   stopifnot(is_igraph(g))
 
-  atlas.dt <- eval(parse(text=g$atlas))
+  atlas.dt <- get(g$atlas)
   coords.cur <- round(atlas.dt[, matrix(c(x.mni, y.mni, z.mni), ncol=3)])
 
   if (node.color == 'none') {

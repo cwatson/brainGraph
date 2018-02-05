@@ -5,8 +5,7 @@
 \title{Initialize variables for further use in brainGraph}
 \usage{
 brainGraph_init(atlas, densities, datadir, modality = c("thickness", "volume",
-  "lgi", "area"), use.mean = FALSE, covars = NULL, exclude.subs = NULL,
-  custom.atlas = NULL)
+  "lgi", "area"), covars = NULL, exclude.subs = NULL, custom.atlas = NULL)
 }
 \arguments{
 \item{atlas}{Character string indicating which brain atlas you are using.
@@ -22,10 +21,6 @@ investigate}
 \item{modality}{Character string indicating the volumetric MRI
 modality/measure used to create the graphs (default: \code{thickness})}
 
-\item{use.mean}{Logical indicating whether or not you would like to
-calculate the mean hemispheric volumetric measure (for later use in linear
-models) (default: \code{FALSE})}
-
 \item{covars}{A \code{data.table} of covariates; specify this if you do not
 want to load your full covariates file (default: \code{NULL})}
 
@@ -37,28 +32,27 @@ to use, if applicable (default: \code{NULL})}
 }
 \value{
 A list containing:
-\item{atlas}{Character string of the brain atlas name}
-\item{densities}{Numeric vector of the graph densities}
-\item{modality}{Character string of the modality you chose}
-\item{kNumDensities}{Integer indicating the number of densities}
-\item{covars}{A \code{data.table} of covariates}
-\item{groups}{Character vector of subject group names}
-\item{kNumGroups}{Integer indicating the number of groups}
-\item{kNumVertices}{Integer; the number of vertices in the graphs}
-\item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
-data}
-\item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
-\item{all.dat.tidy}{A "tidied" version of \code{all.dat}}
+  \item{atlas}{Character string of the brain atlas name}
+  \item{densities}{Numeric vector of the graph densities}
+  \item{modality}{Character string of the modality you chose}
+  \item{kNumDensities}{Integer indicating the number of densities}
+  \item{covars}{A \code{data.table} of covariates}
+  \item{groups}{Character vector of subject group names}
+  \item{kNumGroups}{Integer indicating the number of groups}
+  \item{kNumVertices}{Integer; the number of vertices in the graphs}
+  \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
+    data}
 }
 \description{
 Initializes some variables that are important for further analysis of
-volumetric (e.g., \emph{cortical thickness}) data. This mostly involves
-loading CSV files (of covariates/demographics, cortical thickness/volumes,
-etc.) and returning them as data tables.
+structural covariance networks (e.g., \emph{cortical thickness}). This mostly
+involves loading CSV files (of covariates/demographics, cortical
+thickness/volumes, etc.) and returning them as data tables.
 }
 \details{
-You can use any atlas that is already present in the package; you can check
-by typing \code{data(package="brainGraph")$results[, 3]}. If you have a
+You can use any atlas that is already present in the package; to check the
+available atlases, you can type
+\code{data(package="brainGraph")$results[, 3]} at the R prompt. If you have a
 custom atlas, specify \code{atlas="custom"} and supply the R object's name
 for the argument \code{custom.atlas}.
 
@@ -76,12 +70,16 @@ matter, then you will need files \code{covars.scgm.csv} and \code{scgm.csv}.
 \dontrun{
 init.vars <- brainGraph_init(atlas='dkt', densities=seq(0.07, 0.50, 0.01),
   datadir='/home/cwatson/Data', modality='thickness', exclude.subs=c('Con07',
-  'Con23', 'Pat15'), use.mean=FALSE)
+  'Con23', 'Pat15'))
 }
 }
 \seealso{
-Other Volumetric functions: \code{\link{check.resid}},
-  \code{\link{corr.matrix}}, \code{\link{get.resid}}
+Other Structural covariance network functions: \code{\link{IndividualContributions}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_permute}},
+  \code{\link{corr.matrix}}, \code{\link{get.resid}},
+  \code{\link{plot.brainGraph_resids}},
+  \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

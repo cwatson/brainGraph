@@ -1,6 +1,169 @@
-# brainGraph 1.6.2
+# brainGraph 2.0.0
+
+2018-02-05
+
+*2nd major release; 6th CRAN release*. (The previous CRAN release was at v1.0.0)
+
+For other updates and bug fixes, see the minor release notes below.
+
+## New functions/features
+1. Mediation analysis is now possible through `brainGraph_mediate`.
+2. I have introduced some simple *S3 classes* and *methods*. All of the classes have `plot` (except `NBS`) and `summary` methods.
+The classes and corresponding "creation functions" are:
+
+| Class             | Creation func.            | Description                       |
+| -----             | -----                     | -----                             |
+| brainGraph        | make_brainGraph           | Any graph with certain attributes |
+| bg_GLM            | brainGraph_GLM            | Results of GLM analysis           |
+| NBS               | NBS                       | Results of NBS analysis           |
+| mtpc              | mtpc                      | Results of MTPC analysis          |
+| brainGraph_GLM    | make_glm_brainGraph       | Graphs from GLM analysis          |
+| brainGraph_NBS    | make_nbs_brainGraph       | Graphs from NBS analysis          |
+| brainGraph_mtpc   | make_glm_brainGraph       | Graphs from MTPC analysis         |
+| brainGraph_mediate| make_mediate_brainGraph   | Graphs from mediation analysis    |
+| brainGraph_boot   | brainGraph_boot           | Results of bootstrap analysis     |
+| brainGraph_permute| brainGraph_permute        | Results of permutation tests      |
+| brainGraph_resids | get.resid                 | Residuals for covariance networks |
+
+3. Multiple contrasts (in the same function call), as well as F-contrasts, are now allowed in the GLM-based functions: `brainGraph_GLM`, `mtpc`, `NBS`, and `get.resid`.
+    * There is a new function argument, `con.type`, for this purpose.
+    * Since both contrast types are now specified in the form of a *contrast matrix*, the argument `con.vec` has been replaced by `con.mat`.
+4. Designs with 3-way interactions (e.g., `2 x 2 x 2`) are now allowed for GLM-based analyses.
+5. Permutations for GLM-based analyses are now done using the *Freedman-Lane* method (the same as in FSL's *randomise* and in *PALM*).
+6. Plot the "diagnostics" from GLM analyses through the `plot.bg_GLM` method to the output of `brainGraph_GLM`.
+7. Plot the statistics from MTPC analyses through the `plot.mtpc` method for `mtpc` results.
+8. `aop` has a new argument `control.value` allowing you to specify the control group; all comparisons will be to that group.
+    * Removes the need to loop through patient groups in the console (if you have more than 1).
+9. Most of the GLM-based functions have a new argument, `long`, which will not return all of the permutation results if `long=FALSE`.
+
+## Removed/renamed functions
+* `boot_global` was renamed to `brainGraph_boot`.
+* `check.resid` was removed; you now just call the `plot` method to outputs of `get.resid`.
+* `permute.group`:
+    1. Function was renamed to `brainGraph_permute`.
+    2. The arguments are slightly re-ordered
+    3. Argument `permSet` was renamed to `perms`.
+    4. New argument `auc` lets you explicitly define whether or not you want statistics for the *area under the curve (AUC)*.
+* `plot_boot` was removed; you now just call the `plot` method to outputs of `brainGraph_boot`.
+* `plot_brainGraph_mni` has been removed; this functionality can be changed by the `mni` argument to `plot.brainGraph` (i.e., the *plot method* for objects of class `brainGraph`)
+* `plot_group_means` was renamed to `plot_volumetric`, as it works specifically for structural covariance networks.
+* `plot_perm_diffs` was removed; you now just call the `plot` method to outputs of `brainGraph_permute`.
+
+## Major changes
+* `NBS` now automatically symmetrizes the input matrices. This is partly for speed and partly because `igraph` symmetrizes the matrices anyway.
+    * There is a new function argument, `symm.by` (which is the same as that for `create_mats`) for this purpose.
+* `corr.matrix`:
+    * Now expects as its first input the residuals from `get.resid`.
+    * You may specify multiple `densities` (or `thresholds`),
+    * Returns a *list* including the binarized, thresholded matrices as an *array* (still named `r.thresh`).
+* `get.resid` now allows for any design matrix for getting LM residuals (similar to `brainGraph_GLM`).
+    * Must supply a `data.table` of covariates.
+    * You may pass on arguments to `brainGraph_GLM_design` for creating the correct design matrix.
+* `mtpc` accepts 2 new arguments (in addition to explicitly naming required arguments that pass on to `brainGraph_GLM`):
+    1. `clust.size` lets you change the "cluster size", the number of consecutive thresholds needed to deem a result significant (default: `3`)
+    2. `res.glm` lets you input the `res.glm` list element from a previous `mtpc` run. This is only useful if you would like to compare results with different values for `clust.size`.
+* `permute.group` (see above section for changes)
+* `rich_club_norm` now returns a `data.table`, which simplifies working with the data (and plotting).
+* `set_brainGraph_attr`: multiple (explicit) arguments were removed; these are now passed on to `make_brainGraph` and can still be specified in the function call.
+* I now use the `ggrepel` package for any `ggplot` objects with text labels.
+
+# brainGraph 1.6.0
 
 2017-09-14
+
+## Bug fix
+* `brainGraph_init`: fixed bug regarding the use of a custom atlas
+
+## Minor changes
+* Some function arguments have been modified to reflect the object type (e.g., changing `g` to `g.list` if the function requires a *list* object).
+* `brainGraph_init`:
+    * New argument `custom.atlas` allows you to use an atlas that is not in the package (you must also specify `atlas="custom"`).
+    * This requires that the atlas you specify already be loaded into the R environment and meet the specifications of the package's atlases
+        * It should be a `data.table`, and have columns *name*, *x.mni*, *y.mni*, *z.mni*, *lobe*, *hemi* (at a minimum).
+* `permute.group`: can now calculate `ev.cent`
+
+
+# brainGraph 1.5.0
+
+2017-08-31
+
+## Bug fix
+* `boot_global`: fixed bug in *modularity* calculation
+
+## Major changes
+* `boot_global`:
+    * can omit display of the progress bar (by setting `.progress=FALSE`)
+    * can now create weighted networks; to do so, you must choose a weighted metric in the function argument `measure`
+    * added some weighted metrics as options for `measure` (*strength*, *mod.wt*, *E.global.wt*)
+    * can specify the confidence level (for calculating confidence intervals) via the `conf` argument (default: 0.95)
+* `set_brainGraph_attr`:
+    * New argument `xfm.type`, which allows you to choose how edge weights should be transformed for calculating distance-based metrics.
+    * The default is the *reciprocal* (which is what was hard-coded in previous versions).
+    * Other options are: `1-w` (subtract weights from 1); and `-log(w)` (take the negative natural logarithm of weights).
+
+### New functions
+* `symmetrize_array`: a convenience function that applies `symmetrize_mats` along the third dimension of an array
+* `xfm.weights`: utility function to transform edge weights (necessary when calculating distance-based metrics).
+
+## Minor changes
+* `graph_attr_dt` and `vertex_attr_dt` will now include `weighting`, if present
+* `set_brainGraph_attr` has 2 new arguments:
+    1. `weighting` will create a graph-level attribute indicating how the edges are weighted (e.g., 'fa' for FA-weighted tractography networks)
+    2. `threshold` will create a graph-level attribute indicating the (numeric) threshold used to create the network (if applicable)
+
+# brainGraph 1.4.0
+
+2017-06-10
+
+## Bug fix
+* `mtpc`: fixed a bug that would incorrectly calculate `A.crit`
+
+## New functions
+* `apply_thresholds`: threshold an additional set of matrices (e.g., FA-weighted matrices in DTI tractography) based on a set of matrices that have already been thresholded (e.g., streamline-weighted matrices in DTI tractography)
+
+## Minor changes
+* `analysis_random_graphs`: no longer requires a *covars* argument
+
+
+# brainGraph 1.3.0
+
+2017-04-30
+
+## Bug fix
+* `create_mats`
+    * fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
+    * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
+
+## Major changes
+* `create_mats`
+    * `threshold.by='consensus'` is the name of the new default, as this is what is called "consensus-based" thresholding in the literature.
+    * `threshold.by='consistency'` is a new option, for performing *consistency-based* thresholding. See Roberts et al., 2017.
+
+## Minor changes
+* `set_brainGraph_attr` no longer calculates the graph's *clique number*, which takes exceedingly long in denser and/or larger graphs (e.g., `craddock200`)
+
+# brainGraph 1.2.0
+
+2017-04-29
+
+## Bug fix
+* `plot_brainGraph`: now returns `NA` (instead of throwing an error) if the specified *subgraph* expression results in a network with 0 vertices.
+* `edge_asymmetry` fixed bug when the input graph had only one contralateral connection (usually only encountered in the GUI with neighborhood plots)
+
+## Major changes
+* `create_mats`: you can specify `threshold.by='mean'`, which will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > mat.thresh`, for each of `mat.thresh`.
+
+## New functions
+* `make_empty_brainGraph`: this is not a new function, but rather was not exported in previous versions
+* `s_core`: calculate the *s-core* membership of a graph's vertices (Eidsaa & Almaas, 2013)
+    * Adds a vertex attributes called `s.core` to the graph through `set_brainGraph_attr`.
+    * Analogous to the *k-core* but for weighted networks.
+    * The vertex attribute for *k-core* has been changed from `coreness` to `k.core` to distinguish these metrics.
+
+
+# brainGraph 1.1.0
+
+2017-04-22
 
 ## Bug fix
 * `plot_brainGraph_gui` had multiple issues and a few features have been changed:
@@ -8,62 +171,32 @@
     * *Lobe*, *neighborhood*, and *community* selection are now in "scrolled windows" instead of drop-down lists. Multiple selections can be made either by pressing `Ctrl` and clicking, or by holding `Shift` and moving the arrow keys
     * Fixed problem with vertex colors
     * When choosing to plot *neighborhoods*, you can color the vertices based on which neighborhood they belong to (useful if multiple vertices are selected)
-* `plot_brainGraph`: now returns `NA` (instead of throwing an error) if the specified *subgraph* expression results in a network with 0 vertices.
 * `gateway_coeff` returned an error if the number of communities equals 1; this has been fixed
-* `edge_asymmetry` contained a bug if the input graph had only one contralateral connection (usually only encountered in the GUI with neighborhood plots); this has been fixed for those situations.
-* `create_mats`:
-    * Fixed bug for deterministic tractography when the user would like to normalize the matrices by *ROI size*.
-    * Fixed bug for when `threshold.by='density'`. Previously, it would keep the top *X*% for *each* subject
-* `mtpc`: fixed a bug that would incorrectly calculate `A.crit`
-* `boot_global`: fixed bug in *modularity* calculation
-* `brainGraph_init`: fixed bug regarding the use of a custom atlas
-
-## Major changes
-* `brainGraph_GLM`:
-    * new function argument *level*, which now allows you to perform inference for graph-level measures
-    * new argument *perms*, to specify the permutation set if you would like to use the same one for multiple graph/vertex measures (to improve the speed of the new `mtpc` function).
-* `create_mats`
-    * From v1.1.1 onward, all `A.norm.sub` matrices will be symmetrized, regardless of the value of `threshold.by` (previously they were only symmetrized if using `threshold.by='density'`). This should not pose a problem as the default (to take the *maximum* of the off-diagonal elements) is also the default when creating graphs in `igraph`.
-    * From v1.2.0 onward, you can specify `mean` as the value for `threshold.by`. This will threshold the matrices such that a connection will be kept if `mean(A_ij) + 2*sd(A_ij) > threshold`, for each of the `threshold` values specified. See the references in the User Guide for examples in the literature.
-    * From v1.3.0 onward, the `threshold.by` default name has been changed from `raw` to `consensus`, as this functionality is what is called "consensus-based" thresholding in the literature.
-    * From v1.3.0, you may also specify `threshold.by='consistency'` to perform *consistency-based* thresholding. See Roberts et al., 2017.
-* `boot_global`:
-    * can omit displaying the progress bar (by setting `.progress=FALSE`)
-    * can now create weighted networks; to do so, you must choose a weighted metric in the function argument `measure`
-    * added some weighted metrics as options for `measure` (*strength*, *mod.wt*, *E.global.wt*)
-    * can specify the confidence level (for calculating confidence intervals) via the `conf` argument (default: 0.95)
-* `set_brainGraph_attr`: new argument `xfm.type`, which allows you to choose how edge weights should be transformed for calculating distance-based metrics. The default is the *reciprocal* (which is what was hard-coded in previous versions). Other options are: `1-w` (subtract weights from 1); and `-log(w)` (take the negative natural logarithm of weights).
 
 ## New functions
-* `apply_thresholds`: threshold an additional set of matrices (e.g., FA-weighted matrices in DTI tractography) based on a set of matrices that have already been thresholded (e.g., streamline-weighted matrices in DTI tractography)
-* `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009). This requires that the package `expm` is installed.
+* `centr_betw_comm`: calculate vertex *communicability betweenness centrality* (Estrada et al., 2009)
 * `communicability`: calculate network *communicability* (Estrada & Hatano, 2008)
-* `make_empty_brainGraph`: this is not a new function, but rather was not exported in previous versions. Now it is accessible without the "triple-colon" operator (i.e., it is no longer necessary to call with `brainGraph:::make_empty_brainGraph`).
 * `mtpc`: the *multi-threshold permutation correction (MTPC)* method for statistical inference of either vertex- or graph-level measures (Drakesmith et al., 2015)
-* `symmetrize_mats`: symmetrize a connectivity matrix by either the *maximum*, *minimum*, or *average* of the off-diagonal elements. You may select one of these three as an argument to the function `create_mats`.
-* `symmetrize_array`: a convenience function that applies `symmetrize_mats` along the third dimension of an array
-* `s_core`: calculate the *s-core* membership of a graph's vertices (Eidsaa & Almaas, 2013); the graphs will have vertex attributes called `s.core`. This is analogous to the *k-core* but for weighted networks. The vertex attribute for *k-core* has been changed from `coreness` to `k.core`.
-* `xfm.weights`: utility function to transform edge weights (necessary when calculating distance-based metrics).
+* `symmetrize_mats`: symmetrize a connectivity matrix by either the *maximum*, *minimum*, or *average* of the off-diagonal elements. You may select one of these as an argument to `create_mats`.
+
+## Major changes
+* `brainGraph_GLM` has 2 new function arguments:
+    * `level` allows you to perform inference for graph- or vertex-level measures
+    * `perms` lets you specify the permutation set explicitly
+* `create_mats`: All `A.norm.sub` matrices will be symmetrized, regardless of the value of `threshold.by` (previously they were only symmetrized if using `threshold.by='density'`).
+    * This should not pose a problem, as the default (to take the *maximum* of the off-diagonal elements) is also the default when creating graphs in `igraph`.
 
 ## Minor changes
-* `analysis_random_graphs`: no longer requires a *covars* argument
-* `brainGraph_init`: new argument `custom.atlas` which allows you to use an atlas that is not in the package (you must also specify `atlas="custom"`). This requires that the atlas you specify already be loaded into the R environment and meet the specifications of the package's atlases (e.g., it should be a `data.table`, it should at least have columns *name*, *x.mni*, *y.mni*, *z.mni*, *lobe*, *hemi*).
 * `get.resid`: no longer requires a *covars* argument, as it was redundant
-* `graph_attr_dt` and `vertex_attr_dt` will now include `weighting`, if present
-* `permute.group`: can now calculate `ev.cent`
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
-* Some function arguments have been slightly modified to reflect the object type (for example, changing `g` to `g.list` if the function requires a *list* object as input).
-* `set_brainGraph_attr`
-    * no longer calculates the graph's *clique number*. This operation is usually fast but takes exceedingly long in dense graphs and graphs with more vertices (e.g., `craddock200`)
-    * new arguments `weighting` and `threshold` will create graph-level attributes to indicate how the edges are weighted (e.g., 'fa' for FA-weighted tractography networks) and the threshold used to create the network (if applicable), respectively.
 
 
-----
+--------------------------------------------------------------------------------
 # brainGraph 1.0.0
 
 2017-04-10
 
-First *major* release; Fifth CRAN version
+*First major release; Fifth CRAN release*
 
 ## Bug fix
 * `plot_perm_diffs` previously didn't work with a low number of permutations, but now will work with any number
@@ -95,14 +228,14 @@ First *major* release; Fifth CRAN version
 * `contract_brainGraph` replaces `graph.contract.brain`
 * `make_ego_brainGraph` replaces `graph_neighborhood_multiple` (so it is a similar name to *igraph*'s function `make_ego_graph`)
 * `write_brainnet` replaces `write.brainnet`
-* In the GUI, ordering of vertices in circle plots now more closely reflect their anatomical position, being ordered by y- and x-coordinates (in addition to still being grouped by *lobe*)
+* In the GUI, vertex order in circle plots now more closely reflect their anatomical position, being ordered by y- and x-coordinates (and within *lobe*)
 
-----
+--------------------------------------------------------------------------------
 # brainGraph 0.72.0
 
 2016-10-10
 
-Fourth CRAN version
+*Fourth CRAN release*
 
 ## Bug fix
 * `sim.rand.graph.clust` previously returned a list; now it correctly returns an
@@ -179,12 +312,12 @@ Fourth CRAN version
     function argument
   * Can color vertices by multiple variables
 
----
+--------------------------------------------------------------------------------
 # brainGraph 0.62.0
 
 2016-04-22
 
-Third CRAN version
+*Third CRAN release*
 
 ## Bug fix
 * `rich.club.norm` had a bug in calculating the p-values. If you have already
@@ -214,7 +347,7 @@ where `N` is the number of random graphs generated.
 * `group.graph.diffs`:
   * Uses the function `fastLmPure` from `RcppEigen` for speed/efficiency
   * Can specify multiple alternative hypotheses
-  * Linear model specification is more limited now, though (on *TODO* list)
+  * Linear model specification is more limited now, though
 * Added data table for the `destrieux.scgm` atlas
 
 ## New functions
@@ -254,12 +387,12 @@ where `N` is the number of random graphs generated.
   * Vertex-level *shortest path lengths*
 
 
----
+--------------------------------------------------------------------------------
 # brainGraph 0.55.0
 
 2015-12-24
 
-Second CRAN version
+*Second CRAN release*
 
 ## New functions
 * `aop` and `loo` calculate measures of *individual contribution* (see Reference
@@ -299,9 +432,9 @@ Second CRAN version
 * Exported `plot_perm_diffs`
 * Added argument checking for most functions
 
----
+--------------------------------------------------------------------------------
 # brainGraph 0.48.0
 
 2015-12-08
 
-Initial CRAN acceptance
+*Initial CRAN release*

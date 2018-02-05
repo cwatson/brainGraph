@@ -29,8 +29,8 @@ community or lobe membership, and they will be colored accordingly.
 }
 \examples{
 \dontrun{
-matplot1 <- plot_corr_mat(corrs[[1]][[N]]$r.thresh, g=g[[1]][[N]],
-                           group=groups[1])
+matplot1 <- plot_corr_mat(corrs[[1]]$r.thresh[, , N], g=g[[1]][[N]],
+                          group=groups[1])
 }
 }
 \seealso{

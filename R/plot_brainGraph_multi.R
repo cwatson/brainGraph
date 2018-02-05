@@ -33,6 +33,7 @@
 #' @param ... Other arguments passed to
 #'   \code{\link{plot_brainGraph}}
 #' @export
+#' @importFrom oro.nifti nifti
 #'
 #' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -53,7 +54,7 @@ plot_brainGraph_multi <- function(g.list, groups=1, N=1, filename='tmp.png',
   stopifnot('Group' %in% graph_attr_names(g.list[[groups[1]]][[N]]))
 
   X <- mni152@.Data
-  L <- oro.nifti::nifti(X[rev(seq_len(nrow(X))), rev(seq_len(ncol(X))), ])
+  L <- nifti(X[rev(seq_len(nrow(X))), rev(seq_len(ncol(X))), ])
   R <- aperm(X, c(2, 3, 1))
   L <- aperm(L, c(2, 3, 1))
 
@@ -105,20 +106,20 @@ plot_brainGraph_multi <- function(g.list, groups=1, N=1, filename='tmp.png',
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:109, 1:91, L[, , 30], col=imcol, breaks=breaks, asp=0)
     par(new=TRUE)
-    plot_brainGraph(g.list[[groups[i]]][[N]], plane='sagittal', hemi='L', main='\n\n\nLH',
+    plot(g.list[[groups[i]]][[N]], plane='sagittal', hemi='L', main='\n\n\nLH',
                     subgraph=subgraph[[i]], ...)
 
     # Axial
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:91, 1:109, X[, , 46], col=imcol, breaks=breaks)
     par(new=TRUE)
-    plot_brainGraph(g.list[[groups[i]]][[N]], main=main.title, subgraph=subgraph[[i]], ...)
+    plot(g.list[[groups[i]]][[N]], main=main.title, subgraph=subgraph[[i]], ...)
 
     # Right sag.
     par(mar=c(0, 0, 0, 0), bg='black')
     graphics::image(1:109, 1:91, R[, , 30], col=imcol, breaks=breaks)
     par(new=TRUE)
-    plot_brainGraph(g.list[[groups[i]]][[N]], plane='sagittal', hemi='R', main='\n\n\nRH',
+    plot(g.list[[groups[i]]][[N]], plane='sagittal', hemi='R', main='\n\n\nRH',
                     subgraph=subgraph[[i]], ...)
   }
   dev.off()

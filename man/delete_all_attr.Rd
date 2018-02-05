@@ -26,3 +26,4 @@ graph object.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\keyword{internal}

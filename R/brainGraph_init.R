@@ -1,12 +1,13 @@
 #' Initialize variables for further use in brainGraph
 #'
 #' Initializes some variables that are important for further analysis of
-#' volumetric (e.g., \emph{cortical thickness}) data. This mostly involves
-#' loading CSV files (of covariates/demographics, cortical thickness/volumes,
-#' etc.) and returning them as data tables.
+#' structural covariance networks (e.g., \emph{cortical thickness}). This mostly
+#' involves loading CSV files (of covariates/demographics, cortical
+#' thickness/volumes, etc.) and returning them as data tables.
 #'
-#' You can use any atlas that is already present in the package; you can check
-#' by typing \code{data(package="brainGraph")$results[, 3]}. If you have a
+#' You can use any atlas that is already present in the package; to check the
+#' available atlases, you can type
+#' \code{data(package="brainGraph")$results[, 3]} at the R prompt. If you have a
 #' custom atlas, specify \code{atlas="custom"} and supply the R object's name
 #' for the argument \code{custom.atlas}.
 #'
@@ -29,9 +30,6 @@
 #' @param datadir Character string; the filesystem location of your input files
 #' @param modality Character string indicating the volumetric MRI
 #'   modality/measure used to create the graphs (default: \code{thickness})
-#' @param use.mean Logical indicating whether or not you would like to
-#'   calculate the mean hemispheric volumetric measure (for later use in linear
-#'   models) (default: \code{FALSE})
 #' @param covars A \code{data.table} of covariates; specify this if you do not
 #'   want to load your full covariates file (default: \code{NULL})
 #' @param exclude.subs Character vector of the Study ID's of subjects who are to
@@ -41,43 +39,37 @@
 #' @export
 #'
 #' @return A list containing:
-#' \item{atlas}{Character string of the brain atlas name}
-#' \item{densities}{Numeric vector of the graph densities}
-#' \item{modality}{Character string of the modality you chose}
-#' \item{kNumDensities}{Integer indicating the number of densities}
-#' \item{covars}{A \code{data.table} of covariates}
-#' \item{groups}{Character vector of subject group names}
-#' \item{kNumGroups}{Integer indicating the number of groups}
-#' \item{kNumVertices}{Integer; the number of vertices in the graphs}
-#' \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
-#' data}
-#' \item{all.dat}{A merged \code{data.table} of \code{covars} and \code{lhrh}}
-#' \item{all.dat.tidy}{A "tidied" version of \code{all.dat}}
+#'   \item{atlas}{Character string of the brain atlas name}
+#'   \item{densities}{Numeric vector of the graph densities}
+#'   \item{modality}{Character string of the modality you chose}
+#'   \item{kNumDensities}{Integer indicating the number of densities}
+#'   \item{covars}{A \code{data.table} of covariates}
+#'   \item{groups}{Character vector of subject group names}
+#'   \item{kNumGroups}{Integer indicating the number of groups}
+#'   \item{kNumVertices}{Integer; the number of vertices in the graphs}
+#'   \item{lhrh}{A \code{data.table} of left- and right-hemispheric volumetric
+#'     data}
 #'
-#' @family Volumetric functions
+#' @family Structural covariance network functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' init.vars <- brainGraph_init(atlas='dkt', densities=seq(0.07, 0.50, 0.01),
 #'   datadir='/home/cwatson/Data', modality='thickness', exclude.subs=c('Con07',
-#'   'Con23', 'Pat15'), use.mean=FALSE)
+#'   'Con23', 'Pat15'))
 #' }
 
 brainGraph_init <- function(atlas, densities, datadir,
                             modality=c('thickness', 'volume', 'lgi', 'area'),
-                            use.mean=FALSE, covars=NULL, exclude.subs=NULL,
-                            custom.atlas=NULL) {
+                            covars=NULL, exclude.subs=NULL, custom.atlas=NULL) {
+  Group <- Study.ID <- region <- NULL
 
-  Group <- Study.ID <- hemi <- name <- mean.lh <- mean.rh <- group.mean <-
-    value <- region <- NULL
   kNumDensities <- length(densities)
   atlas <- match.arg(atlas, choices=c(data(package='brainGraph')$results[, 3], 'custom'))
   if (atlas == 'custom') {
     stopifnot(!is.null(custom.atlas), exists(custom.atlas))
     atlas <- custom.atlas
   }
-  atlas.dt <- get(atlas)
-  kNumVertices <- nrow(atlas.dt)
 
   if (is.null(covars)) {
     stopifnot(file.exists(paste0(datadir, '/covars.csv')))
@@ -96,6 +88,7 @@ brainGraph_init <- function(atlas, densities, datadir,
   rh <- fread(paste0(datadir, '/rh_', atlas, '_', modality, '.csv'))
   setkey(rh, Study.ID)
   lhrh <- merge(lh, rh)
+  kNumVertices <- ncol(lhrh) - 1
 
   # Remove subjects that are to be excluded
   if (!is.null(exclude.subs)) {
@@ -103,17 +96,9 @@ brainGraph_init <- function(atlas, densities, datadir,
     lhrh <- lhrh[!Study.ID %in% exclude.subs]
   }
 
-  # Calculate hemispheric means, if desired
-  all.dat <- merge(covars, lhrh)
-  if (isTRUE(use.mean)) {
-    all.dat[, mean.lh := rowMeans(.SD),
-            .SDcols=atlas.dt[hemi == 'L', name],
-            by=Study.ID]$V1
-    all.dat[, mean.rh := rowMeans(.SD),
-            .SDcols=atlas.dt[hemi == 'R', name],
-            by=Study.ID]$V1
-    covars <- subset(all.dat, select=c(names(covars), 'mean.lh', 'mean.rh'))
-  }
+  res <- list(atlas=atlas, densities=densities, modality=modality,
+              kNumDensities=kNumDensities, covars=covars, groups=groups,
+              kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh)
 
   # Get SCGM and its covariates, if included
   if (isTRUE(grepl('scgm', atlas))) {
@@ -132,28 +117,7 @@ brainGraph_init <- function(atlas, densities, datadir,
       covars.scgm <- covars.scgm[!Study.ID %in% exclude.subs]
       scgm <- scgm[!Study.ID %in% exclude.subs]
     }
-
-    all.dat.scgm <- merge(covars.scgm, scgm)
-    all.dat.scgm.tidy <- melt(all.dat.scgm, id.vars=names(covars.scgm),
-                              variable.name='region')
-    all.dat.scgm.tidy[, modality := modality]
-    all.dat.scgm.tidy[, group.mean := mean(value), by=list(Group, region)]
-    setkey(all.dat.scgm.tidy, Group, region)
-  }
-
-  all.dat.tidy <- melt(all.dat, id.vars=names(covars), variable.name='region')
-  all.dat.tidy[, modality := modality]
-  all.dat.tidy[, group.mean := mean(value), by=list(Group, region)]
-  setkey(all.dat.tidy, Group, region)
-
-  res <- list(atlas=atlas, densities=densities, modality=modality,
-              kNumDensities=kNumDensities, covars=covars, groups=groups,
-              kNumGroups=kNumGroups, kNumVertices=kNumVertices, lhrh=lhrh,
-              all.dat=all.dat, all.dat.tidy=all.dat.tidy)
-  if (isTRUE(grepl('scgm', atlas))) {
-    res <- c(res, list(covars.scgm=covars.scgm, scgm=scgm,
-                       all.dat.scgm=all.dat.scgm,
-                       all.dat.scgm.tidy=all.dat.scgm.tidy))
+    res <- c(res, list(covars.scgm=covars.scgm, scgm=scgm))
   }
   return(res)
 }

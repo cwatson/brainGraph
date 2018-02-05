@@ -4,37 +4,47 @@
 \alias{get.resid}
 \title{Linear model residuals across brain regions}
 \usage{
-get.resid(tidy.dt, use.mean = FALSE, exclude = NULL)
+get.resid(dt.vol, covars, use.mean = FALSE, exclude = NULL, ...)
 }
 \arguments{
-\item{tidy.dt}{A \code{data.table} that has been "tidied", containing all
-covariates and the brain measure of interest}
+\item{dt.vol}{A \code{data.table} containing all the volumetric measure of
+interest (i.e., the object \code{lhrh} as ouptut by
+\code{\link{brainGraph_init}})}
 
-\item{use.mean}{Logical indicating whether to control for the mean
-hemispheric brain value (e.g. mean LH/RH cortical thickness) (default:
+\item{covars}{A \code{data.table} of the covariates of interest}
+
+\item{use.mean}{Logical should we control for the mean hemispheric brain
+value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
+
+\item{exclude}{Character vector of covariates to exclude (default:
 \code{NULL})}
 
-\item{exclude}{A character vector of columns to exclude (default:
-\code{NULL})}
+\item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
 }
 \value{
-A list with components:
-  \item{all.dat.tidy}{The tidied \code{data.table} with \emph{resids} column
-    added}
-  \item{formulas}{Character string of the \code{\link{lm}} formulas used}
+An object of class \code{brainGraph_resids} with elements:
+  \item{X}{The \emph{design matrix}}
+  \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
+    mean regional cortical thickness) and covariates, along with
+    \emph{resids} column added}
   \item{resids.all}{The "wide" \code{data.table} of residuals}
 }
 \description{
 Runs linear models across brain regions listed in a \code{data.table} (e.g.
-cortical thickness), in order to adjust for relevant variables (e.g. age,
-sex, group, etc.). It adds the \emph{studentized} residuals as a column and
-returns the data table.
+cortical thickness), adjusting for variables in \code{covars} (e.g. age, sex,
+etc.). It also calculates the \emph{externally Studentized} (or
+\emph{leave-one-out}) residuals.
 }
 \seealso{
-\code{\link{lm}, \link{rstudent}}
+\code{\link{rstudent}}
 
-Other Volumetric functions: \code{\link{brainGraph_init}},
-  \code{\link{check.resid}}, \code{\link{corr.matrix}}
+Other Structural covariance network functions: \code{\link{IndividualContributions}},
+  \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_init}},
+  \code{\link{brainGraph_permute}},
+  \code{\link{corr.matrix}},
+  \code{\link{plot.brainGraph_resids}},
+  \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

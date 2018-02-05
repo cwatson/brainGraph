@@ -2,16 +2,10 @@
 % Please edit documentation in R/set_brainGraph_attributes.R
 \name{set_brainGraph_attr}
 \alias{set_brainGraph_attr}
-\alias{set.brainGraph.attributes}
 \title{Set graph, vertex, and edge attributes common in MRI analyses}
 \usage{
-set_brainGraph_attr(g, atlas = NULL, modality = NULL, weighting = NULL,
-  threshold = NULL, subject = NULL, group = NULL, rand = FALSE,
-  use.parallel = TRUE, A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"))
-
-set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
-  weighting = NULL, threshold = NULL, subject = NULL, group = NULL,
-  rand = FALSE, use.parallel = TRUE)
+set_brainGraph_attr(g, atlas = NULL, rand = FALSE, use.parallel = TRUE,
+  A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"), ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -19,20 +13,8 @@ set.brainGraph.attributes(g, atlas = NULL, modality = NULL,
 \item{atlas}{Character vector indicating which atlas was used (default:
 \code{NULL})}
 
-\item{modality}{Character vector indicating imaging modality (e.g. 'dti')
-(default: \code{NULL})}
-
-\item{weighting}{Character string indicating how the edges are weighted
-(e.g., 'fa', 'pearson', etc.) (default: \code{NULL})}
-
-\item{threshold}{Numeric indicating the level at which the matrices were
-thresholded (if at all) (default: \code{NULL})}
-
-\item{subject}{Character vector indicating subject ID (default: \code{NULL})}
-
-\item{group}{Character vector indicating group membership (default: NULL)}
-
-\item{rand}{Logical indicating if the graph is random or not (default: FALSE)}
+\item{rand}{Logical indicating if the graph is random or not (default:
+\code{FALSE})}
 
 \item{use.parallel}{Logical indicating whether or not to use \emph{foreach}
 (default: \code{TRUE})}
@@ -42,20 +24,23 @@ for faster calculation of local efficiency (default: \code{NULL})}
 
 \item{xfm.type}{Character string indicating how to transform edge weights
 (default: \code{1/w} [reciprocal])}
+
+\item{...}{Other arguments passed to \code{\link{make_brainGraph}}}
 }
 \value{
 g An \code{igraph} graph object with the following attributes:
-\item{Graph-level}{Package version, atlas, density, connected component sizes,
-diameter, \# of triangles, transitivity, average path length, assortativity,
-clique number, global & local efficiency, modularity, vulnerability, hub score,
-rich-club coefficient, \# of hubs, edge asymmetry, and modality}
-\item{Vertex-level}{Degree, strength; betweenness, eigenvector, and leverage
-centralities; hubs; transitivity (local); k-core, s-core; local & nodal
-efficiency; color (community, lobe, component); membership (community,
-lobe, component); gateway and participation coefficients, within-module
-degree z-score; vulnerability; and coordinates (x, y, and z)}
-\item{Edge-level}{Color (community, lobe, component), edge betweenness,
-Euclidean distance (in mm), weight (if weighted)}
+  \item{Graph-level}{Density, connected component sizes, diameter, \# of
+    triangles, transitivity, average path length, assortativity, global &
+    local efficiency, modularity, vulnerability, hub score, rich-club
+    coefficient, \# of hubs, edge asymmetry, and modality}
+  \item{Vertex-level}{Degree, strength; betweenness, eigenvector, and
+    leverage centralities; hubs; transitivity (local); k-core, s-core; local
+    & nodal efficiency; color (community, lobe, component); membership
+    (community, lobe, component); gateway and participation coefficients,
+    within-module degree z-score; vulnerability; and coordinates (x, y, and
+    z)}
+  \item{Edge-level}{Color (community, lobe, component), edge betweenness,
+    Euclidean distance (in mm), weight (if weighted)}
 }
 \description{
 This function sets a number of graph, vertex, and edge attributes for a
@@ -63,15 +48,6 @@ given \code{igraph} graph object. These are all measures that are common in
 MRI analyses of brain networks.
 }
 \details{
-For the \code{modality} argument, you can choose anything you like, but the
-\code{summary.brainGraph} knows about \code{dti}, \code{fmri},
-\code{thickness}, \code{area}, and \code{volume}.
-
-For the \code{weighting} argument, you can choose anything you like, but
-\code{summary.brainGraph} knows about \code{fa}, \code{sld} (streamline
-density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
-\code{partial} (partial correlation coefficient).
-
 \code{xfm.type} allows you to choose from 3 options for transforming edge
 weights when calculating distance-based metrics (e.g., shortest paths). There
 is no "best-practice" for choosing one over the other, but the reciprocal is

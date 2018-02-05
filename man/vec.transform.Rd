@@ -20,3 +20,4 @@ A vector of the transformed input.
 This function takes a vector and transforms it to have a new range, given
 the input, or the default values of [0, 1].
 }
+\keyword{internal}

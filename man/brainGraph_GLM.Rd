@@ -2,30 +2,32 @@
 % Please edit documentation in R/brainGraph_GLM.R
 \name{brainGraph_GLM}
 \alias{brainGraph_GLM}
-\title{Run linear models at each vertex of a graph}
+\title{Fit linear models at each vertex of a graph}
 \usage{
-brainGraph_GLM(g.list, covars, measure, con.vec, outcome = measure,
+brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
   X = NULL, con.name = NULL, alternative = c("two.sided", "less",
   "greater"), alpha = 0.05, level = c("vertex", "graph"), permute = FALSE,
-  N = 5000, perms = NULL, ...)
+  N = 5000, perms = NULL, long = FALSE, ...)
 }
 \arguments{
-\item{g.list}{A list of \code{igraph} graph objects for all subjects (if you
-have multiple groups, you must concatenate the separate group lists)}
+\item{g.list}{A list of \code{igraph} graph objects for all subjects}
 
 \item{covars}{A \code{data.table} of covariates}
 
-\item{measure}{A character string of the vertex measure of interest}
+\item{measure}{Character string of the graph measure of interest}
 
-\item{con.vec}{A numeric vector specifying the contrast of interest}
+\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+only one contrast is desired, you can supply a vector}
 
-\item{outcome}{A character string of the name of the outcome variable; by
-default, it is ignored}
+\item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
+F-statistics). Default: \code{'t'}}
 
-\item{X}{A numeric matrix, if you wish to supply your own design matrix
+\item{X}{Numeric matrix, if you wish to supply your own design matrix
 (default: \code{NULL})}
 
-\item{con.name}{Character string of the contrast name (default: \code{NULL})}
+\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+has row names, those will be used for reporting results (default:
+\code{NULL})}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test
 (default: \code{'two.sided'})}
@@ -43,78 +45,89 @@ default, it is ignored}
 \item{perms}{Matrix of permutations, if you would like to provide your own
 (default: \code{NULL})}
 
+\item{long}{Logical indicating whether or not to return all permutation
+results (default: \code{FALSE})}
+
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 }
 \value{
-A list containing:
-\item{g}{A graph with vertex attributes: \emph{size2} (t-statistic),
-  \emph{size} (the t-stat transformed for visualization purposes), \emph{p}
-  (equal to \eqn{1-p}), \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the
-  FDR-adjusted p-value), \emph{gamma} (the contrast of parameter estimaties,
-  \emph{se} (the standard error of \emph{gamma}); and graph attributes:
-  \emph{df} (degrees of freedom), \emph{name} (contrast name), \emph{outcome}
-  (the outcome variable)}
-\item{DT}{A data table with an entry for each vertex (region)}
-\item{X}{A numeric matrix; a copy of the \emph{design matrix}}
-\item{perm}{A list containing: \emph{null.dist} (the null distribution of
-  maximum t-statistics), \emph{thresh} (the t-statistic value corresponding
-  to \eqn{100 \times (1 - \alpha)}\% of the null distribution)}
+An object of class \code{bg_GLM} containing some input-specific
+  variables, in addition to:
+  \item{X}{A numeric matrix; a copy of the \emph{design matrix}}
+  \item{y}{A numeric vector or matrix of the outcome variable}
+  \item{DT}{A data table with an entry for each vertex (region) containing
+    statistics of interest}
+  \item{removed}{A character vector of Study.ID's removed due to incomplete
+    data (if any)}
+  \item{perm}{A list containing: \emph{null.dist} (the null distribution of
+    maximum statistics), \emph{thresh} (the statistic value corresponding
+    to the \eqn{100 \times (1 - \alpha)}th\% percentile of the null
+    distribution)}.
 }
 \description{
-This function takes a list of \code{igraph} graphs and specifies a linear
-model at each vertex for a given vertex measure (e.g. \emph{degree}).
-Similarly, you may choose to test for a graph-level measure by specifying
-\code{level='graph'}.
+\code{brainGraph_GLM} specifies and fits a linear model at each vertex for a
+given vertex measure (e.g. \emph{degree}) or at the graph-level (e.g.,
+\emph{global efficiency}). Given a contrast matrix, it will calculate the
+associated statistics.
 }
 \details{
-You will need to provide a \code{data.table} of covariates, of which
-\emph{Study.ID} needs to be the first column. Additionally, all graphs must
+The input list of graphs \code{g.list} must not be nested; i.e., if you have
+multiple groups, they will have to be combined into one list. See the code in
+the Examples below.
+
+A \code{data.table} of covariates is required input; the first column
+\emph{must} be named \emph{Study.ID}. Additionally, all graphs must
 have a \emph{name} attribute (at the graph level) which matches the
-\emph{Study.ID} for a given subject. If you do not provide covariates,
-the code will pull group membership from the graphs' \emph{Group} attributes
-and do a test of group differences. This function returns, for each region,
-the contrast of parameter estimates (i.e., \eqn{\gamma}), standard error of
-the contrast, t-statistic, \eqn{100 (1 - \alpha)}\% confidence interval,
-p-value, and FDR-adjusted p-value.
+\emph{Study.ID} for a given subject. If you create the design matrix
+\code{X} yourself, you still must supply the covariates table so that
+subjects can be correctly matched with their network data.
 
-To test whether a vertex attribute is associated with a different outcome
-(e.g., \emph{betweenness centrality} and \emph{full-scale IQ}), then specify
-the relevant outcome variable in the function call, and provide the data in
-the covariates table.
+Both t- and F-contrasts are allowed. You may supply a \emph{matrix} to the
+argument \code{con.mat}. If you supply a multi-row matrix and you choose
+\code{con.type="t"}, then statistics will be calculated for each contrast
+individually. If you choose \code{con.type="f"}, in the result data table,
+\code{ESS} stands for "extra sum of squares", the additional variance
+explained for by the model parameters of interest (as determined by the
+contrast matrix). Finally, the standard error in these tables is the sum of
+squared errors of the \emph{full model}.
 
-You may optionally do permutation testing by permuting the labels for subject
-group. This is the same principle as that of Nichols & Holmes (2001) used in
-voxelwise MRI analyses and implemented in FSL's \emph{randomise}.
+Finally, you can calculate permutations of the data to build a null
+distribution of the maximum statistic, to provide control over false
+positives. The permutation strategy is that of Freedman & Lane (1983), and
+is the same as that in FSL's \emph{randomise}.
 }
 \examples{
 \dontrun{
-g.lm <- brainGraph_GLM(c(g.norm[[1]][[6]], g.norm[[2]][[6]]),
-  measure='strength',
-  covars=covars.all[Group == groups[2],
-                    c(names(covars.dti)[-2], 'Age.Fontan'),
-                    with=F]
-  con.vec=c(0, 0, 0, 1))
+conmat <- matrix(c(0, 0, 0, 1), nrow=1)
+rownames(conmat) <- 'Control > Patient'
 
-# Test for the group diff between "Neonate" and "Non-Neonate" in nodal eff.
-covars <- covars.all[Group == groups[2] & tract == 1,
-  c(names(covars.dti)[-2], 'Age.op1.cat'), with=F]
-covars[, Age.op1.cat := factor(Age.op1.cat)]
-g.lm <- brainGraph_GLM(g.norm[[2]][[6]], measure='E.nodal.wt',
-  covars=covars, con.vec=c(0, 0, 0, 0, 1))
+## Note that I concatenate the graphs from each group's 6th threshold
+g.lm <- brainGraph_GLM(g.list=do.call(Map, c(c, g))[[6]],
+  covars=covars.all[tract == 1],
+  measure='strength', con.mat=conmat, alt='greater',
+  permute=TRUE, long=TRUE)
 }
 }
 \references{
+Freedman D & Lane D (1983). \emph{A nonstochastic interpretation
+  of reported significance levels}. J Bus Econ Stat, 1(4):292-298.
+
 Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
   tests for functional neuroimaging: A primer with examples.} Human Brain
   Mapping, 15(1):1-25.
+
+Winkler AM, Ridgway GR, Webster MA, Smith SM, Nichols TE (2014).
+  \emph{Permutation inference for the general linear model}. NeuroImage,
+  92:381-397.
 }
 \seealso{
-Other GLM functions: \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM_fit}}, \code{\link{mtpc}}
+Other GLM functions: \code{\link{GLMfit}},
+  \code{\link{brainGraph_GLM_design}}, \code{\link{mtpc}}
 
 Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{NBS}}, \code{\link{boot_global}},
-  \code{\link{mtpc}}, \code{\link{permute.group}}
+  \code{\link{NBS}}, \code{\link{brainGraph_boot}},
+  \code{\link{brainGraph_mediate}},
+  \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

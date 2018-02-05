@@ -7,16 +7,17 @@
 apply_thresholds(sub.mats, group.mats, W.files, inds)
 }
 \arguments{
-\item{sub.mats}{List (equal to number of thresholds) of numeric arrays
+\item{sub.mats}{List (length equal to number of thresholds) of numeric arrays
 (3-dim) for all subjects}
 
 \item{group.mats}{List (equal to number of thresholds) of lists (equal to
 number of groups) of numeric matrices for group-level data}
 
-\item{W.files}{Character vector of the filenames with connection matrices}
+\item{W.files}{Character vector of the filenames of the files containing your
+connectivity matrices}
 
 \item{inds}{List (length equal to number of groups) of integers; each list
-element should be a vector of length equal to the group sizes}
+element should be an integer vector of length equal to the group sizes}
 }
 \value{
 List containing:

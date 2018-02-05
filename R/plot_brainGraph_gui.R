@@ -107,7 +107,7 @@ plot_brainGraph_gui <- function() {
   # Plot whole graph
   #-------------------------------------
   plot_entire_cb <- function(widget, window) {
-    plotFunc <<- plot_brainGraph
+    plotFunc <<- plot.brainGraph
     kill_others(window)
   }
 
@@ -533,7 +533,7 @@ plot_brainGraph_gui <- function() {
   #-----------------------------------------------------------------------------
 
   myLobe <<- 'All'
-  if (identical(plotFunc, plot_brainGraph)) {
+  if (identical(plotFunc, plot.brainGraph)) {
     # Highlight the diameter of each graph? Show edge set differences?
     hbox <- gtkHBoxNew(F, 6)
     vbox$packStart(hbox, F, F, 0)
@@ -542,7 +542,7 @@ plot_brainGraph_gui <- function() {
     if (kNumGroups <= 1) edgeDiffs$setSensitive(F)
 
     # Major lobe
-    atlas.dt <- eval(parse(text=atlas))
+    atlas.dt <- get(atlas)
     lobes <- data.frame(Lobe=c('All', as.character(atlas.dt[, levels(lobe)])))
     model <- rGtkDataFrame(lobes)
     setDT(lobes)
@@ -599,7 +599,7 @@ plot_brainGraph_gui <- function() {
     sel_paths <- selection$getSelectedRows()$retval
     if (length(sel_paths) > 0) {
       sel_rows <- sapply(sel_paths, function(x) x$getIndices())
-      if (identical(plotFunc, plot_brainGraph)) {
+      if (identical(plotFunc, plot.brainGraph)) {
         myLobe <- paste(lobes[sel_rows+1, Lobe], collapse=', ')
       } else if (plotFunc == 'plot_community') {
         myComm <- comms[sel_rows+1, 'Community']

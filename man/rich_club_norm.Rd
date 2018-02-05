@@ -14,16 +14,19 @@ rich_club_norm(g, N = 100, rand = NULL, ...)
 \item{rand}{A list of \code{igraph} graph objects, if random graphs have
 already been generated (default: NULL)}
 
-\item{...}{Other parameters (passed to \code{\link{rich_club_coeff}})}
+\item{...}{Other parameters (passed to \code{\link{sim.rand.graph.par}})}
 }
 \value{
-A list with four elements:
-\item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
-columns, where each row contains the coefficients for a given random graph.}
-\item{phi.orig}{A vector of the rich-club coefficients for the original
-graph.}
-\item{phi.norm}{A named vector of the normalized rich club coefficients.}
-\item{p}{The p-value based on the \emph{N} random graphs generated.}
+A data table with columns:
+  \item{k}{Sequence of degrees}
+  \item{rand}{Rich-club coefficients for the random graphs}
+  \item{orig}{Rich-club coefficients for the original graph.}
+  \item{norm}{Normalized rich-club coefficients.}
+  \item{p}{The P-values based on the distribution of rich-club coefficients
+    from the random graphs.}
+  \item{p.fdr}{The FDR-adjusted P-values}
+  \item{density}{The observed graph's density}
+  \item{threshold,Group,name}{(if applicable)}
 }
 \description{
 This function will (optionally) generate a number of random graphs, calculate
@@ -42,10 +45,8 @@ Other Rich-club functions: \code{\link{plot_rich_norm}},
   \code{\link{rich_club_attrs}},
   \code{\link{rich_club_coeff}}, \code{\link{rich_core}}
 
-Other Null graph functions: \code{\link{analysis_random_graphs}},
-  \code{\link{choose.edges}},
-  \code{\link{sim.rand.graph.clust}},
-  \code{\link{sim.rand.graph.par}}
+Other Random graph functions: \code{\link{RandomGraphs}},
+  \code{\link{analysis_random_graphs}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

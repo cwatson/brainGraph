@@ -89,13 +89,3 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
   }
   return(eff)
 }
-
-#' @inheritParams efficiency
-#' @export
-#' @rdname efficiency
-
-graph.efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
-                             use.parallel=TRUE, A=NULL) {
-  .Deprecated('efficiency')
-  efficiency(g, type=type, weights=weights, use.parallel=use.parallel, A=A)
-}

@@ -64,21 +64,22 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 #' @param N Integer; the number of random graphs to generate (default: 100)
 #' @param rand A list of \code{igraph} graph objects, if random graphs have
 #'   already been generated (default: NULL)
-#' @param ... Other parameters (passed to \code{\link{rich_club_coeff}})
+#' @param ... Other parameters (passed to \code{\link{sim.rand.graph.par}})
 #' @export
-#' @importFrom plyr laply
-#' @importFrom plyr aaply
 #'
-#' @return A list with four elements:
-#' \item{phi.rand}{A matrix with \emph{N} rows and \emph{max(degree(g))}
-#' columns, where each row contains the coefficients for a given random graph.}
-#' \item{phi.orig}{A vector of the rich-club coefficients for the original
-#' graph.}
-#' \item{phi.norm}{A named vector of the normalized rich club coefficients.}
-#' \item{p}{The p-value based on the \emph{N} random graphs generated.}
+#' @return A data table with columns:
+#'   \item{k}{Sequence of degrees}
+#'   \item{rand}{Rich-club coefficients for the random graphs}
+#'   \item{orig}{Rich-club coefficients for the original graph.}
+#'   \item{norm}{Normalized rich-club coefficients.}
+#'   \item{p}{The P-values based on the distribution of rich-club coefficients
+#'     from the random graphs.}
+#'   \item{p.fdr}{The FDR-adjusted P-values}
+#'   \item{density}{The observed graph's density}
+#'   \item{threshold,Group,name}{(if applicable)}
 #'
 #' @family Rich-club functions
-#' @family Null graph functions
+#' @family Random graph functions
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
@@ -86,9 +87,10 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 #' 2:110-115.
 
 rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
+  k <- orig <- p <- p.fdr <- NULL
   stopifnot(is_igraph(g))
   if (is.null(rand)) {
-    rand <- sim.rand.graph.par(g, N, clustering=F)
+    rand <- sim.rand.graph.par(g, N, ...)
   } else {
     if (!all(vapply(rand, is_igraph, logical(1)))) {
       stop('Argument "rand" must be a list of igraph graph objects!')
@@ -96,21 +98,22 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
     N <- length(rand)
   }
 
+  phi.rand <- t(sapply(rand, function(x) x$rich$phi))
   max.deg <- max(V(g)$degree)
-  if (all(vapply(rand, function(x) 'rich' %in% graph_attr_names(x), logical(1)))) {
-    phi.rand <- aaply(rand, .margins=1, function(x) x$rich$phi)
-  } else {
-    phi.rand <- laply(rand, function(x)
-                            vapply(seq_len(max.deg), function(y)
-                                   rich_club_coeff(x, y, ...)$phi, numeric(1)),
-                            .parallel=TRUE)
-  }
-  phi.orig <- g$rich$phi
-  phi.norm <- phi.orig / colMeans(phi.rand)
-  p <- vapply(seq_len(max.deg), function(x)
-              (sum(phi.rand[, x] >= phi.orig[x]) + 1) / (N + 1),
-              numeric(1))
-  return(list(phi.rand=phi.rand, phi.orig=phi.orig, phi.norm=phi.norm, p=p))
+  DT <- data.table(k=rep(seq_len(max.deg), each=N),
+                   rand=c(phi.rand),
+                   orig=rep(g$rich$phi, each=N))
+  DT[, norm := unique(orig) / mean(rand), by=k]
+  DT[, p := (sum(rand >= unique(orig)) + 1) / (N + 1), by=k]
+  dt.phi <- DT[, .SD[1], by=k]
+  dt.phi[, p.fdr := p.adjust(p, 'fdr')]
+  dt.phi[, rand := NULL]
+  dt.phi$rand <- DT[, mean(rand), by=k]$V1
+  dt.phi$density <- g$density
+  if ('threshold' %in% graph_attr_names(g)) dt.phi$threshold <- g$threshold
+  if ('Group' %in% graph_attr_names(g)) dt.phi$Group <- g$Group
+  if (!is.null(g$name)) dt.phi$Study.ID <- g$name
+  return(dt.phi)
 }
 
 #' Assign graph attributes based on rich-club analysis
@@ -157,6 +160,7 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
 #' }
 
 rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
+  stopifnot(is_igraph(g))
   if (is.null(deg.range)) deg.range <- c(1, max(V(g)$degree))
   V(g)$rich <- 0
   V(g)[V(g)$degree >= deg.range[1] & V(g)$degree <= deg.range[2]]$rich <- 1

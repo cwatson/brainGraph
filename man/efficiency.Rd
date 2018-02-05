@@ -2,13 +2,9 @@
 % Please edit documentation in R/graph_efficiency.R
 \name{efficiency}
 \alias{efficiency}
-\alias{graph.efficiency}
 \title{Calculate graph global, local, or nodal efficiency}
 \usage{
 efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
-  use.parallel = TRUE, A = NULL)
-
-graph.efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
   use.parallel = TRUE, A = NULL)
 }
 \arguments{

@@ -8,18 +8,20 @@ robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent", "degree",
   "random"), N = 1000)
 }
 \arguments{
-\item{g}{The igraph graph object of interest}
+\item{g}{An \code{igraph} graph object}
 
-\item{type}{A character string; either 'vertex' or 'edge' removals}
+\item{type}{Character string; either 'vertex' or 'edge' removals (default:
+\code{vertex})}
 
-\item{measure}{A character string; sort by either 'btwn.cent' or 'degree', or
-choose 'random'}
+\item{measure}{Character string; sort by either 'btwn.cent' or 'degree', or
+choose 'random' (default: \code{btwn.cent})}
 
-\item{N}{Integer; the number of iterations if \emph{random} is chosen}
+\item{N}{Integer; the number of iterations if \emph{random} is chosen
+(default: \code{1e3})}
 }
 \value{
-A vector representing the ratio of maximal component size after each
-removal to the graph's original maximal component
+Numeric vector representing the ratio of maximal component size after
+each removal to the observed graph's maximal component size
 }
 \description{
 This function performs a "targeted attack" of a graph or a "random failure"

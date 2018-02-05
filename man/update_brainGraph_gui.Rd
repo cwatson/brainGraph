@@ -17,7 +17,7 @@ update_brainGraph_gui(plotDev, g, g2, plotFunc, vsize.measure, ewidth.measure,
 
 \item{g2}{An \code{igraph} graph object for the second plotting area}
 
-\item{plotFunc}{A function specifying which type of plot to use}
+\item{plotFunc}{A character string specifying which type of plot to use}
 
 \item{vsize.measure}{Character string of the name of the attribute for vertex
 scaling}
@@ -72,3 +72,4 @@ This function is called by \link{plot_brainGraph_gui} to update the GUI.
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\keyword{internal}

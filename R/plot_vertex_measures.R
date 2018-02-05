@@ -30,14 +30,14 @@ plot_vertex_measures <- function(tidy.dt,
 
   if (is.null(ylabel)) ylabel <- measure
   my.plot <- ggplot(tidy.dt[variable == measure],
-                    aes(x=Group, y=value, col=Group)) +
+                    aes(x=Group, y=value, fill=Group)) +
     geom_boxplot(outlier.shape=NA) +
     facet_wrap(as.formula(paste('~', facet.by)), scales='free_y') +
     ylab(ylabel) +
     theme(legend.position='none')
 
   if (isTRUE(show.points)) {
-    my.plot <- my.plot + geom_point(position=position_jitter(width=0.2, height=0))
+    my.plot <- my.plot + geom_jitter(position=position_jitter(width=0.1, height=0))
   }
   return(my.plot)
 }
