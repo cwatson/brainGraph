@@ -148,7 +148,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   glm.attr <- res.glm[[1]]
   glm.attr[c('y', 'DT', 'permute', 'perm')] <- NULL
   for (i in seq_along(thresholds)) res.glm[[i]]$perm$null.dist <- NULL
-  mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$threshold,
+  mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$V1,
                            S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
 
   if (isTRUE(long)) null.out <- null.dist.all
