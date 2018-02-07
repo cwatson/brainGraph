@@ -1,3 +1,13 @@
+# brainGraph 2.0.1
+
+2018-02-07
+
+Bugfix release
+
+## Bug fix
+* Fixed error in `mtpc` when creating the MTPC statistics `data.table`
+
+--------------------------------------------------------------------------------
 # brainGraph 2.0.0
 
 2018-02-05
