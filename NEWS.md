@@ -1,3 +1,14 @@
+# brainGraph 2.0.2
+
+2018-02-23
+
+Release on CRAN; bugfix release.
+
+## Bug fix
+* Fixed a bug in `create_mats` in which the ordering (along the 3rd dimension) of the arrays in `A.norm.sub` did not match the ordering of the input matrix files (and therefore the ordering along the 3rd dimension of the arrays `A` and `A.norm`).
+    * In the case that the input matrix files were already ordered by *Group* and *Study.ID*, then this is not a "bug", in that the ordering was already correct. So, if your subject groups are `groups <- c('Control', 'Patient')`, and the matrix files are separated on the filesystem by group, there is no change in behavior.
+    * This bug only appeared when `threshold.by='consistency'` or `threshold.by='consensus'` (the default option).
+
 # brainGraph 2.0.1
 
 2018-02-07
