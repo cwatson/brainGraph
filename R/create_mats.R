@@ -138,7 +138,13 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                                         ifelse(A.inds[[z]] == 1, A.norm[, , y], 0)),
                                  dim=dim(A.norm)))
 
-      for (i in seq_along(mat.thresh)) A.norm.sub[[i]] <- symmetrize_array(A.norm.sub[[i]], ...)
+      for (i in seq_along(mat.thresh)) {
+        A.norm.sub[[i]] <- symmetrize_array(A.norm.sub[[i]], ...)
+        # Re-order A.norm.sub so that it matches the input files, A, A.norm, etc.
+        tmp <- array(0, dim=dim(A.norm.sub[[i]]))
+        tmp[, , unlist(inds)] <- A.norm.sub[[i]]
+        A.norm.sub[[i]] <- tmp
+      }
     }
   } else {
     if (threshold.by == 'consensus') {
@@ -175,7 +181,14 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                             dim=dim(A.norm[, , inds[[x]]]))))
       A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind, x))
 
-    } else if (threshold.by == 'mean') {
+      # Re-order A.norm.sub so that it matches the input files, A, A.norm, etc.
+      for (i in seq_along(mat.thresh)) {
+        tmp <- array(0, dim=dim(A.norm.sub[[i]]))
+        tmp[, , unlist(inds)] <- A.norm.sub[[i]]
+        A.norm.sub[[i]] <- tmp
+      }
+
+} else if (threshold.by == 'mean') {
       # Threshold: mean + 2SD > mat.thresh
       #---------------------------------
       all.mean <- rowMeans(A.norm, dims=2)
