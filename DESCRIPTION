@@ -18,8 +18,6 @@ LazyData: true
 Depends:
     R (>= 3.0.0),
     igraph (>= 1.0.0),
-    RGtk2,
-    cairoDevice
 Imports:
     abind,
     ade4,
@@ -40,5 +38,8 @@ Imports:
     parallel,
     RcppEigen,
     scales
+Suggests:
+    RGtk2,
+    cairoDevice
 License: GPL-3
 RoxygenNote: 6.0.1
