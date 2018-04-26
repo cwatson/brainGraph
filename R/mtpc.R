@@ -72,7 +72,7 @@
 
 mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', 'f'),
                  con.name=NULL, level=c('vertex', 'graph'),
-                 clust.size=3L, N=500, perms=NULL, alpha=0.05, res.glm=NULL, long=TRUE, ...) {
+                 clust.size=3L, N=500L, perms=NULL, alpha=0.05, res.glm=NULL, long=TRUE, ...) {
   A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
   stopifnot(all(lengths(g.list) == length(thresholds)))
   if (is.null(perms)) perms <- shuffleSet(n=sum(vapply(g.list, function(x) length(x[[1]]), numeric(1))), nset=N)
@@ -123,7 +123,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   }
   S.mtpc <- S.mtpc[, unique(V1), by=contrast]
   tau.mtpc <- mtpc.all[stat %in% S.mtpc$V1, threshold, by=contrast]
-  tau.mtpc <- tau.mtpc[, unique(threshold), by=contrast]
+  tau.mtpc <- tau.mtpc[, .SD[1], by=contrast]
 
   for (i in seq_len(kNumContrasts)) {
     if (alt == 'less') {
@@ -152,7 +152,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
                            S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
 
   if (isTRUE(long)) null.out <- null.dist.all
-  out <- c(glm.attr, list(res.glm=res.glm, clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms))
+  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms))
   class(out) <- c('mtpc', class(out))
   return(out)
 }
@@ -197,10 +197,10 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
   # Summary table
   maxfun <- ifelse(object$alt == 'less', which.min, which.max)
   DT.sum <- object$DT[A.mtpc > A.crit, .SD[maxfun(is.finite(stat) * stat)], by=list(contrast, region)]
-  DT.sum <- DT.sum[, c('stat', 'Contrast', 'region', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'), with=FALSE]
-  setcolorder(DT.sum, c('Contrast', 'region', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
-  setnames(DT.sum, c('region', 'stat'), c('Region', 'S.mtpc'))
-  setorder(DT.sum, -S.mtpc)
+  DT.sum <- DT.sum[, c('region', 'contrast', 'stat', 'Outcome', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
+  setcolorder(DT.sum, c('Outcome', 'Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
+  setnames(DT.sum, c('region', 'stat', 'threshold'), c('Region', 'S.mtpc', 'tau.mtpc'))
+  setorder(DT.sum, contrast, -S.mtpc)
   object$DT.sum <- DT.sum
 
   class(object) <- c('summary.mtpc', class(object))
@@ -295,7 +295,7 @@ print.summary.mtpc <- function(x, ...) {
 #' ggsave('mtpc.pdf', ml)
 #' }
 
-plot.mtpc <- function(x, contrast=1, region=NULL, only.sig.regions=TRUE, show.null=TRUE, caption.stats=FALSE, ...) {
+plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE, show.null=TRUE, caption.stats=FALSE, ...) {
   stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- NULL
 
   stopifnot(inherits(x, 'mtpc'))
@@ -304,7 +304,7 @@ plot.mtpc <- function(x, contrast=1, region=NULL, only.sig.regions=TRUE, show.nu
   DT[, stat_ribbon := stat]  # For filling in supra-threshold areas
   thresholds <- DT[, unique(threshold)]
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
-  nullcoords <- data.table(threshold=thresholds[apply(x$null.dist[[1]], 1, which.max)], y=apply(x$null.dist[[1]], 1, max))
+  nullcoords <- data.table(threshold=thresholds[apply(x$null.dist[[mycontrast]], 1, which.max)], y=apply(x$null.dist[[mycontrast]], 1, max))
 
   # Local function to plot for a single region
   plot_single <- function(x, DT, nullcoords, show.null) {

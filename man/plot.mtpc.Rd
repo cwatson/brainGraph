@@ -4,7 +4,7 @@
 \alias{plot.mtpc}
 \title{Plot statistics from an MTPC analysis}
 \usage{
-\method{plot}{mtpc}(x, contrast = 1, region = NULL,
+\method{plot}{mtpc}(x, contrast = 1L, region = NULL,
   only.sig.regions = TRUE, show.null = TRUE, caption.stats = FALSE, ...)
 }
 \arguments{
