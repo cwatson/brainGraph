@@ -1,3 +1,13 @@
+# brainGraph 2.0.3
+
+2018-04-26
+
+## Bug fix
+* In `mtpc`, the stats table that is returned previously was not always unique
+* `mtpc` did not return a list with a named element `clust.size` (it was unnamed)
+* In `plot.mtpc`, if the user selected a contrast other than the first, it would not plot the correct null statistics (green dots)
+
+
 # brainGraph 2.0.2
 
 2018-02-23
@@ -9,11 +19,10 @@ Release on CRAN; bugfix release.
     * In the case that the input matrix files were already ordered by *Group* and *Study.ID*, then this is not a "bug", in that the ordering was already correct. So, if your subject groups are `groups <- c('Control', 'Patient')`, and the matrix files are separated on the filesystem by group, there is no change in behavior.
     * This bug only appeared when `threshold.by='consistency'` or `threshold.by='consensus'` (the default option).
 
+
 # brainGraph 2.0.1
 
 2018-02-07
-
-Bugfix release
 
 ## Bug fix
 * Fixed error in `mtpc` when creating the MTPC statistics `data.table`

@@ -6,7 +6,7 @@
 \usage{
 mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t", "f"),
   con.name = NULL, level = c("vertex", "graph"), clust.size = 3L,
-  N = 500, perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE,
+  N = 500L, perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE,
   ...)
 }
 \arguments{
