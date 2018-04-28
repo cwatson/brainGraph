@@ -435,6 +435,8 @@ make_nbs_brainGraph <- function(res.nbs, atlas, ...) {
       }
       if (ecount(g.nbs[[i]]) > 1) {
         g.nbs[[i]] <- set_brainGraph_attr(g.nbs[[i]], atlas=atlas, ...)
+      } else {
+        g.nbs[[i]] <- make_brainGraph(g.nbs[[i]], atlas=atlas, ...)
       }
     }
     class(g.nbs[[i]]) <- c('brainGraph_NBS', class(g.nbs[[i]]))
@@ -470,18 +472,16 @@ make_mediate_brainGraph <- function(res.med, atlas, ...) {
   V(g.med)$b0.ade <- med.sum$b0.ade
   V(g.med)$p0.ade <- 1 - med.sum$p0.ade
   V(g.med)$b.tot <- med.sum$b.tot
-  V(g.med)$p0.tot <- 1 - med.sum$p0.tot
+  V(g.med)$p.tot <- 1 - med.sum$p.tot
   V(g.med)$b0.prop <- med.sum$b0.prop
   V(g.med)$p0.prop <- 1 - med.sum$p0.prop
   if (isTRUE(res.med$INT)) {
-    V(g.med)$b0.acme <- med.sum$b0.acme
-    V(g.med)$p0.acme <- 1 - med.sum$p0.acme
-    V(g.med)$b0.ade <- med.sum$b0.ade
-    V(g.med)$p0.ade <- 1 - med.sum$p0.ade
-    V(g.med)$b.tot <- med.sum$b.tot
-    V(g.med)$p0.tot <- 1 - med.sum$p0.tot
-    V(g.med)$b0.prop <- med.sum$b0.prop
-    V(g.med)$p0.prop <- 1 - med.sum$p0.prop
+    V(g.med)$b1.acme <- med.sum$b1.acme
+    V(g.med)$p1.acme <- 1 - med.sum$p1.acme
+    V(g.med)$b1.ade <- med.sum$b1.ade
+    V(g.med)$p1.ade <- 1 - med.sum$p1.ade
+    V(g.med)$b1.prop <- med.sum$b1.prop
+    V(g.med)$p1.prop <- 1 - med.sum$p1.prop
     V(g.med)$b.avg.acme <- med.sum$b.avg.acme
     V(g.med)$b.avg.acme <- med.sum$b.avg.acme
     V(g.med)$p.avg.acme <- med.sum$p.avg.acme
@@ -519,13 +519,20 @@ make_intersection_brainGraph <- function(..., subgraph) {
   subs <- lapply(graphs, subset_graph, subgraph)
   graphs.sub <- lapply(subs, with, g)
   inds.sub <- lapply(subs, with, inds)
+  graphs.valid <- graphs.sub[which(sapply(graphs.sub, function(x) !is.null(x)))]
 
-  g.int <- do.call(intersection, c(graphs.sub, keep.all.vertices=FALSE))
-  memb <- which(V(graphs[[1]])$name %in% V(g.int)$name)
-  g.int <- delete_all_attr(g.int)
-  V(g.int)$name <- V(graphs[[1]])$name[memb]
-  g.int <- graphs[[1]] %s% g.int
-  g.int <- graphs[[1]] - vertices(setdiff(seq_len(Nv), memb))
-  class(g.int) <- class(graphs[[1]])
-  return(g.int)
+  if (length(graphs.valid) == 0) {
+    return(make_empty_brainGraph(graphs[[1]]$atlas))
+  } else if (length(graphs.valid) == 1) {
+    return(graphs.valid[[1]])
+  } else {
+    g.int <- do.call(intersection, c(graphs.valid, keep.all.vertices=FALSE))
+    memb <- which(V(graphs[[1]])$name %in% V(g.int)$name)
+    g.int <- delete_all_attr(g.int)
+    V(g.int)$name <- V(graphs[[1]])$name[memb]
+    g.int <- graphs[[1]] %s% g.int
+    g.int <- graphs[[1]] - vertices(setdiff(seq_len(Nv), memb))
+    class(g.int) <- class(graphs[[1]])
+    return(g.int)
+  }
 }

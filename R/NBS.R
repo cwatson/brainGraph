@@ -114,7 +114,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
       inds.tr <- which(T.mat < t(T.mat), arr.ind=TRUE)
       T.max[[j]] <- ifelse(T.mat < t(T.mat), T.mat, t(T.mat))
     } else if (alt == 'greater') {
-      inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
+      inds.tr <- which(T.mat > t(T.mat), arr.ind=TRUE)
       T.max[[j]] <- ifelse(T.mat > t(T.mat), T.mat, t(T.mat))
     }
     for (i in seq_len(nrow(inds.tr))) {
@@ -232,7 +232,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
   #--------------------------------------
   ecounts <- vector('list', length(object$con.name))
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]] == 0)) next  # No edges met initial criteria
+    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
     g.nbs <- graph_from_adjacency_matrix(object$T.mat[[j]], diag=F, mode='undirected', weighted=TRUE)
     clusts <- components(g.nbs)
     comps <- sort(unique(clusts$csize), decreasing=TRUE)
@@ -249,10 +249,10 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
                  data.table(alt=alt, N=N, components$observed))
   nbs.dt[, ecount := 0]
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]] == 0)) next  # No edges met initial criteria
+    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
     nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
   }
-  nbs.sum <- list(contrast=contrast, res.nbs=object, dt=nbs.dt, digits=digits)
+  nbs.sum <- list(contrast=contrast, res.nbs=object, DT.sum=nbs.dt, digits=digits)
   class(nbs.sum) <- c('summary.NBS', class(nbs.sum))
   return(nbs.sum)
 }
@@ -275,7 +275,7 @@ print.summary.NBS <- function(x, ...) {
   cat('Contrast matrix: ', '\n')
   print(x$res.nbs$con.mat)
 
-  xdt <- x$dt[csize > 1]
+  xdt <- x$DT.sum[csize > 1]
   setnames(xdt, c('csize', 'ecount'), c('# vertices', '# edges'))
   xdt[, `p-value` := signif(p.perm)]
   xdt[, c('alt', 'N', 'p.perm') := NULL]

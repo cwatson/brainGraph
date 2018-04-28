@@ -1,3 +1,21 @@
+# brainGraph 2.0.4
+
+2018-04-28
+
+## Bug fix
+* `gateway_coeff`: no longer throws an error for very sparse graphs; instead, it returns a vector with `NaN` values for unconnected vertices
+* `make_mediate_brainGraph`: did not return correct values (for the treatment condition) when `INT=TRUE` (it recycled the values for the control condition)
+* `make_intersection_brainGraph`
+    * Previously exited with error if any of the input graphs did not contain vertices meeting the desired `subgraph` condition
+    * Now returns an empty graph if none of the input graphs meet the `subgraph` condition
+* `NBS`:
+    * When getting the indices for which matrix elements to transpose (so that result is symmetric), the result was slightly wrong for `alt='greater'`
+    * Calculation of edge counts in `summary` method contained an error
+
+## Minor changes
+* All `summary` methods now provide a `DT.sum` element in the returned list; previously it was inconsistent
+
+
 # brainGraph 2.0.3
 
 2018-04-26

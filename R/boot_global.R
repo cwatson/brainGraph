@@ -142,7 +142,7 @@ summary.brainGraph_boot <- function(object, ...) {
                       assortativity='Degree assortativity',
                       strength='Average strength',
                       mod.wt='Modularity (weighted)')
-  boot.sum <- list(meas.full=meas.full, dt=boot.dt, conf=object$conf, R=object$boot[[1]]$R)
+  boot.sum <- list(meas.full=meas.full, DT.sum=boot.dt, conf=object$conf, R=object$boot[[1]]$R)
   class(boot.sum) <- c('summary.brainGraph_boot', class(boot.sum))
   boot.sum
 }
@@ -156,7 +156,7 @@ print.summary.brainGraph_boot <- function(x, ...) {
   cat('Number of bootstrap samples generated: ', x$R, '\n')
   conf.pct <- 100 * x$conf
   cat(conf.pct, '% confidence intervals\n\n')
-  print(x$dt)
+  print(x$DT.sum)
   invisible(x)
 }
 
@@ -184,7 +184,7 @@ plot.brainGraph_boot <- function(x, ..., alpha=0.4) {
   Observed <- Group <- se <- ci.low <- ci.high <- NULL
 
   boot.sum <- summary(x)
-  boot.dt <- boot.sum$dt
+  boot.dt <- boot.sum$DT.sum
   b <- ggplot(boot.dt, aes(x=density, y=Observed, col=Group)) +
     geom_line() +
     labs(y=boot.sum$meas.full)

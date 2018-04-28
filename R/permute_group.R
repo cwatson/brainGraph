@@ -356,7 +356,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
 
   p.sig <- match.arg(p.sig)
   perm.sum <- with(object, list(auc=auc, N=N, level=level, densities=densities,
-                                DT=sum.dt, meas.full=meas.full, groups=groups,
+                                DT.sum=sum.dt, meas.full=meas.full, groups=groups,
                                 alt=alt, alpha=alpha, p.sig=p.sig))
   class(perm.sum) <- c('summary.brainGraph_permute', class(perm.sum))
   perm.sum
@@ -378,10 +378,10 @@ print.summary.brainGraph_permute <- function(x, ...) {
                 less=with(x, sprintf('%s - %s < 0', groups[1], groups[2])))
   cat('Alternative hypothesis: ', alt, '\n')
   cat('Alpha: ', x$alpha, '\n\n')
-  if (with(x, nrow(DT[get(p.sig) < alpha])) == 0) {
+  if (with(x, nrow(DT.sum[get(p.sig) < alpha])) == 0) {
     cat ('No significant results!\n')
   } else {
-    with(x, print(DT[get(p.sig) < alpha]))
+    with(x, print(DT.sum[get(p.sig) < alpha]))
   }
   invisible(x)
 }
@@ -410,7 +410,7 @@ plot.brainGraph_permute <- function(x, measure=NULL,
     measure <- x$measure
   }
   perm.sum <- summary(x, measure=measure, alternative=alternative, alpha=alpha)
-  sum.dt <- perm.sum$DT
+  sum.dt <- perm.sum$DT.sum
   if (is.null(ptitle)) ptitle <- perm.sum$meas.full
   ylabel2 <- sprintf('Observed and permutation difference (%s - %s)', x$groups[1], x$groups[2])
 
