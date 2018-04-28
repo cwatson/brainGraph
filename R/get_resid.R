@@ -130,7 +130,7 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   outliers.sub <- outliers[, .N, by=Study.ID]
   outliers.sub.vec <- structure(outliers.sub$N, names=as.character(outliers.sub$Study.ID))
 
-  out <- list(DT=DT,
+  out <- list(DT.sum=DT,
               outliers=list(DT=outliers, region=outliers.reg.vec, subject=outliers.sub.vec))
   class(out) <- c('summary.brainGraph_resids', class(out))
   return(out)
@@ -187,7 +187,7 @@ print.summary.brainGraph_resids <- function(x, ...) {
 plot.brainGraph_resids <- function(x, regions=NULL, cols=FALSE, ...) {
   region <- ind <- mark <- Study.ID <- resids <- NULL
   res.sum <- summary(x, regions=regions)
-  DT <- res.sum$DT
+  DT <- res.sum$DT.sum
   kNumRegions <- DT[, nlevels(region)]
 
   a <- ifelse(kNumRegions < 9, 1, kNumRegions %/% 9)
