@@ -63,10 +63,9 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
 
   A <- as_adj(g, sparse=FALSE, names=FALSE)
   Kis <- vapply(seq_len(N), function(x) colSums(A * (memb==x)), numeric(length(Ki)))
-  M <- max(which(table(memb) > 1))
+  M <- which(tabulate(memb) > 1)
   Kjs <- matrix(0, nrow=N, ncol=N)
-  Kjs[1:M, 1:M] <- vapply(seq_len(M), function(x)
-                colSums(Kis[which(memb==x), 1:M]), numeric(M))
+  Kjs[M, M] <- vapply(M, function(x) colSums(Kis[which(memb==x), M, drop=FALSE]), numeric(length(M)))
   barKis <- Cis <- matrix(0, nrow=length(Ki), ncol=N)
 
   for (i in which(Ki > 0)) {
