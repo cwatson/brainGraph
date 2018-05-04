@@ -1,3 +1,4 @@
+S3method('[',brainGraph_resids)
 S3method(plot,bg_GLM)
 S3method(plot,brainGraph)
 S3method(plot,brainGraph_GLM)

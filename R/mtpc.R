@@ -148,7 +148,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   glm.attr <- res.glm[[1]]
   glm.attr[c('y', 'DT', 'permute', 'perm')] <- NULL
   for (i in seq_along(thresholds)) res.glm[[i]]$perm$null.dist <- NULL
-  mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$V1,
+  mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$threshold,
                            S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
 
   if (isTRUE(long)) null.out <- null.dist.all
@@ -187,6 +187,7 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @method summary mtpc
+#' @rdname mtpc
 
 summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
   A.mtpc <- A.crit <- stat <- region <- S.mtpc <- NULL

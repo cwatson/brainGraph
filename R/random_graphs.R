@@ -18,8 +18,8 @@
 #' @param ... Other parameters (passed to \code{\link{sim.rand.graph.clust}})
 #' @export
 #'
-#' @return A \emph{list} of \emph{N} random graphs with some additional vertex
-#'   and graph attributes
+#' @return \code{sim.rand.graph.par} - a \emph{list} of \emph{N} random graphs
+#'   with some additional vertex and graph attributes
 #'
 #' @name RandomGraphs
 #' @aliases sim.rand.graph.par
@@ -77,14 +77,12 @@ sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
 #'   observed graph's (default: 100)
 #' @export
 #'
-#' @return An \code{igraph} graph object
+#' @return \code{sim.rand.graph.clust} - A single \code{igraph} graph object
 #'
 #' @aliases sim.rand.graph.clust
 #' @rdname random_graphs
-#' @family Random graph functions
 #'
-#' @seealso \code{\link[igraph]{rewire}, \link[igraph]{transitivity},
-#'   \link[igraph]{keeping_degseq}}
+#' @seealso \code{\link[igraph]{transitivity}}
 #'
 #' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 #' biological network structure with clustered random networks}. BMC

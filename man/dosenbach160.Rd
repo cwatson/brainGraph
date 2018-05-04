@@ -21,12 +21,6 @@
     \item{\code{network}}{a factor with levels \code{default} \code{fronto-parietal} \code{cingulo-opercular} \code{sensorimotor} \code{cerebellum} \code{occipital}}
   }
 }
-\source{
-  Dosenbach, N. U., Nardos, B., Cohen, A. L., Fair, D. A., Power, J. D., Church,
-  J. A., Nelson, S.M., Wig, G.S., Vogel, A.C., Lessov-Schlaggar, C.N., Barnes,
-  K. A. (2010). \emph{Prediction of individual brain maturity using fMRI}.
-  Science, 329(5997), 1358-1361.
-}
 \references{
   Dosenbach, N. U., Nardos, B., Cohen, A. L., Fair, D. A., Power, J. D., Church,
   J. A., Nelson, S.M., Wig, G.S., Vogel, A.C., Lessov-Schlaggar, C.N., Barnes,

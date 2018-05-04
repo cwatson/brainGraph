@@ -20,11 +20,6 @@
     \item{\code{class}}{a factor with levels \code{G} \code{G_and_S} \code{S} \code{SCGM}}
   }
 }
-\source{
-  Destrieux C., Fischl B., Dale E. \& Halgren E. (2010) \emph{Automatic
-  parcellation of human cortical gyri and sulci using standard anatomic
-  nomenclature}. NeuroImage, 53(1):1-15.
-}
 \references{
   Destrieux C., Fischl B., Dale E. \& Halgren E. (2010) \emph{Automatic
   parcellation of human cortical gyri and sulci using standard anatomic

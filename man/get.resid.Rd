@@ -2,9 +2,17 @@
 % Please edit documentation in R/get_resid.R
 \name{get.resid}
 \alias{get.resid}
-\title{Linear model residuals across brain regions}
+\alias{Extract.brainGraph_resids}
+\alias{[.brainGraph_resids}
+\alias{summary.brainGraph_resids}
+\title{Linear model residuals in structural covariance networks}
 \usage{
-get.resid(dt.vol, covars, use.mean = FALSE, exclude = NULL, ...)
+get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
+  use.mean = FALSE, exclude = NULL, ...)
+
+\method{[}{brainGraph_resids}(x, i, g = NULL)
+
+\method{summary}{brainGraph_resids}(object, regions = NULL, ...)
 }
 \arguments{
 \item{dt.vol}{A \code{data.table} containing all the volumetric measure of
@@ -13,6 +21,9 @@ interest (i.e., the object \code{lhrh} as ouptut by
 
 \item{covars}{A \code{data.table} of the covariates of interest}
 
+\item{method}{Character string indicating whether to test models for subject
+groups separately or combined (default: \code{comb.groups})}
+
 \item{use.mean}{Logical should we control for the mean hemispheric brain
 value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
 
@@ -20,20 +31,50 @@ value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
 \code{NULL})}
 
 \item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
+
+\item{x}{A \code{brainGraph_resids} object}
+
+\item{i}{Numeric vector of the indices}
+
+\item{g}{Character string indicating the group (default: \code{NULL})}
+
+\item{object}{A \code{brainGraph_resids} object}
+
+\item{regions}{Character vector of region(s) to focus on; default behavior is
+to show summary for all regions}
 }
 \value{
 An object of class \code{brainGraph_resids} with elements:
   \item{X}{The \emph{design matrix}}
+  \item{method}{The input argument \code{method}}
+  \item{use.mean}{The input argument \code{use.mean}}
   \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
     mean regional cortical thickness) and covariates, along with
     \emph{resids} column added}
   \item{resids.all}{The "wide" \code{data.table} of residuals}
+  \item{groups}{Group names}
+
+\code{\link{summary.brainGraph_resids}} returns a list with two
+  data tables, one of the residuals, and one of only the outlier regions
 }
 \description{
 Runs linear models across brain regions listed in a \code{data.table} (e.g.
 cortical thickness), adjusting for variables in \code{covars} (e.g. age, sex,
-etc.). It also calculates the \emph{externally Studentized} (or
+etc.), and calculates the \emph{externally Studentized} (or
 \emph{leave-one-out}) residuals.
+
+The \code{[} method will let you reorder or subset residuals based on a given
+numeric vector. However, this is used in bootstrap and permutation analysis
+and should generally not be called directly by the user.
+
+Print a summary of residuals for structural covariance data
+}
+\details{
+You can choose to run models for each of your subject groups separately or
+combined (the default) via the \code{method} argument. You may also choose
+whether or not to include the mean, per-hemisphere structural measure in the
+models. Finally, you can list variables that are present in \code{covars} but
+you would like to exclude from the models.
 }
 \seealso{
 \code{\link{rstudent}}

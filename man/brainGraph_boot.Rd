@@ -3,6 +3,7 @@
 \name{brainGraph_boot}
 \alias{brainGraph_boot}
 \alias{boot_global}
+\alias{summary.brainGraph_boot}
 \title{Bootstrapping for global graph measures}
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod", "E.global",
@@ -12,11 +13,14 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod", "E.global",
 boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
   "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
   conf = 0.95, .progress = TRUE)
+
+\method{summary}{brainGraph_boot}(object, ...)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities to loop through}
 
-\item{resids}{A data.table of the residuals (from \code{\link{get.resid}})}
+\item{resids}{An object of class \code{brainGraph_resids} (the output from
+\code{\link{get.resid}})}
 
 \item{R}{Integer; the number of bootstrap replicates (default: \code{1e3})}
 
@@ -27,6 +31,11 @@ intervals (default: 0.95)}
 
 \item{.progress}{Logical indicating whether or not to show a progress bar
 (default: \code{TRUE})}
+
+\item{object}{A \code{brainGraph_boot} object (from
+\code{\link{brainGraph_boot}})}
+
+\item{...}{Unused}
 }
 \value{
 An object of class \code{brainGraph_boot} containing some input
@@ -36,6 +45,8 @@ An object of class \code{brainGraph_boot} containing some input
 \description{
 Performs bootstrapping to get group standard error estimates of a global
 graph measure (e.g. modularity).
+
+Print a summary from a bootstrap analysis
 }
 \details{
 The confidence intervals are calculated using the normal approximation and at

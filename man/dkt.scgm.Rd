@@ -22,11 +22,6 @@
     \item{\code{name.full}}{a character vector of full region names}
   }
 }
-\source{
-  Klein A. and Tourville J. (2012) \emph{101 labeled brain images and a
-  consistent human cortical labeling protocol}. Front Neurosci,
-  doi:10.3389/fnins.2012.00171
-}
 \references{
   Klein A. and Tourville J. (2012) \emph{101 labeled brain images and a
   consistent human cortical labeling protocol}. Front Neurosci,

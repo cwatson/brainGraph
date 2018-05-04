@@ -5,7 +5,7 @@
 \title{Create a design matrix for linear model analysis}
 \usage{
 brainGraph_GLM_design(covars, coding = c("dummy", "effects", "cell.means"),
-  mean.center = FALSE, binarize = NULL, int = NULL)
+  factorize = TRUE, mean.center = FALSE, binarize = NULL, int = NULL)
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
@@ -13,14 +13,17 @@ brainGraph_GLM_design(covars, coding = c("dummy", "effects", "cell.means"),
 \item{coding}{Character string indicating how factor variables will be coded
 (default: \code{'dummy'})}
 
+\item{factorize}{Logical indicating whether to convert \emph{character}
+columns into \emph{factor} (default: \code{TRUE})}
+
 \item{mean.center}{Logical indicating whether to mean center non-factor
 variables (default: \code{FALSE})}
 
-\item{binarize}{Character string specifying the column name(s) of the
+\item{binarize}{Character vector specifying the column name(s) of the
 covariate(s) to be converted from type \code{factor} to \code{numeric}
 (default: \code{NULL})}
 
-\item{int}{Character string specifying the column name(s) of the
+\item{int}{Character vector specifying the column name(s) of the
 covariate(s) to test for an interaction (default: \code{NULL})}
 }
 \value{
@@ -33,19 +36,28 @@ returns a \emph{design matrix} to be used in linear model analysis.
 \details{
 There are three different ways to code factors: \emph{dummy}, \emph{effects},
 or \emph{cell-means} (chosen by the argument \code{coding}). To understand
-the difference, see Chapter 7 of the User Guide.
+the difference, see Chapter 8 of the User Guide.
+
+Importantly, the default behavior (as of v2.1.0) is to convert all character
+columns (excluding the Study ID column and any that you list in the
+\code{binarize} argument) to factor variables. To change this, set
+\code{factorize=FALSE}. So, if your covariates include multiple character
+columns, but you want to convert \emph{Scanner} to binary instead of a
+factor, you may still specify \code{binarize='Scanner'} and get the expected
+result. \code{binarize} will convert the given
+factor variable(s) into numeric variable(s), which is performed \emph{before}
+mean-centering.
 
 The argument \code{mean.center} will mean-center (i.e., subtract the mean of
 the entire dataset from each variable) any non-factor variables (including
-any dummy/indicator covariates). \code{binarize} will convert the given
-factor variable(s) into numeric variable(s), which is performed \emph{before}
-mean-centering.
+any dummy/indicator covariates). This is done \emph{after} "factorizing" and
+"binarizing".
 
 \code{int} specifies which variables should interact with one another. This
 argument accepts both numeric (e.g., \emph{Age}) and factor variables (e.g.,
 \emph{Sex}). All interaction combinations will be generated: if you supply 3
 variables, all two-way and the single three-way interaction will be
-generated. This variable must have at least two elements.
+generated. This variable \emph{must} have at least two elements.
 }
 \seealso{
 Other GLM functions: \code{\link{GLMfit}},

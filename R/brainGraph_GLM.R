@@ -182,6 +182,9 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 #'
 #' @inheritParams brainGraph_GLM
 #' @keywords internal
+#' @name GLMhelpers
+#' @aliases setup_glm
+#' @rdname glm_helpers
 
 setup_glm <- function(covars, X, con.mat, con.type, con.name, ...) {
   Study.ID <- NULL
@@ -263,6 +266,7 @@ partition <- function(M, con.mat, method=c('beckmann', 'guttman')) {
 #' @param nC Integer; the number of contrasts
 #' @inheritParams brainGraph_GLM
 #' @keywords internal
+#' @rdname randomise
 
 setup_randomise <- function(X, con.mat, nC) {
   i <- region <- contrast <- NULL
@@ -334,7 +338,12 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
 ################################################################################
 
 #' Helper function for GLM fitting
+#' @param DT A data.table with all the necessary data
+#' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
+#' @inheritParams brainGraph_GLM
 #' @keywords internal
+#' @aliases glm_fit_helper
+#' @rdname glm_helpers
 
 glm_fit_helper <- function(DT, X, con.type, con.mat, alt, measure, mykey) {
   ESS <- numer <- stat <- se <- p <- contrast <- NULL
@@ -443,29 +452,40 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #'
 #' There are three different ways to code factors: \emph{dummy}, \emph{effects},
 #' or \emph{cell-means} (chosen by the argument \code{coding}). To understand
-#' the difference, see Chapter 7 of the User Guide.
+#' the difference, see Chapter 8 of the User Guide.
+#'
+#' Importantly, the default behavior (as of v2.1.0) is to convert all character
+#' columns (excluding the Study ID column and any that you list in the
+#' \code{binarize} argument) to factor variables. To change this, set
+#' \code{factorize=FALSE}. So, if your covariates include multiple character
+#' columns, but you want to convert \emph{Scanner} to binary instead of a
+#' factor, you may still specify \code{binarize='Scanner'} and get the expected
+#' result. \code{binarize} will convert the given
+#' factor variable(s) into numeric variable(s), which is performed \emph{before}
+#' mean-centering.
 #'
 #' The argument \code{mean.center} will mean-center (i.e., subtract the mean of
 #' the entire dataset from each variable) any non-factor variables (including
-#' any dummy/indicator covariates). \code{binarize} will convert the given
-#' factor variable(s) into numeric variable(s), which is performed \emph{before}
-#' mean-centering.
+#' any dummy/indicator covariates). This is done \emph{after} "factorizing" and
+#' "binarizing".
 #'
 #' \code{int} specifies which variables should interact with one another. This
 #' argument accepts both numeric (e.g., \emph{Age}) and factor variables (e.g.,
 #' \emph{Sex}). All interaction combinations will be generated: if you supply 3
 #' variables, all two-way and the single three-way interaction will be
-#' generated. This variable must have at least two elements.
+#' generated. This variable \emph{must} have at least two elements.
 #'
 #' @param covars A \code{data.table} of covariates
 #' @param coding Character string indicating how factor variables will be coded
 #'   (default: \code{'dummy'})
+#' @param factorize Logical indicating whether to convert \emph{character}
+#'   columns into \emph{factor} (default: \code{TRUE})
 #' @param mean.center Logical indicating whether to mean center non-factor
 #'   variables (default: \code{FALSE})
-#' @param binarize Character string specifying the column name(s) of the
+#' @param binarize Character vector specifying the column name(s) of the
 #'   covariate(s) to be converted from type \code{factor} to \code{numeric}
 #'   (default: \code{NULL})
-#' @param int Character string specifying the column name(s) of the
+#' @param int Character vector specifying the column name(s) of the
 #'   covariate(s) to test for an interaction (default: \code{NULL})
 #' @export
 #'
@@ -475,13 +495,20 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.means'),
-                                  mean.center=FALSE, binarize=NULL, int=NULL) {
+                                  factorize=TRUE, mean.center=FALSE, binarize=NULL, int=NULL) {
 
   covars <- copy(covars)
   X <- matrix(1, nrow=nrow(covars), ncol=1)
   colnames(X) <- 'Intercept'
 
+  if (isTRUE(factorize)) {
+    cols <- names(which(sapply(covars, is.character)))
+    cols <- cols[!is.element(cols, 'Study.ID')]
+    cols <- setdiff(cols, binarize)
+    for (z in cols) covars[, eval(z) := as.factor(get(z))]
+  }
   if (!is.null(binarize)) {
+    stopifnot(all(binarize %in% names(covars)))
     for (b in binarize) covars[, eval(b) := as.numeric(get(b)) - 1]
   }
 
@@ -520,6 +547,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   }
 
   if (!is.null(int) & length(int) > 1) {
+    stopifnot(all(int %in% names(covars)))
     intcomb <- combn(int, 2, simplify=FALSE)
     if (length(int) == 3) intcomb <- c(intcomb, combn(int, 3, simplify=FALSE))
     for (x in intcomb) X <- get_int(X, coding, names(factors), x)
@@ -693,16 +721,16 @@ print.summary.bg_GLM <- function(x, ...) {
 #'
 #' Plots the GLM diagnostics (similar to that of
 #' \code{\link[stats]{plot.lm}}) for the output of \code{\link{brainGraph_GLM}}.
-#' There are a total of 6 possible plots. Please see the help for
-#' \code{\link[stats]{plot.lm}}.
+#' There are a total of 6 possible plots, specified by the \code{which}
+#' argument; the behavior is the same as in \code{\link[stats]{plot.lm}}. Please
+#' see the help for that function.
 #'
-#' @param x A \code{bg_GLM}} object
+#' @param x A \code{bg_GLM} object
 #' @param region Character string specifying which region's results to
 #'   plot; only relevant if \code{level='vertex'} (default: \code{NULL})
 #' @param which Integer vector indicating which of the 6 plots to print to the
 #'   plot device (default: \code{c(1:3, 5)})
 #' @param ... Unused
-#' @inheritParams plot.mtpc
 #' @export
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom gridExtra arrangeGrob

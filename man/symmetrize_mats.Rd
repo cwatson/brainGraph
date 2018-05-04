@@ -18,9 +18,7 @@ elements (default: \code{max})}
 \item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
 }
 \value{
-A symmetric matrix
-
-An array of symmetric matrices
+Either a single symmetrized matrix, or an (3D) array
 }
 \description{
 \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
@@ -34,9 +32,6 @@ because that is the default for
 }
 \seealso{
 \code{\link[igraph]{graph_from_adjacency_matrix}}
-
-Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}}, \code{\link{create_mats}}
 
 Other Matrix functions: \code{\link{apply_thresholds}},
   \code{\link{cor.diff.test}}, \code{\link{create_mats}}
