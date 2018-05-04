@@ -19,15 +19,6 @@
     \item{\code{index}}{a numeric vector}
   }
 }
-\source{
-  Rolls E.T., Joliot M., Tzourio-Mazoyer N. (2015) \emph{Implementation of a new
-  parcellation of the orbitofrontal cortex in the automated anatomical labelling
-  atlas}. NeuroImage, 122:1-5.
-  Tzourio-Mazoyer N., Landeau B., Papathanassiou D., Crivello F., Etard O.,
-  Delcroix N., Mazoyer B., Joliot M. (2002) \emph{Automated anatomical labeling
-  of activations in SPM using a macroscopic anatomical parcellation of the
-  MNI MRI single-subject brain}. NeuroImage, 15(1):273-289.
-}
 \references{
   Rolls E.T., Joliot M., Tzourio-Mazoyer N. (2015) \emph{Implementation of a new
   parcellation of the orbitofrontal cortex in the automated anatomical labelling

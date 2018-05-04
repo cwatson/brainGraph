@@ -11,7 +11,8 @@ loo(resids, corrs, level = c("global", "regional"))
 aop(resids, corr.mat, level = c("global", "regional"), control.value = 1)
 }
 \arguments{
-\item{resids}{Data table of model residuals}
+\item{resids}{An object of class \code{brainGraph_resids} (the output from
+\code{\link{get.resid}})}
 
 \item{corrs}{List of lists of correlation matrices (as output by
 \code{\link{corr.matrix}}).}

@@ -4,18 +4,13 @@
 \alias{rstudent_mat}
 \title{Calculate studentized residuals with matrix input}
 \usage{
-rstudent_mat(X, y, lev, n, p)
+rstudent_mat(lmvars, y)
 }
 \arguments{
-\item{X}{Numeric matrix; the design matrix}
+\item{lmvars}{List containing: \code{X} (design matrix); \code{lev}
+(leverage); \code{n} (num. observations); \code{p} (num. parameters)}
 
 \item{y}{Numeric vector; the outcome variable}
-
-\item{lev}{Numeric vector; the leverage of the "hat" matrix}
-
-\item{n}{Integer; number of rows in \code{X}}
-
-\item{p}{Integer; number of columns in \code{X}}
 }
 \description{
 Calculate studentized residuals with matrix input

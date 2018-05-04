@@ -9,7 +9,8 @@
   x$treat, x$outcome, x$mediator), subt = NULL, cex.main = 1, ...)
 }
 \arguments{
-\item{x}{An graph object (from \code{\link{make_mediate_brainGraph}})}
+\item{x}{A \code{brainGraph_mediate} graph object (from
+\code{\link{make_mediate_brainGraph}})}
 
 \item{subgraph}{Character string specifying an equation for vertices to plot
 (default: \code{NULL})}

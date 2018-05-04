@@ -14,7 +14,7 @@ to show summary for all regions}
 
 \item{cols}{Logical indicating whether to color by group (default: FALSE)}
 
-\item{...}{Unused}
+\item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
 }
 \value{
 A list of \code{\link[ggplot2]{ggplot}} objects
@@ -26,15 +26,11 @@ from \code{\link{get.resid}}.
 }
 \examples{
 \dontrun{
-## First get the resid's and store the plots as an object
 myresids <- get.resids(lhrh, covars)
-p.resids <- plot(myresids, cols=TRUE)
+residPlots <- plot(myresids, cols=TRUE)
 
-## Open a new plot device for each set of 9
-lapply(p.resids, function(x) {dev.new(); print(x)})
-
-## Save as a multi-page PDF; requires \\code{gridExtra}
-ml <- marrangeGrob(p.resids, nrow=1, ncol=1)
+## Save as a multi-page PDF
+ml <- marrangeGrob(residPlots, nrow=3, ncol=3)
 ggsave('residuals.pdf', ml)
 }
 }

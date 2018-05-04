@@ -10,7 +10,7 @@
   x$name), cex.main = 2, ...)
 }
 \arguments{
-\item{x}{An \code{igraph} graph object (from
+\item{x}{A \code{brainGraph_NBS} graph object (from
 \code{\link{make_nbs_brainGraph}})}
 
 \item{alpha}{Numeric; the significance level (default: 0.05)}
@@ -34,7 +34,8 @@ component)}
 
 \item{main}{Character string; the main title (default: \code{NULL})}
 
-\item{cex.main}{Numeric; the scaling factor for text size (default: 2)}
+\item{cex.main}{Numeric; the scaling factor for text size; see
+\code{\link[graphics]{par}} (default: 2)}
 
 \item{...}{Other arguments passed to \code{\link{plot.brainGraph}}}
 }

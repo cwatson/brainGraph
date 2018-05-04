@@ -7,7 +7,8 @@
 #' the 95\% level.
 #'
 #' @param densities Numeric vector of graph densities to loop through
-#' @param resids A data.table of the residuals (from \code{\link{get.resid}})
+#' @param resids An object of class \code{brainGraph_resids} (the output from
+#'   \code{\link{get.resid}})
 #' @param R Integer; the number of bootstrap replicates (default: \code{1e3})
 #' @param measure Character string of the measure to test (default: \code{mod})
 #' @param conf Numeric; the confidence level for calculating confidence
@@ -34,40 +35,38 @@ brainGraph_boot <- function(densities, resids, R=1e3,
                             measure=c('mod', 'E.global', 'Cp', 'Lp', 'assortativity',
                                       'strength', 'mod.wt', 'E.global.wt'),
                             conf=0.95, .progress=TRUE) {
-  Group <- t0 <- NULL
-  if (!is.factor(resids$Group)) resids[, Group := as.factor(Group)]
-  groups <- resids[, levels(Group)]
-  measure <- match.arg(measure)
+  Group <- NULL
+  stopifnot(inherits(resids, 'brainGraph_resids'))
 
   # 'statistic' function for the bootstrapping process
-  statfun <- function(x, i, measure) {
-    corrs <- corr.matrix(x[i], densities=densities)
+  statfun <- function(x, i, measure, res.obj) {
+    corrs <- corr.matrix(res.obj[i], densities=densities)
     if (measure %in% c('strength', 'mod.wt', 'E.global.wt')) {
-      g.boot <- apply(corrs$r.thresh, 3, function(y)
-                      graph_from_adjacency_matrix(corrs$R * y, mode='undirected',
+      g.boot <- apply(corrs[[1]]$r.thresh, 3, function(y)
+                      graph_from_adjacency_matrix(corrs[[1]]$R * y, mode='undirected',
                                                   diag=FALSE, weighted=TRUE))
     } else {
-      g.boot <- apply(corrs$r.thresh, 3, graph_from_adjacency_matrix,
+      g.boot <- apply(corrs[[1]]$r.thresh, 3, graph_from_adjacency_matrix,
                       mode='undirected', diag=FALSE)
     }
     res <- switch(measure,
-        mod=,mod.wt=vapply(g.boot, function(x) max(modularity(cluster_louvain(x))), numeric(1)),
+        mod=,mod.wt=vapply(g.boot, function(y) max(modularity(cluster_louvain(y))), numeric(1)),
         E.global=,E.global.wt=vapply(g.boot, efficiency, numeric(1), 'global'),
         Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
         Lp=vapply(g.boot, mean_distance, numeric(1)),
         assortativity=vapply(g.boot, assortativity_degree, numeric(1)),
-        strength=vapply(g.boot, function(x) mean(graph.strength(x)), numeric(1)))
+        strength=vapply(g.boot, function(y) mean(graph.strength(y)), numeric(1)))
     return(res)
   }
 
   # Show a progress bar so you aren't left in the dark
   if (isTRUE(.progress)) {
-    intfun <- function(data, indices, measure) {
+    intfun <- function(data, indices, measure, res.obj) {
       curVal <- get('counter', envir=env) + ncpus
       assign('counter', curVal, envir=env)
       setTxtProgressBar(get('progbar', envir=env), curVal)
       flush.console()
-      statfun(data, indices, measure)
+      statfun(data, indices, measure, res.obj)
     }
   } else {
     intfun <- statfun
@@ -83,12 +82,16 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     ncpus <- detectCores()
     cl <- NULL
   }
+
+  measure <- match.arg(measure)
   env <- environment()
+  groups <- resids$groups
   my.boot <- sapply(groups, function(x) NULL)
-  for (x in names(my.boot)) {
+  for (g in groups) {
     counter <- 0
+    res.dt <- resids$resids.all[g]
     if (isTRUE(.progress)) progbar <- txtProgressBar(min=0, max=R, style=3)
-    my.boot[[x]] <- boot(resids[x], intfun, measure=measure, R=R,
+    my.boot[[g]] <- boot(res.dt, intfun, measure=measure, res.obj=resids[g], R=R,
                          parallel=my.parallel, ncpus=ncpus, cl=cl)
     if (isTRUE(.progress)) close(progbar)
   }
@@ -117,6 +120,7 @@ boot_global <- function(densities, resids, R=1e3,
 #' @importFrom boot boot.ci
 #' @export
 #' @method summary brainGraph_boot
+#' @rdname brainGraph_boot
 
 summary.brainGraph_boot <- function(object, ...) {
   # Get everything into a data.table

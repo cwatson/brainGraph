@@ -7,7 +7,7 @@
 \method{plot}{bg_GLM}(x, region = NULL, which = c(1L:3L, 5L), ...)
 }
 \arguments{
-\item{x}{A \code{mtpc} object}
+\item{x}{A \code{bg_GLM} object}
 
 \item{region}{Character string specifying which region's results to
 plot; only relevant if \code{level='vertex'} (default: \code{NULL})}
@@ -23,8 +23,9 @@ A list of \code{\link[ggplot2]{ggplot}} objects
 \description{
 Plots the GLM diagnostics (similar to that of
 \code{\link[stats]{plot.lm}}) for the output of \code{\link{brainGraph_GLM}}.
-There are a total of 6 possible plots. Please see the help for
-\code{\link[stats]{plot.lm}}.
+There are a total of 6 possible plots, specified by the \code{which}
+argument; the behavior is the same as in \code{\link[stats]{plot.lm}}. Please
+see the help for that function.
 }
 \examples{
 \dontrun{
