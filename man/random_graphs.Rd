@@ -31,10 +31,10 @@ lower number may result in clustering that is further away from the
 observed graph's (default: 100)}
 }
 \value{
-A \emph{list} of \emph{N} random graphs with some additional vertex
-  and graph attributes
+\code{sim.rand.graph.par} - a \emph{list} of \emph{N} random graphs
+  with some additional vertex and graph attributes
 
-An \code{igraph} graph object
+\code{sim.rand.graph.clust} - A single \code{igraph} graph object
 }
 \description{
 \code{sim.rand.graph.par} simulates \code{N} simple random graphs with the
@@ -69,14 +69,10 @@ Bioinformatics, 10:405-421.
 \code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
   \link[igraph]{keeping_degseq}}
 
-\code{\link[igraph]{rewire}, \link[igraph]{transitivity},
-  \link[igraph]{keeping_degseq}}
+\code{\link[igraph]{transitivity}}
 
-Other Random graph functions: \code{\link{analysis_random_graphs}},
-  \code{\link{rich_club_norm}}
-
-Other Random graph functions: \code{\link{analysis_random_graphs}},
-  \code{\link{rich_club_norm}}
+Other Random graph functions: \code{\link{RichClub}},
+  \code{\link{analysis_random_graphs}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

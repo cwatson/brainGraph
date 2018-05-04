@@ -9,7 +9,7 @@
   subt = NULL, cex.main = 2, ...)
 }
 \arguments{
-\item{x}{An \code{igraph} graph object (from
+\item{x}{A \code{brainGraph_GLM} graph object (from
 \code{\link{make_glm_brainGraph}})}
 
 \item{p.sig}{Character string indicating which p-value to use for determining

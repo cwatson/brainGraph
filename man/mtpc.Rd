@@ -2,12 +2,16 @@
 % Please edit documentation in R/mtpc.R
 \name{mtpc}
 \alias{mtpc}
+\alias{summary.mtpc}
 \title{Multi-threshold permutation correction}
 \usage{
 mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t", "f"),
   con.name = NULL, level = c("vertex", "graph"), clust.size = 3L,
   N = 500L, perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE,
   ...)
+
+\method{summary}{mtpc}(object, contrast = NULL, digits = max(3L,
+  getOption("digits") - 2L), print.head = TRUE, ...)
 }
 \arguments{
 \item{g.list}{A list of lists of \code{igraph} graph objects for all
@@ -53,6 +57,16 @@ results (default: \code{FALSE})}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM}} and/or
 \code{\link{brainGraph_GLM_design}}}
+
+\item{object}{A \code{mtpc} object}
+
+\item{contrast}{Integer specifying the contrast to summarize; defaults to
+showing results for all contrasts}
+
+\item{digits}{Integer specifying the number of digits to display for p-values}
+
+\item{print.head}{Logical indicating whether or not to print only the first
+and last 5 rows of the statistics tables (default: \code{TRUE})}
 }
 \value{
 An object of class \code{mtpc} with some input arguments plus the
@@ -74,6 +88,8 @@ An object of class \code{mtpc} with some input arguments plus the
 \description{
 Applies the \emph{multi-threshold permutation correction (MTPC)} method to
 perform inference in graph theory analyses of brain MRI data.
+
+Print a summary of MTPC results
 }
 \details{
 This is a multi-step procedure: (steps 3-4 are the time-consuming steps)

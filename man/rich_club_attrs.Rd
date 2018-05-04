@@ -51,9 +51,8 @@ g <- rich_club_attrs(g, rich.dt[density == densities[N] & p.fdr < .01,
 }
 }
 \seealso{
-Other Rich-club functions: \code{\link{plot_rich_norm}},
-  \code{\link{rich_club_coeff}},
-  \code{\link{rich_club_norm}}, \code{\link{rich_core}}
+Other Rich-club functions: \code{\link{RichClub}},
+  \code{\link{plot_rich_norm}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

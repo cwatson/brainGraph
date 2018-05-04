@@ -23,7 +23,8 @@
 #' }
 #'
 #' @param densities Numeric vector of graph densities
-#' @param resids A data table of the residuals (from \code{\link{get.resid}})
+#' @param resids An object of class \code{brainGraph_resids} (the output from
+#'   \code{\link{get.resid}})
 #' @param N Integer; the number of permutations (default: 5e3)
 #' @param perms Numeric matrix of permutations, if you would like to provide
 #'   your own (default: \code{NULL})
@@ -42,6 +43,7 @@
 #'   addition to:
 #'   \item{DT}{A data table with permutation statistics}
 #'   \item{obs.diff}{A data table of the observed group differences}
+#'   \item{groups}{Group names}
 #'
 #' @family Group analysis functions
 #' @family Structural covariance network functions
@@ -49,12 +51,11 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' m <- get.resid(all.thick, covars)
-#' myPerms <- shuffleSet(n=nrow(m$resids.all), nset=1e3)
-#' out <- brainGraph_permute(densities, m$resids.all, perms=myPerms, atlas='dk')
-#' out <- brainGraph_permute(densities, m$resids.all, perms=myPerms,
-#'   level='vertex')
-#' out <- brainGraph_permute(densities, m$resids.all, perms=myPerms,
+#' myResids <- get.resid(lhrh, covars)
+#' myPerms <- shuffleSet(n=nrow(myResids$resids.all), nset=1e3)
+#' out <- brainGraph_permute(densities, m, perms=myPerms, atlas='dk')
+#' out <- brainGraph_permute(densities, m, perms=myPerms, level='vertex')
+#' out <- brainGraph_permute(densities, m, perms=myPerms,
 #'   level='other', .function=myFun)
 #' }
 
@@ -64,6 +65,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
                                          'knn', 'transitivity', 'vulnerability'),
                                atlas=NULL, .function=NULL) {
   Group <- NULL
+  stopifnot(inherits(resids, 'brainGraph_resids'))
   measure <- match.arg(measure)
   level <- match.arg(level)
   if (level == 'other') {
@@ -85,11 +87,10 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
     }
   }
 
-  if (is.null(perms)) perms <- shuffleSet(n=nrow(resids), nset=N)
+  if (is.null(perms)) perms <- shuffleSet(n=nrow(resids$resids.all), nset=N)
   N <- nrow(perms)
   perms <- rbind(perms, 1:ncol(perms))  # last row is observed metrics
-  if (!is.factor(resids$Group)) resids[, Group := as.factor(Group)]
-  groups <- as.numeric(resids$Group)
+  groups <- as.numeric(resids$resids.all$Group)
 
   # Loop through the permutation matrix
   res.perm <- switch(level,
@@ -101,10 +102,11 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
 
   if (level == 'vertex') {
     res.perm <- as.data.table(res.perm)
+    regions <- names(resids$resids.all[, !c('Study.ID', 'Group')])
     if (isTRUE(auc)) {
-      setnames(res.perm, 1:ncol(res.perm), names(resids[, !c('Study.ID', 'Group')]))
+      setnames(res.perm, 1:ncol(res.perm), regions)
     } else {
-      setnames(res.perm, 2:ncol(res.perm), names(resids[, !c('Study.ID', 'Group')]))
+      setnames(res.perm, 2:ncol(res.perm), regions)
     }
   }
 
@@ -118,7 +120,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
     res.perm <- res.perm[-.N]
   }
   out <- list(atlas=atlas, auc=auc, N=N, level=level, measure=measure, densities=densities,
-              resids=resids, DT=res.perm, obs.diff=obs.diff, groups=resids[, levels(Group)])
+              resids=resids, DT=res.perm, obs.diff=obs.diff, groups=resids$groups)
   class(out) <- c('brainGraph_permute', class(out))
   return(out)
 }
@@ -129,7 +131,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
 make_graphs_perm <- function(densities, resids, inds, groups) {
   corrs <- lapply(unique(groups), function(x)
                   corr.matrix(resids[which(groups[inds] == x)],
-                        densities=densities))
+                              densities=densities, rand=TRUE))
   lapply(corrs, function(x)
          apply(x$r.thresh, 3, graph_from_adjacency_matrix, mode='undirected', diag=F))
 }
@@ -237,8 +239,8 @@ summary.brainGraph_permute <- function(object, measure=NULL,
   perm.diff <- p <- N <- p.fdr <- region <- obs.diff <- NULL
 
   permDT <- copy(object$DT)
-  g <- with(object, make_graphs_perm(densities, resids, 1:nrow(resids),
-                                     resids[, as.numeric(Group)]))
+  g <- with(object, make_graphs_perm(densities, resids, 1:nrow(resids$resids.all),
+                                     resids$resids.all[, as.numeric(Group)]))
   # OTHER
   #-------------------------------------
   if (object$level == 'other') {  # Hack to figure out which level it is when level="other"

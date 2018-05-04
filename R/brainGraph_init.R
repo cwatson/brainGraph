@@ -14,11 +14,13 @@
 #' The file containing covariates should be named \code{covars.csv}. However,
 #' you may also supply a \code{data.table} using the function argument
 #' \code{covars}. This is useful if you have multiple covariates in your file
-#' and wish to subset the data on your own.
+#' and wish to subset the data on your own. It must have, at minimum, columns
+#' named \code{Study.ID} and \code{Group} (even if you have only 1 group).
 #'
-#' The filenames of files containing volumetric data should include hemisphere,
-#' atlas, and modality separated by the \emph{underscore} character, e.g.
-#' \code{lh_dkt_thickness.csv}. If you would like to include subcortical gray
+#' The filenames of the structural MRI data should include hemisphere,
+#' atlas, and modality separated by the \emph{underscore} character; e.g.
+#' \code{lh_dkt_thickness.csv} contains cortical thickness of left hemisphere
+#' regions of the DKT atlas. If you would like to include subcortical gray
 #' matter, then you will need files \code{covars.scgm.csv} and \code{scgm.csv}.
 #'
 #' @param atlas Character string indicating which brain atlas you are using.
@@ -59,8 +61,7 @@
 #'   'Con23', 'Pat15'))
 #' }
 
-brainGraph_init <- function(atlas, densities, datadir,
-                            modality=c('thickness', 'volume', 'lgi', 'area'),
+brainGraph_init <- function(atlas, densities, datadir, modality='thickness',
                             covars=NULL, exclude.subs=NULL, custom.atlas=NULL) {
   Group <- Study.ID <- region <- NULL
 
@@ -80,7 +81,6 @@ brainGraph_init <- function(atlas, densities, datadir,
   groups <- covars[, levels(Group)]
   kNumGroups <- length(groups)
 
-  modality <- match.arg(modality)
   stopifnot(file.exists(paste0(datadir, '/lh_', atlas, '_', modality, '.csv')),
             file.exists(paste0(datadir, '/rh_', atlas, '_', modality, '.csv')))
   lh <- fread(paste0(datadir, '/lh_', atlas, '_', modality, '.csv'))

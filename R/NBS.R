@@ -224,6 +224,7 @@ randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, 
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @method summary NBS
+#' @rdname NBS
 
 summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
   contrast <- csize <- NULL

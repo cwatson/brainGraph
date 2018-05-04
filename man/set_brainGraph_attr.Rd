@@ -59,18 +59,18 @@ probably most common.
 }
 }
 \seealso{
-\code{\link[igraph]{components}, \link[igraph]{diameter},
-\link[igraph]{clique_num}, \link[igraph]{centr_betw}, \link{part_coeff},
-\link[igraph]{edge.betweenness}, \link[igraph]{centr_eigen},
-\link{gateway_coeff}, \link[igraph]{hub.score},
-\link[igraph]{authority.score}, \link[igraph]{transitivity},
-\link[igraph]{mean_distance}, \link[igraph]{assortativity_degree},
-\link[igraph]{assortativity_nominal},
-\link[igraph]{cluster_louvain}, \link{efficiency},
-\link{set_edge_color}, \link{rich_club_coeff}, \link{s_core},
-\link{within_module_deg_z_score}, \link[igraph]{coreness},
-\link{edge_spatial_dist}, \link{vulnerability}, \link{centr_lev},
-\link{edge_asymmetry}, \link[igraph]{graph.knn}, \link{vertex_spatial_dist}}
+\code{\link[igraph]{components}}, \code{\link[igraph]{diameter}},
+\code{\link[igraph]{clique_num}}, \code{\link[igraph]{centr_betw}},
+\code{\link{part_coeff}}, \code{\link[igraph]{edge.betweenness}},
+\code{\link[igraph]{centr_eigen}}, \code{\link{gateway_coeff}},
+\code{\link[igraph]{transitivity}}, \code{\link[igraph]{mean_distance}},
+\code{\link[igraph]{assortativity_degree}}, \code{\link{efficiency}},
+\code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
+\code{\link[igraph]{cluster_louvain}}, \code{\link{set_edge_color}},
+\code{\link{rich_club_coeff}}, \code{\link{s_core}}, \code{\link{centr_lev}},
+\code{\link{within_module_deg_z_score}}, \code{\link{edge_spatial_dist}},
+\code{\link{vulnerability}}, \code{\link{edge_asymmetry}},
+\code{\link[igraph]{graph.knn}}, \code{\link{vertex_spatial_dist}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

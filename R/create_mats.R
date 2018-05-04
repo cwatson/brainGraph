@@ -229,7 +229,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 #' @param symm.by Character string; how to create symmetric off-diagonal
 #'   elements (default: \code{max})
 #' @export
-#' @return A symmetric matrix
+#' @return Either a single symmetrized matrix, or an (3D) array
 #'
 #' @family Matrix functions
 #' @seealso \code{\link[igraph]{graph_from_adjacency_matrix}}
@@ -267,8 +267,6 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
 #' @param ... Arguments passed to \code{\link{symmetrize_mats}}
 #' @inheritParams symmetrize_mats
 #' @export
-#' @return An array of symmetric matrices
-#' @family Matrix functions
 #' @rdname symmetrize_mats
 
 symmetrize_array <- function(A, ...) {

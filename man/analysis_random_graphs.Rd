@@ -57,7 +57,7 @@ rand_all <- analysis_random_graphs(g.norm, 1e2,
 \code{\link{small.world}}
 
 Other Random graph functions: \code{\link{RandomGraphs}},
-  \code{\link{rich_club_norm}}
+  \code{\link{RichClub}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

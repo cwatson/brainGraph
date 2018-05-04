@@ -1,7 +1,8 @@
-#' Calculate the rich club of a graph
+#' Rich club calculations
 #'
-#' This function calculates the \emph{rich club} of a graph, both the
-#' coefficient \eqn{\phi} and the nodes that make up this subgraph.
+#' \code{rich_club_coeff} calculates the \emph{rich club} of a graph, returning
+#' the rich-club coefficient, \eqn{\phi}, and the subgraph of rich club
+#' vertices.
 #'
 #' @param g An \code{igraph} graph object
 #' @param k Integer; the minimum degree for including a vertex (default: 1)
@@ -9,12 +10,15 @@
 #'   used (default: \code{FALSE})
 #' @export
 #'
-#' @return A list with the following components:
-#' \item{phi}{The rich club coefficient, \eqn{\phi}.}
-#' \item{graph}{A subgraph containing only the rich club nodes.}
-#' \item{Nk}{The number of vertices in the rich club graph.}
-#' \item{Ek}{The number of edges in the rich club graph.}
+#' @return \code{\link{rich_club_coeff}} - a list with components:
+#'   \item{phi}{The rich club coefficient, \eqn{\phi}.}
+#'   \item{graph}{A subgraph containing only the rich club vertices.}
+#'   \item{Nk}{The number of vertices in the rich club graph.}
+#'   \item{Ek}{The number of edges in the rich club graph.}
 #'
+#' @name RichClub
+#' @aliases rich_club_coeff
+#' @rdname rich_club
 #' @family Rich-club functions
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -54,20 +58,21 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 
 #' Calculate the normalized rich club coefficient
 #'
-#' This function will (optionally) generate a number of random graphs, calculate
-#' their rich club coefficients (\eqn{\phi}), and return \eqn{\phi} of the graph
-#' of interest divided by the mean across random graphs, i.e. \eqn{\phi_{norm}}.
+#' \code{rich_club_norm} will (optionally) generate a number of random graphs,
+#' calculate their rich club coefficients (\eqn{\phi}), and return
+#' \eqn{\phi_{norm}} of the graph of interest, which is the observed rich-club
+#' coefficient divided by the mean across the random graphs.
+#'
 #' If random graphs have already been generated, you can supply a list as an
 #' argument (since graph generation is time consuming).
 #'
-#' @param g An \code{igraph} graph object
 #' @param N Integer; the number of random graphs to generate (default: 100)
 #' @param rand A list of \code{igraph} graph objects, if random graphs have
-#'   already been generated (default: NULL)
+#'   already been generated (default: \code{NULL})
 #' @param ... Other parameters (passed to \code{\link{sim.rand.graph.par}})
 #' @export
 #'
-#' @return A data table with columns:
+#' @return \code{\link{rich_club_norm}} - a data table with columns:
 #'   \item{k}{Sequence of degrees}
 #'   \item{rand}{Rich-club coefficients for the random graphs}
 #'   \item{orig}{Rich-club coefficients for the original graph.}
@@ -76,12 +81,14 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 #'     from the random graphs.}
 #'   \item{p.fdr}{The FDR-adjusted P-values}
 #'   \item{density}{The observed graph's density}
-#'   \item{threshold,Group,name}{(if applicable)}
+#'   \item{threshold}{}
+#'   \item{Group}{}
+#'   \item{name}{}
 #'
-#' @family Rich-club functions
+#' @aliases rich_club_norm
+#' @rdname rich_club
 #' @family Random graph functions
 #'
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
 #' \emph{Detecting rich-club ordering in complex networks}. Nature Physics,
 #' 2:110-115.
@@ -189,25 +196,23 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 
 #' Calculate the rich core of a graph
 #'
-#' This function finds the boundary of the rich core of a graph, based on the
+#' \code{rich_core} finds the boundary of the rich core of a graph, based on the
 #' decreasing order of vertex degree. It also calculates the degree that
 #' corresponds to that rank, and the core size relative to the total number of
 #' vertices in the graph.
 #'
-#' @inheritParams rich_club_coeff
 #' @export
+#' @return \code{\link{rich_core}} - a data frame with columns:
+#'   \item{density}{The density of the graph.}
+#'   \item{rank}{The rank of the boundary for the rich core.}
+#'   \item{k.r}{The degree of the vertex at the boundary.}
+#'   \item{core.size}{The size of the core relative to the graph size.}
 #'
-#' @return A data frame with the following components:
-#' \item{density}{The density of the graph.}
-#' \item{rank}{The rank of the boundary for the rich core.}
-#' \item{k.r}{The degree of the vertex at the boundary.}
-#' \item{core.size}{The size of the core relative to the graph size.}
+#' @aliases rich_core
+#' @rdname rich_club
 #'
-#' @family Rich-club functions
-#'
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Ma A \& Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
-#' One, 10(3): e0119678. doi:10.1371/journal.pone.0119678
+#' @references Ma A & Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
+#'   One, 10(3): e0119678. doi: 10.1371/journal.pone.0119678
 
 rich_core <- function(g) {
   stopifnot(is_igraph(g))
