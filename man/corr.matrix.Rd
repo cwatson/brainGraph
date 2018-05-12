@@ -4,24 +4,34 @@
 \alias{corr.matrix}
 \title{Calculate correlation matrix and threshold}
 \usage{
-corr.matrix(resids, densities, thresholds = NULL, exclusions = NULL, ...)
+corr.matrix(resids, densities, thresholds = NULL, what = c("resids", "raw"),
+  exclude.reg = NULL, type = c("pearson", "spearman"), rand = FALSE)
 }
 \arguments{
-\item{resids}{Data table of the residuals (from \code{\link{get.resid}})}
+\item{resids}{An object of class \code{brainGraph_resids} (the output from
+\code{\link{get.resid}})}
 
 \item{densities}{Numeric vector indicating the resultant network
 density(ies); keeps the top \emph{X}\% of correlations}
 
-\item{thresholds}{Numeric; absolute correlation value to threshold by (default:
+\item{thresholds}{Numeric; absolute correlation value to threshold by
+(default: \code{NULL})}
+
+\item{what}{Character string indicating whether to correlate the residuals or
+the raw structural MRI values (default: \code{'resids'})}
+
+\item{exclude.reg}{Character vector of regions to exclude (default:
 \code{NULL})}
 
-\item{exclusions}{Numeric vector of indices (columns) to exclude (default:
-\code{NULL})}
+\item{type}{Character string indicating which type of correlation coefficient
+to calculate (default: \code{'pearson'})}
 
-\item{...}{Other arguments, passed to \code{\link[Hmisc]{rcorr}}}
+\item{rand}{Logical indicating whether the function is being called for
+permutation testing; not intended for general use (default: \code{FALSE})}
 }
 \value{
-A list with the following components:
+A nested list containing a list for all subject groups; each of these
+  has the following components:
   \item{R}{Numeric matrix of correlation coefficients.}
   \item{P}{Numeric matrix of p-values.}
   \item{r.thresh}{A 3-d binary array indicating correlations that are above a
@@ -29,6 +39,9 @@ A list with the following components:
     thresholds/densities supplied.}
   \item{thresholds}{Numeric vector; the thresholds supplied.}
   \item{densities}{Numeric vector; the densities supplied.}
+  \item{what}{Residuals or raw values}
+  \item{exclude.reg}{Excluded regions (if any)}
+  \item{type}{Pearson or Spearman}
 }
 \description{
 \code{corr.matrix} calculates the correlation between all column pairs of a
@@ -40,15 +53,15 @@ ignored.
 }
 \details{
 If you wish to exclude regions from your analysis, you can give the indices
-of their columns with the \code{exclusions} argument.
+of their columns with the \code{exclude.reg} argument.
 
 By default, the Pearson correlation coefficients are calculated, but you can
-return Spearman by passing an additional argument.
+return Spearman by changing the \code{type} argument.
 }
 \examples{
 \dontrun{
-corrs <- lapply(groups, function(x) lapply(densities, function(y)
-  corr.matrix(resids.all[x], densities=y)))
+myResids <- get.resid(lhrh, covars)
+corrs <- corr.matrix(myResids, densities=densities)))
 }
 }
 \seealso{

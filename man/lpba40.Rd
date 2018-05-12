@@ -20,12 +20,6 @@
     \item{\code{index}}{a numeric vector}
   }
 }
-\source{
-  Shattuck DW, Mirza M, Adisetiyo V, Hojatkashani C, Salamon G, Narr KL,
-  Poldrack RA, Bilder RM, Toga AW (2007) \emph{Construction of a 3D probabilistic
-  atlas of human cortical structures}. NeuroImage,
-  doi:10.1016/j.neuroimage.2007.09.031
-}
 \references{
   Shattuck DW, Mirza M, Adisetiyo V, Hojatkashani C, Salamon G, Narr KL,
   Poldrack RA, Bilder RM, Toga AW (2007) \emph{Construction of a 3D probabilistic

@@ -18,7 +18,8 @@ permute.group(densities, resids, N = 5000, perms = NULL,
 \arguments{
 \item{densities}{Numeric vector of graph densities}
 
-\item{resids}{A data table of the residuals (from \code{\link{get.resid}})}
+\item{resids}{An object of class \code{brainGraph_resids} (the output from
+\code{\link{get.resid}})}
 
 \item{N}{Integer; the number of permutations (default: 5e3)}
 
@@ -44,6 +45,7 @@ An object of class \code{brainGraph_permute} with input arguments in
   addition to:
   \item{DT}{A data table with permutation statistics}
   \item{obs.diff}{A data table of the observed group differences}
+  \item{groups}{Group names}
 }
 \description{
 \code{brainGraph_permute} draws permutations from linear model residuals to
@@ -71,12 +73,11 @@ There are three possible "levels":
 }
 \examples{
 \dontrun{
-m <- get.resid(all.thick, covars)
-myPerms <- shuffleSet(n=nrow(m$resids.all), nset=1e3)
-out <- brainGraph_permute(densities, m$resids.all, perms=myPerms, atlas='dk')
-out <- brainGraph_permute(densities, m$resids.all, perms=myPerms,
-  level='vertex')
-out <- brainGraph_permute(densities, m$resids.all, perms=myPerms,
+myResids <- get.resid(lhrh, covars)
+myPerms <- shuffleSet(n=nrow(myResids$resids.all), nset=1e3)
+out <- brainGraph_permute(densities, m, perms=myPerms, atlas='dk')
+out <- brainGraph_permute(densities, m, perms=myPerms, level='vertex')
+out <- brainGraph_permute(densities, m, perms=myPerms,
   level='other', .function=myFun)
 }
 }

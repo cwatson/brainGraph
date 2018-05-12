@@ -320,7 +320,7 @@ plot_brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 #' only those vertices in which \code{V(g)$p.nbs > 1 - alpha} will be shown.
 #' Finally, vertex names will be omitted.
 #'
-#' @param x An \code{igraph} graph object (from
+#' @param x A \code{brainGraph_NBS} graph object (from
 #'   \code{\link{make_nbs_brainGraph}})
 #' @param alpha Numeric; the significance level (default: 0.05)
 #' @param subgraph Character string specifying the condition for subsetting the
@@ -334,7 +334,8 @@ plot_brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 #' @param edge.color Character string specifying the edge attribute to color
 #'   the edges by (default: \code{color.comp}, which groups edges by connected
 #'   component)
-#' @param cex.main Numeric; the scaling factor for text size (default: 2)
+#' @param cex.main Numeric; the scaling factor for text size; see
+#'   \code{\link[graphics]{par}} (default: 2)
 #' @param ... Other arguments passed to \code{\link{plot.brainGraph}}
 #' @inheritParams plot.brainGraph
 #' @export
@@ -357,7 +358,7 @@ plot.brainGraph_NBS <- function(x, alpha=0.05, subgraph=paste('p.nbs >', 1 - alp
 #' vertices for which \eqn{p < \alpha}; a plot title with the outcome
 #' measure and contrast name, and to omit the plot subtitle.
 #'
-#' @param x An \code{igraph} graph object (from
+#' @param x A \code{brainGraph_GLM} graph object (from
 #'   \code{\link{make_glm_brainGraph}})
 #' @param p.sig Character string indicating which p-value to use for determining
 #'   significance (default: \code{p})
@@ -385,7 +386,7 @@ plot.brainGraph_GLM <- function(x, p.sig=c('p', 'p.fdr', 'p.perm'),
 #' vertices for which \eqn{A_{mtpc} > A_{crit}}; a plot title with the outcome
 #' measure and contrast name, and to omit the plot subtitle.
 #'
-#' @param x An \code{igraph} graph object (from
+#' @param x A \code{brainGraph_mtpc} graph object (from
 #'   \code{\link{make_glm_brainGraph}})
 #' @param cex.main Numeric indicating the scaling for plot title size (see
 #'   \code{\link[graphics]{par}}.
@@ -403,7 +404,8 @@ plot.brainGraph_mtpc <- function(x, subgraph='sig == 1',
 
 #' Plot a graph with results from a mediation analysis
 #'
-#' @param x An graph object (from \code{\link{make_mediate_brainGraph}})
+#' @param x A \code{brainGraph_mediate} graph object (from
+#'   \code{\link{make_mediate_brainGraph}})
 #' @param cex.main Numeric indicating the scaling for plot title size (see
 #'   \code{\link[graphics]{par}}.
 #' @inheritParams plot.brainGraph

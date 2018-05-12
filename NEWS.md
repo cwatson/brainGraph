@@ -1,3 +1,59 @@
+# brainGraph 2.1.0
+
+2018-05-03 (mostly changes to *structural covariance network* functionality)
+
+## Bug fix
+* Fixed a bug in `mtpc` that was introduced in `v2.0.1`
+
+## New functions/features
+* `brainGraph_GLM_design` has a new argument `factorize` which specifies whether or not to convert all character columns (excluding *Study.ID*) to factor variables. The default is `TRUE`. Previously, character columns were ignored.
+* `get.resid`
+    * In the function call, you can choose whether or not to test a linear model for all groups together or separately, via the `method` argument
+    * The `plot` method now returns a *list* of *ggplot* objects, and is similar to the `plot` methods for `bg_GLM` and `mtpc`
+* `corr.matrix`
+    * The `resids` argument must be the output of `get.resid` (not a *data.table* as before)
+    * Correlations will be calculated separately for all subject groups (as this information is stored in the output of `get.resid`); you no longer need to loop (or `lapply`) across groups
+    * In the function call, you can choose whether to correlate the residuals or raw structural values, via the `what` argument
+    * The `exclusions` argument was renamed to `exclude.reg` to highlight that you should specify *region names* to be excluded (if any)
+    * You can explicitly choose whether to calculate Pearson or Spearman correlations, via the `type` argument (previously, this behavior was "hidden")
+
+## Minor changes
+* `brainGraph_init`: the `modality` argument now will accept *any* character string; the default is still *thickness*. The files with the string you supply still must be present on your system.
+* Due to `corr.matrix` expecting different input, the following functions also require, for their `resids` argument, the output of `get.resid` (instead of a *data.table*):
+    * `aop`
+    * `brainGraph_boot`
+    * `brainGraph_permute`
+    * `loo`
+
+
+# brainGraph 2.0.4
+
+2018-04-28
+
+## Bug fix
+* `gateway_coeff`: no longer throws an error for very sparse graphs; instead, it returns a vector with `NaN` values for unconnected vertices
+* `make_mediate_brainGraph`: did not return correct values (for the treatment condition) when `INT=TRUE` (it recycled the values for the control condition)
+* `make_intersection_brainGraph`
+    * Previously exited with error if any of the input graphs did not contain vertices meeting the desired `subgraph` condition
+    * Now returns an empty graph if none of the input graphs meet the `subgraph` condition
+* `NBS`:
+    * When getting the indices for which matrix elements to transpose (so that result is symmetric), the result was slightly wrong for `alt='greater'`
+    * Calculation of edge counts in `summary` method contained an error
+
+## Minor changes
+* All `summary` methods now provide a `DT.sum` element in the returned list; previously it was inconsistent
+
+
+# brainGraph 2.0.3
+
+2018-04-26
+
+## Bug fix
+* In `mtpc`, the stats table that is returned previously was not always unique
+* `mtpc` did not return a list with a named element `clust.size` (it was unnamed)
+* In `plot.mtpc`, if the user selected a contrast other than the first, it would not plot the correct null statistics (green dots)
+
+
 # brainGraph 2.0.2
 
 2018-02-23
@@ -9,11 +65,10 @@ Release on CRAN; bugfix release.
     * In the case that the input matrix files were already ordered by *Group* and *Study.ID*, then this is not a "bug", in that the ordering was already correct. So, if your subject groups are `groups <- c('Control', 'Patient')`, and the matrix files are separated on the filesystem by group, there is no change in behavior.
     * This bug only appeared when `threshold.by='consistency'` or `threshold.by='consensus'` (the default option).
 
+
 # brainGraph 2.0.1
 
 2018-02-07
-
-Bugfix release
 
 ## Bug fix
 * Fixed error in `mtpc` when creating the MTPC statistics `data.table`

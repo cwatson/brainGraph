@@ -5,7 +5,8 @@
 #' a single subject are excluded, and a correlation matrix is created. This is
 #' compared to the original correlation matrix using the Mantel test.
 #'
-#' @param resids Data table of model residuals
+#' @param resids An object of class \code{brainGraph_resids} (the output from
+#'   \code{\link{get.resid}})
 #' @param corrs List of lists of correlation matrices (as output by
 #'   \code{\link{corr.matrix}}).
 #' @param level Character string; the level at which you want to calculate
@@ -37,28 +38,29 @@
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL
+  stopifnot(inherits(resids, 'brainGraph_resids'))
   level <- match.arg(level)
-  group.vec <- resids$Group
+  group.vec <- resids$resids.all$Group
+  group.num <- as.integer(group.vec)
+  group.vec <- as.character(group.vec)
   if (level == 'global') {
-    IC <- foreach (i=seq_len(nrow(resids)), .combine='c') %dopar% {
+    IC <- foreach (i=seq_len(nrow(resids$resids.all)), .combine='c') %dopar% {
       resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[Group == group.vec[i]],
-                               densities=0.1)$R
+      new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
 
-      1 - mantel.rtest(as.dist(corrs[[as.numeric(group.vec[i])]]$R),
-                       as.dist(new.corrs),
+      1 - mantel.rtest(as.dist(corrs[[group.num[i]]]$R),
+                       as.dist(new.corrs[[1]]$R),
                        nrepet=1e3)$obs
     }
 
-    return(data.table(resids[, list(Study.ID, Group)], IC=IC))
+    return(data.table(resids$resids.all[, list(Study.ID, Group)], IC=IC))
   } else if (level == 'regional') {
-    RC <- foreach (i=seq_len(nrow(resids)), .combine='rbind') %dopar% {
+    RC <- foreach (i=seq_len(nrow(resids$resids.all)), .combine='rbind') %dopar% {
       resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[Group == group.vec[i]],
-                               densities=0.1)$R
-      colSums(abs(corrs[[as.numeric(group.vec[i])]]$R - new.corrs))
+      new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
+      colSums(abs(corrs[[group.num[i]]]$R - new.corrs[[1]]$R))
     }
-    RC.dt <- cbind(resids[, list(Study.ID, Group)], RC)
+    RC.dt <- cbind(resids$resids.all[, list(Study.ID, Group)], RC)
     RC.m <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
                  variable.name='region', value.name='RC')
     return(RC.m)
@@ -88,46 +90,54 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 
 aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1) {
   Group <- Study.ID <- i <- NULL
+  stopifnot(inherits(resids, 'brainGraph_resids'))
 
-  groups <- resids[, levels(Group)]
-  kNumSubj <- resids[, as.integer(table(Group))]
+  groups <- resids$resids.all[, levels(Group)]
+  kNumSubj <- resids$resids.all[, tabulate(Group)]
   if (is.numeric(control.value)) {
     control.int <- control.value
     control.str <- groups[control.int]
   } else {
     control.int <- which(groups %in% control.value)
+    control.str <- control.value
   }
-
   patient.str <- groups[-control.int]
-  patient.int <- which(groups %in% patient.str)
+  patient.int <- seq_along(groups)[-control.int]
 
-  resids.con <- resids[control.str]
+  control.inds <- resids$resids.all[, which(Group == control.str)]
   level <- match.arg(level)
   if (level == 'global') {
     IC <- sapply(groups[-control.int], function(x) NULL)
     for (j in patient.int) {
-      resids.pat <- resids[groups[j]]
+      pat.inds <- resids$resids.all[, which(Group == patient.str)]
       IC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='c') %dopar% {
-        resids.aop <- rbind(resids.pat[i], resids.con)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)$R
+        resids.aop <- resids[c(control.inds, pat.inds[i])]
+        resids.aop$resids.all[, Group := control.str]
+        resids.aop$resids.all <- droplevels(resids.aop$resids.all)
+        setkey(resids.aop$resids.all, Group)
+        new.corr <- corr.matrix(resids.aop, densities=0.1)[[1]]$R
         1 - mantel.rtest(as.dist(corr.mat),
                          as.dist(new.corr),
                          nrepet=1e3)$obs
       }
-      IC[[groups[j]]] <- data.table(Study.ID=resids.pat[, Study.ID], Group=groups[j], IC=IC[[groups[j]]])
+      IC[[groups[j]]] <- cbind(resids$resids.all[groups[j], c('Study.ID', 'Group')], IC[[groups[j]]])
     }
     out <- rbindlist(IC)
+    setnames(out, 'V2', 'IC')
 
   } else if (level == 'regional') {
     RC <- sapply(groups[-control.int], function(x) NULL)
     for (j in patient.int) {
-      resids.pat <- resids[groups[j]]
+      pat.inds <- resids$resids.all[, which(Group == patient.str)]
       RC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='rbind') %dopar% {
-        resids.aop <- rbind(resids.pat[i], resids.con)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)$R
+        resids.aop <- resids[c(control.inds, pat.inds[i])]
+        resids.aop$resids.all[, Group := control.str]
+        resids.aop$resids.all <- droplevels(resids.aop$resids.all)
+        setkey(resids.aop$resids.all, Group)
+        new.corr <- corr.matrix(resids.aop, densities=0.1)[[1]]$R
         data.table(t(colSums(abs(corr.mat - new.corr))))
       }
-      RC[[groups[j]]] <- cbind(data.table(Study.ID=resids.pat[, Study.ID], Group=groups[j]), RC[[groups[j]]])
+      RC[[groups[j]]] <- cbind(resids$resids.all[groups[j], c('Study.ID', 'Group')], RC[[groups[j]]])
     }
     RC.dt <- rbindlist(RC)
     out <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),

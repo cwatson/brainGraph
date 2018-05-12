@@ -21,11 +21,6 @@
     \item{\code{name.full}}{a character vector of full region names}
   }
 }
-\source{
-  Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An automated
-  labeling system for subdividing the human cerebral cortex on MRI scans into
-  gyral based regions of interest}. NeuroImage, 31:968-980.
-}
 \references{
   Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An automated
   labeling system for subdividing the human cerebral cortex on MRI scans into

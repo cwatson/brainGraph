@@ -9,7 +9,7 @@
   cex.main = 2, ...)
 }
 \arguments{
-\item{x}{An \code{igraph} graph object (from
+\item{x}{A \code{brainGraph_mtpc} graph object (from
 \code{\link{make_glm_brainGraph}})}
 
 \item{subgraph}{Character string specifying an equation for vertices to plot

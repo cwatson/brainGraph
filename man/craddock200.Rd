@@ -20,12 +20,6 @@
     \item{\code{name.full}}{a character vector of longer region names}
   }
 }
-\source{
-  Craddock, R. C., James, G. A., Holtzheimer, P. E., Hu, X. P., Mayberg, H. S.
-  (2012). \emph{A whole brain fMRI atlas generated via spatially constrained
-  spectral clustering}. Human Brain Mapping, 2012, 33, 1914-1928.
-  doi: 10.1002/hbm.21333.
-}
 \references{
   Craddock, R. C., James, G. A., Holtzheimer, P. E., Hu, X. P., Mayberg, H. S.
   (2012). \emph{A whole brain fMRI atlas generated via spatially constrained

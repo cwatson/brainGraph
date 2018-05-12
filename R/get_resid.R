@@ -1,14 +1,22 @@
-#' Linear model residuals across brain regions
+#' Linear model residuals in structural covariance networks
 #'
 #' Runs linear models across brain regions listed in a \code{data.table} (e.g.
 #' cortical thickness), adjusting for variables in \code{covars} (e.g. age, sex,
-#' etc.). It also calculates the \emph{externally Studentized} (or
+#' etc.), and calculates the \emph{externally Studentized} (or
 #' \emph{leave-one-out}) residuals.
+#'
+#' You can choose to run models for each of your subject groups separately or
+#' combined (the default) via the \code{method} argument. You may also choose
+#' whether or not to include the mean, per-hemisphere structural measure in the
+#' models. Finally, you can list variables that are present in \code{covars} but
+#' you would like to exclude from the models.
 #'
 #' @param dt.vol A \code{data.table} containing all the volumetric measure of
 #'   interest (i.e., the object \code{lhrh} as ouptut by
 #'   \code{\link{brainGraph_init}})
 #' @param covars A \code{data.table} of the covariates of interest
+#' @param method Character string indicating whether to test models for subject
+#'   groups separately or combined (default: \code{comb.groups})
 #' @param use.mean Logical should we control for the mean hemispheric brain
 #'   value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})
 #' @param exclude Character vector of covariates to exclude (default:
@@ -18,90 +26,149 @@
 #'
 #' @return An object of class \code{brainGraph_resids} with elements:
 #'   \item{X}{The \emph{design matrix}}
+#'   \item{method}{The input argument \code{method}}
+#'   \item{use.mean}{The input argument \code{use.mean}}
 #'   \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
 #'     mean regional cortical thickness) and covariates, along with
 #'     \emph{resids} column added}
 #'   \item{resids.all}{The "wide" \code{data.table} of residuals}
+#'   \item{groups}{Group names}
 #' @seealso \code{\link{rstudent}}
 #' @family Structural covariance network functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-get.resid <- function(dt.vol, covars, use.mean=FALSE, exclude=NULL, ...) {
+get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
+                      use.mean=FALSE, exclude=NULL, ...) {
   region <- resids <- Group <- Study.ID <- value <- NULL
 
+  stopifnot('Group' %in% names(covars))
+  method <- match.arg(method)
+  groups <- covars[, levels(factor(Group))]
   exclude <- c('Study.ID', exclude)
   DT.cov <- merge(covars, dt.vol, by='Study.ID')
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='region')
   setkey(DT.m, region, Study.ID)
 
-  # Adjust by mean hemispheric values
   if (isTRUE(use.mean)) {
     if (length(grep('^l.*', names(dt.vol))) == 0) {
-      lh.string <- '.*\\.L$'
-      rh.string <- '.*\\.R$'
+      lh <- '.*\\.L$'
+      rh <- '.*\\.R$'
     } else {
-      lh.string <- '^l.*'
-      rh.string <- '^r.*'
+      lh <- '^l.*'
+      rh <- '^r.*'
     }
-    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(lh.string, names(dt.vol))], by=Study.ID]
-    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(rh.string, names(dt.vol))], by=Study.ID]
+    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(lh, names(dt.vol))], by=Study.ID]
+    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(rh, names(dt.vol))], by=Study.ID]
     covars.lh <- cbind(covars, mean.lh)
     covars.rh <- cbind(covars, mean.rh)
-    X.lh <- brainGraph_GLM_design(covars.lh[, !exclude, with=F], ...)
-    H.lh <- X.lh %*% solve(crossprod(X.lh)) %*% t(X.lh)
-    lev.lh <- diag(H.lh)
-    n.lh <- nrow(X.lh)
-    p.lh <- ncol(X.lh)
 
-    X.rh <- brainGraph_GLM_design(covars.rh[, !exclude, with=F], ...)
-    H.rh <- X.rh %*% solve(crossprod(X.rh)) %*% t(X.rh)
-    lev.rh <- diag(H.rh)
-    n.rh <- nrow(X.rh)
-    p.rh <- ncol(X.rh)
+    if (method == 'comb.groups') {
+      lhvars <- get_lm_vars(covars.lh, exclude, ...)
+      rhvars <- get_lm_vars(covars.rh, exclude, ...)
 
-    DT.m[grep(lh.string, region),
-              resids := rstudent_mat(X.lh, value, lev.lh, n.lh, p.lh), by=region]
-    DT.m[grep(rh.string, region),
-              resids := rstudent_mat(X.rh, value, lev.rh, n.rh, p.rh), by=region]
-    X <- list(lh=X.lh, rh=X.rh)
+      DT.m[grep(lh, region), resids := rstudent_mat(lhvars, value), by=region]
+      DT.m[grep(rh, region), resids := rstudent_mat(rhvars, value), by=region]
+      X <- list(lh=lhvars$X, rh=rhvars$X)
+    } else {
+      covars.lh <- split(covars.lh, by='Group')
+      covars.rh <- split(covars.rh, by='Group')
+      DT.m <- split(DT.m, by='Group')
+      X <- sapply(groups, function(x) NULL)
+      for (g in groups) {
+        lhvars <- get_lm_vars(covars.lh[[g]], exclude, ...)
+        rhvars <- get_lm_vars(covars.rh[[g]], exclude, ...)
+
+        DT.m[[g]][grep(lh, region), resids := rstudent_mat(lhvars, value), by=region]
+        DT.m[[g]][grep(rh, region), resids := rstudent_mat(rhvars, value), by=region]
+        X[[g]] <- list(lh=lhvars$X, rh=rhvars$X)
+      }
+      DT.m <- rbindlist(DT.m)
+    }
 
   } else {
-    if ('mean.lh' %in% names(covars)) exclude <- c(exclude, 'mean.lh')
-    if ('mean.rh' %in% names(covars)) exclude <- c(exclude, 'mean.rh')
-    X <- brainGraph_GLM_design(covars[, !exclude, with=F], ...)
-    H <- X %*% solve(crossprod(X)) %*% t(X)
-    lev <- diag(H)
-    n <- nrow(X)
-    p <- ncol(X)
-    DT.m[, resids := rstudent_mat(X, value, lev, n, p), by=region]
+    if (method == 'comb.groups') {
+      lmvars <- get_lm_vars(covars, exclude, ...)
+      DT.m[, resids := rstudent_mat(lmvars, value), by=region]
+      X <- lmvars$X
+    } else {
+      covars <- split(covars, by='Group')
+      DT.m <- split(DT.m, by='Group')
+      X <- sapply(groups, function(x) NULL)
+      for (g in groups) {
+        lmvars <- get_lm_vars(covars[[g]], exclude, ...)
+        DT.m[[g]][, resids := rstudent_mat(lmvars, value), by=region]
+        X[[g]] <- lmvars$X
+      }
+      DT.m <- rbindlist(DT.m)
+      covars <- rbindlist(covars)
+    }
   }
 
   # Return data to "wide" format with just the residuals
-  all.dat.wide <- dcast(DT.m,
-                        paste(paste(names(covars), collapse='+'), '~ region'),
-                        value.var='resids')
-  resids.all <- all.dat.wide[, !setdiff(names(covars), c('Study.ID', 'Group')), with=F]
+  resids.all <- dcast(DT.m, 'Study.ID + Group ~ region', value.var='resids')
   setkey(resids.all, Group, Study.ID)
 
-  out <- list(X=X, all.dat.tidy=DT.m, resids.all=resids.all)
+  out <- list(X=X, method=method, use.mean=use.mean, all.dat.tidy=DT.m, resids.all=resids.all, groups=groups)
   class(out) <- c('brainGraph_resids', class(out))
   return(out)
 }
 
+#' Get some variables for LM
+#'
+#' @inheritParams get.resid
+#' @keywords internal
+#' @return A list containing:
+#'   \item{X}{The design matrix}
+#'   \item{lev}{The leverage}
+#'   \item{n}{The number of observations}
+#'   \item{p}{The number of parameters}
+
+get_lm_vars <- function(covars, exclude, ...) {
+  X <- brainGraph_GLM_design(covars[, !exclude, with=F], ...)
+  H <- X %*% solve(crossprod(X)) %*% t(X)
+  lev <- diag(H)
+  n <- nrow(X)
+  p <- ncol(X)
+  return(list(X=X, lev=lev, n=n, p=p))
+}
+
 #' Calculate studentized residuals with matrix input
 #'
-#' @param X Numeric matrix; the design matrix
+#' @param lmvars List containing: \code{X} (design matrix); \code{lev}
+#'   (leverage); \code{n} (num. observations); \code{p} (num. parameters)
 #' @param y Numeric vector; the outcome variable
-#' @param lev Numeric vector; the leverage of the "hat" matrix
-#' @param n Integer; number of rows in \code{X}
-#' @param p Integer; number of columns in \code{X}
 #' @keywords internal
 
-rstudent_mat <- function(X, y, lev, n, p) {
-  est <- fastLmPure(X, y, method=2)
-  var.hat <- rep(0, n)
-  for (i in seq_len(n)) var.hat[i] <- (1 / (n - p - 1)) * crossprod(est$residuals[-i])
-  resids <- est$residuals / (sqrt(var.hat * (1 - lev)))
+rstudent_mat <- function(lmvars, y) {
+  est <- fastLmPure(lmvars$X, y, method=2)
+  var.hat <- rep(0, lmvars$n)
+  for (i in seq_len(lmvars$n)) var.hat[i] <- (1 / (lmvars$n - lmvars$p - 1)) * crossprod(est$residuals[-i])
+  resids <- est$residuals / (sqrt(var.hat * (1 - lmvars$lev)))
+}
+
+#' Indexing for structural covariance residuals
+#'
+#' The \code{[} method will let you reorder or subset residuals based on a given
+#' numeric vector. However, this is used in bootstrap and permutation analysis
+#' and should generally not be called directly by the user.
+#'
+#' @param x A \code{brainGraph_resids} object
+#' @param i Numeric vector of the indices
+#' @param g Character string indicating the group (default: \code{NULL})
+#' @export
+#' @method [ brainGraph_resids
+#'
+#' @name Extract.brainGraph_resids
+#' @rdname get.resid
+
+`[.brainGraph_resids` <- function(x, i, g=NULL) {
+  Group <- Study.ID <- NULL
+  if (!is.null(g)) x$resids.all <- x$resids.all[g]
+  if (missing(i)) i <- seq_len(nrow(x$resids.all))
+  x$resids.all <- x$resids.all[i]
+  setkey(x$resids.all, Group, Study.ID)
+  x$all.dat.tidy <- x$all.dat.tidy[Study.ID %in% x$resids.all$Study.ID]
+  return(x)
 }
 
 #' Print a summary of residuals for structural covariance data
@@ -109,12 +176,11 @@ rstudent_mat <- function(X, y, lev, n, p) {
 #' @param object A \code{brainGraph_resids} object
 #' @param regions Character vector of region(s) to focus on; default behavior is
 #'   to show summary for all regions
-#' @param ... Unused
 #' @export
 #' @method summary brainGraph_resids
-#'
-#' @return A list with the full \code{data.table} of residuals, in addition to a
-#'   \code{data.table} of only the outliers
+#' @return \code{\link{summary.brainGraph_resids}} returns a list with two
+#'   data tables, one of the residuals, and one of only the outlier regions
+#' @rdname get.resid
 
 summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   region <- resids <- Study.ID <- NULL
@@ -130,7 +196,7 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   outliers.sub <- outliers[, .N, by=Study.ID]
   outliers.sub.vec <- structure(outliers.sub$N, names=as.character(outliers.sub$Study.ID))
 
-  out <- list(DT=DT,
+  out <- list(DT.sum=DT,
               outliers=list(DT=outliers, region=outliers.reg.vec, subject=outliers.sub.vec))
   class(out) <- c('summary.brainGraph_resids', class(out))
   return(out)
@@ -172,26 +238,18 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
-#' ## First get the resid's and store the plots as an object
 #' myresids <- get.resids(lhrh, covars)
-#' p.resids <- plot(myresids, cols=TRUE)
+#' residPlots <- plot(myresids, cols=TRUE)
 #'
-#' ## Open a new plot device for each set of 9
-#' lapply(p.resids, function(x) {dev.new(); print(x)})
-#'
-#' ## Save as a multi-page PDF; requires \code{gridExtra}
-#' ml <- marrangeGrob(p.resids, nrow=1, ncol=1)
+#' ## Save as a multi-page PDF
+#' ml <- marrangeGrob(residPlots, nrow=3, ncol=3)
 #' ggsave('residuals.pdf', ml)
 #' }
 
 plot.brainGraph_resids <- function(x, regions=NULL, cols=FALSE, ...) {
   region <- ind <- mark <- Study.ID <- resids <- NULL
-  res.sum <- summary(x, regions=regions)
-  DT <- res.sum$DT
-  kNumRegions <- DT[, nlevels(region)]
-
-  a <- ifelse(kNumRegions < 9, 1, kNumRegions %/% 9)
-  b <- kNumRegions %% 9
+  DT <- summary(x, regions=regions)$DT.sum
+  regions <- DT[, levels(region)]
 
   setkey(DT, region, Study.ID)
   DT[, ind := as.character(.SD[, .I]), by=region]
@@ -201,36 +259,29 @@ plot.brainGraph_resids <- function(x, regions=NULL, cols=FALSE, ...) {
   DT[mark == 0, ind := '']
   DT[, mark := as.factor(mark)]
 
-  ggQQ <- function(DT.resids, cols) {
+  # Local function to plot for a single region
+  plot_single <- function(DT.resids, cols) {
     Group <- resids <- NULL
-    p <- ggplot(DT.resids, aes(x=x, y=resids)) +
-      labs(x='Theoretical Quantiles', y='Sample Quantiles')
-    if (isTRUE(cols)) {
-      p <- p +
-        geom_text_repel(aes(x=x, y=resids, label=ind, col=Group), size=3) +
-        geom_line(aes(x=x, y=x), col='gray50') +
-        geom_point(aes(col=Group, shape=mark, size=mark)) +
-        scale_shape_manual(values=c(20, 8)) +
-        scale_size_manual(values=c(1.5, 3)) +
-        theme(legend.position='none')
-    } else {
-      p <- p +
-        geom_point() +
-        geom_line(aes(x=x, y=x))
+    p <- ggplot(DT.resids, aes(x=x, y=resids, col=Group)) +
+      geom_text_repel(aes(label=ind), size=3) +
+      geom_point(aes(shape=mark, size=mark)) +
+      geom_line(aes(x=x, y=x), col='gray50') +
+      scale_shape_manual(values=c(20, 17)) +
+      scale_size_manual(values=c(2, 3)) +
+      theme(plot.title=element_text(hjust=0.5, size=10, face='bold'),
+            legend.position='none',
+            axis.text.y=element_text(hjust=0.5, angle=90)) +
+      labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(region)]),
+           x='Theoretical Quantiles', y='Sample Quantiles')
+    if (!isTRUE(cols)) {
+      p <- p + scale_color_manual(values=rep('black', DT.resids[, length(unique(Group))]))
     }
-    p <- p + facet_wrap( ~ region, nrow=3, ncol=3, scales='free')
     return(p)
   }
 
-  all.p <- vector('list', length=(a + (!b == 0)))
-  for (j in seq_len(a)) {
-    N1 <- 9 * (j - 1) + 1
-    N2 <- min(N1 + 8, kNumRegions)
-    all.p[[j]] <- ggQQ(DT[levels(region)[N1:N2]], cols)
+  p.all <- sapply(regions, function(x) NULL)
+  for (z in regions) {
+    p.all[[z]] <- plot_single(DT[region == z], cols)
   }
-
-  if (kNumRegions > 9 & ! b == 0) {
-    all.p[[j+1]] <- ggQQ(DT[levels(region)[(N2+1):kNumRegions]], cols)
-  }
-  return(all.p)
+  return(p.all)
 }

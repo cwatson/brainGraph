@@ -369,7 +369,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
   DT.all <- DT.all[, .SD[1], keyby=region]
   DT.all[, region := as.factor(region)]
 
-  object$DT <- DT.all
+  object$DT.sum <- DT.all
   object$region <- region
   object$digits <- digits
   object$mediate <- mediate
@@ -417,12 +417,12 @@ print.summary.bg_mediate <- function(x, ...) {
     print(summary(bg_to_mediate(x, region=x$region)))
   } else {
     if (is.null(x$region)) {
-      regions <- x$DT[, levels(region)]
+      regions <- x$DT.sum[, levels(region)]
     } else {
       regions <- x$region
     }
     message('Mediation statistics', '\n', rep('-', 20))
-    print(x$DT[region %in% regions])
+    print(x$DT.sum[region %in% regions])
   }
   invisible(x)
 }
