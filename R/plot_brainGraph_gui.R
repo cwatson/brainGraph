@@ -14,6 +14,9 @@ plot_brainGraph_gui <- function() {
   if (!(requireNamespace("RGtk2", quietly = TRUE) && (requireNamespace("cairoDevice", quietly = TRUE)))) {
     warning(paste(c("You need to install RGtk2 and cairoDevice to use the brainGraph GUI.")))
     return(NULL)
+  } else {
+    require(cairoDevice)
+    require(RGtk2)
   }
   
   window <- gtkWindow('toplevel')
