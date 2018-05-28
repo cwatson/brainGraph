@@ -1,3 +1,12 @@
+# brainGraph 2.2.0
+
+2018-05-28
+
+## Minor changes
+* Moved `RGtk2` and `cairoDevice` to *Suggests* (from *Depends*) to allow installation on headless servers
+    * Thanks to `@michaelhallquist` for the pull request!
+* Functions `boot_global`, `permute.group`, and `plot_group_means` are no longer accessible (deprecated since *v2.0.0*)
+
 # brainGraph 2.1.0
 
 2018-05-03 (mostly changes to *structural covariance network* functionality)
