@@ -101,17 +101,6 @@ brainGraph_boot <- function(densities, resids, R=1e3,
   return(out)
 }
 
-#' @inheritParams brainGraph_boot
-#' @export
-#' @rdname brainGraph_boot
-boot_global <- function(densities, resids, R=1e3,
-                        measure=c('mod', 'E.global', 'Cp', 'Lp', 'assortativity',
-                                  'strength', 'mod.wt', 'E.global.wt'),
-                        conf=0.95, .progress=TRUE) {
-  .Deprecated('brainGraph_boot')
-  brainGraph_boot(densities, resids, R=R, measure=measure, conf=conf, .progress=.progress)
-}
-
 #' Print a summary from a bootstrap analysis
 #'
 #' @param object A \code{brainGraph_boot} object (from

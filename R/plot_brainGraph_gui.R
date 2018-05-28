@@ -11,11 +11,19 @@
 #' @family Plotting functions
 
 plot_brainGraph_gui <- function() {
-  window <- gtkWindow('toplevel')
+  if (!(requireNamespace('RGtk2', quietly=TRUE) && (requireNamespace('cairoDevice', quietly=TRUE)))) {
+    warning(paste(c('You need to install RGtk2 and cairoDevice to use the brainGraph GUI.')))
+    return(NULL)
+  } else {
+    requireNamespace('cairoDevice')
+    requireNamespace('RGtk2')
+  }
+
+  window <- RGtk2::gtkWindow('toplevel')
   window['title'] <- 'brainGraph'
-  window['icon'] <- gdkPixbuf(filename=system.file('extdata',
-                                                   'brainGraph_icon.png',
-                                                   package='brainGraph'))
+  window['icon'] <- RGtk2::gdkPixbuf(filename=system.file('extdata',
+                                                          'brainGraph_icon.png',
+                                                          package='brainGraph'))
 
   gui.params <- hboxMain <- plotFunc <- neighbs <- view <- comms <- myComm <-
     myNeighb <- myNeighbInd <- graphObj <- slider <- graph1 <- kNumGroups <-
@@ -25,10 +33,10 @@ plot_brainGraph_gui <- function() {
   # Function to add an entry
   add_entry <- function(container, label.text=NULL, char.width, entry.text=NULL) {
     if (!is.null(label.text)) {
-      label <- gtkLabelNewWithMnemonic(label.text)
+      label <- RGtk2::gtkLabelNewWithMnemonic(label.text)
       container$packStart(label, F, F, 0)
     }
-    entry <- gtkEntryNew()
+    entry <- RGtk2::gtkEntryNew()
     entry$setWidthChars(char.width)
     if (!is.null(entry.text)) entry$setText(entry.text)
     container$packStart(entry, F, F, 0)
@@ -37,9 +45,9 @@ plot_brainGraph_gui <- function() {
 
   # Function to add a check button & label
   add_check <- function(container, label.text) {
-    label <- gtkLabelNewWithMnemonic(label.text)
+    label <- RGtk2::gtkLabelNewWithMnemonic(label.text)
     container$packStart(label, F, F, 0)
-    chk.button <- gtkCheckButton()
+    chk.button <- RGtk2::gtkCheckButton()
     chk.button$active <- FALSE
     container$packStart(chk.button, F, F, 0)
     label$setMnemonicWidget(chk.button)
@@ -48,11 +56,11 @@ plot_brainGraph_gui <- function() {
 
   # Function to add a combobox
   add_combo <- function(container, choices, label.text) {
-    combo <- gtkComboBoxNewText()
+    combo <- RGtk2::gtkComboBoxNewText()
     combo$show()
     for (choice in choices) combo$appendText(choice)
     combo$setActive(0)
-    label <- gtkLabelNewWithMnemonic(label.text)
+    label <- RGtk2::gtkLabelNewWithMnemonic(label.text)
     container$packStart(label, F, F, 0)
     container$add(combo)
     return(combo)
@@ -64,17 +72,17 @@ plot_brainGraph_gui <- function() {
   # Callback functions for the "File" menu
   #---------------------------------------------------------
   save_cb <- function(widget, window, plot.dev) {
-    dialog <- gtkFileChooserDialog('Enter a name for the file', window, 'save',
-                                   'gtk-cancel', GtkResponseType['cancel'],
-                                   'gtk-save', GtkResponseType['accept'])
-    gSignalConnect(dialog, 'response', function(dialog, response) {
-                   if (response == GtkResponseType['accept']) {
-                     fname <- dialog$getFilename()
-                     dev.set(plot.dev)
-                     dev.copy(png, fname)
-                     dev.off()
-                   }
-                   dialog$destroy()})
+    dialog <- RGtk2::gtkFileChooserDialog('Enter a name for the file', window, 'save',
+                                          'gtk-cancel', RGtk2::GtkResponseType['cancel'],
+                                          'gtk-save', RGtk2::GtkResponseType['accept'])
+    RGtk2::gSignalConnect(dialog, 'response', function(dialog, response) {
+                            if (response == RGtk2::GtkResponseType['accept']) {
+                              fname <- dialog$getFilename()
+                              dev.set(plot.dev)
+                              dev.copy(png, fname)
+                              dev.off()
+                            }
+                            dialog$destroy()})
   }
   save_cb1 <- function(widget, window) save_cb(widget, window, plot.dev=gui.params$plot1)
   save_cb2 <- function(widget, window) save_cb(widget, window, plot.dev=gui.params$plot2)
@@ -87,7 +95,7 @@ plot_brainGraph_gui <- function() {
     list('Save2', 'gtk-save', 'Save plot _2', '<control>2', 'Save plot 2?', save_cb2),
     list('Quit', 'gtk-quit', '_Quit', '<control>Q', 'Quit the application', quit_cb)
   )
-  action_group <- gtkActionGroup('brainGraphActions')
+  action_group <- RGtk2::gtkActionGroup('brainGraphActions')
   action_group$addActions(file.actions, window)
 
   #---------------------------------------------------------
@@ -99,7 +107,7 @@ plot_brainGraph_gui <- function() {
     if (kNumChildren > 1) {
       for (i in 2:kNumChildren) window[[1]][[i]]$destroy()
     }
-    hboxMain <<- gtkHBoxNew(F, 8)
+    hboxMain <<- RGtk2::gtkHBoxNew(F, 8)
     window[[1]]$add(hboxMain)
     gui.params <<- build.gui(hboxMain)
   }
@@ -122,14 +130,14 @@ plot_brainGraph_gui <- function() {
 
     graph1 <- eval(parse(text=gui.params$graphname[[1]]$getText()))
     neighbs <<- data.frame(index=seq_along(V(graph1)), name=V(graph1)$name)
-    model <- rGtkDataFrame(neighbs)
-    view <<- gtkTreeView(model)
+    model <- RGtk2::rGtkDataFrame(neighbs)
+    view <<- RGtk2::gtkTreeView(model)
     view$getSelection()$setMode('multiple')
-    column1 <- gtkTreeViewColumn('Index', gtkCellRendererText(), text=0)
+    column1 <- RGtk2::gtkTreeViewColumn('Index', RGtk2::gtkCellRendererText(), text=0)
     view$appendColumn(column1)
-    column2 <- gtkTreeViewColumn('Name', gtkCellRendererText(), text=1)
+    column2 <- RGtk2::gtkTreeViewColumn('Name', RGtk2::gtkCellRendererText(), text=1)
     view$appendColumn(column2)
-    scrolled_window <- gtkScrolledWindow()
+    scrolled_window <- RGtk2::gtkScrolledWindow()
     scrolled_window$setSizeRequest(-1, 124)
     scrolled_window$add(view)
     gui.params$vbox$add(scrolled_window)
@@ -151,12 +159,12 @@ plot_brainGraph_gui <- function() {
       all.comms <- union(all.comms, c2)
     }
     comms <<- data.frame(Community=all.comms)
-    model <- rGtkDataFrame(comms)
-    view <<- gtkTreeView(model)
+    model <- RGtk2::rGtkDataFrame(comms)
+    view <<- RGtk2::gtkTreeView(model)
     view$getSelection()$setMode('multiple')
-    column <- gtkTreeViewColumn('Community', gtkCellRendererText(), text=0)
+    column <- RGtk2::gtkTreeViewColumn('Community', RGtk2::gtkCellRendererText(), text=0)
     view$appendColumn(column)
-    scrolled_window <- gtkScrolledWindow()
+    scrolled_window <- RGtk2::gtkScrolledWindow()
     scrolled_window$setSizeRequest(-1, 124)
     scrolled_window$add(view)
     gui.params$vbox$add(scrolled_window)
@@ -175,7 +183,7 @@ plot_brainGraph_gui <- function() {
   #---------------------------------------------------------
   # Create a GtkUIManager instance
   #---------------------------------------------------------
-  ui_manager <- gtkUIManager()
+  ui_manager <- RGtk2::gtkUIManager()
   ui_manager$insertActionGroup(action_group, 0)
 
   merge <- ui_manager$newMergeId()
@@ -195,7 +203,7 @@ plot_brainGraph_gui <- function() {
   menubar <- ui_manager$getWidget('/menubar')
   window$addAccelGroup(ui_manager$getAccelGroup())
 
-  vboxMainMenu <- gtkVBoxNew(F, 2)
+  vboxMainMenu <- RGtk2::gtkVBoxNew(F, 2)
   window$add(vboxMainMenu)
   vboxMainMenu$packStart(menubar, F, F)
   #=============================================================================
@@ -203,38 +211,38 @@ plot_brainGraph_gui <- function() {
   # Temporary window to get graph object names
   set.names <- function() {
     graphObj <<- vector('list', length=2)
-    dialog <- gtkDialogNewWithButtons(title='Choose graph objects',
-                                      parent=window, flags='destroy-with-parent',
-                                      'gtk-ok', GtkResponseType['ok'],
-                                      'gtk-cancel', GtkResponseType['cancel'],
-                                      show=FALSE)
+    dialog <- RGtk2::gtkDialogNewWithButtons(title='Choose graph objects',
+                                             parent=window, flags='destroy-with-parent',
+                                             'gtk-ok', RGtk2::GtkResponseType['ok'],
+                                             'gtk-cancel', RGtk2::GtkResponseType['cancel'],
+                                             show=FALSE)
     tempVbox <- dialog$getContentArea()
     label <- graphObjEntry <- tempHbox <- vector('list', length=2)
     for (i in 1:2) {
-      tempHbox[[i]] <- gtkHBoxNew(F, 8)
+      tempHbox[[i]] <- RGtk2::gtkHBoxNew(F, 8)
       tempVbox$packStart(tempHbox[[i]], F, F, 0)
       graphObjEntry[[i]] <- add_entry(tempHbox[[i]],
                                       label.text=paste0('Graph ', i, ' name:'),
                                       char.width=20)
     }
-    gSignalConnect(dialog, 'response', function(dialog, response) {
-        if (response == GtkResponseType['ok']) {
+    RGtk2::gSignalConnect(dialog, 'response', function(dialog, response) {
+        if (response == RGtk2::GtkResponseType['ok']) {
           graphObj[[1]] <<- graphObjEntry[[1]]$getText()
           graphObj[[2]] <<- graphObjEntry[[2]]$getText()
 
           if (!is_igraph(eval(parse(text=graphObj[[1]])))) {
-            warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+            warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
                                            type='error', buttons='close',
                                            'Error: Not an igraph object!')
             response <- warnDialog$run()
-            if (response == GtkResponseType['close']) warnDialog$destroy()
+            if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
           } else {
             if (nchar(graphObj[[2]]) > 0 & !is_igraph(eval(parse(text=graphObj[[2]])))) {
-              warnDialog <- gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
-                                             type='error', buttons='close',
-                                             'Error: Not an igraph object!')
+              warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                                    type='error', buttons='close',
+                                                    'Error: Not an igraph object!')
               response <- warnDialog$run()
-              if (response == GtkResponseType['close']) warnDialog$destroy()
+              if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
             } else {
               dialog$Destroy()
             }
@@ -253,16 +261,16 @@ plot_brainGraph_gui <- function() {
   #=============================================================================
   # Create main (left side) vertical container
   #=============================================================================
-  vboxMain <- gtkVBoxNew(F, 2)
+  vboxMain <- RGtk2::gtkVBoxNew(F, 2)
   container$add(vboxMain)
 
   #---------------------------------------------------------
   # Create frame + vert container for *all* plot parameters
   #---------------------------------------------------------
-  frame <- gtkFrameNew('Specify plotting parameters')
+  frame <- RGtk2::gtkFrameNew('Specify plotting parameters')
   vboxMain$add(frame)
 
-  vbox <- gtkVBoxNew(F, 2)
+  vbox <- RGtk2::gtkVBoxNew(F, 2)
   vbox$setBorderWidth(3)
   frame$add(vbox)
 
@@ -272,20 +280,20 @@ plot_brainGraph_gui <- function() {
     spinButtons <- hboxVsizeEqn <- vertSizeEqn <- slider <- hboxEwidthMax <-
     edgeWidthMax.spin <- graphics <- vboxPlot <- groupplot <- comboHemi <- vector('list', 2)
   for (i in 1:2) {
-    frameG[[i]] <- gtkFrameNew(sprintf('Graph %i', i))
+    frameG[[i]] <- RGtk2::gtkFrameNew(sprintf('Graph %i', i))
     vbox$add(frameG[[i]])
 
-    vboxG[[i]] <- gtkVBoxNew(F, 2)
+    vboxG[[i]] <- RGtk2::gtkVBoxNew(F, 2)
     vboxG[[i]]$setBorderWidth(5)
     frameG[[i]]$add(vboxG[[i]])
 
-    hbox <- gtkHBoxNew(F, 6)
+    hbox <- RGtk2::gtkHBoxNew(F, 6)
     vboxG[[i]]$packStart(hbox, expand=F, fill=F, padding=0)
     graphname[[i]] <- add_entry(hbox, label.text='Name:', char.width=20,
                                 entry.text=graphObj[[i]])
     graphname[[i]]$setSensitive(F)
 
-    hboxOrient[[i]] <- gtkHBoxNew(F, 6)
+    hboxOrient[[i]] <- RGtk2::gtkHBoxNew(F, 6)
     vboxG[[i]]$add(hboxOrient[[i]])
     choices <- c('Axial', 'Sagittal (left)', 'Sagittal (right)', 'Circular')
     comboOrient[[i]] <- add_combo(hboxOrient[[i]], choices, 'Orientation')
@@ -293,7 +301,7 @@ plot_brainGraph_gui <- function() {
       graphs[[i]] <- eval(parse(text=graphname[[i]]$getText()))
     }
     # Both, single hemi, inter-hemi, homologous, inter/intra community/lobe?
-    hboxHemi <- gtkHBoxNew(F, 6)
+    hboxHemi <- RGtk2::gtkHBoxNew(F, 6)
     vboxG[[i]]$packStart(hboxHemi, F, F, 0)
     choices <- c('Both hemispheres', 'Left only', 'Right only',
                  'Interhemispheric only', 'Homologous only', 'Inter-community only',
@@ -305,16 +313,16 @@ plot_brainGraph_gui <- function() {
 
   # Should vertex labels be displayed?
   #---------------------------------------
-  hbox <- gtkHBoxNew(F, 24)
+  hbox <- RGtk2::gtkHBoxNew(F, 24)
   vbox$packStart(hbox, F, F, 0)
 
-  hboxLabels <- gtkHBoxNew(F, 6)
+  hboxLabels <- RGtk2::gtkHBoxNew(F, 6)
   hbox$packStart(hboxLabels, F, F, 0)
   vertLabels <- add_check(hboxLabels, 'Display vertex _labels?')
 
   # Show a legend (for lobe colors)?
   #---------------------------------------
-  hboxLegend <- gtkHBoxNew(F, 6)
+  hboxLegend <- RGtk2::gtkHBoxNew(F, 6)
   hbox$packStart(hboxLegend, F, F, 0)
   showLegend <- add_check(hboxLegend, 'Show le_gend?')
   showLegend$setSensitive(F)
@@ -322,12 +330,12 @@ plot_brainGraph_gui <- function() {
   # Vertex colors based on community membership?
   #---------------------------------------
   atlas <- graphs[[1]]$atlas
-  hboxVcolor <- gtkHBoxNew(F, 6)
+  hboxVcolor <- RGtk2::gtkHBoxNew(F, 6)
   vbox$packStart(hboxVcolor, F, F, 0)
   choices <- c('None (lightblue)', 'Communities', 'Lobes', 'Components',
                'Communities (weighted)', 'Class', 'Network')
   comboVcolor <- add_combo(hboxVcolor, choices, 'Vertex _color')
-  gSignalConnect(comboVcolor, 'changed', function(widget, ...) {
+  RGtk2::gSignalConnect(comboVcolor, 'changed', function(widget, ...) {
       if (widget$getActive() %in% c(2, 5, 6)) {
         showLegend$setSensitive(T)
       } else {
@@ -337,25 +345,25 @@ plot_brainGraph_gui <- function() {
 
   #-----------------------------------------------------------------------------
   add_frame <- function(container, name, choices, const, max) {
-    newFrame <- gtkFrameNew(name)
+    newFrame <- RGtk2::gtkFrameNew(name)
     container$add(newFrame)
-    vbox <- gtkVBoxNew(F, 2)
+    vbox <- RGtk2::gtkVBoxNew(F, 2)
     newFrame$add(vbox)
 
-    hbox <- gtkHBoxNew(F, 4)
+    hbox <- RGtk2::gtkHBoxNew(F, 4)
     vbox$packStart(hbox, F, F, 0)
     comboBox <- add_combo(hbox, choices, 'Scale by:')
     constEntry <- add_entry(hbox, char.width=3, entry.text=const)
-    hboxOther <- gtkHBoxNew(F, 6)
+    hboxOther <- RGtk2::gtkHBoxNew(F, 6)
     vbox$packStart(hboxOther, F, F, 0)
     otherEntry <- add_entry(hboxOther, label.text=paste0('\t', 'Other:'), char.width=10)
     otherEntry$setSensitive(F)
     for (i in 1:2) {
-      hboxMin[[i]] <- gtkHBoxNew(F, 6)
+      hboxMin[[i]] <- RGtk2::gtkHBoxNew(F, 6)
       hboxOther$packStart(hboxMin[[i]], T, F, 0)
-      labelMin <- gtkLabelNew(sprintf('Min. %i:', i))
+      labelMin <- RGtk2::gtkLabelNew(sprintf('Min. %i:', i))
       hboxMin[[i]]$packStart(labelMin, F, F, 0)
-      spinButtons[[i]] <- gtkSpinButtonNewWithRange(min=0, max=10, step=1)
+      spinButtons[[i]] <- RGtk2::gtkSpinButtonNewWithRange(min=0, max=10, step=1)
       hboxMin[[i]]$packStart(spinButtons[[i]], F, F, 0)
       spinButtons[[i]]$setSensitive(F)
     }
@@ -374,12 +382,12 @@ plot_brainGraph_gui <- function() {
   Vsize <- add_frame(vbox, 'Vertex size', choices, '5', max=10)
 
   # Create 2 entries for entering a more complicated eqn
-  hboxVsizeEqnMain <- gtkHBoxNew(F, 6)
+  hboxVsizeEqnMain <- RGtk2::gtkHBoxNew(F, 6)
   Vsize[[1]]$packStart(hboxVsizeEqnMain, F, F, 0)
-  vboxVsizeEqnMain <- gtkVBoxNew(F, 2)
+  vboxVsizeEqnMain <- RGtk2::gtkVBoxNew(F, 2)
   hboxVsizeEqnMain$packStart(vboxVsizeEqnMain, F, F, 0)
   for (i in 1:2) {
-    hboxVsizeEqn[[i]] <- gtkHBoxNew(F, 6)
+    hboxVsizeEqn[[i]] <- RGtk2::gtkHBoxNew(F, 6)
     vboxVsizeEqnMain$packStart(hboxVsizeEqn[[i]], F, F, 0)
     vertSizeEqn[[i]] <- add_entry(hboxVsizeEqn[[i]],
                                   label.text=sprintf('Eqn. %i', i),
@@ -387,23 +395,23 @@ plot_brainGraph_gui <- function() {
     vertSizeEqn[[i]]$setSensitive(F)
   }
 
-  vertSizeHelp <- gtkButtonNewWithLabel('?')
+  vertSizeHelp <- RGtk2::gtkButtonNewWithLabel('?')
   hboxVsizeEqnMain$packStart(vertSizeHelp, F, F, 0)
-  gSignalConnect(vertSizeHelp, 'clicked', function(widget, ...) {
-    helpWin <- gtkWindow()
-    helpVbox <- gtkVBoxNew(F, 8)
+  RGtk2::gSignalConnect(vertSizeHelp, 'clicked', function(widget, ...) {
+    helpWin <- RGtk2::gtkWindow()
+    helpVbox <- RGtk2::gtkVBoxNew(F, 8)
     helpWin$add(helpVbox)
-    helpHbox <- gtkHBoxNew(F, 8)
+    helpHbox <- RGtk2::gtkHBoxNew(F, 8)
     helpVbox$packStart(helpHbox, F, F, 0)
     helpText <- sprintf('%s\n\n\n%s',
                         'Instructions: enter simple logical expressions
                         separated by a single ampersand (&)
                         The vertex attributes must already exist.',
                         'Example: degree > 23 & btwn.cent > 50')
-    helpLabel <- gtkLabelNew(helpText)
+    helpLabel <- RGtk2::gtkLabelNew(helpText)
     helpVbox$packStart(helpLabel, F, F, 0)
-    helpButton <- gtkButtonNewFromStock('gtk-ok')
-    gSignalConnect(helpButton, 'clicked', function(widget) helpWin$destroy())
+    helpButton <- RGtk2::gtkButtonNewFromStock('gtk-ok')
+    RGtk2::gSignalConnect(helpButton, 'clicked', function(widget) helpWin$destroy())
     helpVbox$packStart(helpButton, fill=F)
   })
 
@@ -413,7 +421,7 @@ plot_brainGraph_gui <- function() {
                   'eccentricity', 'dist', 'dist.strength', 'Lp', 'other', 'eqn',
                   'strength', 'knn.wt', 'E.local.wt', 'E.nodal.wt', 's.core')
   vsize.measure <<- 'const'
-  gSignalConnect(Vsize[[2]], 'changed', function(widget, ...) {
+  RGtk2::gSignalConnect(Vsize[[2]], 'changed', function(widget, ...) {
       vsize.measure <<- vsize.opts[widget$getActive() + 1]
       if (vsize.measure == 'const') {
         Vsize[[3]]$setSensitive(T)
@@ -430,10 +438,10 @@ plot_brainGraph_gui <- function() {
           lapply(vertSizeEqn, function(x) x$setSensitive(F))
           lapply(Vsize[[5]], function(x) x$setSensitive(T))
           for (j in seq_len(kNumGroups)) {
-            gtkSpinButtonSetDigits(Vsize[[5]][[j]], 2)
-            gtkSpinButtonSetIncrements(Vsize[[5]][[j]], step=0.01, page=0)
-            gtkSpinButtonSetRange(Vsize[[5]][[j]], min=-100, max=100)
-            gtkSpinButtonSetValue(Vsize[[5]][[j]], 0)
+            RGtk2::gtkSpinButtonSetDigits(Vsize[[5]][[j]], 2)
+            RGtk2::gtkSpinButtonSetIncrements(Vsize[[5]][[j]], step=0.01, page=0)
+            RGtk2::gtkSpinButtonSetRange(Vsize[[5]][[j]], min=-100, max=100)
+            RGtk2::gtkSpinButtonSetValue(Vsize[[5]][[j]], 0)
           }
         } else if (vsize.measure == 'eqn') {
           lapply(vertSizeEqn, function(x) x$setSensitive(T))
@@ -448,10 +456,10 @@ plot_brainGraph_gui <- function() {
                               ifelse(diff(rangeX) < 1, 0.01, 0.1))
             newDigits <- ifelse(diff(rangeX) > 10 & newMin >= 0, 0,
                                 ifelse(diff(rangeX) < 1, 2, 1))
-            gtkSpinButtonSetDigits(Vsize[[5]][[j]], newDigits)
-            gtkSpinButtonSetIncrements(Vsize[[5]][[j]], step=newStep, page=0)
-            gtkSpinButtonSetRange(Vsize[[5]][[j]], min=newMin, max=newMax)
-            gtkSpinButtonSetValue(Vsize[[5]][[j]], newMin)
+            RGtk2::gtkSpinButtonSetDigits(Vsize[[5]][[j]], newDigits)
+            RGtk2::gtkSpinButtonSetIncrements(Vsize[[5]][[j]], step=newStep, page=0)
+            RGtk2::gtkSpinButtonSetRange(Vsize[[5]][[j]], min=newMin, max=newMax)
+            RGtk2::gtkSpinButtonSetValue(Vsize[[5]][[j]], newMin)
           }
         }
       }
@@ -466,25 +474,25 @@ plot_brainGraph_gui <- function() {
   if ('weight' %in% edge_attr_names(graphs[[1]])) choices <- c(choices, 'Weight')
   Ewidth <- add_frame(vbox, 'Edge width', choices, '1', max=100)
 
-  hboxEwidthOtherMax <- gtkHBoxNew(F, 6)
+  hboxEwidthOtherMax <- RGtk2::gtkHBoxNew(F, 6)
   Ewidth[[1]]$packStart(hboxEwidthOtherMax, F, F, 0)
   for (i in 1:2) {
-    hboxEwidthMax[[i]] <- gtkHBoxNew(F, 6)
+    hboxEwidthMax[[i]] <- RGtk2::gtkHBoxNew(F, 6)
     if (i == 1) {
       hboxEwidthOtherMax$packStart(hboxEwidthMax[[i]], T, F, 0)
     } else {
       hboxEwidthOtherMax$packEnd(hboxEwidthMax[[i]], F, F, 0)
     }
-    labelMax <- gtkLabelNew(sprintf('Max. %i:', i))
+    labelMax <- RGtk2::gtkLabelNew(sprintf('Max. %i:', i))
     hboxEwidthMax[[i]]$packStart(labelMax, F, F, 0)
-    edgeWidthMax.spin[[i]] <- gtkSpinButtonNewWithRange(min=0, max=100, step=1)
+    edgeWidthMax.spin[[i]] <- RGtk2::gtkSpinButtonNewWithRange(min=0, max=100, step=1)
     hboxEwidthMax[[i]]$packStart(edgeWidthMax.spin[[i]], F, F, 0)
     edgeWidthMax.spin[[i]]$setSensitive(F)
   }
 
   ewidth.opts <<- c('const', 'btwn', 'dist', 'other', 'weight')
   ewidth.measure <<- 'const'
-  gSignalConnect(Ewidth[[2]], 'changed', function(widget, ...) {
+  RGtk2::gSignalConnect(Ewidth[[2]], 'changed', function(widget, ...) {
     ewidth.measure <<- ewidth.opts[widget$getActive() + 1]
     if (ewidth.measure == 'const') {
       Ewidth[[3]]$setSensitive(T)
@@ -501,14 +509,14 @@ plot_brainGraph_gui <- function() {
         lapply(Ewidth[[5]], function(x) x$setSensitive(T))
         lapply(edgeWidthMax.spin, function(x) x$setSensitive(T))
         for (j in seq_len(kNumGroups)) {
-          gtkSpinButtonSetDigits(Ewidth[[5]][[j]], 2)
-          gtkSpinButtonSetIncrements(Ewidth[[5]][[j]], step=0.01, page=0)
-          gtkSpinButtonSetRange(Ewidth[[5]][[j]], min=-100, max=100)
-          gtkSpinButtonSetValue(Ewidth[[5]][[j]], 0)
-          gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], 2)
-          gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=0.01, page=0)
-          gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=-100, max=100)
-          gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], 100)
+          RGtk2::gtkSpinButtonSetDigits(Ewidth[[5]][[j]], 2)
+          RGtk2::gtkSpinButtonSetIncrements(Ewidth[[5]][[j]], step=0.01, page=0)
+          RGtk2::gtkSpinButtonSetRange(Ewidth[[5]][[j]], min=-100, max=100)
+          RGtk2::gtkSpinButtonSetValue(Ewidth[[5]][[j]], 0)
+          RGtk2::gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], 2)
+          RGtk2::gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=0.01, page=0)
+          RGtk2::gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=-100, max=100)
+          RGtk2::gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], 100)
         }
       } else {
         for (j in seq_len(kNumGroups)) {
@@ -518,14 +526,14 @@ plot_brainGraph_gui <- function() {
           newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
                             ifelse(diff(rangeX) < 1, 0.01, 0.1))
           newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
-          gtkSpinButtonSetDigits(Ewidth[[5]][[j]], newDigits)
-          gtkSpinButtonSetIncrements(Ewidth[[5]][[j]], step=newStep, page=0)
-          gtkSpinButtonSetRange(Ewidth[[5]][[j]], min=newMin, max=newMax)
-          gtkSpinButtonSetValue(Ewidth[[5]][[j]], newMin)
-          gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], newDigits)
-          gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=newStep, page=0)
-          gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=newMin, max=newMax)
-          gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], newMax)
+          RGtk2::gtkSpinButtonSetDigits(Ewidth[[5]][[j]], newDigits)
+          RGtk2::gtkSpinButtonSetIncrements(Ewidth[[5]][[j]], step=newStep, page=0)
+          RGtk2::gtkSpinButtonSetRange(Ewidth[[5]][[j]], min=newMin, max=newMax)
+          RGtk2::gtkSpinButtonSetValue(Ewidth[[5]][[j]], newMin)
+          RGtk2::gtkSpinButtonSetDigits(edgeWidthMax.spin[[j]], newDigits)
+          RGtk2::gtkSpinButtonSetIncrements(edgeWidthMax.spin[[j]], step=newStep, page=0)
+          RGtk2::gtkSpinButtonSetRange(edgeWidthMax.spin[[j]], min=newMin, max=newMax)
+          RGtk2::gtkSpinButtonSetValue(edgeWidthMax.spin[[j]], newMax)
         }
       }
     }
@@ -535,7 +543,7 @@ plot_brainGraph_gui <- function() {
   myLobe <<- 'All'
   if (identical(plotFunc, plot.brainGraph)) {
     # Highlight the diameter of each graph? Show edge set differences?
-    hbox <- gtkHBoxNew(F, 6)
+    hbox <- RGtk2::gtkHBoxNew(F, 6)
     vbox$packStart(hbox, F, F, 0)
     showDiameter <- add_check(hbox, 'Show _diameter?')
     edgeDiffs <- add_check(hbox, 'Show _edge differences?')
@@ -544,14 +552,14 @@ plot_brainGraph_gui <- function() {
     # Major lobe
     atlas.dt <- get(atlas)
     lobes <- data.frame(Lobe=c('All', as.character(atlas.dt[, levels(lobe)])))
-    model <- rGtkDataFrame(lobes)
+    model <- RGtk2::rGtkDataFrame(lobes)
     setDT(lobes)
     lobes[, Lobe := as.character(Lobe)]
-    view <<- gtkTreeView(model)
+    view <<- RGtk2::gtkTreeView(model)
     view$getSelection()$setMode('multiple')
-    column <- gtkTreeViewColumn('Lobe', gtkCellRendererText(), text=0)
+    column <- RGtk2::gtkTreeViewColumn('Lobe', RGtk2::gtkCellRendererText(), text=0)
     view$appendColumn(column)
-    scrolled_window <- gtkScrolledWindow()
+    scrolled_window <- RGtk2::gtkScrolledWindow()
     scrolled_window$setSizeRequest(-1, 124)
     scrolled_window$add(view)
     vbox$add(scrolled_window)
@@ -572,23 +580,23 @@ plot_brainGraph_gui <- function() {
 
   ydim <- ifelse(res[2] < 800, 0.8 * res[2], 700)
   for (i in 1:2) {
-    graphics[[i]] <- gtkDrawingArea()
+    graphics[[i]] <- RGtk2::gtkDrawingArea()
     graphics[[i]]$setSizeRequest(res[1] / 3 - 10, ydim)
-    vboxPlot[[i]] <- gtkVBox()
+    vboxPlot[[i]] <- RGtk2::gtkVBox()
     vboxPlot[[i]]$packStart(graphics[[i]], expand=TRUE, fill=TRUE, padding=0)
     container$add(vboxPlot[[i]])
-    asCairoDevice(graphics[[i]])
+    cairoDevice::asCairoDevice(graphics[[i]])
     par(pty='s', mar=rep(0, 4))
     groupplot[[i]] <- dev.cur()
   }
 
   #-----------------------------------------------------------------------------
   # Add buttons
-  the.buttons <- gtkHButtonBoxNew()
+  the.buttons <- RGtk2::gtkHButtonBoxNew()
   the.buttons$setBorderWidth(5)
   vboxMain$add(the.buttons)
-  btnOK <- gtkButtonNewFromStock('gtk-ok')
-  btnRename <- gtkButtonNewWithMnemonic('Pick _new graphs')
+  btnOK <- RGtk2::gtkButtonNewFromStock('gtk-ok')
+  btnRename <- RGtk2::gtkButtonNewWithMnemonic('Pick _new graphs')
   the.buttons$packStart(btnOK, expand=TRUE, fill=F)
   the.buttons$packStart(btnRename, expand=TRUE, fill=F)
   container$showAll()
@@ -619,18 +627,18 @@ plot_brainGraph_gui <- function() {
       Vsize[[4]], Ewidth[[4]], vertSize.eqn=vertSizeEqn[[j]],
       showDiameter=showDiameter, edgeDiffs=edgeDiffs)
   }
-  gSignalConnect(btnOK, 'clicked', function(widget) {
-                 for (i in seq_len(kNumGroups)) updateFun(i)})
-  gSignalConnect(btnRename, 'clicked', function(widget) set.names())
+  RGtk2::gSignalConnect(btnOK, 'clicked', function(widget) {
+                          for (i in seq_len(kNumGroups)) updateFun(i)})
+  RGtk2::gSignalConnect(btnRename, 'clicked', function(widget) set.names())
 
   # Horizontal slider for edge curvature in circle plots
   orient_cb <- function(widget, ind) {
     if (widget$getActive() == 3) {
       comboHemi[[ind]]$setSensitive(T)
-      slider[[ind]] <<- gtkHScaleNewWithRange(min=-1, max=1, step=0.05)
+      slider[[ind]] <<- RGtk2::gtkHScaleNewWithRange(min=-1, max=1, step=0.05)
       vboxPlot[[ind]]$packStart(slider[[ind]], F, F, 0)
       slider[[ind]]$setValue(0.25)
-      gSignalConnect(slider[[ind]], 'value-changed', function(widget) updateFun(ind))
+      RGtk2::gSignalConnect(slider[[ind]], 'value-changed', function(widget) updateFun(ind))
     } else {
       kNumChildren <- length(vboxPlot[[ind]]$getChildren())
       if (kNumChildren > 1) {
@@ -648,7 +656,7 @@ plot_brainGraph_gui <- function() {
     }
     updateFun(ind)
   }
-  for (i in 1:2) gSignalConnect(comboOrient[[i]], 'changed', orient_cb, i)
+  for (i in 1:2) RGtk2::gSignalConnect(comboOrient[[i]], 'changed', orient_cb, i)
 
   list(plot1=groupplot[[1]], plot2=groupplot[[2]], graphname=graphname,
        comboVcolor=comboVcolor, comboHemi=comboHemi, vbox=vbox)

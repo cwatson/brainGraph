@@ -18,6 +18,7 @@ Table of Contents
 <!-- vim-markdown-toc GFM -->
 
 * [Installation](#installation)
+    * [GUI](#gui)
 * [Usage - the User Guide](#usage---the-user-guide)
 * [Graph measures](#graph-measures)
     * [Group analyses](#group-analyses)
@@ -52,6 +53,13 @@ devtools::install_github('cwatson/brainGraph')
 ```
 This should install all of the dependencies needed along with the package
 itself. For more details, see the User Guide (link to PDF in next section).
+
+## GUI
+On some systems (e.g., *macOS* and *Windows*) it might be very difficult to
+install the necessary packages/dependencies for the GUI functions. Since `v2.2.0`,
+the `R` packages `RGtk2` and `cairoDevice` have been changed to *Suggests*, so
+installation should still be possible. This also means it should be possible to
+install on a headless server.
 
 # Usage - the User Guide
 I have a User Guide that contains *extensive* code examples for analyses common to

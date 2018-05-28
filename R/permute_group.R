@@ -203,19 +203,6 @@ permute_other_foreach <- function(perms, densities, resids, groups, .function) {
   }
 }
 
-#' @inheritParams brainGraph_permute
-#' @export
-#' @rdname brainGraph_permute
-permute.group <- function(densities, resids, N=5e3, perms=NULL,
-                               level=c('graph', 'vertex', 'lobe', 'other'),
-                               measure=c('btwn.cent', 'degree', 'E.nodal', 'ev.cent',
-                                         'knn', 'transitivity', 'vulnerability'),
-                               atlas=NULL, .function=NULL) {
-  .Deprecated('brainGraph_permute')
-  brainGraph_permute(densities, resids, N=N, perms=perms, level=level,
-                     measure=measure, atlas=atlas, .function=.function)
-}
-
 #==============================================================================
 # Methods
 #==============================================================================

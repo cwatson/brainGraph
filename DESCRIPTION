@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 2.1.0
-Date: 2018-05-03
+Version: 2.2.0
+Date: 2018-05-28
 Title: Graph Theory Analysis of Brain MRI Data
 Author: Christopher G. Watson <cgwatson@bu.edu>
 Maintainer: Christopher G. Watson <cgwatson@bu.edu>
@@ -18,8 +18,6 @@ LazyData: true
 Depends:
     R (>= 3.0.0),
     igraph (>= 1.0.0),
-    RGtk2,
-    cairoDevice
 Imports:
     abind,
     ade4,
@@ -40,5 +38,8 @@ Imports:
     parallel,
     RcppEigen,
     scales
+Suggests:
+    RGtk2,
+    cairoDevice
 License: GPL-3
 RoxygenNote: 6.0.1

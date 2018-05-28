@@ -100,13 +100,3 @@ plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
   }
   return(vol.plot)
 }
-
-#' @inheritParams plot_volumetric
-#' @export
-#' @rdname plot_volumetric
-plot_group_means <- function(dat, regions, type=c('violin', 'histogram'),
-                             all.vals=TRUE,
-                             modality=c('thickness', 'volume', 'lgi', 'area')) {
-  .Deprecated('plot_volumetric')
-  plot_volumetric(dat, regions, type, all.vals, modality)
-}
