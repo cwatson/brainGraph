@@ -2,18 +2,12 @@
 % Please edit documentation in R/permute_group.R
 \name{brainGraph_permute}
 \alias{brainGraph_permute}
-\alias{permute.group}
 \title{Permutation test for group difference of graph measures}
 \usage{
 brainGraph_permute(densities, resids, N = 5000, perms = NULL, auc = FALSE,
   level = c("graph", "vertex", "other"), measure = c("btwn.cent", "degree",
   "E.nodal", "ev.cent", "knn", "transitivity", "vulnerability"), atlas = NULL,
   .function = NULL)
-
-permute.group(densities, resids, N = 5000, perms = NULL,
-  level = c("graph", "vertex", "lobe", "other"), measure = c("btwn.cent",
-  "degree", "E.nodal", "ev.cent", "knn", "transitivity", "vulnerability"),
-  atlas = NULL, .function = NULL)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities}

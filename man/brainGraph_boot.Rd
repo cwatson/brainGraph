@@ -2,15 +2,10 @@
 % Please edit documentation in R/boot_global.R
 \name{brainGraph_boot}
 \alias{brainGraph_boot}
-\alias{boot_global}
 \alias{summary.brainGraph_boot}
 \title{Bootstrapping for global graph measures}
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod", "E.global",
-  "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
-  conf = 0.95, .progress = TRUE)
-
-boot_global(densities, resids, R = 1000, measure = c("mod", "E.global",
   "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
   conf = 0.95, .progress = TRUE)
 

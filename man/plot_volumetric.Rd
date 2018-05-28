@@ -2,13 +2,9 @@
 % Please edit documentation in R/plot_group_means.R
 \name{plot_volumetric}
 \alias{plot_volumetric}
-\alias{plot_group_means}
 \title{Plot group distributions of volumetric measures for a given brain region}
 \usage{
 plot_volumetric(dat, regions, type = c("violin", "histogram"),
-  all.vals = TRUE, modality = c("thickness", "volume", "lgi", "area"))
-
-plot_group_means(dat, regions, type = c("violin", "histogram"),
   all.vals = TRUE, modality = c("thickness", "volume", "lgi", "area"))
 }
 \arguments{
