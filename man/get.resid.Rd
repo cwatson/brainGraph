@@ -44,7 +44,8 @@ value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
 to show summary for all regions}
 }
 \value{
-An object of class \code{brainGraph_resids} with elements:
+\code{get.resid} - an object of class \code{brainGraph_resids} with
+  elements:
   \item{X}{The \emph{design matrix}}
   \item{method}{The input argument \code{method}}
   \item{use.mean}{The input argument \code{use.mean}}
@@ -58,23 +59,24 @@ An object of class \code{brainGraph_resids} with elements:
   data tables, one of the residuals, and one of only the outlier regions
 }
 \description{
-Runs linear models across brain regions listed in a \code{data.table} (e.g.
-cortical thickness), adjusting for variables in \code{covars} (e.g. age, sex,
-etc.), and calculates the \emph{externally Studentized} (or
-\emph{leave-one-out}) residuals.
+\code{get.resid} runs linear models across brain regions listed in a
+\code{data.table} (e.g. cortical thickness), adjusting for variables in
+\code{covars} (e.g. age, sex, etc.), and calculates the
+\emph{externally Studentized} (or \emph{leave-one-out}) residuals.
 
 The \code{[} method will let you reorder or subset residuals based on a given
 numeric vector. However, this is used in bootstrap and permutation analysis
 and should generally not be called directly by the user.
 
-Print a summary of residuals for structural covariance data
+The \code{summary} method prints the number of outliers per region, and the
+number of times a given subject was an outlier (i.e., across regions).
 }
 \details{
 You can choose to run models for each of your subject groups separately or
 combined (the default) via the \code{method} argument. You may also choose
 whether or not to include the mean, per-hemisphere structural measure in the
-models. Finally, you can list variables that are present in \code{covars} but
-you would like to exclude from the models.
+models. Finally, you can specify variables that are present in \code{covars}
+but you would like to exclude from the models.
 }
 \seealso{
 \code{\link{rstudent}}

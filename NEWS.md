@@ -82,7 +82,7 @@ Release on CRAN; bugfix release.
 ## Bug fix
 * Fixed error in `mtpc` when creating the MTPC statistics `data.table`
 
---------------------------------------------------------------------------------
+
 # brainGraph 2.0.0
 
 2018-02-05
@@ -276,7 +276,6 @@ The classes and corresponding "creation functions" are:
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 
 
---------------------------------------------------------------------------------
 # brainGraph 1.0.0
 
 2017-04-10
@@ -315,7 +314,7 @@ The classes and corresponding "creation functions" are:
 * `write_brainnet` replaces `write.brainnet`
 * In the GUI, vertex order in circle plots now more closely reflect their anatomical position, being ordered by y- and x-coordinates (and within *lobe*)
 
---------------------------------------------------------------------------------
+
 # brainGraph 0.72.0
 
 2016-10-10
@@ -397,7 +396,7 @@ The classes and corresponding "creation functions" are:
     function argument
   * Can color vertices by multiple variables
 
---------------------------------------------------------------------------------
+
 # brainGraph 0.62.0
 
 2016-04-22
@@ -472,7 +471,6 @@ where `N` is the number of random graphs generated.
   * Vertex-level *shortest path lengths*
 
 
---------------------------------------------------------------------------------
 # brainGraph 0.55.0
 
 2015-12-24
@@ -517,7 +515,7 @@ where `N` is the number of random graphs generated.
 * Exported `plot_perm_diffs`
 * Added argument checking for most functions
 
---------------------------------------------------------------------------------
+
 # brainGraph 0.48.0
 
 2015-12-08

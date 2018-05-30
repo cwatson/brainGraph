@@ -24,8 +24,7 @@ r_binary_packages:
 
 env:
  global:
-  - CRAN: http://cran.rstudio.com
-  - _R_CHECK_FORCE_SUGGESTS_: false
+  - _R_CHECK_FORCE_SUGGESTS_=false
 
 before_install:
   echo "options(repos=c(CRAN='http://cran.rstudio.com'))" > ~/.Rprofile
