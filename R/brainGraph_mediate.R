@@ -124,6 +124,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
 
   Study.ID <- region <- treatintstr <- NULL
   stopifnot(all(c(treat, outcome, covar.names) %in% names(covars)))
+  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
   covars <- droplevels(covars[, c('Study.ID', treat, covar.names, outcome), with=F])
   incomp <- covars[!complete.cases(covars), Study.ID]
   covars <- covars[!Study.ID %in% incomp]

@@ -42,6 +42,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   region <- resids <- Group <- Study.ID <- value <- NULL
 
   stopifnot('Group' %in% names(covars))
+  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
   method <- match.arg(method)
   groups <- covars[, levels(factor(Group))]
   exclude <- c('Study.ID', exclude)

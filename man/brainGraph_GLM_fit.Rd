@@ -32,13 +32,11 @@ only one contrast is desired, you can supply a vector}
 \code{brainGraph_GLM_fit_t} - A list containing:
   \item{gamma}{The contrast of parameter estimates}
   \item{se}{The standard error}
-  \item{contrast}{The contrast number(s)}
 
 \code{brainGraph_GLM_fit_f} - A list containing:
   \item{numer}{The extra sum of squares due to the full model divided by the
     rank of the contrast matrix}
   \item{se}{The sum of squared errors of the full model}
-  \item{contrast}{The contrast number; defaults to \code{1}}
 }
 \description{
 \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,

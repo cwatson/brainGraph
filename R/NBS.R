@@ -94,37 +94,32 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
   T.max <- p.mat <- comps.obs <- vector('list', length=length(con.name))
+  compfun <- switch(alt,
+                    two.sided=function(x) {abs(x) > t(abs(x))},
+                    less=function(x) {x < t(x)},
+                    greater=function(x) {x > t(x)})
   for (j in seq_len(nC)) {
+    T.mat <- p.mat[[j]] <- matrix(0, Nv, Nv)
     if (nrow(DT.lm[contrast == j]) == 0) {
       warning(sprintf('No significant differences observed for contrast %i!', j))
       T.max[[j]] <- matrix(0, Nv, Nv)
-      p.mat[[j]] <- matrix(0, Nv, Nv)
-      comps.obs[[j]] <- data.table(contrast=j, csize=0)
+      comps.obs[[j]] <- data.table(csize=0)
       skip <- c(skip, j)
       next
     }
-    T.mat <- p.mat[[j]] <- matrix(0, Nv, Nv)
     T.mat[DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, stat]
     p.mat[[j]][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
 
-    if (alt == 'two.sided') {
-      inds.tr <- which(abs(T.mat) > t(abs(T.mat)), arr.ind=TRUE)
-      T.max[[j]] <- ifelse(abs(T.mat) > t(abs(T.mat)), T.mat, t(T.mat))
-    } else if (alt == 'less') {
-      inds.tr <- which(T.mat < t(T.mat), arr.ind=TRUE)
-      T.max[[j]] <- ifelse(T.mat < t(T.mat), T.mat, t(T.mat))
-    } else if (alt == 'greater') {
-      inds.tr <- which(T.mat > t(T.mat), arr.ind=TRUE)
-      T.max[[j]] <- ifelse(T.mat > t(T.mat), T.mat, t(T.mat))
-    }
+    inds.tr <- which(compfun(T.mat), arr.ind=TRUE)
+    T.max[[j]] <- ifelse(compfun(T.mat), T.mat, t(T.mat))
     for (i in seq_len(nrow(inds.tr))) {
       p.mat[[j]][inds.tr[i, 2], inds.tr[i, 1]] <- p.mat[[j]][inds.tr[i, 1], inds.tr[i, 2]]
     }
 
     clusts <- components(graph_from_adjacency_matrix(T.max[[j]], diag=F, mode='undirected', weighted=TRUE))
-    comps.obs[[j]] <- data.table(contrast=j, csize=sort(unique(clusts$csize), decreasing=TRUE))
+    comps.obs[[j]] <- data.table(csize=sort(unique(clusts$csize), decreasing=TRUE))
   }
-  comps.obs <- rbindlist(comps.obs)
+  comps.obs <- rbindlist(comps.obs, idcol='contrast')
 
   if (length(skip) == length(con.name)) {
     out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=list(observed=comps.obs, permuted=NULL)))
@@ -146,11 +141,8 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
                                               rep(list(comps.perm[contrast == j, perm]), kNumComps))]
   }
 
-  if (isTRUE(long)) {
-    comps.out <- list(observed=comps.obs, permuted=comps.perm)
-  } else {
-    comps.out <- list(observed=comps.obs)
-  }
+  comps.out <- list(observed=comps.obs)
+  if (isTRUE(long)) comps.out$permuted <-comps.perm
   out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=comps.out))
   class(out) <- c('NBS', class(out))
   return(out)
@@ -208,9 +200,9 @@ randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, 
       max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
     }
     if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
-    comps.perm[[j]] <- data.table(contrast=j, perm=comps.perm[[j]])
+    comps.perm[[j]] <- data.table(perm=comps.perm[[j]])
   }
-  comps.perm <- rbindlist(comps.perm)
+  comps.perm <- rbindlist(comps.perm, idcol='contrast')
   return(comps.perm)
 }
 
