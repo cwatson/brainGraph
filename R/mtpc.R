@@ -80,68 +80,56 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   g.list <- do.call(Map, c(c, g.list))
   if (is.null(res.glm)) {
     res.glm <- lapply(g.list, function(z)
-      brainGraph_GLM(z, covars, measure, con.mat, con.type,
-                     con.name=con.name, level=level, N=N, permute=TRUE, perms=perms,
-                     alpha=alpha, long=TRUE, ...))
+      brainGraph_GLM(z, covars, measure, con.mat, con.type, con.name=con.name, N=N,
+                     level=level, permute=TRUE, perms=perms, alpha=alpha, long=TRUE, ...))
   }
   alt <- res.glm[[1]]$alt
   for (i in seq_along(thresholds)) res.glm[[i]]$DT[, threshold := thresholds[i]]
   mtpc.all <- rbindlist(lapply(res.glm, with, DT))
   setkey(mtpc.all, contrast, region)
-  mtpc.all[, S.crit := 0]
+  mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
   kNumContrasts <- ifelse(con.type == 't', nrow(res.glm[[1]]$con.mat), 1)
-  null.dist.all <- null.dist.max <- null.crit <- vector('list', length=kNumContrasts)
+  null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
   Scrit <- Acrit <- rep(0, kNumContrasts)
+  maxfun <- switch(alt, two.sided=function(x) {max(abs(x))}, less=min, greater=max)
+  sortfun <- switch(alt,
+                    two.sided=function(x) {sort(abs(x))},
+                    less=function(x) {sort(x, decreasing=TRUE)},
+                    greater=function(x) {sort(x)})
   for (i in seq_len(kNumContrasts)) {
     null.dist.all[[i]] <- vapply(res.glm, function(x) x$perm$null.dist[contrast == i, V1], numeric(N))
-    if (alt == 'less') {
-      null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, min)
-      Scrit[i] <- sort(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
-    } else {
-      null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, max)
-      Scrit[i] <- sort(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
-    }
+    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, maxfun)
+    Scrit[i] <- sortfun(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
     mtpc.all[contrast == i, S.crit := Scrit[i]]
   }
 
-  if (alt == 'less') {
-    crit.regions <- mtpc.all[, rle(stat < S.crit), by=key(mtpc.all)][values == TRUE & lengths >= clust.size, list(region=unique(region)), by=contrast]
-  } else {
-    crit.regions <- mtpc.all[, rle(stat > S.crit), by=key(mtpc.all)][values == TRUE & lengths >= clust.size, list(region=unique(region)), by=contrast]
-  }
+  rlefun <- switch(alt,
+                   two.sided=function(x, y) {rle(abs(x) > abs(y))},
+                   less=function(x, y) {rle(x < y)},
+                   greater=function(x, y) {rle(x > y)})
+  crit.regions <- mtpc.all[, rlefun(stat, S.crit), by=key(mtpc.all)][values == TRUE & lengths >= clust.size, list(region=unique(region)), by=contrast]
   setkey(crit.regions, contrast, region)
-  mtpc.all[, A.mtpc := 0]
   mtpc.all[crit.regions,
            A.mtpc := auc_rle(stat, S.crit, thresholds, alt, clust.size),
            by=list(contrast, region)]
 
-  if (alt == 'less') {
-    S.mtpc <- mtpc.all[, min(is.finite(stat) * stat, na.rm=TRUE), by=contrast]
-  } else {
-    S.mtpc <- mtpc.all[, max(is.finite(stat) * stat, na.rm=TRUE), by=contrast]
-  }
+  maxobsfun <- switch(alt,
+                      two.sided=function(x) {max(is.finite(abs(x)) * abs(x), na.rm=TRUE)},
+                      less=function(x) {min(is.finite(x) * x, na.rm=TRUE)},
+                      greater=function(x) {max(is.finite(x) * x, na.rm=TRUE)})
+  S.mtpc <- mtpc.all[, maxobsfun(stat), by=contrast]
   S.mtpc <- S.mtpc[, unique(V1), by=contrast]
   tau.mtpc <- mtpc.all[stat %in% S.mtpc$V1, threshold, by=contrast]
   tau.mtpc <- tau.mtpc[, .SD[1], by=contrast]
 
   for (i in seq_len(kNumContrasts)) {
-    if (alt == 'less') {
-      null.crit[[i]] <- which(apply(null.dist.all[[i]], 1, function(x)
-                                    any(with(rle(x < Scrit[i]), values == TRUE & lengths >= clust.size))))
-    } else {
-      null.crit[[i]] <- which(apply(null.dist.all[[i]], 1, function(x)
-                                    any(with(rle(x > Scrit[i]), values == TRUE & lengths >= clust.size))))
-    }
-    if (length(null.crit[[i]]) > 0) {
-      if (length(null.crit[[i]]) > 1) {
-        Acrit[i] <- mean(apply(null.dist.all[[i]][null.crit[[i]], ], 1, auc_rle, Scrit[i], thresholds, alt, clust.size))
-      } else {
-        Acrit[i] <- auc_rle(null.dist.all[[i]][null.crit[[i]], ], Scrit[i], thresholds, alt, clust.size)
-      }
+    null.crit <- which(apply(null.dist.all[[i]], 1, function(x)
+                             any(with(rlefun(x, Scrit[i]), values == TRUE & lengths >= clust.size))))
+    if (length(null.crit) > 0) {
+      null.crits <- null.dist.all[[i]][null.crit, , drop=FALSE]
+      Acrit[i] <- mean(apply(null.crits, 1, auc_rle, Scrit[i], thresholds, alt, clust.size))
       mtpc.all[contrast == i, A.crit := Acrit[i]]
-    } else {
-      mtpc.all[contrast == i, A.crit := 0]
     }
   }
 
@@ -158,7 +146,6 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
 }
 
 auc_rle <- function(t.stat, S.crit, thresholds, alt, clust.size) {
-
   inds <- get_rle_inds(clust.size, alt, t.stat, S.crit, thresholds)
   x <- Map(function(a, b) thresholds[a:b], inds$starts, inds$ends)
   y <- Map(function(a, b) t.stat[a:b], inds$starts, inds$ends)
@@ -167,11 +154,11 @@ auc_rle <- function(t.stat, S.crit, thresholds, alt, clust.size) {
 }
 
 get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
-  if (alt == 'less') {
-    runs <- rle(t.stat < S.crit)
-  } else {
-    runs <- rle(t.stat > S.crit)
-  }
+  compfun <- switch(alt,
+                    two.sided=function(x, y) {rle(abs(x) > abs(y))},
+                    less=function(x, y) {rle(x < y)},
+                    greater=function(x, y) {rle(x > y)})
+  runs <- compfun(t.stat, S.crit)
   myruns <- which(runs$values == TRUE & runs$lengths >= clust.size)
   runs.len.cumsum <- cumsum(runs$lengths)
   ends <- runs.len.cumsum[myruns]
@@ -180,6 +167,10 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
   if (0 %in% newindex) starts <- c(1, starts)
   return(list(starts=starts, ends=ends))
 }
+
+################################################################################
+# S3 METHODS
+################################################################################
 
 #' Print a summary of MTPC results
 #'
@@ -196,8 +187,8 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
   object$print.head <- print.head
 
   # Summary table
-  maxfun <- ifelse(object$alt == 'less', which.min, which.max)
-  DT.sum <- object$DT[A.mtpc > A.crit, .SD[maxfun(is.finite(stat) * stat)], by=list(contrast, region)]
+  whichmaxfun <- switch(object$alt, two.sided=function(x) {which(x == max(abs(x)))}, less=which.min, greater=which.max)
+  DT.sum <- object$DT[A.mtpc > A.crit, .SD[whichmaxfun(is.finite(stat) * stat)], by=list(contrast, region)]
   DT.sum <- DT.sum[, c('region', 'contrast', 'stat', 'Outcome', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
   setcolorder(DT.sum, c('Outcome', 'Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
   setnames(DT.sum, c('region', 'stat', 'threshold'), c('Region', 'S.mtpc', 'tau.mtpc'))
@@ -219,7 +210,8 @@ print.summary.mtpc <- function(x, ...) {
   cat('Level: ', x$level, '\n')
   cat('Graph metric of interest: ', x$outcome, '\n')
   cat('# of permutations: ', prettyNum(x$N, ','), '\n')
-  cat('# of thresholds: ', length(x$res.glm), '\n\n')
+  cat('# of thresholds: ', length(x$res.glm), '\n')
+  cat('Cluster size (across thresholds): ', x$clust.size, '\n\n')
 
   cat('Contrast type: ', paste(toupper(x$con.type), 'contrast'), '\n')
   alt <- switch(x$alt,
@@ -296,7 +288,8 @@ print.summary.mtpc <- function(x, ...) {
 #' ggsave('mtpc.pdf', ml)
 #' }
 
-plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE, show.null=TRUE, caption.stats=FALSE, ...) {
+plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
+                      show.null=TRUE, caption.stats=FALSE, ...) {
   stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- NULL
 
   stopifnot(inherits(x, 'mtpc'))
@@ -305,7 +298,11 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE, show.n
   DT[, stat_ribbon := stat]  # For filling in supra-threshold areas
   thresholds <- DT[, unique(threshold)]
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
-  nullcoords <- data.table(threshold=thresholds[apply(x$null.dist[[mycontrast]], 1, which.max)], y=apply(x$null.dist[[mycontrast]], 1, max))
+  whichmaxfun <- switch(x$alt, two.sided=function(x) {which(x == max(abs(x)))}, less=which.min, greater=which.max)
+  maxfun <- switch(x$alt, two.sided=function(x) {max(abs(x))}, less=min, greater=max)
+  thr <- apply(x$null.dist[[mycontrast]], 1, whichmaxfun)
+  thr.y <- apply(x$null.dist[[mycontrast]], 1, maxfun)
+  nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
 
   # Local function to plot for a single region
   plot_single <- function(x, DT, nullcoords, show.null) {
@@ -348,15 +345,14 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE, show.n
       lineplot <- lineplot + geom_point(data=nullcoords, aes(y=y), col='darkgreen', alpha=0.4, na.rm=TRUE)
     }
     if (isTRUE(caption.stats)) {
-      maxfun <- ifelse(x$alt == 'less', min, max)
-      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(maxfun(stat))]))
+      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(maxfun(stat, na.rm=TRUE))]))
       Scrit <- bquote('S'['crit']*' = '~ .(DT[, format(unique(S.crit))]))
-      Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc))]))
+      Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc, na.rm=TRUE))]))
       Acrit <- bquote('A'['crit']*' = '~ .(DT[, format(unique(A.crit))]))
       statslabel <- bquote(atop(.(Smtpc)~ ';'~ .(paste('\t'))~ .(Scrit),
                                 .(Amtpc)~ ';'~ .(paste('\t'))~ .(Acrit)))
 
-      if (DT[, unique(A.mtpc) > unique(A.crit)]) statslabel <- bquote(.(statslabel)~ .(paste0('\t\t(p < ', x$alpha, ')')))
+      if (DT[, unique(A.mtpc) > unique(A.crit)]) statslabel <- bquote(.(statslabel)~ .(paste0('\t(p < ', x$alpha, ')')))
       lineplot <- lineplot +
         labs(caption=statslabel) +
         theme(plot.caption=element_text(hjust=0))

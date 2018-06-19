@@ -1,3 +1,19 @@
+# brainGraph 2.x.x
+
+2018-XX-XX
+
+## Bug fix
+* `mtpc`
+    * Previously gave some incorrect resuls when `alt='less'`; fixed
+    * The `plot` method also now gives correct values when `alt='less'`
+* `brainGraph_GLM` now returns the correct *null.thresh* when `alt != 'greater'`
+
+## Minor changes
+* GLM-related and other functions will now:
+    1. Allow for the `Study.ID` column to be *numeric*; they will convert it to class *character*
+    2. Creates a *character* vector of integers if `Study.ID` is not present in the data
+* The `summary.mtpc` method now also prints the value of `clust.size`
+
 # brainGraph 2.2.0
 
 2018-05-28

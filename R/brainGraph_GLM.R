@@ -147,15 +147,17 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 
     zeroregions <- DT.m[, .SD[all(get(measure) == 0)], by=region][, unique(as.character(region))]
     null.dist <- randomise(ctype, N, perms, DT.m[!region %in% zeroregions], nC, measure, X, con.mat, alt)
-    null.thresh <- null.dist[, sort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+    sortfun <- switch(alt,
+                      two.sided=function(x) {sort(abs(x))},
+                      less=function(x) {sort(x, decreasing=TRUE)},
+                      greater=function(x) {sort(x)})
+    null.thresh <- null.dist[, sortfun(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+    compfun <- switch(alt,
+                      two.sided=function(x, y) {sum(abs(x) >= abs(y), na.rm=TRUE)},
+                      less=function(x, y) {sum(x <= y, na.rm=TRUE)},
+                      greater=function(x, y) {sum(x >= y, na.rm=TRUE)})
     for (i in seq_along(con.name)) {
-      if (alt == 'two.sided') {
-        DT.lm[list(i), p.perm := (sum(abs(null.dist[contrast == i, V1]) >= abs(stat), na.rm=TRUE) + 1) / (N + 1), by=region]
-      } else if (alt == 'less') {
-        DT.lm[list(i), p.perm := (sum(null.dist[contrast == i, V1] <= stat, na.rm=TRUE) + 1) / (N + 1), by=region]
-      } else if (alt == 'greater') {
-        DT.lm[list(i), p.perm := (sum(null.dist[contrast == i, V1] >= stat, na.rm=TRUE) + 1) / (N + 1), by=region]
-      }
+      DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
     }
   }
 
@@ -189,6 +191,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 setup_glm <- function(covars, X, con.mat, con.type, con.name, ...) {
   Study.ID <- NULL
   covars <- droplevels(covars)
+  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
   incomp <- covars[!complete.cases(covars), Study.ID]
   covars <- covars[!Study.ID %in% incomp]
   setkey(covars, Study.ID)
@@ -227,6 +230,12 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, ...) {
 #' @importFrom MASS Null
 #' @keywords internal
 #'
+#' @return A list containing:
+#'   \item{X}{Numeric matrix for the covariates of interest}
+#'   \item{Z}{Numeric matrix for the nuisance covariates}
+#'   \item{eCm}{The \emph{effective contrast}, equivalent to the original, for
+#'     the partitioned model \code{[X, Z]} and considering all covariates}
+#'   \item{eCx}{Same as \code{eCx}, but considering only \code{X}}
 #' @references Guttman I. Linear Models: An Introduction. Wiley, New York, 1982.
 #' @references Smith SM, Jenkinson M, Beckmann C, Miller K, Woolrich M (2007).
 #'   \emph{Meaningful design and contrast estimability in fMRI.} NeuroImage,
@@ -267,9 +276,14 @@ partition <- function(M, con.mat, method=c('beckmann', 'guttman')) {
 #' @inheritParams brainGraph_GLM
 #' @keywords internal
 #' @rdname randomise
+#' @return A list containing:
+#'   \item{Mp}{The full partitioned model, joined}
+#'   \item{Rz}{The residual-forming matrix}
+#'   \item{MtM}{The inverse of the cross product of the full model}
+#'   \item{eC}{The \emph{effective contrast}, equivalent to the original, for
+#'     the partitioned model \code{[X, Z]} and considering all covariates}
 
 setup_randomise <- function(X, con.mat, nC) {
-  i <- region <- contrast <- NULL
   n <- nrow(X)
   Mp <- MtM <- Rz <- eC <- vector('list', length=nC)
 
@@ -305,7 +319,10 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
     CMtM <- solve(randMats$eC[[1]] %*% randMats$MtM[[1]] %*% t(randMats$eC[[1]]))
     rkC <- qr(randMats$eC[[1]])$rank
   }
-  maxfun <- ifelse(alternative == 'less', min, max)
+  maxfun <- switch(alternative,
+                   two.sided=function(x) {max(abs(x), na.rm=TRUE)},
+                   less=function(x) {min(x, na.rm=TRUE)},
+                   greater=function(x) {max(x, na.rm=TRUE)})
   null.dist <- vector('list', length=nC)
   perm.order <- rep(seq_len(N), each=DT[, length(unique(region))])
 
@@ -316,8 +333,7 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
         DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), MtM[[j]], eC[[j]]), by=region]
       }
       null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][, maxfun(gamma / se, na.rm=TRUE), by=perm][, !'perm']
-      null.dist[[j]][, contrast := j]
+      null.dist[[j]] <- null.dist[[j]][, maxfun(gamma / se), by=perm][, !'perm']
 
     # F-contrasts
     } else if (ctype == 'f') {
@@ -325,11 +341,11 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
         DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), dfR, eC[[j]], rkC, CMtM), by=region]
       }
       null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][, max(numer / (se / dfR), na.rm=TRUE), by=list(perm, contrast)][, !'perm']
+      null.dist[[j]] <- null.dist[[j]][, max(numer / (se / dfR), na.rm=TRUE), by=perm][, !'perm']
     }
   }
 
-  null.dist <- rbindlist(null.dist)
+  null.dist <- rbindlist(null.dist, idcol='contrast')
   return(null.dist)
 }
 
@@ -340,6 +356,7 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
 #' Helper function for GLM fitting
 #' @param DT A data.table with all the necessary data
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
+#'   analyses)
 #' @inheritParams brainGraph_GLM
 #' @keywords internal
 #' @aliases glm_fit_helper
@@ -366,9 +383,8 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, measure, mykey) {
     DT.lm <- vector('list', nrow(con.mat))
     for (i in seq_along(DT.lm)) {
       DT.lm[[i]] <- DT[, brainGraph_GLM_fit_t(X, get(measure), XtX, con.mat[i, , drop=FALSE]), by=mykey]
-      DT.lm[[i]][, contrast := i]
     }
-    DT.lm <- rbindlist(DT.lm)
+    DT.lm <- rbindlist(DT.lm, idcol='contrast')
     DT.lm[, stat := gamma / se]
     DT.lm[, p := pfun(stat, dfR)]
   }
@@ -397,7 +413,6 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, measure, mykey) {
 #' @return \code{brainGraph_GLM_fit_t} - A list containing:
 #'   \item{gamma}{The contrast of parameter estimates}
 #'   \item{se}{The standard error}
-#'   \item{contrast}{The contrast number(s)}
 #'
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -410,7 +425,7 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
   var.covar <- sigma.squared * XtX
   se <- sqrt(diag(con.mat %*% tcrossprod(var.covar, con.mat)))
 
-  list(gamma=as.numeric(gamma), se=se, contrast=1:nrow(con.mat))
+  list(gamma=as.numeric(gamma), se=se)
 }
 
 #' Fit linear models for f contrasts
@@ -429,7 +444,6 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
 #'   \item{numer}{The extra sum of squares due to the full model divided by the
 #'     rank of the contrast matrix}
 #'   \item{se}{The sum of squared errors of the full model}
-#'   \item{contrast}{The contrast number; defaults to \code{1}}
 #'
 #' @name GLMfit
 #' @aliases brainGraph_GLM_fit_f
@@ -442,7 +456,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
   SSEF <- as.numeric(crossprod(est$residuals))
 
   numer <- as.numeric(t(gamma) %*% CXtX %*% gamma / rkC)
-  list(numer=numer, se=SSEF, contrast=1)
+  list(numer=numer, se=SSEF)
 }
 
 #' Create a design matrix for linear model analysis
@@ -498,6 +512,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   factorize=TRUE, mean.center=FALSE, binarize=NULL, int=NULL) {
 
   covars <- copy(covars)
+  covars[, Study.ID := as.character(Study.ID)]
   X <- matrix(1, nrow=nrow(covars), ncol=1)
   colnames(X) <- 'Intercept'
 
