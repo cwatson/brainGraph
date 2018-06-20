@@ -187,7 +187,7 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
   object$print.head <- print.head
 
   # Summary table
-  whichmaxfun <- switch(object$alt, two.sided=function(x) {which(x == max(abs(x)))}, less=which.min, greater=which.max)
+  whichmaxfun <- switch(object$alt, two.sided=function(x) {which.max(abs(x))}, less=which.min, greater=which.max)
   DT.sum <- object$DT[A.mtpc > A.crit, .SD[whichmaxfun(is.finite(stat) * stat)], by=list(contrast, region)]
   DT.sum <- DT.sum[, c('region', 'contrast', 'stat', 'Outcome', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
   setcolorder(DT.sum, c('Outcome', 'Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
@@ -298,8 +298,8 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
   DT[, stat_ribbon := stat]  # For filling in supra-threshold areas
   thresholds <- DT[, unique(threshold)]
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
-  whichmaxfun <- switch(x$alt, two.sided=function(x) {which(x == max(abs(x)))}, less=which.min, greater=which.max)
-  maxfun <- switch(x$alt, two.sided=function(x) {max(abs(x))}, less=min, greater=max)
+  whichmaxfun <- switch(x$alt, two.sided=function(y) {which.max(abs(y))}, less=which.min, greater=which.max)
+  maxfun <- switch(x$alt, two.sided=function(y) {max(abs(y), na.rm=TRUE)}, less=min, greater=max)
   thr <- apply(x$null.dist[[mycontrast]], 1, whichmaxfun)
   thr.y <- apply(x$null.dist[[mycontrast]], 1, maxfun)
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
@@ -345,9 +345,9 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       lineplot <- lineplot + geom_point(data=nullcoords, aes(y=y), col='darkgreen', alpha=0.4, na.rm=TRUE)
     }
     if (isTRUE(caption.stats)) {
-      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(maxfun(stat, na.rm=TRUE))]))
+      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(maxfun(stat))]))
       Scrit <- bquote('S'['crit']*' = '~ .(DT[, format(unique(S.crit))]))
-      Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc, na.rm=TRUE))]))
+      Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc))]))
       Acrit <- bquote('A'['crit']*' = '~ .(DT[, format(unique(A.crit))]))
       statslabel <- bquote(atop(.(Smtpc)~ ';'~ .(paste('\t'))~ .(Scrit),
                                 .(Amtpc)~ ';'~ .(paste('\t'))~ .(Acrit)))

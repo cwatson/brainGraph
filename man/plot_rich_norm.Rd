@@ -5,7 +5,7 @@
 \title{Plot normalized rich club coefficients against degree threshold}
 \usage{
 plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
-  alpha = 0.05, fdr = TRUE, g = NULL)
+  alpha = 0.05, fdr = TRUE, g = NULL, smooth = TRUE)
 }
 \arguments{
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
@@ -22,14 +22,19 @@ p-value for determining significance (default: TRUE)}
 
 \item{g}{A list (of lists) of \code{igraph} graph objects; required if you
 want to plot a shaded region demarcating the \code{\link{rich_core}}}
+
+\item{smooth}{Logical indicating whether or not to use
+\code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
+group) are present (default: \code{TRUE}). Ignored for group-level data.}
 }
 \value{
 A \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the normalized rich club
-coefficient for up to two subject groups. Optionally will include a shaded
-region demarcating the \code{\link{rich_core}} cutoff.
+Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the
+normalized rich club coefficient. Optionally will include a shaded region
+demarcating the \code{\link{rich_core}} cutoff (if you supply a list of graph
+objects to the \code{g} argument).
 }
 \examples{
 \dontrun{

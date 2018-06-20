@@ -14,6 +14,14 @@ partition(M, con.mat, method = c("beckmann", "guttman"))
 \item{method}{Character string; the method of partitioning (default:
 \code{beckmann})}
 }
+\value{
+A list containing:
+  \item{X}{Numeric matrix for the covariates of interest}
+  \item{Z}{Numeric matrix for the nuisance covariates}
+  \item{eCm}{The \emph{effective contrast}, equivalent to the original, for
+    the partitioned model \code{[X, Z]} and considering all covariates}
+  \item{eCx}{Same as \code{eCx}, but considering only \code{X}}
+}
 \description{
 Partition a design matrix into columns of interest and nuisance
 }

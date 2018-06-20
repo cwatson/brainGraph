@@ -510,7 +510,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 
 brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.means'),
                                   factorize=TRUE, mean.center=FALSE, binarize=NULL, int=NULL) {
-
+  Study.ID <- NULL
   covars <- copy(covars)
   covars[, Study.ID := as.character(Study.ID)]
   X <- matrix(1, nrow=nrow(covars), ncol=1)
