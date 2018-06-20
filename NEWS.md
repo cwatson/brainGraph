@@ -1,3 +1,10 @@
+# brainGraph 2.3.1
+
+2018-06-20
+
+## Bug fix
+* Fixed a bug in `brainGraph_permute` that I didn't catch before
+
 # brainGraph 2.3.0
 
 2018-06-20

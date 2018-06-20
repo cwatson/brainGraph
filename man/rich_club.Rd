@@ -48,7 +48,7 @@ already been generated (default: \code{NULL})}
   \item{Group}{}
   \item{name}{}
 
-\code{\link{rich_core}} - a data frame with columns:
+\code{\link{rich_core}} - a data table with columns:
   \item{density}{The density of the graph.}
   \item{rank}{The rank of the boundary for the rich core.}
   \item{k.r}{The degree of the vertex at the boundary.}
