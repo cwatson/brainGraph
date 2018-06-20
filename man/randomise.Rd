@@ -30,6 +30,14 @@ only one contrast is desired, you can supply a vector}
 \item{alternative}{Character string, whether to do a two- or one-sided test
 (default: \code{'two.sided'})}
 }
+\value{
+A list containing:
+  \item{Mp}{The full partitioned model, joined}
+  \item{Rz}{The residual-forming matrix}
+  \item{MtM}{The inverse of the cross product of the full model}
+  \item{eC}{The \emph{effective contrast}, equivalent to the original, for
+    the partitioned model \code{[X, Z]} and considering all covariates}
+}
 \description{
 \code{setup_randomise} is used to setup the data/objects for any function
 that does permutations for GLM-based analysis.

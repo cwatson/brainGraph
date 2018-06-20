@@ -7,7 +7,7 @@
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod", "E.global",
   "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
-  conf = 0.95, .progress = TRUE)
+  conf = 0.95, .progress = TRUE, xfm.type = c("1/w", "-log(w)", "1-w"))
 
 \method{summary}{brainGraph_boot}(object, ...)
 }
@@ -26,6 +26,9 @@ intervals (default: 0.95)}
 
 \item{.progress}{Logical indicating whether or not to show a progress bar
 (default: \code{TRUE})}
+
+\item{xfm.type}{Character string specifying how to transform the weights
+(default: \code{1/w})}
 
 \item{object}{A \code{brainGraph_boot} object (from
 \code{\link{brainGraph_boot}})}
@@ -46,6 +49,10 @@ Print a summary from a bootstrap analysis
 \details{
 The confidence intervals are calculated using the normal approximation and at
 the 95\% level.
+
+For \emph{weighted global efficiency}, a method for transforming edge weights
+must be provided. The default is to invert them. See
+\code{\link{xfm.weights}}.
 }
 \examples{
 \dontrun{

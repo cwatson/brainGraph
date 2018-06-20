@@ -259,7 +259,7 @@ subset_graph <- function(g, subgraph) {
   }
 
   # Handle when logical expressions are separated by parentheses
-  if (isTRUE(grepl('\\(.*\\)', subgraph))) {
+  if (isTRUE(grepl('\\(.*\\&.*\\)', subgraph)) || isTRUE(grepl('\\(.*\\|.*\\)', subgraph))) {
     subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
     subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
     cond.strings <- sapply(subs, get_cond_string)

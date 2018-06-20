@@ -6,6 +6,10 @@
 #' The confidence intervals are calculated using the normal approximation and at
 #' the 95\% level.
 #'
+#' For \emph{weighted global efficiency}, a method for transforming edge weights
+#' must be provided. The default is to invert them. See
+#' \code{\link{xfm.weights}}.
+#'
 #' @param densities Numeric vector of graph densities to loop through
 #' @param resids An object of class \code{brainGraph_resids} (the output from
 #'   \code{\link{get.resid}})
@@ -15,6 +19,7 @@
 #'   intervals (default: 0.95)
 #' @param .progress Logical indicating whether or not to show a progress bar
 #'   (default: \code{TRUE})
+#' @inheritParams xfm.weights
 #' @export
 #' @importFrom boot boot
 #'
@@ -34,13 +39,14 @@
 brainGraph_boot <- function(densities, resids, R=1e3,
                             measure=c('mod', 'E.global', 'Cp', 'Lp', 'assortativity',
                                       'strength', 'mod.wt', 'E.global.wt'),
-                            conf=0.95, .progress=TRUE) {
+                            conf=0.95, .progress=TRUE,
+                            xfm.type=c('1/w', '-log(w)', '1-w')) {
   Group <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'))
 
   # 'statistic' function for the bootstrapping process
-  statfun <- function(x, i, measure, res.obj) {
-    corrs <- corr.matrix(res.obj[i], densities=densities)
+  statfun <- function(x, i, measure, res.obj, xfm.type) {
+    corrs <- corr.matrix(res.obj[i], densities=densities, rand=TRUE)
     if (measure %in% c('strength', 'mod.wt', 'E.global.wt')) {
       g.boot <- apply(corrs[[1]]$r.thresh, 3, function(y)
                       graph_from_adjacency_matrix(corrs[[1]]$R * y, mode='undirected',
@@ -51,7 +57,8 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     }
     res <- switch(measure,
         mod=,mod.wt=vapply(g.boot, function(y) max(modularity(cluster_louvain(y))), numeric(1)),
-        E.global=,E.global.wt=vapply(g.boot, efficiency, numeric(1), 'global'),
+        E.global=vapply(g.boot, efficiency, numeric(1), 'global'),
+        E.global.wt=vapply(g.boot, function(g) efficiency(xfm.weights(g, xfm.type), 'global'), numeric(1)),
         Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
         Lp=vapply(g.boot, mean_distance, numeric(1)),
         assortativity=vapply(g.boot, assortativity_degree, numeric(1)),
@@ -61,12 +68,12 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 
   # Show a progress bar so you aren't left in the dark
   if (isTRUE(.progress)) {
-    intfun <- function(data, indices, measure, res.obj) {
+    intfun <- function(data, indices, measure, res.obj, xfm.type) {
       curVal <- get('counter', envir=env) + ncpus
       assign('counter', curVal, envir=env)
       setTxtProgressBar(get('progbar', envir=env), curVal)
       flush.console()
-      statfun(data, indices, measure, res.obj)
+      statfun(data, indices, measure, res.obj, xfm.type)
     }
   } else {
     intfun <- statfun
@@ -84,6 +91,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
   }
 
   measure <- match.arg(measure)
+  xfm.type <- match.arg(xfm.type)
   env <- environment()
   groups <- resids$groups
   my.boot <- sapply(groups, function(x) NULL)
@@ -91,7 +99,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     counter <- 0
     res.dt <- resids$resids.all[g]
     if (isTRUE(.progress)) progbar <- txtProgressBar(min=0, max=R, style=3)
-    my.boot[[g]] <- boot(res.dt, intfun, measure=measure, res.obj=resids[g], R=R,
+    my.boot[[g]] <- boot(res.dt, intfun, measure=measure, res.obj=resids[g], xfm.type=xfm.type, R=R,
                          parallel=my.parallel, ncpus=ncpus, cl=cl)
     if (isTRUE(.progress)) close(progbar)
   }

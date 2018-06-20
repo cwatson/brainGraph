@@ -1,3 +1,36 @@
+# brainGraph 2.3.0
+
+2018-06-20
+
+## Bug fix
+* `brainGraph_boot` and `corr.matrix`:
+    * Incorrectly calculated `E.global.wt` before; now it transforms edge weights
+    * To do so, includes argument `xfm.type`
+    * Fixed bug when calling `corr.matrix` (added `rand=TRUE`)
+    * Also had to update the return object of `corr.matrix` for this purpose
+* `mtpc`
+    * Previously gave some incorrect resuls when `alt='less'`; fixed
+    * The `plot` method also now gives correct values when `alt='less'`
+* `brainGraph_GLM` now returns the correct *null.thresh* when `alt != 'greater'`
+* `plot.brainGraph`: fixed bug that occurred when `plane='sagittal'` and a `hemi` value was not supplied
+* `plot_rich_norm`: didn't plot values for all degrees present in the networks under certain scenarios
+
+## New features
+* `set_brainGraph_attr` now calculates a graph-level `Lp.wt`, which equals:
+```
+Lpv.wt <- distances(g)
+Lpv.wt[is.infinite(Lpv.wt)] <- NA
+g$Lp.wt <- mean(Lpv.wt[upper.tri(Lpv.wt)], na.rm=T)
+```
+* `plot_rich_norm`: new argument `smooth` lets you plot with a smoother in the case of single-subject data, as opposed to the previous default of a line plot for all subjects
+
+## Minor changes
+* GLM-related and other functions will now:
+    1. Allow for the `Study.ID` column to be *numeric*; they will convert it to class *character*
+    2. Creates a *character* vector of integers if `Study.ID` is not present in the data
+* The `summary.mtpc` method now also prints the value of `clust.size`
+
+
 # brainGraph 2.2.0
 
 2018-05-28
@@ -276,6 +309,7 @@ The classes and corresponding "creation functions" are:
 * `sim.rand.graph.par`: the argument *clustering* is no longer TRUE by default
 
 
+
 # brainGraph 1.0.0
 
 2017-04-10
@@ -469,6 +503,7 @@ where `N` is the number of random graphs generated.
   * *Participation coefficient* and *within-module degree z-score*
   * Vertex-level *transitivity*
   * Vertex-level *shortest path lengths*
+
 
 
 # brainGraph 0.55.0

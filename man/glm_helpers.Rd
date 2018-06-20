@@ -32,7 +32,8 @@ has row names, those will be used for reporting results (default:
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM}
+\item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
+analyses)}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses

@@ -132,7 +132,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       all.cv <- symmetrize_mats(all.cv, 'min')
       A.inds <- lapply(mat.thresh, function(x) {
                          thresh <- sort(all.cv[lower.tri(all.cv)], decreasing=TRUE)[emax - x * emax]
-                         ifelse(all.cv < thresh, 1, 0)})
+                         ifelse(all.cv < thresh, 1L, 0L)})
       A.norm.sub <- lapply(seq_along(mat.thresh), function(z)
                            array(sapply(unlist(inds), function(y)
                                         ifelse(A.inds[[z]] == 1, A.norm[, , y], 0)),
@@ -151,7 +151,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       # Use the given thresholds as-is
       #---------------------------------
       # Binarize the array, then keep entries w/ >= "sub.thresh"% for each group
-      A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0)
+      A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0L)
       A.bin.sums <- lapply(seq_along(mat.thresh), function(y)
                            lapply(inds, function(x)
                                   rowSums(A.bin[[y]][, , x], dims=2)))
@@ -165,11 +165,11 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       if (sub.thresh == 0) {
         A.inds <- lapply(seq_along(mat.thresh), function(y)
                          lapply(seq_along(inds), function(x)
-                                ifelse(A.bin.sums[[y]][[x]] > 0, 1, 0)))
+                                ifelse(A.bin.sums[[y]][[x]] > 0, 1L, 0L)))
       } else {
         A.inds <- lapply(seq_along(mat.thresh), function(y)
                          lapply(seq_along(inds), function(x)
-                                ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x], 1, 0)))
+                                ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x], 1L, 0L)))
       }
 
       # Back to a list of arrays for all subjects
