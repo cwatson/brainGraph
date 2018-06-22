@@ -62,9 +62,10 @@ An object of class \code{NBS} with some input arguments in addition
   \item{X}{The design matrix}
   \item{removed}{Character vector of subject ID's removed due to incomplete
     data (if any)}
-  \item{T.mat}{List of numeric matrices (symmetric) containing the statistics
-    for each edge}
-  \item{p.mat}{List of numeric matrices (symmetric) containing the P-values}
+  \item{T.mat}{3-d array of (symmetric) numeric matrices containing the
+    statistics for each edge}
+  \item{p.mat}{3-d array of (symmetric) numeric matrices containing the
+    P-values}
   \item{components}{List containing data tables of the observed and permuted
     connected component sizes and P-values}
 }
