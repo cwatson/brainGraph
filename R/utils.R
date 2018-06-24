@@ -224,7 +224,7 @@ set_edge_color <- function(g, name, memb) {
 
 #' Subset graphs based on a given logical condition
 #'
-#' \code{subset_graphs} will subset a given graph based on the given logical
+#' \code{subset_graph} will subset a given graph based on the given logical
 #' condition(s). This can be a "simple" logical equation, or can include
 #' combinations of \emph{AND} and \emph{OR} (i.e., \code{&} and \code{|}).
 #'

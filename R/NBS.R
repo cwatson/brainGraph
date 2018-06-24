@@ -27,9 +27,10 @@
 #'   \item{X}{The design matrix}
 #'   \item{removed}{Character vector of subject ID's removed due to incomplete
 #'     data (if any)}
-#'   \item{T.mat}{List of numeric matrices (symmetric) containing the statistics
-#'     for each edge}
-#'   \item{p.mat}{List of numeric matrices (symmetric) containing the P-values}
+#'   \item{T.mat}{3-d array of (symmetric) numeric matrices containing the
+#'     statistics for each edge}
+#'   \item{p.mat}{3-d array of (symmetric) numeric matrices containing the
+#'     P-values}
 #'   \item{components}{List containing data tables of the observed and permuted
 #'     connected component sizes and P-values}
 #'
@@ -53,18 +54,14 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
-  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, ...)
-  X <- glmSetup$X; incomp <- glmSetup$incomp
-  if (length(incomp) > 0) {
-    inc.ind <- covars[, which(Study.ID %in% incomp)]
-    A <- A[, , -inc.ind]
-  }
-  covars <- glmSetup$covars; con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name
-
   alt <- match.arg(alternative)
-  out <- list(X=X, p.init=p.init, con.type=ctype, con.mat=con.mat, con.name=con.name, alt=alt, N=N, removed=incomp)
+  if (ctype == 'f') alt <- 'two.sided'
+  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, ...)
+  covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
+  con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name; nC <- glmSetup$nC
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
+  if (length(incomp) > 0) A <- A[, , -covars[, which(Study.ID %in% incomp)]]
   A <- symmetrize_array(A, symm.by)
   for (k in seq_len(dim(A)[3])) {
     x <- A[, , k]
@@ -82,47 +79,42 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   A.m.sub <- A.m[pos.vals]
 
   # Do the model fitting/estimation
-  glmFits <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')
-  DT.lm <- glmFits$DT.lm
-  if (ctype == 't') {
-    nC <- nrow(con.mat)
-  } else if (ctype == 'f') {
-    nC <- 1
-    alt <- 'two.sided'
-  }
+  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')$DT.lm
 
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
-  T.max <- p.mat <- comps.obs <- vector('list', length=length(con.name))
+  comps.obs <- vector('list', length=length(con.name))
+  T.max <- p.mat <- array(0, dim=c(Nv, Nv, nC))
   compfun <- switch(alt,
                     two.sided=function(x) {abs(x) > t(abs(x))},
                     less=function(x) {x < t(x)},
                     greater=function(x) {x > t(x)})
   for (j in seq_len(nC)) {
-    T.mat <- p.mat[[j]] <- matrix(0, Nv, Nv)
+    T.mat <- matrix(0, Nv, Nv)
     if (nrow(DT.lm[contrast == j]) == 0) {
       warning(sprintf('No significant differences observed for contrast %i!', j))
-      T.max[[j]] <- matrix(0, Nv, Nv)
       comps.obs[[j]] <- data.table(csize=0)
       skip <- c(skip, j)
       next
     }
     T.mat[DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, stat]
-    p.mat[[j]][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
+    p.mat[, , j][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
 
     inds.tr <- which(compfun(T.mat), arr.ind=TRUE)
-    T.max[[j]] <- ifelse(compfun(T.mat), T.mat, t(T.mat))
+    T.max[, , j] <- ifelse(compfun(T.mat), T.mat, t(T.mat))
     for (i in seq_len(nrow(inds.tr))) {
-      p.mat[[j]][inds.tr[i, 2], inds.tr[i, 1]] <- p.mat[[j]][inds.tr[i, 1], inds.tr[i, 2]]
+      p.mat[inds.tr[i, 2], inds.tr[i, 1], j] <- p.mat[inds.tr[i, 1], inds.tr[i, 2], j]
     }
 
-    clusts <- components(graph_from_adjacency_matrix(T.max[[j]], diag=F, mode='undirected', weighted=TRUE))
+    clusts <- components(graph_from_adjacency_matrix(T.max[, , j], diag=F, mode='undirected', weighted=TRUE))
     comps.obs[[j]] <- data.table(csize=sort(unique(clusts$csize), decreasing=TRUE))
   }
   comps.obs <- rbindlist(comps.obs, idcol='contrast')
 
+  out <- list(X=X, p.init=p.init, con.type=ctype, con.mat=con.mat, con.name=con.name,
+              alt=alt, N=N, removed=incomp, T.mat=T.max, p.mat=p.mat)
   if (length(skip) == length(con.name)) {
-    out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=list(observed=comps.obs, permuted=NULL)))
+    out <- c(out, list(components=list(observed=comps.obs, permuted=NULL)))
     class(out) <- c('NBS', class(out))
     return(out)
   }
@@ -134,16 +126,16 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   randMats <- setup_randomise(X, con.mat, nC)
   comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, randMats, p.init, alt, Nv)
 
+  kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_along(con.name)) {
-    kNumComps <- comps.obs[contrast == j, .N]
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
                                               csize,
-                                              rep(list(comps.perm[contrast == j, perm]), kNumComps))]
+                                              rep(list(comps.perm[contrast == j, perm]), kNumComps[j]))]
   }
 
   comps.out <- list(observed=comps.obs)
-  if (isTRUE(long)) comps.out$permuted <-comps.perm
-  out <- c(out, list(T.mat=T.max, p.mat=p.mat, components=comps.out))
+  if (isTRUE(long)) comps.out$permuted <- comps.perm
+  out <- c(out, list(components=comps.out))
   class(out) <- c('NBS', class(out))
   return(out)
 }
@@ -225,8 +217,8 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
   #--------------------------------------
   ecounts <- vector('list', length(object$con.name))
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
-    g.nbs <- graph_from_adjacency_matrix(object$T.mat[[j]], diag=F, mode='undirected', weighted=TRUE)
+    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
+    g.nbs <- graph_from_adjacency_matrix(object$T.mat[, , j], diag=F, mode='undirected', weighted=TRUE)
     clusts <- components(g.nbs)
     comps <- sort(unique(clusts$csize), decreasing=TRUE)
     z <- clusts$membership
@@ -242,7 +234,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
                  data.table(alt=alt, N=N, components$observed))
   nbs.dt[, ecount := 0]
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
+    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
     nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
   }
   nbs.sum <- list(contrast=contrast, res.nbs=object, DT.sum=nbs.dt, digits=digits)
@@ -260,6 +252,7 @@ print.summary.NBS <- function(x, ...) {
   cat('Number of permutations: ', prettyNum(x$res.nbs$N, ','), '\n')
   cat('Initial p-value: ', x$res.nbs$p.init, '\n\n')
 
+  cat('Contrast type: ', paste(toupper(x$res.nbs$con.type), 'contrast'), '\n')
   alt <- switch(x$res.nbs$alt,
                 two.sided='C != 0',
                 greater='C > 0',
@@ -267,6 +260,8 @@ print.summary.NBS <- function(x, ...) {
   cat('Alternative hypothesis: ', alt, '\n')
   cat('Contrast matrix: ', '\n')
   print(x$res.nbs$con.mat)
+
+  if (length(x$res.nbs$removed) != 0) cat('\nSubjects removed due to incomplete data:\n', x$res.nbs$removed, '\n')
 
   xdt <- x$DT.sum[csize > 1]
   setnames(xdt, c('csize', 'ecount'), c('# vertices', '# edges'))
@@ -282,7 +277,7 @@ print.summary.NBS <- function(x, ...) {
   }
 
   for (i in contrast) {
-    message(paste0('\n', x$res.nbs$con.name[i]))
+    message(x$res.nbs$con.name[i])
     if (nrow(xdt[contrast == i]) == 0) {
       message('\tNo signficant results!\n')
     } else {

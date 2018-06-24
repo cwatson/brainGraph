@@ -202,7 +202,7 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 #' vertices in the graph.
 #'
 #' @export
-#' @return \code{\link{rich_core}} - a data frame with columns:
+#' @return \code{\link{rich_core}} - a data table with columns:
 #'   \item{density}{The density of the graph.}
 #'   \item{rank}{The rank of the boundary for the rich core.}
 #'   \item{k.r}{The degree of the vertex at the boundary.}
@@ -221,15 +221,16 @@ rich_core <- function(g) {
   } else {
     degs <- degree(g)
   }
+  degs <- as.integer(degs)
   dens <- ifelse('density' %in% graph_attr_names(g), g$density, graph.density(g))
   Nv <- vcount(g)
 
   vorder <- order(degs, decreasing=TRUE)
-  kplus <- sapply(seq_len(Nv), function(x)
-                  length(E(g)[vorder[x] %--% which(degs > degs[vorder[x]])]))
+  kplus <- vapply(seq_len(Nv), function(x)
+                  length(E(g)[vorder[x] %--% which(degs > degs[vorder[x]])]), integer(1))
 
   r <- max(which(kplus == max(kplus)))
   k.r <- degs[vorder][r]
   core.size <- r / Nv
-  return(data.frame(density=dens, rank=r, k.r=k.r, core.size=core.size))
+  return(data.table(density=dens, rank=r, k.r=k.r, core.size=core.size))
 }

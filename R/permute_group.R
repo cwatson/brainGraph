@@ -132,7 +132,7 @@ make_graphs_perm <- function(densities, resids, inds, groups) {
   corrs <- lapply(unique(groups), function(x)
                   corr.matrix(resids[which(groups[inds] == x)],
                               densities=densities, rand=TRUE))
-  lapply(corrs, function(x)
+  sapply(corrs, lapply, function(x)
          apply(x$r.thresh, 3, graph_from_adjacency_matrix, mode='undirected', diag=F))
 }
 

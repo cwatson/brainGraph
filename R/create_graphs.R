@@ -415,23 +415,27 @@ make_glm_brainGraph <- function(res.glm, atlas, ...) {
 #' @family Graph creation functions
 
 make_nbs_brainGraph <- function(res.nbs, atlas, ...) {
-  contrast <- p.perm <- NULL
+  contrast <- p.perm <- csize <- NULL
   stopifnot(inherits(res.nbs, 'NBS'))
   g.nbs <- vector('list', length=length(res.nbs$con.name))
   for (i in seq_along(g.nbs)) {
-    g.nbs[[i]] <- graph_from_adjacency_matrix(res.nbs$T.mat[[i]], diag=F, mode='undirected', weighted=TRUE)
+    g.nbs[[i]] <- graph_from_adjacency_matrix(res.nbs$T.mat[, , i], diag=F, mode='undirected', weighted=TRUE)
     g.nbs[[i]]$name <- res.nbs$con.name[i]
     if (ecount(g.nbs[[i]]) > 0) {
       E(g.nbs[[i]])$stat <- E(g.nbs[[i]])$weight
-      E(g.nbs[[i]])$p <- 1 - E(graph_from_adjacency_matrix(res.nbs$p.mat[[i]], diag=F, mode='undirected', weighted=TRUE))$weight
+      E(g.nbs[[i]])$p <- 1 - E(graph_from_adjacency_matrix(res.nbs$p.mat[, , i], diag=F, mode='undirected', weighted=TRUE))$weight
       if (any(E(g.nbs[[i]])$weight < 0)) g.nbs[[i]] <- delete_edge_attr(g.nbs[[i]], 'weight')
       clusts <- components(g.nbs[[i]])
       comps <- sort(unique(clusts$csize), decreasing=TRUE)
-      x <- components(g.nbs[[i]])$membership
-      V(g.nbs[[i]])$comp <- match(x, order(table(x), decreasing=TRUE))
+      x <- clusts$membership
+      x.tab <- table(x)
+      x.tab.st <- sort(x.tab, decreasing=TRUE)
+      V(g.nbs[[i]])$comp <- match(x, order(x.tab, decreasing=TRUE))
       V(g.nbs[[i]])$p.nbs <- 0
-      for (j in seq_along(res.nbs$components$observed[contrast == i])) {
-        V(g.nbs[[i]])[V(g.nbs[[i]])$comp == j]$p.nbs <- 1 - res.nbs$components$observed[contrast == i, p.perm[j]]
+      xdt <- copy(res.nbs$components$observed)
+      for (j in seq_along(comps)) {
+        inds <- which(xdt[contrast == i, csize[j]] == x.tab.st)
+        V(g.nbs[[i]])[V(g.nbs[[i]])$comp %in% inds]$p.nbs <- 1 - xdt[contrast == i, p.perm[j]]
       }
       if (ecount(g.nbs[[i]]) > 1) {
         g.nbs[[i]] <- set_brainGraph_attr(g.nbs[[i]], atlas=atlas, ...)

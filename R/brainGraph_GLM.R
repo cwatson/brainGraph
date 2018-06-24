@@ -444,6 +444,7 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
 #'   \item{numer}{The extra sum of squares due to the full model divided by the
 #'     rank of the contrast matrix}
 #'   \item{se}{The sum of squared errors of the full model}
+#'   \item{contrast}{The contrast number; defaults to \code{1}}
 #'
 #' @name GLMfit
 #' @aliases brainGraph_GLM_fit_f
@@ -456,7 +457,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
   SSEF <- as.numeric(crossprod(est$residuals))
 
   numer <- as.numeric(t(gamma) %*% CXtX %*% gamma / rkC)
-  list(numer=numer, se=SSEF)
+  list(numer=numer, se=SSEF, contrast=1)
 }
 
 #' Create a design matrix for linear model analysis

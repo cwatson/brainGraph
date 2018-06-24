@@ -49,20 +49,16 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   }
   setkeyv(subDT, c(facet.by, 'Group'))
 
-  rects <- data.table(density=subDT[, unique(get(facet.by))], xstart=0, xend=0,
+  rects <- data.table(density=subDT[, unique(get(facet.by))], xstart=0L, xend=0L,
                       Group=rep(subDT[, unique(Group)],
                                 each=length(densities)))
   if (!is.null(g)) {
-    densities.g <- round(sapply(g[[1]], graph_attr, 'density'), 2)
+    densities.g <- round(vapply(g[[1]], graph_attr, numeric(1), 'density'), 2)
     densities.g <- which(densities.g %in% round(densities, 2))
     g <- lapply(g, `[`, densities.g)
-    k <- lapply(g, sapply, function(x) rich_core(x)$k.r)
+    k <- vapply(g, vapply, integer(length(densities)), function(x) rich_core(x)$k.r, integer(1))
+    max.k <- apply(as.matrix(k), 1, max)
 
-    if (length(densities) == 1) {
-      max.k <- apply(as.matrix(sapply(k, function(x) x), nrow=1), 2, max)
-    } else {
-      max.k <- apply(sapply(k, function(x) x), 1, max)
-    }
     rects[, xstart := max.k]
     rects[, xend := subDT[, max(k), by=density]$V1]
   }

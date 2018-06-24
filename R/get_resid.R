@@ -1,15 +1,15 @@
 #' Linear model residuals in structural covariance networks
 #'
-#' Runs linear models across brain regions listed in a \code{data.table} (e.g.
-#' cortical thickness), adjusting for variables in \code{covars} (e.g. age, sex,
-#' etc.), and calculates the \emph{externally Studentized} (or
-#' \emph{leave-one-out}) residuals.
+#' \code{get.resid} runs linear models across brain regions listed in a
+#' \code{data.table} (e.g. cortical thickness), adjusting for variables in
+#' \code{covars} (e.g. age, sex, etc.), and calculates the
+#' \emph{externally Studentized} (or \emph{leave-one-out}) residuals.
 #'
 #' You can choose to run models for each of your subject groups separately or
 #' combined (the default) via the \code{method} argument. You may also choose
 #' whether or not to include the mean, per-hemisphere structural measure in the
-#' models. Finally, you can list variables that are present in \code{covars} but
-#' you would like to exclude from the models.
+#' models. Finally, you can specify variables that are present in \code{covars}
+#' but you would like to exclude from the models.
 #'
 #' @param dt.vol A \code{data.table} containing all the volumetric measure of
 #'   interest (i.e., the object \code{lhrh} as ouptut by
@@ -24,7 +24,8 @@
 #' @param ... Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)
 #' @export
 #'
-#' @return An object of class \code{brainGraph_resids} with elements:
+#' @return \code{get.resid} - an object of class \code{brainGraph_resids} with
+#'   elements:
 #'   \item{X}{The \emph{design matrix}}
 #'   \item{method}{The input argument \code{method}}
 #'   \item{use.mean}{The input argument \code{use.mean}}
@@ -173,6 +174,9 @@ rstudent_mat <- function(lmvars, y) {
 }
 
 #' Print a summary of residuals for structural covariance data
+#'
+#' The \code{summary} method prints the number of outliers per region, and the
+#' number of times a given subject was an outlier (i.e., across regions).
 #'
 #' @param object A \code{brainGraph_resids} object
 #' @param regions Character vector of region(s) to focus on; default behavior is

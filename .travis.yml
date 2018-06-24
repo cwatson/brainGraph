@@ -11,29 +11,18 @@ sudo: required
 
 r_binary_packages:
   - igraph
-#  - cairoDevice
-#  - RGtk2
 
-#addons:
-#  apt:
-#    packages:
-#      -  libcairo2-dev
-#      -  libgtk-3-dev
-#      -  r-cran-cairodevice
-#      -  r-cran-rgtk2
+addons:
+  apt:
+    packages:
+      - libnlopt-dev
 
 env:
  global:
-  - CRAN: http://cran.rstudio.com
-  - _R_CHECK_FORCE_SUGGESTS_: false
+  - _R_CHECK_FORCE_SUGGESTS_=false
 
 before_install:
   echo "options(repos=c(CRAN='http://cran.rstudio.com'))" > ~/.Rprofile
-
-#before_script:
-#  - "export DISPLAY=:99.0"
-#  - "sh -e /etc/init.d/xvfb start"
-#  - sleep 3 # give xvfb some time to start
 
 notifications:
   email:

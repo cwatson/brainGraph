@@ -1,3 +1,21 @@
+# brainGraph 2.3.2
+
+2018-06-22
+
+## Bug fix
+* Fixed regression bug when fitting GLM models with a `F contrast`
+* Fixed minor bug in `make_nbs_brainGraph` which did not properly assign the `p.nbs` attribute to all vertices
+
+## Minor change
+* The elements of the `NBS` output object, `p.mat` and `T.mat`, are now 3-dimensional arrays (with extent equal to the # of contrasts) instead of lists of matrices
+
+# brainGraph 2.3.1
+
+2018-06-20
+
+## Bug fix
+* Fixed a bug in `brainGraph_permute` that I didn't catch before
+
 # brainGraph 2.3.0
 
 2018-06-20
