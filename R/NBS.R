@@ -217,8 +217,8 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
   #--------------------------------------
   ecounts <- vector('list', length(object$con.name))
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
-    g.nbs <- graph_from_adjacency_matrix(object$T.mat[[j]], diag=F, mode='undirected', weighted=TRUE)
+    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
+    g.nbs <- graph_from_adjacency_matrix(object$T.mat[, , j], diag=F, mode='undirected', weighted=TRUE)
     clusts <- components(g.nbs)
     comps <- sort(unique(clusts$csize), decreasing=TRUE)
     z <- clusts$membership
@@ -234,7 +234,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
                  data.table(alt=alt, N=N, components$observed))
   nbs.dt[, ecount := 0]
   for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[[j]]) == 0) next  # No edges met initial criteria
+    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
     nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
   }
   nbs.sum <- list(contrast=contrast, res.nbs=object, DT.sum=nbs.dt, digits=digits)
