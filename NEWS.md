@@ -1,3 +1,11 @@
+# brainGraph 2.3.3
+
+2018-06-25
+
+## Bug fix
+* Fixed regression bug in `plot.brainGraph`, which occurred when choosing `plane='sagittal'`
+
+
 # brainGraph 2.3.2
 
 2018-06-22

@@ -49,7 +49,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 
   plane <- match.arg(plane)
   hemi <- match.arg(hemi)
-  if (plane == 'sagittal') hemi <- 'L'  # Choose other than "both" if argument not provided
+  if (plane == 'sagittal' & hemi == 'both') hemi <- 'L'  # Choose other than "both" if argument not provided
   mult <- 100
 
   if (isTRUE(mni) & plane != 'circular') {
