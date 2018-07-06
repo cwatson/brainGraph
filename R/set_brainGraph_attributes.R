@@ -66,11 +66,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
   g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- mean_distance(g)
   # Get the rich club coeff for all possible degree values
-  R <- lapply(1:max(V(g)$degree), function(x) rich_club_coeff(g, x))
-  phi <- vapply(R, with, numeric(1), phi)
-  Nk <- vapply(R, with, numeric(1), Nk)
-  Ek <- vapply(R, with, numeric(1), Ek)
-  g$rich <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+  g$rich <- rich_club_all(g)
   g$E.global <- efficiency(g, 'global', weights=NA)
   comm <- cluster_louvain(g, weights=NA)
   g$mod <- max(comm$modularity)
@@ -97,12 +93,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
       V(g)$s.core <- s_core(g, A)
-      R <- lapply(1:max(V(g)$degree),
-                  function(x) rich_club_coeff(g, x, weighted=TRUE))
-      phi <- vapply(R, with, numeric(1), phi)
-      Nk <- vapply(R, with, numeric(1), Nk)
-      Ek <- vapply(R, with, numeric(1), Ek)
-      g$rich.wt <- data.frame(phi=round(phi, 4), Nk=Nk, Ek=Ek)
+      g$rich.wt <- rich_club_all(g, weighted=TRUE)
       comm.wt <- cluster_louvain(g)
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership

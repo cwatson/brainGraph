@@ -1,3 +1,14 @@
+# brainGraph 2.3.4
+
+2018-07-06
+
+## Bug fix
+* Fixed bugs in `rich_club_norm` that would throw an error if certain graph attributes weren't present
+
+## New features
+* `rich_club_all` - new function that is a wrapper for `rich_club_coeff`, applying over all possible degree values
+
+
 # brainGraph 2.3.3
 
 2018-06-25
