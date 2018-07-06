@@ -3,11 +3,14 @@
 \name{RichClub}
 \alias{RichClub}
 \alias{rich_club_coeff}
+\alias{rich_club_all}
 \alias{rich_club_norm}
 \alias{rich_core}
 \title{Rich club calculations}
 \usage{
 rich_club_coeff(g, k = 1, weighted = FALSE)
+
+rich_club_all(g, weighted = FALSE)
 
 rich_club_norm(g, N = 100, rand = NULL, ...)
 
@@ -35,6 +38,14 @@ already been generated (default: \code{NULL})}
   \item{Nk}{The number of vertices in the rich club graph.}
   \item{Ek}{The number of edges in the rich club graph.}
 
+\code{\link{rich_club_all}} - a \code{data.table} with components:
+  \item{k}{A vector of all vertex degrees present in the original graph}
+  \item{phi}{The rich-club coefficient}
+  \item{Nk}{The number of vertices in the rich club for each successive
+    \emph{k}}
+  \item{Ek}{The number of edges in the rich club for each successive
+    \emph{k}}
+
 \code{\link{rich_club_norm}} - a data table with columns:
   \item{k}{Sequence of degrees}
   \item{rand}{Rich-club coefficients for the random graphs}
@@ -58,6 +69,11 @@ already been generated (default: \code{NULL})}
 \code{rich_club_coeff} calculates the \emph{rich club} of a graph, returning
 the rich-club coefficient, \eqn{\phi}, and the subgraph of rich club
 vertices.
+
+\code{rich_club_all} is a wrapper for \code{\link{rich_club_coeff}} that
+calculates the rich-club coefficient for all degrees present in the graph. It
+returns a \code{data.table} with the coefficients and vertex and edge counts
+for each successive rich club.
 
 \code{rich_club_norm} will (optionally) generate a number of random graphs,
 calculate their rich club coefficients (\eqn{\phi}), and return
