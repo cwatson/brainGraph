@@ -5,7 +5,8 @@
 \title{Set graph, vertex, and edge attributes common in MRI analyses}
 \usage{
 set_brainGraph_attr(g, atlas = NULL, rand = FALSE, use.parallel = TRUE,
-  A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"), ...)
+  A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"),
+  clust.method = "louvain", ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -24,6 +25,9 @@ for faster calculation of local efficiency (default: \code{NULL})}
 
 \item{xfm.type}{Character string indicating how to transform edge weights
 (default: \code{1/w} [reciprocal])}
+
+\item{clust.method}{Character string indicating which method to use for
+community detection. Default: \code{'louvain'}}
 
 \item{...}{Other arguments passed to \code{\link{make_brainGraph}}}
 }
@@ -57,6 +61,22 @@ probably most common.
   \item \code{-log(w)}: the negative (natural) logarithm
   \item \code{1-w}: subtract weights from 1
 }
+
+\code{clust.method} allows you to choose from any of the clustering
+(community detection) functions available in \code{igraph}. These functions
+all begin with \code{clust_}; the function argument should not include this
+leading character string. The default value is \code{louvain}, which calls
+\code{\link[igraph]{cluster_louvain}}. If there are any negative edge
+weights, and the selected method is anything other than \code{spinglass} or
+\code{walktrap}, then \code{walktrap} is used (calling
+\code{\link[igraph]{cluster_walktrap}}). If \code{edge_betweenness} is
+selected and the graph is weighted, then the edges are first transformed (via
+\code{\link{xfm.weights}}), because the algorithm considers edges as
+\emph{distances}.
+
+Since \code{v2.4.0}, hubs are calculated by the new function
+\code{\link{hubness}}. It is calculated using edge weights in addition to the
+unweighted version of the graph.
 }
 \seealso{
 \code{\link[igraph]{components}}, \code{\link[igraph]{diameter}},
@@ -66,7 +86,7 @@ probably most common.
 \code{\link[igraph]{transitivity}}, \code{\link[igraph]{mean_distance}},
 \code{\link[igraph]{assortativity_degree}}, \code{\link{efficiency}},
 \code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
-\code{\link[igraph]{cluster_louvain}}, \code{\link{set_edge_color}},
+\code{\link[igraph]{communities}}, \code{\link{set_edge_color}},
 \code{\link{rich_club_coeff}}, \code{\link{s_core}}, \code{\link{centr_lev}},
 \code{\link{within_module_deg_z_score}}, \code{\link{edge_spatial_dist}},
 \code{\link{vulnerability}}, \code{\link{edge_asymmetry}},

@@ -30,11 +30,7 @@
 
 rich_club_coeff <- function(g, k=1, weighted=FALSE) {
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    degs <- V(g)$degree
-  } else {
-    degs <- degree(g)
-  }
+  degs <- check_degree(g)
   Nv <- vcount(g)
   Nk <- sum(degs > k)
   if (Nk == 0) {
@@ -76,11 +72,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
 
 rich_club_all <- function(g, weighted=FALSE) {
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    k <- V(g)$degree
-  } else {
-    k <- degree(g)
-  }
+  k <- check_degree(g)
   R <- lapply(1:max(k), function(x) rich_club_coeff(g, x, weighted))
   phi <- vapply(R, with, numeric(1), phi)
   Nk <- vapply(R, with, numeric(1), Nk)
@@ -129,11 +121,7 @@ rich_club_all <- function(g, weighted=FALSE) {
 rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   k <- orig <- p <- p.fdr <- NULL
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    degs <- V(g)$degree
-  } else {
-    degs <- degree(g)
-  }
+  degs <- check_degree(g)
   if (!'rich' %in% graph_attr_names(g)) g$rich <- rich_club_all(g)
   if (is.null(rand)) {
     rand <- sim.rand.graph.par(g, N, ...)
@@ -259,11 +247,7 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 
 rich_core <- function(g) {
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    degs <- V(g)$degree
-  } else {
-    degs <- degree(g)
-  }
+  degs <- check_degree(g)
   degs <- as.integer(degs)
   dens <- ifelse('density' %in% graph_attr_names(g), g$density, graph.density(g))
   Nv <- vcount(g)

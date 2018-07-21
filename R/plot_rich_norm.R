@@ -33,7 +33,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   p.fdr <- yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
 
   facet.by <- match.arg(facet.by)
-  subDT <- rich.dt[as.factor(get(facet.by)) %in% as.factor(densities)]
+  subDT <- rich.dt[round(get(facet.by), 2) %in% round(densities, 2)]
   if (isTRUE(fdr)) {
     subDT[, star := ifelse(p.fdr < alpha, '*', '')]
   } else {
@@ -64,6 +64,10 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   }
   setnames(rects, 'density', facet.by)
   setkeyv(rects, key(subDT))
+  rects[, eval(facet.by) := factor(get(facet.by), labels=densities)]
+  subDT[, eval(facet.by) := factor(get(facet.by), labels=densities)]
+  setkeyv(subDT, c(facet.by, 'Group'))
+  setkeyv(rects, c(facet.by, 'Group'))
 
   if ('Study.ID' %in% names(subDT)) {
     rects <- subDT[rects]

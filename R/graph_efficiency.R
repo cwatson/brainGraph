@@ -44,15 +44,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
                        use.parallel=TRUE, A=NULL) {
   stopifnot(is_igraph(g))
   i <- NULL
-  if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
-    weights <- NULL
-  } else {
-    if (!is.null(weights) && any(!is.na(weights))) {
-      weights <- as.numeric(weights)
-    } else {
-      weights <- NA
-    }
-  }
+  weights <- check_weights(g, weights)
 
   type <- match.arg(type)
   if (type == 'local') {

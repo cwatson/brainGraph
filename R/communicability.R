@@ -30,11 +30,7 @@
 communicability <- function(g, weights=NULL) {
   stopifnot(is_igraph(g), is_connected(g))
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
-    if ('strength' %in% vertex_attr_names(g)) {
-      d <- V(g)$strength
-    } else {
-      d <- strength(g)
-    }
+    d <- check_strength(g)
     S <- diag(1 / sqrt(d))
     A <- as.matrix(as_adj(g, names=FALSE, attr='weight'))
   } else {
