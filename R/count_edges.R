@@ -15,12 +15,12 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 count_homologous <- function(g) {
-  stopifnot(is_igraph(g), 'hemi' %in% vertex_attr_names(g))
+  stopifnot(inherits(g, 'brainGraph'))
 
   eids <- unlist(Map(function(x, y)
-                        as.numeric(E(g)[x %--% y]),
-                        which(V(g)$hemi == 'L'),
-                        which(V(g)$hemi == 'R')))
+                     as.numeric(E(g)[x %--% y]),
+                     which(V(g)$hemi == 'L'),
+                     which(V(g)$hemi == 'R')))
   names(eids) <- as_edgelist(g)[eids]
   return(eids)
 }
@@ -44,9 +44,7 @@ count_homologous <- function(g) {
 #' }
 
 count_interlobar <- function(g, lobe) {
-  stopifnot(is_igraph(g),
-            'atlas' %in% graph_attr_names(g),
-            'lobe' %in% vertex_attr_names(g))
+  stopifnot(inherits(g, 'brainGraph'))
 
   lobe.names <- get(g$atlas)[, levels(lobe)]
   stopifnot(lobe %in% lobe.names)

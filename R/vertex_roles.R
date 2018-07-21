@@ -36,11 +36,7 @@
 
 gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    Ki <- V(g)$degree
-  } else {
-    Ki <- degree(g)
-  }
+  Ki <- check_degree(g)
   centr <- match.arg(centr)
   if (centr == 'btwn.cent') {
     if ('btwn.cent' %in% vertex_attr_names(g)) {
@@ -51,11 +47,7 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
   } else if (centr == 'degree') {
     cent <- Ki
   } else if (centr == 'strength') {
-    if ('strength' %in% vertex_attr_names(g)) {
-      cent <- V(g)$strength
-    } else {
-      cent <- strength(g)
-    }
+    cent <- check_strength(g)
   }
   N <- max(memb)
   if (N == 1) return(rep(0, length(memb)))
@@ -107,11 +99,7 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
 
 part_coeff <- function(g, memb) {
   stopifnot(is_igraph(g))
-  if ('degree' %in% vertex_attr_names(g)) {
-    Ki <- V(g)$degree
-  } else {
-    Ki <- degree(g)
-  }
+  Ki <- check_degree(g)
   N <- max(memb)
   A <- as_adj(g, sparse=FALSE, names=FALSE)
   Kis <- vapply(seq_len(N), function(x) colSums(A * (memb == x)), numeric(length(Ki)))

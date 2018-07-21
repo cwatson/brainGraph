@@ -1,11 +1,8 @@
 #' Create a brainGraph object
 #'
-#' This function will assign vertex attributes \emph{lobe} and \emph{lobe.hemi}
-#' for all vertices in a graph, given a specific atlas. It will also add
-#' attributes \emph{circle.layout, x, y, z} for plotting.
-#'
-#' The input graph \code{g} \emph{must} have a graph attribute named
-#' \code{atlas}, and will assign other attributes specific to the atlas.
+#' Create a \code{brainGraph} graph object, which is an \code{igraph} graph
+#' object with additional attributes (at all levels). The values are dependent
+#' on the specified brain atlas.
 #'
 #' For the \code{modality} argument, you can choose anything you like, but the
 #' \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
@@ -19,15 +16,16 @@
 #' @param g An \emph{igraph} graph object.
 #' @param atlas Character string specifying the brain atlas
 #' @param rand A character string indicating whether this function is being run
-#' for a random graph or a "graph of interest" (default: \code{FALSE}).
-#' @param modality Character vector indicating imaging modality (e.g. 'dti')
-#'   (default: \code{NULL})
+#'   for a random graph. Default: \code{FALSE}
+#' @param modality Character vector indicating imaging modality (e.g. 'dti').
+#'   Default: \code{NULL}
 #' @param weighting Character string indicating how the edges are weighted
-#'   (e.g., 'fa', 'pearson', etc.) (default: \code{NULL})
+#'   (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}
 #' @param threshold Numeric indicating the level at which the matrices were
-#'   thresholded (if at all) (default: \code{NULL})
-#' @param subject Character vector indicating subject ID (default: \code{NULL})
-#' @param group Character vector indicating group membership (default: NULL)
+#'   thresholded (if at all). Default: \code{NULL}
+#' @param subject Character vector indicating subject ID. Default: \code{NULL}
+#' @param group Character vector indicating group membership. Default:
+#'   \code{NULL}
 #' @export
 #'
 #' @return A \emph{brainGraph} graph object with additional attributes:
@@ -43,8 +41,8 @@
 #'   \item{modality}{(graph-level)}
 #'   \item{weighting}{(graph-level)}
 #'   \item{threshold}{(graph-level)}
-#'   \item{name}{(graph-level) The subject ID}
-#'   \item{Group}{(graph-level)}
+#'   \item{name}{(graph-level) The subject ID (if specified by \code{subject})}
+#'   \item{Group}{(graph-level) only if \code{group} is specified}
 #'   \item{x, y, z, x.mni, y.mni, z.mni}{Spatial coordinates}
 #'   \item{color.lobe}{(vertex- and edge-level) Colors based on \emph{lobe}}
 #'   \item{color.class,color.network}{(vertex- and edge-level) If applicable}
@@ -200,14 +198,26 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
   } else {
     weighting <- 'Unweighted'
   }
+  clustmethod <- switch(object$clust.method,
+                        edge_betweenness='Edge betweenness',
+                        fast_greedy='Greedy optimization (hierarchical agglomeration)',
+                        infomap='Infomap',
+                        label_prop='Label propagation',
+                        leading_eigen='Leading eigenvector',
+                        louvain='Louvain (multi-level modularity optimization)',
+                        optimal='Optimal',
+                        spinglass='Potts spin glass model',
+                        walktrap='Walktrap algorithm',
+                        object$clust.method)
   dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
   if ('name' %in% graph_attr_names(object)) name <- object$name
   if ('Group' %in% graph_attr_names(object)) Group <- object$Group
 
   df <- data.frame(A=c('brainGraph version: ', 'Brain atlas used: ',
-                       'Imaging modality: ', 'Edge weighting: ', 'Graph density: ',
+                       'Imaging modality: ', 'Edge weighting: ',
+                       'Clustering method: ', 'Graph density: ',
                        'Subject ID: ', 'Group: '),
-                   B=c(ver, atlasfull, modality, weighting, dens.pct, name, Group))
+                   B=c(ver, atlasfull, modality, weighting, clustmethod, dens.pct, name, Group))
   dimnames(df)[[2]] <- rep('', 2)
 
   attrtypes <- c('graph', 'vertex', 'edge')
