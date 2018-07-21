@@ -1,3 +1,17 @@
+# brainGraph 2.4.0
+
+2018-07-21
+
+## New features
+* `hubness`: new function for determining which vertices are hubs
+* `set_brainGraph_attr`
+    * New argument `clust.method` lets the user choose which clustering (community detection) method to use.
+        1. The default is still the `louvain` algorithm.
+        2. If you select `spinglass`, but the graph is unconnected, then `louvain` is used instead.
+        3. If there are any negative edge weights, and you choose anything other than `walktrap` or `spinglass`, the `walktrap`  method is used.
+    * Now calculates `num.hubs` using the new `hubness` function, and calculates separate values for weighted and unweighted networks
+
+----
 # brainGraph 2.3.4
 
 2018-07-06

@@ -13,20 +13,21 @@ make_brainGraph(g, atlas, rand = FALSE, modality = NULL, weighting = NULL,
 \item{atlas}{Character string specifying the brain atlas}
 
 \item{rand}{A character string indicating whether this function is being run
-for a random graph or a "graph of interest" (default: \code{FALSE}).}
+for a random graph. Default: \code{FALSE}}
 
-\item{modality}{Character vector indicating imaging modality (e.g. 'dti')
-(default: \code{NULL})}
+\item{modality}{Character vector indicating imaging modality (e.g. 'dti').
+Default: \code{NULL}}
 
 \item{weighting}{Character string indicating how the edges are weighted
-(e.g., 'fa', 'pearson', etc.) (default: \code{NULL})}
+(e.g., 'fa', 'pearson', etc.). Default: \code{NULL}}
 
 \item{threshold}{Numeric indicating the level at which the matrices were
-thresholded (if at all) (default: \code{NULL})}
+thresholded (if at all). Default: \code{NULL}}
 
-\item{subject}{Character vector indicating subject ID (default: \code{NULL})}
+\item{subject}{Character vector indicating subject ID. Default: \code{NULL}}
 
-\item{group}{Character vector indicating group membership (default: NULL)}
+\item{group}{Character vector indicating group membership. Default:
+\code{NULL}}
 }
 \value{
 A \emph{brainGraph} graph object with additional attributes:
@@ -42,8 +43,8 @@ A \emph{brainGraph} graph object with additional attributes:
   \item{modality}{(graph-level)}
   \item{weighting}{(graph-level)}
   \item{threshold}{(graph-level)}
-  \item{name}{(graph-level) The subject ID}
-  \item{Group}{(graph-level)}
+  \item{name}{(graph-level) The subject ID (if specified by \code{subject})}
+  \item{Group}{(graph-level) only if \code{group} is specified}
   \item{x, y, z, x.mni, y.mni, z.mni}{Spatial coordinates}
   \item{color.lobe}{(vertex- and edge-level) Colors based on \emph{lobe}}
   \item{color.class,color.network}{(vertex- and edge-level) If applicable}
@@ -51,14 +52,11 @@ A \emph{brainGraph} graph object with additional attributes:
     plots}
 }
 \description{
-This function will assign vertex attributes \emph{lobe} and \emph{lobe.hemi}
-for all vertices in a graph, given a specific atlas. It will also add
-attributes \emph{circle.layout, x, y, z} for plotting.
+Create a \code{brainGraph} graph object, which is an \code{igraph} graph
+object with additional attributes (at all levels). The values are dependent
+on the specified brain atlas.
 }
 \details{
-The input graph \code{g} \emph{must} have a graph attribute named
-\code{atlas}, and will assign other attributes specific to the atlas.
-
 For the \code{modality} argument, you can choose anything you like, but the
 \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
 \code{thickness}, \code{area}, and \code{volume}.

@@ -14,6 +14,22 @@
 #'   \item \code{1-w}: subtract weights from 1
 #' }
 #'
+#' \code{clust.method} allows you to choose from any of the clustering
+#' (community detection) functions available in \code{igraph}. These functions
+#' all begin with \code{clust_}; the function argument should not include this
+#' leading character string. The default value is \code{louvain}, which calls
+#' \code{\link[igraph]{cluster_louvain}}. If there are any negative edge
+#' weights, and the selected method is anything other than \code{spinglass} or
+#' \code{walktrap}, then \code{walktrap} is used (calling
+#' \code{\link[igraph]{cluster_walktrap}}). If \code{edge_betweenness} is
+#' selected and the graph is weighted, then the edges are first transformed (via
+#' \code{\link{xfm.weights}}), because the algorithm considers edges as
+#' \emph{distances}.
+#'
+#' Since \code{v2.4.0}, hubs are calculated by the new function
+#' \code{\link{hubness}}. It is calculated using edge weights in addition to the
+#' unweighted version of the graph.
+#'
 #' @param g An \code{igraph} graph object
 #' @param atlas Character vector indicating which atlas was used (default:
 #'   \code{NULL})
@@ -25,6 +41,8 @@
 #'   for faster calculation of local efficiency (default: \code{NULL})
 #' @param xfm.type Character string indicating how to transform edge weights
 #'   (default: \code{1/w} [reciprocal])
+#' @param clust.method Character string indicating which method to use for
+#'   community detection. Default: \code{'louvain'}
 #' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @export
 #'
@@ -49,7 +67,7 @@
 #' \code{\link[igraph]{transitivity}}, \code{\link[igraph]{mean_distance}},
 #' \code{\link[igraph]{assortativity_degree}}, \code{\link{efficiency}},
 #' \code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
-#' \code{\link[igraph]{cluster_louvain}}, \code{\link{set_edge_color}},
+#' \code{\link[igraph]{communities}}, \code{\link{set_edge_color}},
 #' \code{\link{rich_club_coeff}}, \code{\link{s_core}}, \code{\link{centr_lev}},
 #' \code{\link{within_module_deg_z_score}}, \code{\link{edge_spatial_dist}},
 #' \code{\link{vulnerability}}, \code{\link{edge_asymmetry}},
@@ -58,23 +76,41 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=NULL,
-                                xfm.type=c('1/w', '-log(w)', '1-w'), ...) {
+                                xfm.type=c('1/w', '-log(w)', '1-w'),
+                                clust.method='louvain', ...) {
   name <- NULL
   stopifnot(is_igraph(g))
+  clust.funs <- ls('package:igraph')[grep('cluster_', ls('package:igraph'))]
+  clust.funs <- gsub('cluster_', '', clust.funs)
+  if (!clust.method %in% clust.funs) {
+    stop('Invalid clustering method! You must choose from the following:\n', paste(clust.funs, collapse='\n'))
+  }
 
   if (!'degree' %in% vertex_attr_names(g)) V(g)$degree <- degree(g)
   g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- mean_distance(g)
-  # Get the rich club coeff for all possible degree values
   g$rich <- rich_club_all(g)
   g$E.global <- efficiency(g, 'global', weights=NA)
-  comm <- cluster_louvain(g, weights=NA)
+
+  # Handle different cases for different community detection methods
+  if (clust.method == 'spinglass' & !is.connected(g)) {
+    warning('Invalid clustering method for an unconnected graph; using "louvain".')
+    clust.method <- 'louvain'
+  }
+  g$clust.method <- clust.method
+  if (clust.method %in% c('edge_betweenness', 'fast_greedy', 'walktrap')) {
+    comm <- eval(parse(text=paste0('cluster_', clust.method, '(g, weights=NULL)')))
+  } else if (clust.method == 'infomap') {
+    comm <- cluster_infomap(g, e.weights=NULL)
+  } else {
+    comm <- eval(parse(text=paste0('cluster_', clust.method, '(g, weights=NA)')))
+  }
   g$mod <- max(comm$modularity)
 
   if (!isTRUE(rand)) {
     # Graph-level attributes
     #-----------------------------------------------------------------------------
-    g$density <- round(graph.density(g), digits=3)
+    g$density <- graph.density(g)
 
     # Connected components
     clusts <- components(g)
@@ -82,19 +118,31 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
     g$conn.comp <- data.frame(size=as.integer(names(comps)),
                               number=as.integer(comps))
     g$max.comp <- g$conn.comp[1, 1]
-    #g$clique.num <- clique_num(g)
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g, weights=NA)
     g$transitivity <- transitivity(g)
     g$assortativity <- assortativity_degree(g)
 
     if (is_weighted(g)) {
+      xfm.type <- match.arg(xfm.type)
+      # Handle different cases for different community detection methods
+      if (any(E(g)$weight < 0) & !clust.method %in% c('spinglass', 'walktrap')) {
+        warning('Invalid clustering method for negative edge weights; using "walktrap".')
+        clust.method <- 'walktrap'
+      }
+      g$clust.method.wt <- clust.method
+      if (clust.method == 'edge_betweenness') {
+        g <- xfm.weights(g, xfm.type)
+        comm.wt <- cluster_edge_betweenness(g)
+        g <- xfm.weights(g, xfm.type, invert=TRUE)
+      } else {
+        comm.wt <- eval(parse(text=paste0('cluster_', clust.method, '(g)')))
+      }
       V(g)$strength <- graph.strength(g)
       g$strength <- mean(V(g)$strength)
       V(g)$knn.wt <- graph.knn(g)$knn
       V(g)$s.core <- s_core(g, A)
       g$rich.wt <- rich_club_all(g, weighted=TRUE)
-      comm.wt <- cluster_louvain(g)
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
@@ -106,7 +154,6 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
       V(g)$transitivity.wt <- transitivity(g, type='weighted')
 
       # Need to convert weights for distance measures
-      xfm.type <- match.arg(xfm.type)
       g <- xfm.weights(g, xfm.type)
       V(g)$E.local.wt <- efficiency(g, type='local',
                                     use.parallel=use.parallel, A=A)
@@ -121,6 +168,8 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
 
       # Convert back to connection strength
       g <- xfm.weights(g, xfm.type, invert=TRUE)
+      V(g)$hubs.wt <- hubness(g)
+      g$num.hubs.wt <- sum(V(g)$hubs.wt >= 2)
     }
 
     if (is_directed(g)) {
@@ -168,9 +217,8 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
 
     E(g)$btwn <- edge.betweenness(g)
     V(g)$btwn.cent <- centr_betw(g)$res
-    V(g)$hubs <- 0  # I define hubs as vertices w/ btwn.cent > mean + sd
-    V(g)$hubs[which(V(g)$btwn.cent > mean(V(g)$btwn.cent) + sd(V(g)$btwn.cent))] <- 1
-    g$num.hubs <- sum(V(g)$hubs)
+    V(g)$hubs <- hubness(g, weights=NA)
+    g$num.hubs <- sum(V(g)$hubs >= 2)
     V(g)$ev.cent <- centr_eigen(g)$vector
     V(g)$lev.cent <- centr_lev(g)
     V(g)$k.core <- coreness(g)
