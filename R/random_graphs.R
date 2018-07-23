@@ -102,10 +102,7 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
       # If E(y1, y2) and E(z1, z2) don't exist, rewire 2 edges
       repeat {
         e <- choose.edges(A, degs.large)
-        if ( (A[e$y1, e$y2] == 0) && (A[e$z1, e$z2] == 0) &&
-             (e$y1 != e$y2) && (e$z1 != e$z2) ) {
-          break
-        }
+        if ((A[e$y1, e$y2] == 0) && (A[e$z1, e$z2] == 0)) break
       }
 
       A[e$y1, e$z1] <- A[e$z1, e$y1] <- A[e$y2, e$z2] <- A[e$z2, e$y2] <- 0
@@ -124,16 +121,17 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 
 #' Select edges for re-wiring.
 #'
-#' This function selects edges to be re-wired when simulating random graphs
-#' while controlling for \emph{clustering}. It is based on the algorithm by
-#' Bansal et al. (2009), BMC Bioinformatics.
+#' \code{choose.edges} selects edges to be re-wired when simulating random
+#' graphs while controlling for \emph{clustering}. It is based on the algorithm
+#' by Bansal et al. (2009), BMC Bioinformatics.
 #'
 #' @param A Numeric (adjacency) matrix
 #' @param degs.large Integer vector of vertex numbers with degree greater than
 #'   one
 #'
-#' @return A data frame with four elements; two edges will be removed and two
-#'   edges will be added between the four vertices.
+#' @return A data frame with four elements; two edges \code{(y1, z1)} and
+#'   \code{(y2, z2)} will be removed, and two edges \code{(y1, y2)} and
+#'   \code{(z1, z2)} will be added between the four vertices.
 #'
 #' @keywords internal
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -142,66 +140,35 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 #'   Bioinformatics, 10:405-421.
 
 choose.edges <- function(A, degs.large) {
-
-  # Uniformly select random node with degree > 1
-  #=============================================================================
-  get.node <- function(A, degs.large) {
+  # Uniformly select both a random node with degree > 1 (x), and 2 of its neighbors (y1 & y2)
+  #-----------------------------------------------------------------------------
+  get_random_v <- function(A, degs.large) {
     repeat {
-      x <- sample(degs.large, 1)
+      x <- degs.large[sample.int(length(degs.large), 1)]
       neighb <- intersect(which(A[x, ] == 1), degs.large)
-      if (length(neighb) >= 2) return(list(x, neighb))
+      if (length(neighb) >= 2) return(list(x, neighb[sample.int(length(neighb), 2)]))
     }
   }
-  # Uniformly select 2 random neighbors with degree > 1
-  #=============================================================================
-  get.neighbors <- function(nbrhood) {
-    y <- sample(nbrhood, 2)
-    return(data.frame(y1=y[1], y2=y[2]))
-  }
-  #=============================================================================
-  # Uniformly select a random neighbor from the y's with degree > 1
-  #=============================================================================
-  get.neighbors.z1 <- function(A, node, y1) {
-    y1.neighb <- which(A[y1, ] == 1)
-    choices <- setdiff(y1.neighb, node)
-    if (length(choices) <= 1) {
-      return(choices)
+  #-----------------------------------------------------------------------------
+  repeat {
+    tmp <- get_random_v(A, degs.large)
+    x <- tmp[[1]]
+    y <- tmp[[2]]
+
+    # Try to select random neighbors (z1 & z2) of y1 & y2 s.t. z1 != z2 != x
+    y1.neighb <- which(A[y[1], ] == 1)
+    choices1 <- setdiff(y1.neighb, c(x, y[2]))
+    if (length(choices1) == 0) {
+      next
     } else {
-      return(sample(choices, 1))
+      z1 <- choices1[sample.int(length(choices1), 1)]
     }
+
+    y2.neighb <- which(A[y[2], ] == 1)
+    choices2 <- setdiff(y2.neighb, c(x, y[1], z1))
+    if (length(choices2) > 0) break
   }
-  #=============================================================================
-  get.neighbors.z2 <- function(A, node, degs.large, y2, z1) {
-    y2.neighb <- which(A[y2, ] == 1)
-    repeat {
-      choices <- setdiff(y2.neighb, c(node, z1))
-      if (length(choices) == 1) {
-        return(choices)
-      } else if (length(choices) > 1) {
-        return(sample(choices, 1))
-      }
-      tmp <- get.node(A, degs.large)
-      node <- tmp[[1]]
-      neighb <- tmp[[2]]
-      n <- get.neighbors(neighb)
-      y1 <- n$y1
-      y2 <- n$y2
 
-      z1 <- get.neighbors.z1(A, node, y1)
-      get.neighbors.z2(A, node, degs.large, y2, z1)
-    }
-  }
-  #=============================================================================
-  #=============================================================================
-  tmp <- get.node(A, degs.large)
-  x <- tmp[[1]]
-  neighb <- tmp[[2]]
-
-  n <- get.neighbors(neighb)
-  y1 <- n$y1
-  y2 <- n$y2
-  z1 <- get.neighbors.z1(A, x, y1)
-  z2 <- get.neighbors.z2(A, x, degs.large, y2, z1)
-
-  return(data.frame(y1, y2, z1, z2))
+  z2 <- choices2[sample.int(length(choices2), 1)]
+  return(data.frame(y1=y[1], y2=y[2], z1, z2))
 }
