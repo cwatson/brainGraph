@@ -164,7 +164,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
     NextMethod(generic='summary', object=object)
     return(invisible(object))
   }
-  ver <- weighting <- name <- Group <- modality <- 'N/A'
+  ver <- weighting <- name <- Group <- modality <- clustmethod <- 'N/A'
 
   if ('version' %in% graph_attr_names(object)) ver <- as.character(object$version)
   atlasfull <- switch(object$atlas,
@@ -198,17 +198,19 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
   } else {
     weighting <- 'Unweighted'
   }
-  clustmethod <- switch(object$clust.method,
-                        edge_betweenness='Edge betweenness',
-                        fast_greedy='Greedy optimization (hierarchical agglomeration)',
-                        infomap='Infomap',
-                        label_prop='Label propagation',
-                        leading_eigen='Leading eigenvector',
-                        louvain='Louvain (multi-level modularity optimization)',
-                        optimal='Optimal',
-                        spinglass='Potts spin glass model',
-                        walktrap='Walktrap algorithm',
-                        object$clust.method)
+  if ('clust.method' %in% graph_attr_names(object)) {
+    clustmethod <- switch(object$clust.method,
+                          edge_betweenness='Edge betweenness',
+                          fast_greedy='Greedy optimization (hierarchical agglomeration)',
+                          infomap='Infomap',
+                          label_prop='Label propagation',
+                          leading_eigen='Leading eigenvector',
+                          louvain='Louvain (multi-level modularity optimization)',
+                          optimal='Optimal',
+                          spinglass='Potts spin glass model',
+                          walktrap='Walktrap algorithm',
+                          object$clust.method)
+  }
   dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
   if ('name' %in% graph_attr_names(object)) name <- object$name
   if ('Group' %in% graph_attr_names(object)) Group <- object$Group
