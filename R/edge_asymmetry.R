@@ -38,16 +38,8 @@ edge_asymmetry <- function(g, level=c('hemi', 'vertex')) {
     asymm <- data.table(region='all', lh=lh, rh=rh)
 
   } else if (level == 'vertex') {
-    if (length(L) == 1) {
-      lh <- A[, L]
-    } else {
-      lh <- rowSums(A[, L])
-    }
-    if (length(R) == 1) {
-      rh <- A[, R]
-    } else {
-      rh <- rowSums(A[, R])
-    }
+    lh <- rowSums(A[, L, drop=FALSE])
+    rh <- rowSums(A[, R, drop=FALSE])
     asymm <- data.table(region=V(g)$name, lh=lh, rh=rh)
   }
   asymm[, asymm := 2 * (lh - rh) / (lh + rh)]
