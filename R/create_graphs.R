@@ -384,7 +384,9 @@ make_glm_brainGraph <- function(res.glm, atlas, ...) {
   for (i in seq_along(g.diffs)) {
     g.diffs[[i]] <- make_empty_brainGraph(atlas, ...)
     g.diffs[[i]]$name <- res.glm$con.name[i]
+    g.diffs[[i]]$con.type <- res.glm$con.type
     g.diffs[[i]]$outcome <- res.glm$outcome
+    g.diffs[[i]]$alt <- res.glm$alt
 
     if (check.class[1] == 1) {  # bg_GLM
       g.diffs[[i]]$alpha <- res.glm$alpha
@@ -397,10 +399,10 @@ make_glm_brainGraph <- function(res.glm, atlas, ...) {
       if (isTRUE(res.glm$permute)) V(g.diffs[[i]])$p.perm <- 1 - res.glm$DT[contrast == i, p.perm]
       class(g.diffs[[i]]) <- c('brainGraph_GLM', class(g.diffs[[i]]))
     } else {  # mtpc
-      g.diffs[[i]]$tau.mtpc <- res.glm$stats$tau.mtpc
-      g.diffs[[i]]$S.mtpc <- res.glm$stats$S.mtpc
-      g.diffs[[i]]$S.crit <- res.glm$stats$S.crit
-      g.diffs[[i]]$A.crit <- res.glm$stats$A.crit
+      g.diffs[[i]]$tau.mtpc <- res.glm$stats[contrast == i, tau.mtpc]
+      g.diffs[[i]]$S.mtpc <- res.glm$stats[contrast == i, S.mtpc]
+      g.diffs[[i]]$S.crit <- res.glm$stats[contrast == i, S.crit]
+      g.diffs[[i]]$A.crit <- res.glm$stats[contrast == i, A.crit]
       V(g.diffs[[i]])$A.mtpc <- res.glm$DT[contrast == i, unique(A.mtpc), by=region]$V1
       V(g.diffs[[i]])$sig <- 0
       V(g.diffs[[i]])[res.glm$DT[contrast == i & A.mtpc > A.crit, unique(region)]]$sig <- 1
@@ -433,6 +435,8 @@ make_nbs_brainGraph <- function(res.nbs, atlas, ...) {
   for (i in seq_along(g.nbs)) {
     g.nbs[[i]] <- graph_from_adjacency_matrix(res.nbs$T.mat[, , i], diag=F, mode='undirected', weighted=TRUE)
     g.nbs[[i]]$name <- res.nbs$con.name[i]
+    g.nbs[[i]]$con.type <- res.nbs$con.type
+    g.nbs[[i]]$alt <- res.nbs$alt
     if (ecount(g.nbs[[i]]) > 0) {
       E(g.nbs[[i]])$stat <- E(g.nbs[[i]])$weight
       E(g.nbs[[i]])$p <- 1 - E(graph_from_adjacency_matrix(res.nbs$p.mat[, , i], diag=F, mode='undirected', weighted=TRUE))$weight
