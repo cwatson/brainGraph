@@ -376,7 +376,7 @@ make_ego_brainGraph <- function(g, vs) {
 #' @seealso \code{\link{brainGraph_GLM}, \link{mtpc}}
 
 make_glm_brainGraph <- function(res.glm, atlas, ...) {
-  contrast <- p <- p.fdr <- p.perm <- se <- stat <- A.mtpc <- region <- A.crit <- NULL
+  contrast <- p <- p.fdr <- p.perm <- se <- stat <- A.mtpc <- region <- A.crit <- S.crit <- S.mtpc <- tau.mtpc <- NULL
   check.class <- inherits(res.glm, c('bg_GLM', 'mtpc'), which=TRUE)
   stopifnot(any(check.class == 1), res.glm$level == 'vertex')
 
