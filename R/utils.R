@@ -201,6 +201,19 @@ delete_all_attr <- function(g, keep.names=FALSE) {
   return(g)
 }
 
+#' Symmetrize a matrix with the mean of off-diagonal elements
+#'
+#' \code{symm_mean} returns a symmetric matrix in which the off-diagonal
+#' elements \eqn{A[i, j]} and \eqn{A[j, i]} are equal to the mean of the values
+#' in the input matrix.
+#' @param A Numeric matrix
+#' @keywords internal
+#' @return Numeric matrix
+
+symm_mean <- function(A) {
+  0.5 * (A + t(A))
+}
+
 #' Apply a rotation matrix to a set of points
 #'
 #' This function takes a set of points and applies a rotation matrix (e.g. will

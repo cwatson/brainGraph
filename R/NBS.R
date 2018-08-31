@@ -159,8 +159,8 @@ randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, 
   }
   maxfun.mat <- switch(alt,
                        two.sided=function(mat) {ifelse(abs(mat) > t(abs(mat)), mat, t(mat))},
-                       less=function(mat) {ifelse(mat < t(mat), mat, t(mat))},
-                       greater=function(mat) {ifelse(mat > t(mat), mat, t(mat))})
+                       less=function(mat) {pmin(mat, t(mat))},
+                       greater=function(mat) {pmax(mat, t(mat))})
   null.dist <- comps.perm <- vector('list', length=nC)
   perm.order <- rep(seq_len(N), each=DT[, length(unique(interaction(Var1, Var2)))])
 
