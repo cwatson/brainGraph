@@ -90,14 +90,16 @@ sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
 
 sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.iters=100) {
   g <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
+  g.cand <- g
+  A <- as_adj(g.cand, sparse=FALSE, names=FALSE)
+  degs <- colSums(A)
+  degs.large <- which(degs > 1)
 
   cur.iter <- 0
   while ((transitivity(g) < cl) & (cur.iter < max.iters)) {
     repeat {
       g.cand <- g
       A <- as_adj(g.cand, sparse=FALSE, names=FALSE)
-      degs <- colSums(A)
-      degs.large <- which(degs > 1)
 
       # If E(y1, y2) and E(z1, z2) don't exist, rewire 2 edges
       repeat {
