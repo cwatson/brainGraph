@@ -4,10 +4,11 @@
 \alias{plot.brainGraph_NBS}
 \title{Plot a graph with results from the network-based statistic}
 \usage{
-\method{plot}{brainGraph_NBS}(x, alpha = 0.05, subgraph = paste("p.nbs >", 1
-  - alpha), vertex.label = NA, vertex.color = "color.comp",
-  edge.color = "color.comp", subt = NULL, main = paste0("\\n\\nNBS: ",
-  x$name), cex.main = 2, ...)
+\method{plot}{brainGraph_NBS}(x, alpha = 0.05,
+  subgraph = paste("p.nbs >", 1 - alpha), vertex.label = NA,
+  vertex.color = "color.comp", edge.color = "color.comp",
+  subt = NULL, main = paste0("\\n\\nNBS: ", x$name), cex.main = 2,
+  ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph_NBS} graph object (from
@@ -55,3 +56,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
+\concept{Plotting functions}

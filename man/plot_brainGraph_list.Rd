@@ -43,3 +43,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Plotting functions}

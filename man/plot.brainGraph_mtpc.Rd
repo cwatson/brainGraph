@@ -40,3 +40,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
+\concept{Plotting functions}

@@ -4,11 +4,11 @@
 \alias{update_brainGraph_gui}
 \title{Function to dynamically plot a graph}
 \usage{
-update_brainGraph_gui(plotDev, g, g2, plotFunc, vsize.measure, ewidth.measure,
-  vertColor, hemi, lobe, orient, vertSize.min, edgeWidth.min, edgeWidth.max,
-  vertSize.const, edgeWidth.const, vertLabels, showLegend, comms, neighb,
-  neighbInd = NULL, slider, vertSize.other, edgeWidth.other, vertSize.eqn,
-  showDiameter, edgeDiffs)
+update_brainGraph_gui(plotDev, g, g2, plotFunc, vsize.measure,
+  ewidth.measure, vertColor, hemi, lobe, orient, vertSize.min,
+  edgeWidth.min, edgeWidth.max, vertSize.const, edgeWidth.const,
+  vertLabels, showLegend, comms, neighb, neighbInd = NULL, slider,
+  vertSize.other, edgeWidth.other, vertSize.eqn, showDiameter, edgeDiffs)
 }
 \arguments{
 \item{plotDev}{A Cairo device for the plotting area}

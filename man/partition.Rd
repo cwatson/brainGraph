@@ -4,14 +4,14 @@
 \alias{partition}
 \title{Partition a design matrix into columns of interest and nuisance}
 \usage{
-partition(M, con.mat, method = c("beckmann", "guttman"))
+partition(M, con.mat, part.method = c("beckmann", "guttman"))
 }
 \arguments{
 \item{M}{Numeric matrix; the full design matrix}
 
 \item{con.mat}{Numeric matrix; the contrast matrix}
 
-\item{method}{Character string; the method of partitioning (default:
+\item{part.method}{Character string; the method of partitioning (default:
 \code{beckmann})}
 }
 \value{
@@ -23,7 +23,18 @@ A list containing:
   \item{eCx}{Same as \code{eCx}, but considering only \code{X}}
 }
 \description{
-Partition a design matrix into columns of interest and nuisance
+Consider the matrix formulation of the \emph{general linear model}:
+\deqn{\mathbf{Y} = \mathbf{M} \psi + \in}
+where \eqn{Y} is the vector of outcomes, \eqn{M} is the full design matrix
+(including nuisance covariates), \eqn{\psi} is the vector of parameter
+estimates, and \eqn{\in} is the vector of error terms. In a permutation
+framework, algorithms are applied differently depending on the
+presence/absence of nuisance covariates; thus the model is separated
+depending on the contrast of interest:
+\deqn{\mathbf{Y} = \mathbf{X}\beta + \mathbf{Z}\gamma + \in}
+where \eqn{\mathbf{X}} contains covariates of interest, \eqn{\mathbf{Z}}
+contains nuisance covariates, and \eqn{\beta} and \eqn{\gamma} are the
+associated parameter estimates.
 }
 \references{
 Guttman I. Linear Models: An Introduction. Wiley, New York, 1982.

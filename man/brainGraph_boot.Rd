@@ -5,9 +5,10 @@
 \alias{summary.brainGraph_boot}
 \title{Bootstrapping for global graph measures}
 \usage{
-brainGraph_boot(densities, resids, R = 1000, measure = c("mod", "E.global",
-  "Cp", "Lp", "assortativity", "strength", "mod.wt", "E.global.wt"),
-  conf = 0.95, .progress = TRUE, xfm.type = c("1/w", "-log(w)", "1-w"))
+brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
+  "E.global", "Cp", "Lp", "assortativity", "strength", "mod.wt",
+  "E.global.wt"), conf = 0.95, .progress = TRUE, xfm.type = c("1/w",
+  "-log(w)", "1-w"))
 
 \method{summary}{brainGraph_boot}(object, ...)
 }
@@ -43,8 +44,6 @@ An object of class \code{brainGraph_boot} containing some input
 \description{
 Performs bootstrapping to get group standard error estimates of a global
 graph measure (e.g. modularity).
-
-Print a summary from a bootstrap analysis
 }
 \details{
 The confidence intervals are calculated using the normal approximation and at
@@ -77,3 +76,5 @@ Other Structural covariance network functions: \code{\link{IndividualContributio
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Group analysis functions}
+\concept{Structural covariance network functions}

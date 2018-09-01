@@ -5,7 +5,7 @@
 \alias{randomise}
 \title{Helper function to setup for randomise}
 \usage{
-setup_randomise(X, con.mat, nC)
+setup_randomise(X, con.mat, con.type, nC)
 
 randomise(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
 }
@@ -15,6 +15,9 @@ randomise(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
 
 \item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
+
+\item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
+F-statistics). Default: \code{'t'}}
 
 \item{nC}{Integer; the number of contrasts}
 
@@ -37,17 +40,14 @@ A list containing:
   \item{MtM}{The inverse of the cross product of the full model}
   \item{eC}{The \emph{effective contrast}, equivalent to the original, for
     the partitioned model \code{[X, Z]} and considering all covariates}
+  \item{dfR}{The residual degrees of freedom of the full partitioned model}
+  \item{CMtM}{(only for F-contrasts) The effective contrast multiplied by the
+    inverse of the cross-product of the full model.}
+  \item{rkC}{(only for F-contrasts) The rank of the effective contrast
+    matrix.}
 }
 \description{
 \code{setup_randomise} is used to setup the data/objects for any function
 that does permutations for GLM-based analysis.
-
-Randomize and fit a model and find the maximum statistic
-}
-\details{
-The tasks performed by this function are: separate the design matrix into the
-independent variables of interest and nuisance variables (based on the
-contrast(s)), and calculate the new contrast(s) based on this new design
-matrix.
 }
 \keyword{internal}

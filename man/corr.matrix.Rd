@@ -4,8 +4,9 @@
 \alias{corr.matrix}
 \title{Calculate correlation matrix and threshold}
 \usage{
-corr.matrix(resids, densities, thresholds = NULL, what = c("resids", "raw"),
-  exclude.reg = NULL, type = c("pearson", "spearman"), rand = FALSE)
+corr.matrix(resids, densities, thresholds = NULL, what = c("resids",
+  "raw"), exclude.reg = NULL, type = c("pearson", "spearman"),
+  rand = FALSE)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -78,3 +79,4 @@ Other Structural covariance network functions: \code{\link{IndividualContributio
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Structural covariance network functions}

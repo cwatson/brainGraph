@@ -31,3 +31,4 @@ Other Centrality functions: \code{\link{centr_lev}}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Centrality functions}

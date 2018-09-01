@@ -62,3 +62,4 @@ Other Random graph functions: \code{\link{RandomGraphs}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Random graph functions}

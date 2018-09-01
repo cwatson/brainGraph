@@ -8,7 +8,8 @@
 \usage{
 loo(resids, corrs, level = c("global", "regional"))
 
-aop(resids, corr.mat, level = c("global", "regional"), control.value = 1)
+aop(resids, corr.mat, level = c("global", "regional"),
+  control.value = 1)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -76,3 +77,5 @@ Other Group analysis functions: \code{\link{NBS}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Group analysis functions}
+\concept{Structural covariance network functions}

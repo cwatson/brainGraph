@@ -77,3 +77,4 @@ Other Random graph functions: \code{\link{RichClub}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Random graph functions}
