@@ -35,3 +35,4 @@ Other Centrality functions: \code{\link{centr_betw_comm}}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Centrality functions}

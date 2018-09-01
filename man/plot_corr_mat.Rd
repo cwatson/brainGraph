@@ -4,8 +4,8 @@
 \alias{plot_corr_mat}
 \title{Plot a correlation matrix}
 \usage{
-plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "comm.wt", "lobe",
-  "network"), g = NULL, group = NULL)
+plot_corr_mat(corrs, ordered = TRUE, type = c("comm", "comm.wt",
+  "lobe", "network"), g = NULL, group = NULL)
 }
 \arguments{
 \item{corrs}{The correlation matrix}

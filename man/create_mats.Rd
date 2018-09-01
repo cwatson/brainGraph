@@ -109,3 +109,4 @@ Other Matrix functions: \code{\link{apply_thresholds}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Matrix functions}

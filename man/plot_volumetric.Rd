@@ -45,3 +45,4 @@ Other Structural covariance network functions: \code{\link{IndividualContributio
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Structural covariance network functions}

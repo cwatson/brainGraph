@@ -29,3 +29,4 @@ Other Graph creation functions: \code{\link{make_brainGraph}},
   \code{\link{make_glm_brainGraph}},
   \code{\link{make_nbs_brainGraph}}
 }
+\concept{Graph creation functions}

@@ -4,10 +4,10 @@
 \alias{brainGraph_permute}
 \title{Permutation test for group difference of graph measures}
 \usage{
-brainGraph_permute(densities, resids, N = 5000, perms = NULL, auc = FALSE,
-  level = c("graph", "vertex", "other"), measure = c("btwn.cent", "degree",
-  "E.nodal", "ev.cent", "knn", "transitivity", "vulnerability"), atlas = NULL,
-  .function = NULL)
+brainGraph_permute(densities, resids, N = 5000, perms = NULL,
+  auc = FALSE, level = c("graph", "vertex", "other"),
+  measure = c("btwn.cent", "degree", "E.nodal", "ev.cent", "knn",
+  "transitivity", "vulnerability"), atlas = NULL, .function = NULL)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities}
@@ -91,3 +91,5 @@ Other Structural covariance network functions: \code{\link{IndividualContributio
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Group analysis functions}
+\concept{Structural covariance network functions}

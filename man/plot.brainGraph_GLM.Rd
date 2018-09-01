@@ -43,3 +43,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_NBS}},
   \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
+\concept{Plotting functions}

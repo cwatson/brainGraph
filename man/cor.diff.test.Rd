@@ -4,7 +4,8 @@
 \alias{cor.diff.test}
 \title{Calculate the p-value for differences in correlation coefficients}
 \usage{
-cor.diff.test(r1, r2, n1, n2, alternative = c("two.sided", "less", "greater"))
+cor.diff.test(r1, r2, n1, n2, alternative = c("two.sided", "less",
+  "greater"))
 }
 \arguments{
 \item{r1}{Numeric (vector or matrix) of correlation coefficients, group 1}
@@ -48,3 +49,4 @@ Other Matrix functions: \code{\link{apply_thresholds}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Matrix functions}

@@ -5,10 +5,10 @@
 \alias{summary.mtpc}
 \title{Multi-threshold permutation correction}
 \usage{
-mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t", "f"),
-  con.name = NULL, level = c("vertex", "graph"), clust.size = 3L,
-  N = 500L, perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE,
-  ...)
+mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
+  "f"), con.name = NULL, level = c("vertex", "graph"),
+  clust.size = 3L, N = 500L, perms = NULL, alpha = 0.05,
+  res.glm = NULL, long = TRUE, ...)
 
 \method{summary}{mtpc}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), print.head = TRUE, ...)
@@ -88,8 +88,6 @@ An object of class \code{mtpc} with some input arguments plus the
 \description{
 Applies the \emph{multi-threshold permutation correction (MTPC)} method to
 perform inference in graph theory analyses of brain MRI data.
-
-Print a summary of MTPC results
 }
 \details{
 This is a multi-step procedure: (steps 3-4 are the time-consuming steps)
@@ -141,3 +139,5 @@ Other GLM functions: \code{\link{GLMfit}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{GLM functions}
+\concept{Group analysis functions}

@@ -4,8 +4,8 @@
 \alias{plot_brainGraph_multi}
 \title{Save PNG of three views of a brain graph}
 \usage{
-plot_brainGraph_multi(g.list, groups = 1, N = 1, filename = "tmp.png",
-  subgraph = NULL, main = NULL, ...)
+plot_brainGraph_multi(g.list, groups = 1, N = 1,
+  filename = "tmp.png", subgraph = NULL, main = NULL, ...)
 }
 \arguments{
 \item{g.list}{A list of lists of \code{igraph} graph objects}
@@ -73,3 +73,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Plotting functions}

@@ -44,3 +44,4 @@ Other Matrix functions: \code{\link{cor.diff.test}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Matrix functions}

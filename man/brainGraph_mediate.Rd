@@ -157,3 +157,4 @@ Other Group analysis functions: \code{\link{IndividualContributions}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Group analysis functions}

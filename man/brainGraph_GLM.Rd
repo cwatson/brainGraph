@@ -6,8 +6,8 @@
 \usage{
 brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
   X = NULL, con.name = NULL, alternative = c("two.sided", "less",
-  "greater"), alpha = 0.05, level = c("vertex", "graph"), permute = FALSE,
-  N = 5000, perms = NULL, long = FALSE, ...)
+  "greater"), alpha = 0.05, level = c("vertex", "graph"),
+  permute = FALSE, N = 5000, perms = NULL, long = FALSE, ...)
 }
 \arguments{
 \item{g.list}{A list of \code{igraph} graph objects for all subjects}
@@ -132,3 +132,5 @@ Other Group analysis functions: \code{\link{IndividualContributions}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{GLM functions}
+\concept{Group analysis functions}

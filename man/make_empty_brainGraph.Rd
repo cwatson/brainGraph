@@ -32,3 +32,4 @@ Other Graph creation functions: \code{\link{make_brainGraph}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Graph creation functions}

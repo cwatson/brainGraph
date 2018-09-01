@@ -1,3 +1,19 @@
+# brainGraph 2.5.0
+
+2018-09-01
+
+## Bug fix
+* Fixed regression bug in `NBS` (introduced by `v2.0.0`) which only occurred if `alternative='less'` when calculating the minimum statistic of permuted networks
+
+## Minor changes
+* Updated code that symmetrizes matrices:
+    * Introduced new function, `symm_mean`, that more quickly symmetrizes a matrix about the diagonal by assigining `mean(c(A[i, j], A[j, i]))` to the off-diagonal elements
+    * Uses `pmin` and `pmax` for symmetrizing matrices based on the off-diagonal minimum and maximum, respectively
+* Optimized code in a few functions for faster execution:
+    * `sim.rand.graph.clust` is about 2x faster due to improvement in the `choose.edges` helper function
+    * `centr_lev` and `edge_asymmetry` are also faster
+
+
 # brainGraph 2.4.0
 
 2018-07-21
@@ -11,7 +27,7 @@
         3. If there are any negative edge weights, and you choose anything other than `walktrap` or `spinglass`, the `walktrap`  method is used.
     * Now calculates `num.hubs` using the new `hubness` function, and calculates separate values for weighted and unweighted networks
 
-----
+
 # brainGraph 2.3.4
 
 2018-07-06
