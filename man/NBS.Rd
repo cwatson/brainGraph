@@ -5,10 +5,10 @@
 \alias{summary.NBS}
 \title{Network-based statistic for brain MRI data}
 \usage{
-NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL, con.name = NULL,
-  p.init = 0.001, N = 1000, perms = NULL, symm.by = c("max", "min",
-  "avg"), alternative = c("two.sided", "less", "greater"), long = FALSE,
-  ...)
+NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL,
+  con.name = NULL, p.init = 0.001, N = 1000, perms = NULL,
+  symm.by = c("max", "min", "avg"), alternative = c("two.sided",
+  "less", "greater"), long = FALSE, ...)
 
 \method{summary}{NBS}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), ...)
@@ -77,8 +77,6 @@ connectivity matrices and a \code{data.table} of covariates, and creates a
 null distribution of the largest connected component size by permuting
 subjects across groups. The covariates \code{data.table} must have (at least)
 a \emph{Group} column.
-
-Print a summary of NBS analysis
 }
 \details{
 The graph that is returned by this function will have a \code{t.stat} edge
@@ -109,3 +107,4 @@ Other Group analysis functions: \code{\link{IndividualContributions}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Group analysis functions}

@@ -13,13 +13,14 @@ choose.edges(A, degs.large)
 one}
 }
 \value{
-A data frame with four elements; two edges will be removed and two
-  edges will be added between the four vertices.
+A data frame with four elements; two edges \code{(y1, z1)} and
+  \code{(y2, z2)} will be removed, and two edges \code{(y1, y2)} and
+  \code{(z1, z2)} will be added between the four vertices.
 }
 \description{
-This function selects edges to be re-wired when simulating random graphs
-while controlling for \emph{clustering}. It is based on the algorithm by
-Bansal et al. (2009), BMC Bioinformatics.
+\code{choose.edges} selects edges to be re-wired when simulating random
+graphs while controlling for \emph{clustering}. It is based on the algorithm
+by Bansal et al. (2009), BMC Bioinformatics.
 }
 \references{
 Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
