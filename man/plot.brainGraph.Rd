@@ -7,13 +7,13 @@
 \usage{
 \method{plot}{brainGraph}(x, plane = c("axial", "sagittal", "circular"),
   hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
-  rescale = FALSE, asp = 0, main = NULL, subt = "default", mni = TRUE,
-  ...)
+  rescale = FALSE, asp = 0, main = NULL, subt = "default",
+  mni = TRUE, ...)
 
 plot_brainGraph(x, plane = c("axial", "sagittal", "circular"),
   hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
-  rescale = FALSE, asp = 0, main = NULL, subt = "default", mni = TRUE,
-  ...)
+  rescale = FALSE, asp = 0, main = NULL, subt = "default",
+  mni = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph} graph object}
@@ -76,3 +76,4 @@ Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Plotting functions}

@@ -4,9 +4,9 @@
 \alias{set_brainGraph_attr}
 \title{Set graph, vertex, and edge attributes common in MRI analyses}
 \usage{
-set_brainGraph_attr(g, atlas = NULL, rand = FALSE, use.parallel = TRUE,
-  A = NULL, xfm.type = c("1/w", "-log(w)", "1-w"),
-  clust.method = "louvain", ...)
+set_brainGraph_attr(g, atlas = NULL, rand = FALSE,
+  use.parallel = TRUE, A = NULL, xfm.type = c("1/w", "-log(w)",
+  "1-w"), clust.method = "louvain", ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}

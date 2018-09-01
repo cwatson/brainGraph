@@ -38,8 +38,6 @@ analyses)}
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses
 the main GLM functionality in \code{brainGraph}.
-
-Helper function for GLM fitting
 }
 \details{
 This function performs several tasks: it removes unused levels from

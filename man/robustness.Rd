@@ -4,8 +4,8 @@
 \alias{robustness}
 \title{Analysis of network robustness}
 \usage{
-robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent", "degree",
-  "random"), N = 1000)
+robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent",
+  "degree", "random"), N = 1000)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}

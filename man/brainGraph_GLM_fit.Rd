@@ -3,7 +3,6 @@
 \name{GLMfit}
 \alias{GLMfit}
 \alias{brainGraph_GLM_fit_t}
-\alias{GLMfit}
 \alias{brainGraph_GLM_fit_f}
 \title{Fit linear models for t contrasts}
 \usage{
@@ -61,3 +60,4 @@ Other GLM functions: \code{\link{brainGraph_GLM_design}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{GLM functions}

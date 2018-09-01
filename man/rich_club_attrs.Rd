@@ -57,3 +57,4 @@ Other Rich-club functions: \code{\link{RichClub}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Rich-club functions}

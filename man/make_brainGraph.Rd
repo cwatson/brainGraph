@@ -4,8 +4,8 @@
 \alias{make_brainGraph}
 \title{Create a brainGraph object}
 \usage{
-make_brainGraph(g, atlas, rand = FALSE, modality = NULL, weighting = NULL,
-  threshold = NULL, subject = NULL, group = NULL)
+make_brainGraph(g, atlas, rand = FALSE, modality = NULL,
+  weighting = NULL, threshold = NULL, subject = NULL, group = NULL)
 }
 \arguments{
 \item{g}{An \emph{igraph} graph object.}
@@ -76,3 +76,4 @@ Other Graph creation functions: \code{\link{make_ego_brainGraph}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{Graph creation functions}

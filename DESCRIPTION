@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 2.4.1
-Date: 2018-08-18
+Version: 2.5.0
+Date: 2018-09-01
 Title: Graph Theory Analysis of Brain MRI Data
 Authors@R: person(given="Christopher G.", family="Watson",
                   email="cgwatson@bu.edu", role=c("aut", "cre"),
@@ -43,4 +43,4 @@ Suggests:
     RGtk2,
     cairoDevice
 License: GPL-3
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

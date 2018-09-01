@@ -237,26 +237,16 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 
 symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
   stopifnot(nrow(A) == ncol(A))
-  Asym <- A
 
   symm.by <- match.arg(symm.by)
   if (symm.by == 'avg') {
-    for (i in 1:nrow(A)) {
-      for (j in i:ncol(A)) {
-        Asym[i, j] <- Asym[j, i] <- (A[i, j] + A[j, i]) / 2
-      }
-    }
-  } else {
-    if (symm.by == 'max') {
-      inds.tr <- which(abs(A) > t(abs(A)), arr.ind=TRUE)
-    } else if (symm.by == 'min') {
-      inds.tr <- which(abs(A) < t(abs(A)), arr.ind=TRUE)
-    }
-    for (i in seq_len(nrow(inds.tr))) {
-      Asym[inds.tr[i, 2], inds.tr[i, 1]] <- Asym[inds.tr[i, 1], inds.tr[i, 2]]
-    }
+    A <- symm_mean(A)
+  } else if (symm.by == 'max') {
+    A <- pmax(A, t(A))
+  } else if (symm.by == 'min') {
+    A <- pmin(A, t(A))
   }
-  return(Asym)
+  return(A)
 }
 
 #' Symmetrize each matrix in a 3D array

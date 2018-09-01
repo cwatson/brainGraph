@@ -4,8 +4,9 @@
 \alias{brainGraph_GLM_design}
 \title{Create a design matrix for linear model analysis}
 \usage{
-brainGraph_GLM_design(covars, coding = c("dummy", "effects", "cell.means"),
-  factorize = TRUE, mean.center = FALSE, binarize = NULL, int = NULL)
+brainGraph_GLM_design(covars, coding = c("dummy", "effects",
+  "cell.means"), factorize = TRUE, mean.center = FALSE,
+  binarize = NULL, int = NULL)
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
@@ -66,3 +67,4 @@ Other GLM functions: \code{\link{GLMfit}},
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
+\concept{GLM functions}

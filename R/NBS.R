@@ -123,7 +123,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   #---------------------------------------------------------
   if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-  randMats <- setup_randomise(X, con.mat, nC)
+  randMats <- setup_randomise(X, con.mat, ctype, nC)
   comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, randMats, p.init, alt, Nv)
 
   kNumComps <- comps.obs[, .N, by=contrast]$N
@@ -145,22 +145,21 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
 ################################################################################
 randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, Nv) {
   se <- perm <- Var1 <- Var2 <- i <- value <- stat <- numer <- NULL
-  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC
-  dfR <- nrow(Mp[[1]]) - ncol(Mp[[1]])
+  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
+
   if (ctype == 't') {
     statfun <- switch(alt,
                       two.sided=function(stat, df) {abs(stat) > qt(p.init / 2, df, lower.tail=FALSE)},
-                      less=function(stat, df) {stat <- qt(p.init, df)},
+                      less=function(stat, df) {stat < qt(p.init, df)},
                       greater=function(stat, df) {stat > qt(p.init, df, lower.tail=FALSE)})
   } else {
     statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
-    CMtM <- solve(eC[[1]] %*% MtM[[1]] %*% t(eC[[1]]))
-    rkC <- qr(eC[[1]])$rank
+    CMtM <- randMats$CMtM; rkC <- randMats$rkC
   }
   maxfun.mat <- switch(alt,
                        two.sided=function(mat) {ifelse(abs(mat) > t(abs(mat)), mat, t(mat))},
-                       less=function(mat) {ifelse(mat < t(mat), mat, t(mat))},
-                       greater=function(mat) {ifelse(mat > t(mat), mat, t(mat))})
+                       less=function(mat) {pmin(mat, t(mat))},
+                       greater=function(mat) {pmax(mat, t(mat))})
   null.dist <- comps.perm <- vector('list', length=nC)
   perm.order <- rep(seq_len(N), each=DT[, length(unique(interaction(Var1, Var2)))])
 
