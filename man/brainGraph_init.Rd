@@ -77,11 +77,9 @@ init.vars <- brainGraph_init(atlas='dkt', densities=seq(0.07, 0.50, 0.01),
 }
 \seealso{
 Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{brainGraph_boot}},
+  \code{\link{Residuals}}, \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}, \code{\link{get.resid}},
-  \code{\link{plot.brainGraph_resids}},
-  \code{\link{plot_volumetric}}
+  \code{\link{corr.matrix}}, \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

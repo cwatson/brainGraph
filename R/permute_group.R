@@ -35,7 +35,9 @@
 #' @param atlas Character string of the atlas name; required if
 #'   \code{level='graph'} (default: \code{NULL})
 #' @param measure A character string specifying the vertex-level metric to
-#'   calculate, only used if \code{level='vertex'} (default: \code{btwn.cent})
+#'   calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
+#'   For the \code{summary} method, this is to focus on a single
+#'   \emph{graph-level} measure (since multiple are calculated at once).
 #' @param .function A custom function you can pass if \code{level='other'}
 #' @export
 #'
@@ -211,14 +213,13 @@ permute_other_foreach <- function(perms, densities, resids, groups, .function) {
 #'
 #' @param object A \code{brainGraph_permute} object (output by
 #'   \code{\link{brainGraph_permute}}).
-#' @param measure Character string of the measure to focus on (if
-#'   \code{level='graph'})
 #' @param p.sig Character string specifying which p-value to use for displaying
 #'   significant results (default: \code{p})
 #' @param ... Unused
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @export
 #' @method summary brainGraph_permute
+#' @rdname brainGraph_permute
 
 summary.brainGraph_permute <- function(object, measure=NULL,
                                        alternative=c('two.sided', 'less', 'greater'),
@@ -381,10 +382,10 @@ print.summary.brainGraph_permute <- function(x, ...) {
 #'   \code{\link{brainGraph_permute}}).
 #' @param ptitle Character string specifying a title for the plot (default:
 #'   \code{NULL})
-#' @inheritParams summary.brainGraph_permute
 #' @export
 #' @method plot brainGraph_permute
-#' @return A list of \code{ggplot} objects
+#' @return The \code{plot} method returns a \emph{list} of \code{ggplot} objects
+#' @rdname brainGraph_permute
 
 plot.brainGraph_permute <- function(x, measure=NULL,
                                     alternative=c('two.sided', 'less', 'greater'),

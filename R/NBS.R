@@ -17,7 +17,7 @@
 #' @param A Three-dimensional array of all subjects' connectivity matrices
 #' @param p.init Numeric; the initial p-value threshold (default: \code{0.001})
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @inheritParams symmetrize_mats
 #' @export
 #' @importFrom permute shuffleSet

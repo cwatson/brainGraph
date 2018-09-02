@@ -25,10 +25,8 @@
 #' @aliases sim.rand.graph.par
 #' @rdname random_graphs
 #'
-#' @family Random graph functions
 #' @seealso \code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
-#'   \link[igraph]{keeping_degseq}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' \link[igraph]{keeping_degseq}}
 #' @examples
 #' \dontrun{
 #' rand1 <- sim.rand.graph.par(g[[1]][[N]], N=1e3)

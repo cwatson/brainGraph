@@ -51,8 +51,8 @@ results (default: \code{FALSE})}
 
 \item{object}{A \code{NBS} object}
 
-\item{contrast}{Integer specifying the contrast to summarize; defaults to
-showing results for all contrasts}
+\item{contrast}{Integer specifying the contrast to plot/summarize; defaults
+to showing results for all contrasts}
 
 \item{digits}{Integer specifying the number of digits to display for p-values}
 }
@@ -98,10 +98,10 @@ Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
 \seealso{
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 
-Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{brainGraph_GLM}},
+Other Group analysis functions: \code{\link{GLM}},
+  \code{\link{IndividualContributions}},
+  \code{\link{MediationAnalysis}},
   \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_mediate}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{

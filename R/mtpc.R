@@ -35,7 +35,7 @@
 #'   re-running all of the GLM's and permutations (default: \code{NULL})
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM}} and/or
 #'   \code{\link{brainGraph_GLM_design}}
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @export
 #'
 #' @return An object of class \code{mtpc} with some input arguments plus the
@@ -260,8 +260,6 @@ print.summary.mtpc <- function(x, ...) {
 #' statistics. The output is similar to Figure 11 in Drakesmith et al. (2015).
 #'
 #' @param x A \code{mtpc} object
-#' @param contrast Integer specifying which contrast to plot results for
-#'   (default: 1)
 #' @param only.sig.regions Logical indicating whether to plot only significant
 #'   regions (default: \code{TRUE})
 #' @param show.null Logical indicating whether to plot points of the maximum
@@ -272,13 +270,10 @@ print.summary.mtpc <- function(x, ...) {
 #' @export
 #' @importFrom tools toTitleCase
 #' @method plot mtpc
+#' @rdname mtpc
 #'
-#' @return A list of \code{\link[ggplot2]{ggplot}} objects
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
-#'   DK (2015). \emph{Overcoming the effects of false positives and threshold
-#'   bias in graph theoretical analyses of neuroimaging data.} NeuroImage,
-#'   118:313-333.
+#' @return The \code{plot} method returns a \emph{list} of
+#'   \code{\link[ggplot2]{ggplot}} objects
 #' @examples
 #' \dontrun{
 #' mtpcPlots <- plot(mtpc.diffs)

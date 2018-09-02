@@ -34,6 +34,8 @@
 #'     \emph{resids} column added}
 #'   \item{resids.all}{The "wide" \code{data.table} of residuals}
 #'   \item{groups}{Group names}
+#' @name Residuals
+#' @rdname residuals
 #' @seealso \code{\link{rstudent}}
 #' @family Structural covariance network functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -117,7 +119,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 
 #' Get some variables for LM
 #'
-#' @inheritParams get.resid
+#' @inheritParams Residuals
 #' @keywords internal
 #' @return A list containing:
 #'   \item{X}{The design matrix}
@@ -161,7 +163,7 @@ rstudent_mat <- function(lmvars, y) {
 #' @method [ brainGraph_resids
 #'
 #' @name Extract.brainGraph_resids
-#' @rdname get.resid
+#' @rdname residuals
 
 `[.brainGraph_resids` <- function(x, i, g=NULL) {
   Group <- Study.ID <- NULL
@@ -185,7 +187,7 @@ rstudent_mat <- function(lmvars, y) {
 #' @method summary brainGraph_resids
 #' @return \code{\link{summary.brainGraph_resids}} returns a list with two
 #'   data tables, one of the residuals, and one of only the outlier regions
-#' @rdname get.resid
+#' @rdname residuals
 
 summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   region <- resids <- Study.ID <- NULL
@@ -225,22 +227,20 @@ print.summary.brainGraph_resids <- function(x, ...) {
 
 #' Plot model residuals for each brain region
 #'
-#' Check the model residuals for each brain region in a structural covariance
-#' analysis. It shows a \emph{qqplot} of the studentized residuals, as output
-#' from \code{\link{get.resid}}.
+#' The \code{plot} method lets you check the model residuals for each brain
+#' region in a structural covariance analysis. It shows a \emph{qqplot} of the
+#' studentized residuals, as output from \code{\link{get.resid}}.
 #'
-#' @param x A \code{brainGraph_resids} object (from \code{\link{get.resid}})
 #' @param cols Logical indicating whether to color by group (default: FALSE)
-#' @inheritParams summary.brainGraph_resids
 #' @export
 #' @method plot brainGraph_resids
 #' @importFrom ggrepel geom_text_repel
 #'
-#' @return A list of \code{\link[ggplot2]{ggplot}} objects
+#' @return The \code{plot} method returns a \emph{list} of
+#'   \code{\link[ggplot2]{ggplot}} objects
 #'
-#' @family Structural covariance network functions
+#' @rdname residuals
 #' @seealso \code{\link[stats]{qqnorm}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' myresids <- get.resids(lhrh, covars)
