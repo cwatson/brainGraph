@@ -16,43 +16,63 @@
 
 count_homologous <- function(g) {
   stopifnot(inherits(g, 'brainGraph'))
+  if (isTRUE(any(grepl('\\.L[0-9]*$', V(g)$name)))) {
+    lh <- '\\.L[0-9]*$'
+    rh <- '\\.R[0-9]*$'
+  } else {
+    lh <- '^l'
+    rh <- '^r'
+  }
 
-  eids <- unlist(Map(function(x, y)
-                     as.numeric(E(g)[x %--% y]),
-                     which(V(g)$hemi == 'L'),
-                     which(V(g)$hemi == 'R')))
-  names(eids) <- as_edgelist(g)[eids]
+  dt <- as.data.table(as_edgelist(g))
+  eids <- dt[, which(gsub(lh, '', V1) == gsub(rh, '', V2))]
+  names(eids) <- dt[eids, V1]
   return(eids)
 }
 
-#' Count number of inter-lobar connections from a given major lobe
+#' Count number of inter-group edges
 #'
-#' \code{count_interlobar} counts the number of edges between all vertices in
-#' one major lobe (e.g. Frontal) and all other major lobes.
+#' \code{count_inter} counts the number of edges between and within all vertices
+#' in one group (e.g. \emph{lobe}, \emph{hemi}, or \emph{network}).
 #'
-#' @param lobe A character string indicating the lobe to count from (uppercase)
 #' @export
 #'
-#' @return \code{count_interlobar} - a \code{data.table} of total, intra-, and
-#'   inter-lobar edge counts
+#' @return \code{count_inter} - a \code{data.table} of total, intra-, and
+#'   inter-group edge counts
 #'
-#' @aliases count_interlobar
+#' @aliases count_inter
 #' @rdname count_edges
 #' @examples
 #' \dontrun{
-#' g1.frontal <- count_interlobar(g[[1]][[N]], 'Frontal')
+#' g1.lobecounts <- count_inter(g[[1]][[N]], 'lobe')
 #' }
 
+count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
+  group <- match.arg(group)
+  stopifnot(inherits(g, 'brainGraph'), group %in% vertex_attr_names(g))
+
+  group.names <- get(g$atlas)[, levels(get(group))]
+  A <- as_adj(g, names=FALSE, sparse=FALSE)
+  Nm <- length(group.names)
+  mat <- matrix(0, Nm, Nm)
+  for (i in seq_len(Nm)) {
+    for (j in seq_len(Nm)) {
+      mat[i, j] <- sum(A[which(vertex_attr(g, group) == group.names[i]), which(vertex_attr(g, group) == group.names[j])])
+    }
+  }
+  diag(mat) <- diag(mat) / 2
+  rownames(mat) <- colnames(mat) <- group.names
+  DT <- data.table(group=group.names, intra=diag(mat), inter=rowSums(mat)-diag(mat))
+  DT[, total := intra + inter]
+  setnames(DT, 'group', group)
+  return(list(mat=mat, DT=DT))
+}
+
+#' @export
+#' @aliases count_interlobar
+#' @rdname count_edges
+
 count_interlobar <- function(g, lobe) {
-  stopifnot(inherits(g, 'brainGraph'))
-
-  lobe.names <- get(g$atlas)[, levels(lobe)]
-  stopifnot(lobe %in% lobe.names)
-
-  total <- length(E(g)[which(V(g)$lobe == lobe) %--% V(g)])
-  intra <- length(E(g)[which(V(g)$lobe == lobe) %--% which(V(g)$lobe == lobe)])
-  inter <- total - intra
-
-  DT <- data.table(total=total, intra=intra, inter=inter)
-  return(DT)
+  .Deprecated('count_inter')
+  count_inter(g, 'lobe')
 }
