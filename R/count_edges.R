@@ -3,7 +3,7 @@
 #' \code{count_homologous} counts the number of edges between homologous regions
 #' in a brain graph (e.g. between L and R superior frontal).
 #'
-#' @param g An \code{igraph} graph object
+#' @param g An \code{brainGraph} graph object
 #' @export
 #'
 #' @return \code{count_homologous} - a named vector of the edge ID's connecting
@@ -15,6 +15,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 count_homologous <- function(g) {
+  V1 <- V2 <- NULL
   stopifnot(inherits(g, 'brainGraph'))
   if (isTRUE(any(grepl('\\.L[0-9]*$', V(g)$name)))) {
     lh <- '\\.L[0-9]*$'
@@ -35,6 +36,8 @@ count_homologous <- function(g) {
 #' \code{count_inter} counts the number of edges between and within all vertices
 #' in one group (e.g. \emph{lobe}, \emph{hemi}, or \emph{network}).
 #'
+#' @param group Character string specifying which grouping to calculate edge
+#'   counts for. Default: \code{'lobe'}
 #' @export
 #'
 #' @return \code{count_inter} - a \code{data.table} of total, intra-, and
@@ -48,6 +51,7 @@ count_homologous <- function(g) {
 #' }
 
 count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
+  total <- intra <- inter <- NULL
   group <- match.arg(group)
   stopifnot(inherits(g, 'brainGraph'), group %in% vertex_attr_names(g))
 
@@ -68,6 +72,7 @@ count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
   return(list(mat=mat, DT=DT))
 }
 
+#' @param lobe Lobe name (deprecated)
 #' @export
 #' @aliases count_interlobar
 #' @rdname count_edges

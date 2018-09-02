@@ -3,35 +3,41 @@
 \name{CountEdges}
 \alias{CountEdges}
 \alias{count_homologous}
+\alias{count_inter}
 \alias{count_interlobar}
 \title{Count number of edges of a brain graph}
 \usage{
 count_homologous(g)
 
+count_inter(g, group = c("lobe", "hemi", "network", "class"))
+
 count_interlobar(g, lobe)
 }
 \arguments{
-\item{g}{An \code{igraph} graph object}
+\item{g}{An \code{brainGraph} graph object}
 
-\item{lobe}{A character string indicating the lobe to count from (uppercase)}
+\item{group}{Character string specifying which grouping to calculate edge
+counts for. Default: \code{'lobe'}}
+
+\item{lobe}{Lobe name (deprecated)}
 }
 \value{
 \code{count_homologous} - a named vector of the edge ID's connecting
   homologous regions
 
-\code{count_interlobar} - a \code{data.table} of total, intra-, and
-  inter-lobar edge counts
+\code{count_inter} - a \code{data.table} of total, intra-, and
+  inter-group edge counts
 }
 \description{
 \code{count_homologous} counts the number of edges between homologous regions
 in a brain graph (e.g. between L and R superior frontal).
 
-\code{count_interlobar} counts the number of edges between all vertices in
-one major lobe (e.g. Frontal) and all other major lobes.
+\code{count_inter} counts the number of edges between and within all vertices
+in one group (e.g. \emph{lobe}, \emph{hemi}, or \emph{network}).
 }
 \examples{
 \dontrun{
-g1.frontal <- count_interlobar(g[[1]][[N]], 'Frontal')
+g1.lobecounts <- count_inter(g[[1]][[N]], 'lobe')
 }
 }
 \author{

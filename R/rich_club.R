@@ -233,9 +233,10 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 #' vertices in the graph.
 #'
 #' For weighted graphs, the degree is substituted by a normalized weight:
-#' \deqn{\ceiling(A / w_{min})}
-#' where \eqn{w_{min}} is the minimum weight (that is greater than 0), and the
-#' \eqn{ceiling} function rounds up to the nearest integer.
+#' \deqn{ceiling(A / w_{min})}
+#' where \eqn{w_{min}} is the minimum weight (that is greater than 0), and
+#' \eqn{ceiling()} is the \emph{ceiling} function that rounds up to the nearest
+#' integer.
 #'
 #' @importFrom Matrix colSums
 #' @export

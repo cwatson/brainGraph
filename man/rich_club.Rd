@@ -14,7 +14,7 @@ rich_club_all(g, weighted = FALSE)
 
 rich_club_norm(g, N = 100, rand = NULL, ...)
 
-rich_core(g)
+rich_core(g, weighted = FALSE)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -62,8 +62,9 @@ already been generated (default: \code{NULL})}
 \code{\link{rich_core}} - a data table with columns:
   \item{density}{The density of the graph.}
   \item{rank}{The rank of the boundary for the rich core.}
-  \item{k.r}{The degree of the vertex at the boundary.}
+  \item{k.r}{The degree/strength of the vertex at the boundary.}
   \item{core.size}{The size of the core relative to the graph size.}
+  \item{weighted}{Whether or not weights were used}
 }
 \description{
 \code{rich_club_coeff} calculates the \emph{rich club} of a graph, returning
@@ -88,6 +89,12 @@ vertices in the graph.
 \details{
 If random graphs have already been generated, you can supply a list as an
 argument (since graph generation is time consuming).
+
+For weighted graphs, the degree is substituted by a normalized weight:
+\deqn{ceiling(A / w_{min})}
+where \eqn{w_{min}} is the minimum weight (that is greater than 0), and
+\eqn{ceiling()} is the \emph{ceiling} function that rounds up to the nearest
+integer.
 }
 \references{
 Zhou S., Mondragon R.J. (2004) \emph{The rich-club phenomenon
@@ -108,8 +115,7 @@ Ma A & Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
 Other Rich-club functions: \code{\link{plot_rich_norm}},
   \code{\link{rich_club_attrs}}
 
-Other Random graph functions: \code{\link{RandomGraphs}},
-  \code{\link{analysis_random_graphs}}
+Other Random graph functions: \code{\link{RandomGraphs}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
