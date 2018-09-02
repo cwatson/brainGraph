@@ -349,8 +349,8 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       Scrit <- bquote('S'['crit']*' = '~ .(DT[, format(unique(S.crit))]))
       Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc))]))
       Acrit <- bquote('A'['crit']*' = '~ .(DT[, format(unique(A.crit))]))
-      statslabel <- bquote(atop(.(Smtpc)~ ';'~ .(paste('\t'))~ .(Scrit),
-                                .(Amtpc)~ ';'~ .(paste('\t'))~ .(Acrit)))
+      statslabel <- bquote(atop(.(Scrit)~ ';'~ .(paste('\t'))~ .(Acrit),
+                                .(Smtpc)~ ';'~ .(paste('\t'))~ .(Amtpc)))
 
       if (DT[, unique(A.mtpc) > unique(A.crit)]) statslabel <- bquote(.(statslabel)~ .(paste0('\t(p < ', x$alpha, ')')))
       lineplot <- lineplot +
