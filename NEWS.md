@@ -1,3 +1,26 @@
+# brainGraph 2.6.0
+
+2018-09-04
+
+## Bug fix
+* Fixed bug in `count_homologous` that affected a subset of atlases
+    * Performance is modestly improved (approx. 2-3x faster)
+
+## New functions/features
+* `count_inter` replaces `count_interlobar`; the new function calculates inter- and intra-group edge counts, where a group of vertices can be a *lobe*, *hemisphere*, *network* (for the `dosenbach160` atlas), or *class* (for the `destrieux` atlases)
+    * The return object is now more informative; the function returns a matrix of all inter- and intra-group edge counts, in addition to a data.table containing a summary (that matches the output of previous versions)
+* `rich_core` now calculates the rich core for weighted networks
+    * In addition, the function runs *considerably* faster:
+        - for smaller sparse graphs, it is ~40-80x faster
+        - for larger dense graphs, it is more than 2,000x faster
+* `robustness` now returns a data.table containing much more information (in addition to the max. connected component ratio)
+    * This makes plotting outputs simpler; see Chapter 14 of the *User Guide*
+    * When `type='edge'`, the function is about 2-3x faster than previous versions
+
+## Minor changes
+* `plot.mtpc`: the stats displayed in the caption have been "transposed", such that `S.crit` and `A.crit` are in the top row
+
+
 # brainGraph 2.5.0
 
 2018-09-01
