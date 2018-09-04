@@ -69,8 +69,11 @@
 #'   \item{perm}{A list containing: \emph{null.dist} (the null distribution of
 #'     maximum statistics), \emph{thresh} (the statistic value corresponding
 #'     to the \eqn{100 \times (1 - \alpha)}th\% percentile of the null
-#'     distribution)}.
+#'     distribution)}
 #'
+#' @name GLM
+#' @rdname glm
+#' @aliases brainGraph_GLM
 #' @family GLM functions
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -182,7 +185,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 #' \code{covars}, removes subjects with incomplete data, creates a design matrix
 #' (if not supplied), and supplies names to the contrast matrix.
 #'
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @keywords internal
 #' @name GLMhelpers
 #' @aliases setup_glm
@@ -294,7 +297,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman')) {
 #'     contrast and the inverted design matrix, and the contrast's rank
 #'
 #' @param nC Integer; the number of contrasts
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @keywords internal
 #' @rdname randomise
 #' @return A list containing:
@@ -339,7 +342,7 @@ setup_randomise <- function(X, con.mat, con.type, nC) {
 #' Randomize and fit a model and find the maximum statistic
 #'
 #' @param DT \code{data.table} with outcome variables
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @keywords internal
 
 randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative) {
@@ -386,7 +389,7 @@ randomise <- function(ctype, N, perms, DT, nC, measure, X, con.mat, alternative)
 #' @param DT A data.table with all the necessary data
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
 #'   analyses)
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @keywords internal
 #' @aliases glm_fit_helper
 #' @rdname glm_helpers
@@ -432,7 +435,7 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, measure, mykey) {
 #'
 #' @param y Numeric vector; the outcome variable
 #' @param XtX Numeric matrix
-#' @inheritParams brainGraph_GLM
+#' @inheritParams GLM
 #' @importFrom RcppEigen fastLmPure
 #'
 #' @name GLMfit
@@ -535,6 +538,9 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #'
 #' @return A numeric matrix
 #'
+#' @name GLMdesign
+#' @aliases brainGraph_GLM_design
+#' @rdname glm_design
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -649,22 +655,21 @@ get_int <- function(X, coding, factors, int) {
 
 #' Print a summary from brainGraph_GLM analysis
 #'
-#' \code{summary} prints the results from a \code{\link{brainGraph_GLM}}
-#' analysis. It will only print results for which \eqn{p < \alpha}; you may
-#' change this to the FDR-adjusted or permutation p-values via the function
-#' argument \code{p.sig}.
+#' The \code{summary} method prints the results, only for which
+#' \eqn{p < \alpha}; you may change this to the FDR-adjusted or permutation
+#' p-values via the function argument \code{p.sig}.
 #'
 #' @param object A \code{bg_GLM} object
 #' @param p.sig Character string specifying which p-value to use for displaying
 #'   significant results (default: \code{p})
-#' @param contrast Integer specifying the contrast to summarize; defaults to
-#'   showing results for all contrasts
+#' @param contrast Integer specifying the contrast to plot/summarize; defaults
+#'   to showing results for all contrasts
 #' @param digits Integer specifying the number of digits to display for p-values
 #' @param print.head Logical indicating whether or not to print only the first
 #'   and last 5 rows of the statistics tables (default: \code{TRUE})
-#' @param ... Unused
 #' @export
 #' @method summary bg_GLM
+#' @rdname glm
 
 summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NULL,
                            digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
@@ -764,26 +769,25 @@ print.summary.bg_GLM <- function(x, ...) {
 
 #' Plot GLM diagnostics for a brain network
 #'
-#' Plots the GLM diagnostics (similar to that of
-#' \code{\link[stats]{plot.lm}}) for the output of \code{\link{brainGraph_GLM}}.
-#' There are a total of 6 possible plots, specified by the \code{which}
-#' argument; the behavior is the same as in \code{\link[stats]{plot.lm}}. Please
-#' see the help for that function.
+#' The \code{plot} method plots the GLM diagnostics (similar to that of
+#' \code{\link[stats]{plot.lm}}). There are a total of 6 possible plots,
+#' specified by the \code{which} argument; the behavior is the same as in
+#' \code{\link[stats]{plot.lm}}. Please see the help for that function.
 #'
 #' @param x A \code{bg_GLM} object
 #' @param region Character string specifying which region's results to
 #'   plot; only relevant if \code{level='vertex'} (default: \code{NULL})
 #' @param which Integer vector indicating which of the 6 plots to print to the
 #'   plot device (default: \code{c(1:3, 5)})
-#' @param ... Unused
 #' @export
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom gridExtra arrangeGrob
 #' @importFrom gridExtra grid.arrange
 #' @method plot bg_GLM
+#' @rdname glm
 #'
-#' @return A list of \code{\link[ggplot2]{ggplot}} objects
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @return The \code{plot} method returns a \emph{list} of
+#'   \code{\link[ggplot2]{ggplot}} objects
 #' @seealso \code{\link[stats]{plot.lm}}
 #'
 #' @examples

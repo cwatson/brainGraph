@@ -1,40 +1,38 @@
 #' Perform an analysis with random graphs for brain MRI data
 #'
-#' This function is not quite a "proper" function. It performs the steps needed
-#' for doing typical graph theory analyses with brain MRI data if you need to
-#' generate equivalent random graphs. This includes calculating \emph{small
-#' world} parameters and normalized \emph{rich club} coefficients.
+#' \code{analysis_random_graphs} is not quite a "proper" function. It performs
+#' the steps needed for doing typical graph theory analyses with brain MRI data
+#' if you need to generate equivalent random graphs. This includes calculating
+#' \emph{small world} parameters and normalized \emph{rich club} coefficients.
 #'
-#' The steps that are performed are:
+#' \code{analysis_random_graphs} does the following:
 #' \enumerate{
-#'   \item \code{N} random graphs are generated for each group and
-#'     density/threshold (and subject if you have subject-specific graphs).
-#'   \item These graphs are all written to disk in \code{savedir}. All of these
-#'     are read back into \code{R} and combined into lists; these lists are also
-#'     written to disk (in a sub-directory named \code{ALL}), so you can delete
-#'     the individual \code{.rds} files afterwards.
-#'   \item \emph{Small world} parameters are calculated, along with values for
-#'     a few global graph measures that may be of interest.
-#'   \item \emph{Normalized rich club coefficients} and associated p-values will
-#'     be calculated.
+#'   \item Generate \code{N} random graphs for each group and density/threshold
+#'     (and subject if you have subject-specific graphs).
+#'   \item Write graphs to disk in \code{savedir}. Read them back into \code{R}
+#'     and combine into lists; then write these lists to disk (in a
+#'     sub-directory named \code{ALL}), so you can delete the individual
+#'     \code{.rds} files afterwards.
+#'   \item Calculate \emph{small world} parameters, along with values for a few
+#'     global graph measures that may be of interest.
+#'   \item Calculate \emph{normalized rich club coefficients} and associated
+#'     p-values.
 #' }
 #'
 #' @param g.list List of lists containing \code{igraph} graph objects
-#' @param N Integer specifying number of random graphs to generate per
-#'   individual graph (default: 100)
 #' @param savedir Character string specifying the directory in which to save the
 #'   generated graphs (default: current working directory)
-#' @param ... Other arguments passed to \code{\link{sim.rand.graph.par}} (e.g.
-#'   \code{clustering=T})
 #' @export
 #'
-#' @return A list containing:
+#' @return \code{analysis_random_graphs} returns a \emph{list} containing:
 #' \item{rich}{A data table containing normalized rich-club coefficients and
 #'   p-values}
 #' \item{small}{A data table with small-world parameters}
 #' \item{rand}{A data table with some global graph measures for all random
 #'   graphs generated}
 #'
+#' @name RandomGraphs
+#' @rdname random_graphs
 #' @family Random graph functions
 #' @seealso \code{\link{small.world}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}

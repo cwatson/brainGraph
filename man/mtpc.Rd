@@ -3,6 +3,7 @@
 \name{mtpc}
 \alias{mtpc}
 \alias{summary.mtpc}
+\alias{plot.mtpc}
 \title{Multi-threshold permutation correction}
 \usage{
 mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
@@ -12,6 +13,10 @@ mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
 
 \method{summary}{mtpc}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), print.head = TRUE, ...)
+
+\method{plot}{mtpc}(x, contrast = 1L, region = NULL,
+  only.sig.regions = TRUE, show.null = TRUE, caption.stats = FALSE,
+  ...)
 }
 \arguments{
 \item{g.list}{A list of lists of \code{igraph} graph objects for all
@@ -60,13 +65,27 @@ results (default: \code{FALSE})}
 
 \item{object}{A \code{mtpc} object}
 
-\item{contrast}{Integer specifying the contrast to summarize; defaults to
-showing results for all contrasts}
+\item{contrast}{Integer specifying the contrast to plot/summarize; defaults
+to showing results for all contrasts}
 
 \item{digits}{Integer specifying the number of digits to display for p-values}
 
 \item{print.head}{Logical indicating whether or not to print only the first
 and last 5 rows of the statistics tables (default: \code{TRUE})}
+
+\item{x}{A \code{mtpc} object}
+
+\item{region}{Character string specifying which region's results to
+plot; only relevant if \code{level='vertex'} (default: \code{NULL})}
+
+\item{only.sig.regions}{Logical indicating whether to plot only significant
+regions (default: \code{TRUE})}
+
+\item{show.null}{Logical indicating whether to plot points of the maximum
+null statistics (per permutation)}
+
+\item{caption.stats}{Logical indicating whether to print the MTPC statistics
+in the caption of the plot (default: \code{FALSE})}
 }
 \value{
 An object of class \code{mtpc} with some input arguments plus the
@@ -84,10 +103,16 @@ An object of class \code{mtpc} with some input arguments plus the
     for that permutation and threshold.}
   \item{perm.order}{Numeric matrix; the permutation set applied for all
     thresholds (each row is a separate permutation)}
+
+The \code{plot} method returns a \emph{list} of
+  \code{\link[ggplot2]{ggplot}} objects
 }
 \description{
 Applies the \emph{multi-threshold permutation correction (MTPC)} method to
 perform inference in graph theory analyses of brain MRI data.
+
+Plot the statistics from an MTPC analysis, along with the maximum permuted
+statistics. The output is similar to Figure 11 in Drakesmith et al. (2015).
 }
 \details{
 This is a multi-step procedure: (steps 3-4 are the time-consuming steps)
@@ -118,6 +143,13 @@ diffs.mtpc <- mtpc(g.list=g.norm, thresholds=thresholds, N=N,
      binarize=c('Sex', 'Scanner'), con.name='Group 1 > Group 2')
 sig.regions <- diffs.mtpc$DT[A.mtpc > A.crit]
 }
+\dontrun{
+mtpcPlots <- plot(mtpc.diffs)
+
+## Arrange plots into 3x3 grids
+ml <- marrangeGrob(mtpcPlots, nrow=3, ncol=3)
+ggsave('mtpc.pdf', ml)
+}
 }
 \references{
 Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
@@ -126,15 +158,14 @@ Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
   118:313-333.
 }
 \seealso{
-Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{NBS}}, \code{\link{brainGraph_GLM}},
+Other Group analysis functions: \code{\link{GLM}},
+  \code{\link{IndividualContributions}},
+  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
   \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_mediate}},
   \code{\link{brainGraph_permute}}
 
-Other GLM functions: \code{\link{GLMfit}},
-  \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM}}
+Other GLM functions: \code{\link{GLMdesign}},
+  \code{\link{GLMfit}}, \code{\link{GLM}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

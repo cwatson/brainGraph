@@ -20,8 +20,13 @@
 #'   (default: \code{1e3})
 #' @export
 #'
-#' @return Numeric vector representing the ratio of maximal component size after
-#' each removal to the observed graph's maximal component size
+#' @return Data table with elements:
+#'   \item{type}{Character string describing the type of analysis performed}
+#'   \item{measure}{The input argument \code{measure}}
+#'   \item{comp.pct}{Numeric vector of the ratio of maximal component size after
+#'     each removal to the observed graph's maximal component size}
+#'   \item{removed.pct}{Numeric vector of the ratio of vertices/edges removed}
+#'   \item{Group}{Character string indicating the subject group, if applicable}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Albert R., Jeong H., Barabasi A. (2000) \emph{Error and attack
@@ -30,73 +35,84 @@
 robustness <- function(g, type=c('vertex', 'edge'),
                        measure=c('btwn.cent', 'degree', 'random'), N=1e3) {
   stopifnot(is_igraph(g))
+  group <- NULL
+  if ('Group' %in% graph_attr_names(g)) group <- g$Group
   type <- match.arg(type)
   measure <- match.arg(measure)
-  max.comp.orig <- g$max.comp
+  if ('max.comp' %in% graph_attr_names(g)) {
+    max.comp.orig <- g$max.comp
+  } else {
+    max.comp.orig <- max(components(g)$csize)
+  }
   if (type == 'vertex') {
     n <- vcount(g)
+    removed.pct <- seq(0, 1, length=n+1)
 
     if (measure == 'random') {
+      type <- 'Random vertex removal'
       max.comp <- matrix(nrow=n+1, ncol=N)
       rand <- matrix(rep(1:n, N), byrow=TRUE, nrow=N)
       index <- t(apply(rand, 1, sample))
       max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        g.new <- g
-        ord <- V(g.new)$name[index[i, ]]
-        tmp <- vector('integer', length=n)
+        g.rand <- g
+        ord <- V(g.rand)$name[index[i, ]]
+        tmp <- rep(max.comp.orig, n+1)
         for (j in seq_len(n - 1)) {
-          g.new <- delete.vertices(g.new, ord[j])
-          tmp[j] <- max(components(g.new)$csize)
+          g.rand <- delete_vertices(g.rand, ord[j])
+          tmp[j+1] <- max(components(g.rand)$csize)
         }
         tmp
       }
-      max.comp <- cbind(1, max.comp)
       max.comp.removed <- colMeans(max.comp)
 
     } else {
+      type <- 'Targeted vertex attack'
       ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=TRUE)]
-      max.comp.removed <- vector('integer', length=n+1)
-      max.comp.removed[1] <- 1
+      max.comp.removed <- rep(max.comp.orig, n+1)
       for (i in seq_len(n - 1)) {
-        g <- delete.vertices(g, ord[i])
+        g <- delete_vertices(g, ord[i])
         max.comp.removed[i+1] <- max(components(g)$csize)
       }
     }
 
   } else {
     m <- ecount(g)
+    removed.pct <- seq(0, 1, length=m+1)
     if (measure == 'degree') {
       stop('For edge attacks, must choose "btwn.cent" or "random"!')
     } else if (measure == 'random') {
+      type <- 'Random edge removal'
       max.comp <- matrix(nrow=m+1, ncol=N)
       rand <- matrix(rep(1:m, N), byrow=TRUE, nrow=N)
       index <- t(apply(rand, 1, sample))
       max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        g.new <- g
+        g.rand <- g
         ord <- index[i, ]
-        verts <- as_edgelist(g.new)[ord, ]
-        tmp <- vector('integer', length=m)
-        for (j in seq_along(ord)) {
-          g.new <- delete.edges(g.new, E(g.new)[verts[ord[j], 1] %--% verts[ord[j], 2]])
-          tmp[j] <- max(components(g.new)$csize)
+        el <- as_edgelist(g.rand)[ord, ]
+        tmp <- rep(max.comp.orig, m+1)
+        for (j in seq_len(m - 1)) {
+          g.rand <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
+          tmp[j+1] <- max(components(g.rand)$csize)
         }
         tmp
       }
-      max.comp <- cbind(1, max.comp)
       max.comp.removed <- colMeans(max.comp)
 
     } else {
+      type <- 'Targeted edge attack'
       ord <- order(E(g)$btwn, decreasing=TRUE)
-      verts <- as_edgelist(g)[ord, ]
-      max.comp.removed <- vector('integer', length=m+1)
-      max.comp.removed[1] <- 1
-      for (i in seq_along(ord)) {
-        g <- delete.edges(g, E(g)[verts[ord[i], 1] %--% verts[ord[i], 2]])
+      el <- as_edgelist(g)[ord, ]
+      max.comp.removed <- rep(max.comp.orig, length=m+1)
+      for (i in seq_len(m - 1)) {
+        g <- graph_from_edgelist(el[-seq_len(i), , drop=FALSE], directed=FALSE)
         max.comp.removed[i+1] <- max(components(g)$csize)
       }
     }
 
   }
-  comp.ratio <- c(max.comp.removed[1], max.comp.removed[-1] / max.comp.orig)
-  return(comp.ratio)
+  comp.pct <- max.comp.removed / max.comp.orig
+  comp.pct[length(comp.pct)] <- 0
+  out <- data.table(type=type, measure=measure, comp.pct=comp.pct, removed.pct=removed.pct)
+  if (!is.null(group)) out$Group <- group
+  return(out)
 }

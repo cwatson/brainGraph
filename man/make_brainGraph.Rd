@@ -2,10 +2,13 @@
 % Please edit documentation in R/create_graphs.R
 \name{make_brainGraph}
 \alias{make_brainGraph}
+\alias{summary.brainGraph}
 \title{Create a brainGraph object}
 \usage{
 make_brainGraph(g, atlas, rand = FALSE, modality = NULL,
   weighting = NULL, threshold = NULL, subject = NULL, group = NULL)
+
+\method{summary}{brainGraph}(object, print.attrs = c("all", "none"), ...)
 }
 \arguments{
 \item{g}{An \emph{igraph} graph object.}
@@ -28,9 +31,16 @@ thresholded (if at all). Default: \code{NULL}}
 
 \item{group}{Character vector indicating group membership. Default:
 \code{NULL}}
+
+\item{object}{A \code{brainGraph} object}
+
+\item{print.attrs}{Character string indicating whether or not to list the
+object's attributes (default: \code{all})}
+
+\item{...}{Unused}
 }
 \value{
-A \emph{brainGraph} graph object with additional attributes:
+A \code{brainGraph} graph object with additional attributes:
   \item{version}{(graph-level) The current version of \code{brainGraph}}
   \item{atlas}{(graph-level)}
   \item{lobe}{(vertex-leve) Character vector of lobe names}

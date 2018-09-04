@@ -48,8 +48,8 @@
 #' @param int Logical indicating whether or not to include an interaction of the
 #'   mediator and treatment (default: \code{FALSE})
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
-#'   (e.g., \code{binarize})
-#' @inheritParams brainGraph_GLM
+#'   (e.g., \code{binarize}) (unused in the \code{summary} method)
+#' @inheritParams GLM
 #' @export
 #' @importFrom RcppEigen fastLmPure
 #'
@@ -88,6 +88,9 @@
 #'   \item{sims}{Integer; the number of bootstrap replications.}
 #'   \item{covar.names}{The pre-treatment covariate names.}
 #'
+#' @name MediationAnalysis
+#' @aliases brainGraph_mediate
+#' @rdname mediation
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Tingley D, Yamamoto T, Hirose K, Keele L, Imai K (2014).
@@ -294,9 +297,9 @@ BC.CI <- function(theta, low, high) {
 #'   \code{TRUE}, only a single region can be printed.
 #' @param region Character string specifying which region's results to
 #'   summarize; only relevant if \code{level='vertex'} (default: \code{NULL})
-#' @inheritParams summary.bg_GLM
 #' @export
 #' @method summary bg_mediate
+#' @rdname mediation
 
 summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
   stopifnot(inherits(object, 'bg_mediate'))
@@ -430,18 +433,17 @@ print.summary.bg_mediate <- function(x, ...) {
 
 #' Convert brainGraph results to "mediate" object
 #'
-#' \code{\link{bg_to_mediate}} converts the results of
-#' \code{\link{brainGraph_mediate}} into an object of class
+#' \code{\link{bg_to_mediate}} converts the results into an object of class
 #' \code{\link[mediation]{mediate}}. In \code{brainGraph}, it is only used for
 #' the \code{\link[mediation]{summary.mediate}} method, but you can similarly
 #' use its output for the \code{\link[mediation]{plot.mediate}} method.
 #'
 #' @param x Object output from \code{\link{brainGraph_mediate}}
-#' @inheritParams summary.bg_mediate
 #' @export
 #'
-#' @return An object of class \code{mediate}
+#' @return \code{bg_to_mediate} returns an object of class \code{mediate}
 #' @seealso \code{\link[mediation]{mediate}}
+#' @rdname mediation
 
 bg_to_mediate <- function(x, region=NULL) {
   if (!inherits(x, 'bg_mediate')) {

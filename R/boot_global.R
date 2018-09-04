@@ -1,14 +1,14 @@
 #' Bootstrapping for global graph measures
 #'
-#' Performs bootstrapping to get group standard error estimates of a global
-#' graph measure (e.g. modularity).
+#' Perform bootstrapping to obtain groupwise standard error estimates of a
+#' global graph measure (e.g. \emph{modularity}).
 #'
-#' The confidence intervals are calculated using the normal approximation and at
-#' the 95\% level.
+#' The confidence intervals are calculated using the \emph{normal approximation}
+#' at the \eqn{100 \times conf}\% level (by default, 95\%).
 #'
-#' For \emph{weighted global efficiency}, a method for transforming edge weights
-#' must be provided. The default is to invert them. See
-#' \code{\link{xfm.weights}}.
+#' For getting estimates of \emph{weighted global efficiency}, a method for
+#' transforming edge weights must be provided. The default is to invert them.
+#' See \code{\link{xfm.weights}}.
 #'
 #' @param densities Numeric vector of graph densities to loop through
 #' @param resids An object of class \code{brainGraph_resids} (the output from
@@ -23,13 +23,13 @@
 #' @export
 #' @importFrom boot boot
 #'
-#' @return An object of class \code{brainGraph_boot} containing some input
-#'   variables, in addition to a list of \code{\link[boot]{boot}} objects (one
-#'   for each group).
+#' @return \code{brainGraph_boot} -- an object of class \code{brainGraph_boot}
+#'   containing some input variables, in addition to a list of
+#'   \code{\link[boot]{boot}} objects (one for each group).
 #'
 #' @family Group analysis functions
 #' @family Structural covariance network functions
-#' @seealso \code{\link[boot]{boot}}
+#' @seealso \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -113,7 +113,6 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #'
 #' @param object A \code{brainGraph_boot} object (from
 #'   \code{\link{brainGraph_boot}})
-#' @param ... Unused
 #' @importFrom boot boot.ci
 #' @export
 #' @method summary brainGraph_boot
@@ -163,23 +162,21 @@ print.summary.brainGraph_boot <- function(x, ...) {
 
 #' Plot bootstrap output of global graph measures across densities
 #'
-#' This function plots the output of \code{\link{brainGraph_boot}}, returning two
-#' \code{ggplot} objects: one with shaded regions based on the standard error,
-#' and the other based on confidence intervals (calculated using the normal
-#' approximation.
+#' The \code{plot} method returns two \code{ggplot} objects: one with shaded
+#' regions based on the standard error, and the other based on confidence
+#' intervals (calculated using the normal approximation.
 #'
-#' @param x The object output from \code{\link{brainGraph_boot}}
-#' @param ... Not used
+#' @param x A \code{\link{brainGraph_boot}} object
+#' @param ... Unused
 #' @param alpha A numeric indicating the opacity for
 #'   \code{\link[ggplot2]{geom_ribbon}}
 #' @export
 #' @method plot brainGraph_boot
+#' @rdname brainGraph_boot
 #'
-#' @return A \emph{list} with the following elements:
+#' @return \code{plot} -- \emph{list} with the following elements:
 #'   \item{se}{A ggplot object with ribbon representing standard error}
 #'   \item{ci}{A ggplot object with ribbon representing confidence intervals}
-#' @seealso \code{\link{brainGraph_boot}, \link[boot]{boot.ci}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 plot.brainGraph_boot <- function(x, ..., alpha=0.4) {
   Observed <- Group <- se <- ci.low <- ci.high <- NULL

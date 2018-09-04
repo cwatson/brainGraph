@@ -54,8 +54,8 @@ For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and
 permutation testing is done), this function does not do argument checking.
 }
 \seealso{
-Other GLM functions: \code{\link{brainGraph_GLM_design}},
-  \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}
+Other GLM functions: \code{\link{GLMdesign}},
+  \code{\link{GLM}}, \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

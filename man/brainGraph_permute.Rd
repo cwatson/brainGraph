@@ -2,12 +2,22 @@
 % Please edit documentation in R/permute_group.R
 \name{brainGraph_permute}
 \alias{brainGraph_permute}
+\alias{summary.brainGraph_permute}
+\alias{plot.brainGraph_permute}
 \title{Permutation test for group difference of graph measures}
 \usage{
 brainGraph_permute(densities, resids, N = 5000, perms = NULL,
   auc = FALSE, level = c("graph", "vertex", "other"),
   measure = c("btwn.cent", "degree", "E.nodal", "ev.cent", "knn",
   "transitivity", "vulnerability"), atlas = NULL, .function = NULL)
+
+\method{summary}{brainGraph_permute}(object, measure = NULL,
+  alternative = c("two.sided", "less", "greater"), alpha = 0.05,
+  p.sig = c("p", "p.fdr"), ...)
+
+\method{plot}{brainGraph_permute}(x, measure = NULL,
+  alternative = c("two.sided", "less", "greater"), alpha = 0.05,
+  p.sig = c("p", "p.fdr"), ptitle = NULL, ...)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities}
@@ -27,12 +37,33 @@ area-under-the-curve of metrics (default: \code{FALSE})}
 differences (default: \code{graph})}
 
 \item{measure}{A character string specifying the vertex-level metric to
-calculate, only used if \code{level='vertex'} (default: \code{btwn.cent})}
+calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
+For the \code{summary} method, this is to focus on a single
+\emph{graph-level} measure (since multiple are calculated at once).}
 
 \item{atlas}{Character string of the atlas name; required if
 \code{level='graph'} (default: \code{NULL})}
 
 \item{.function}{A custom function you can pass if \code{level='other'}}
+
+\item{object}{A \code{brainGraph_permute} object (output by
+\code{\link{brainGraph_permute}}).}
+
+\item{alternative}{Character string, whether to do a two- or one-sided test
+(default: \code{'two.sided'})}
+
+\item{alpha}{Numeric; the significance level (default: 0.05)}
+
+\item{p.sig}{Character string specifying which p-value to use for displaying
+significant results (default: \code{p})}
+
+\item{...}{Unused}
+
+\item{x}{A \code{brainGraph_permute} object (output by
+\code{\link{brainGraph_permute}}).}
+
+\item{ptitle}{Character string specifying a title for the plot (default:
+\code{NULL})}
 }
 \value{
 An object of class \code{brainGraph_permute} with input arguments in
@@ -40,6 +71,8 @@ An object of class \code{brainGraph_permute} with input arguments in
   \item{DT}{A data table with permutation statistics}
   \item{obs.diff}{A data table of the observed group differences}
   \item{groups}{Group names}
+
+The \code{plot} method returns a \emph{list} of \code{ggplot} objects
 }
 \description{
 \code{brainGraph_permute} draws permutations from linear model residuals to
@@ -76,16 +109,14 @@ out <- brainGraph_permute(densities, m, perms=myPerms,
 }
 }
 \seealso{
-Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{NBS}}, \code{\link{brainGraph_GLM}},
-  \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_mediate}}, \code{\link{mtpc}}
+Other Group analysis functions: \code{\link{GLM}},
+  \code{\link{IndividualContributions}},
+  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
+  \code{\link{brainGraph_boot}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{brainGraph_boot}},
+  \code{\link{Residuals}}, \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_init}}, \code{\link{corr.matrix}},
-  \code{\link{get.resid}},
-  \code{\link{plot.brainGraph_resids}},
   \code{\link{plot_volumetric}}
 }
 \author{

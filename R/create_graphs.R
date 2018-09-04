@@ -28,7 +28,7 @@
 #'   \code{NULL}
 #' @export
 #'
-#' @return A \emph{brainGraph} graph object with additional attributes:
+#' @return A \code{brainGraph} graph object with additional attributes:
 #'   \item{version}{(graph-level) The current version of \code{brainGraph}}
 #'   \item{atlas}{(graph-level)}
 #'   \item{lobe}{(vertex-leve) Character vector of lobe names}
@@ -158,6 +158,7 @@ is.brainGraph <- function(x) inherits(x, 'brainGraph')
 #' @param ... Unused
 #' @export
 #' @method summary brainGraph
+#' @rdname make_brainGraph
 
 summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
   if (!is.brainGraph(object)) {

@@ -3,6 +3,7 @@
 \name{brainGraph_boot}
 \alias{brainGraph_boot}
 \alias{summary.brainGraph_boot}
+\alias{plot.brainGraph_boot}
 \title{Bootstrapping for global graph measures}
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
@@ -11,6 +12,8 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
   "-log(w)", "1-w"))
 
 \method{summary}{brainGraph_boot}(object, ...)
+
+\method{plot}{brainGraph_boot}(x, ..., alpha = 0.4)
 }
 \arguments{
 \item{densities}{Numeric vector of graph densities to loop through}
@@ -35,23 +38,36 @@ intervals (default: 0.95)}
 \code{\link{brainGraph_boot}})}
 
 \item{...}{Unused}
+
+\item{x}{A \code{\link{brainGraph_boot}} object}
+
+\item{alpha}{A numeric indicating the opacity for
+\code{\link[ggplot2]{geom_ribbon}}}
 }
 \value{
-An object of class \code{brainGraph_boot} containing some input
-  variables, in addition to a list of \code{\link[boot]{boot}} objects (one
-  for each group).
+\code{brainGraph_boot} -- an object of class \code{brainGraph_boot}
+  containing some input variables, in addition to a list of
+  \code{\link[boot]{boot}} objects (one for each group).
+
+\code{plot} -- \emph{list} with the following elements:
+  \item{se}{A ggplot object with ribbon representing standard error}
+  \item{ci}{A ggplot object with ribbon representing confidence intervals}
 }
 \description{
-Performs bootstrapping to get group standard error estimates of a global
-graph measure (e.g. modularity).
+Perform bootstrapping to obtain groupwise standard error estimates of a
+global graph measure (e.g. \emph{modularity}).
+
+The \code{plot} method returns two \code{ggplot} objects: one with shaded
+regions based on the standard error, and the other based on confidence
+intervals (calculated using the normal approximation.
 }
 \details{
-The confidence intervals are calculated using the normal approximation and at
-the 95\% level.
+The confidence intervals are calculated using the \emph{normal approximation}
+at the \eqn{100 \times conf}\% level (by default, 95\%).
 
-For \emph{weighted global efficiency}, a method for transforming edge weights
-must be provided. The default is to invert them. See
-\code{\link{xfm.weights}}.
+For getting estimates of \emph{weighted global efficiency}, a method for
+transforming edge weights must be provided. The default is to invert them.
+See \code{\link{xfm.weights}}.
 }
 \examples{
 \dontrun{
@@ -59,19 +75,17 @@ boot.E.global <- brainGraph_boot(densities, resids.all, 1e3, 'E.global')
 }
 }
 \seealso{
-\code{\link[boot]{boot}}
+\code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
 
-Other Group analysis functions: \code{\link{IndividualContributions}},
-  \code{\link{NBS}}, \code{\link{brainGraph_GLM}},
-  \code{\link{brainGraph_mediate}},
+Other Group analysis functions: \code{\link{GLM}},
+  \code{\link{IndividualContributions}},
+  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{brainGraph_init}},
+  \code{\link{Residuals}}, \code{\link{brainGraph_init}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}, \code{\link{get.resid}},
-  \code{\link{plot.brainGraph_resids}},
-  \code{\link{plot_volumetric}}
+  \code{\link{corr.matrix}}, \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

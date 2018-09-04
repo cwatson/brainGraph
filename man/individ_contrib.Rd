@@ -61,17 +61,15 @@ Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
   doi:10.1016/j.neuroimage.2015.07.006
 }
 \seealso{
-Other Structural covariance network functions: \code{\link{brainGraph_boot}},
+Other Structural covariance network functions: \code{\link{Residuals}},
+  \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_init}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}, \code{\link{get.resid}},
-  \code{\link{plot.brainGraph_resids}},
-  \code{\link{plot_volumetric}}
+  \code{\link{corr.matrix}}, \code{\link{plot_volumetric}}
 
-Other Group analysis functions: \code{\link{NBS}},
-  \code{\link{brainGraph_GLM}},
+Other Group analysis functions: \code{\link{GLM}},
+  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
   \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_mediate}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
