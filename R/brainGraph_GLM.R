@@ -258,13 +258,13 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, ...) {
 #'   34(1):127-36.
 
 partition <- function(M, con.mat, part.method=c('beckmann', 'guttman')) {
-  method <- match.arg(method)
-  if (method == 'guttman') {
+  part.method <- match.arg(part.method)
+  if (part.method == 'guttman') {
     idx <- which(con.mat != 0, arr.ind=TRUE)[, 2]
     X <- M[, idx, drop=FALSE]
     Z <- M[, -idx, drop=FALSE]
     eCm <- cbind(con.mat[, idx, drop=FALSE], con.mat[, -idx, drop=FALSE])
-  } else if (method == 'beckmann') {
+  } else if (part.method == 'beckmann') {
     Q <- solve(crossprod(M))
     cdc <- solve(con.mat %*% Q %*% t(con.mat))
     X <- M %*% Q %*% t(con.mat) %*% cdc

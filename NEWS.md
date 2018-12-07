@@ -1,3 +1,12 @@
+# brainGraph 2.6.1
+
+2018-12-07
+
+## Bug fix
+* Fix bug in `partition`, changing `method` to `part.method`
+* Add some checks in `robustness` so it doesn't throw an error
+
+
 # brainGraph 2.6.0
 
 2018-09-04
