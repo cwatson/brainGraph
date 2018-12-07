@@ -66,8 +66,17 @@ robustness <- function(g, type=c('vertex', 'edge'),
       max.comp.removed <- colMeans(max.comp)
 
     } else {
+      if (measure == 'btwn.cent') {
+        if (measure %in% vertex_attr_names(g)) {
+          val <- vertex_attr(g, measure)
+        } else {
+          val <- centr_betw(g)$res
+        }
+      } else if (measure == 'degree') {
+        val <- check_degree(g)
+      }
       type <- 'Targeted vertex attack'
-      ord <- V(g)$name[order(vertex_attr(g, measure), decreasing=TRUE)]
+      ord <- V(g)$name[order(val, decreasing=TRUE)]
       max.comp.removed <- rep(max.comp.orig, n+1)
       for (i in seq_len(n - 1)) {
         g <- delete_vertices(g, ord[i])
