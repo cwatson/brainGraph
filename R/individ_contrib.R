@@ -253,6 +253,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ..
     }
     p <- p +
       theme(legend.position='bottom',
+            panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
             axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
             plot.title=element_text(hjust=0.5, face='bold')) +
       labs(x='Region', y='Regional contribution',
@@ -272,6 +273,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ..
       labs(x='Subject', y='Individual contribution',
            title=paste0('Individual contributions, ', tolower(x$method), ' method')) +
       theme(legend.position='none',
+            panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
             axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
             plot.title=element_text(hjust=0.5, face='bold'))
   }
