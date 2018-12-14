@@ -19,7 +19,7 @@
 #'   groups separately or combined (default: \code{comb.groups})
 #' @param use.mean Logical should we control for the mean hemispheric brain
 #'   value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})
-#' @param exclude Character vector of covariates to exclude (default:
+#' @param exclude.cov Character vector of covariates to exclude (default:
 #'   \code{NULL})
 #' @param ... Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)
 #' @export
@@ -41,14 +41,14 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
-                      use.mean=FALSE, exclude=NULL, ...) {
+                      use.mean=FALSE, exclude.cov=NULL, ...) {
   region <- resids <- Group <- Study.ID <- value <- NULL
 
   stopifnot('Group' %in% names(covars))
   if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
   method <- match.arg(method)
   groups <- covars[, levels(factor(Group))]
-  exclude <- c('Study.ID', exclude)
+  exclude.cov <- c('Study.ID', exclude.cov)
   DT.cov <- merge(covars, dt.vol, by='Study.ID')
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='region')
   setkey(DT.m, region, Study.ID)
@@ -67,8 +67,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
     covars.rh <- cbind(covars, mean.rh)
 
     if (method == 'comb.groups') {
-      lhvars <- get_lm_vars(covars.lh, exclude, ...)
-      rhvars <- get_lm_vars(covars.rh, exclude, ...)
+      lhvars <- get_lm_vars(covars.lh, exclude.cov, ...)
+      rhvars <- get_lm_vars(covars.rh, exclude.cov, ...)
 
       DT.m[grep(lh, region), resids := rstudent_mat(lhvars, value), by=region]
       DT.m[grep(rh, region), resids := rstudent_mat(rhvars, value), by=region]
@@ -79,8 +79,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       DT.m <- split(DT.m, by='Group')
       X <- sapply(groups, function(x) NULL)
       for (g in groups) {
-        lhvars <- get_lm_vars(covars.lh[[g]], exclude, ...)
-        rhvars <- get_lm_vars(covars.rh[[g]], exclude, ...)
+        lhvars <- get_lm_vars(covars.lh[[g]], exclude.cov, ...)
+        rhvars <- get_lm_vars(covars.rh[[g]], exclude.cov, ...)
 
         DT.m[[g]][grep(lh, region), resids := rstudent_mat(lhvars, value), by=region]
         DT.m[[g]][grep(rh, region), resids := rstudent_mat(rhvars, value), by=region]
@@ -91,7 +91,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 
   } else {
     if (method == 'comb.groups') {
-      lmvars <- get_lm_vars(covars, exclude, ...)
+      lmvars <- get_lm_vars(covars, exclude.cov, ...)
       DT.m[, resids := rstudent_mat(lmvars, value), by=region]
       X <- lmvars$X
     } else {
@@ -99,7 +99,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       DT.m <- split(DT.m, by='Group')
       X <- sapply(groups, function(x) NULL)
       for (g in groups) {
-        lmvars <- get_lm_vars(covars[[g]], exclude, ...)
+        lmvars <- get_lm_vars(covars[[g]], exclude.cov, ...)
         DT.m[[g]][, resids := rstudent_mat(lmvars, value), by=region]
         X[[g]] <- lmvars$X
       }
@@ -127,8 +127,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 #'   \item{n}{The number of observations}
 #'   \item{p}{The number of parameters}
 
-get_lm_vars <- function(covars, exclude, ...) {
-  X <- brainGraph_GLM_design(covars[, !exclude, with=F], ...)
+get_lm_vars <- function(covars, exclude.cov, ...) {
+  X <- brainGraph_GLM_design(covars[, !exclude.cov, with=F], ...)
   H <- X %*% solve(crossprod(X)) %*% t(X)
   lev <- diag(H)
   n <- nrow(X)

@@ -27,6 +27,7 @@
 #'   containing some input variables, in addition to a list of
 #'   \code{\link[boot]{boot}} objects (one for each group).
 #'
+#' @name Bootstrapping
 #' @family Group analysis functions
 #' @family Structural covariance network functions
 #' @seealso \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
