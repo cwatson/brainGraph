@@ -94,7 +94,7 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
   Group <- Study.ID <- i <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'))
 
-  groups <- resids$resids.all[, levels(Group)]
+  groups <- resids$groups
   kNumSubj <- resids$resids.all[, tabulate(Group)]
   if (is.numeric(control.value)) {
     control.int <- control.value
@@ -165,20 +165,23 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
 
 summary.IC <- function(object, region=NULL, ...) {
   DT.sum <- copy(object$DT)
-  if (is.null(region)) {
-    regions <- DT.sum[, levels(region)]
+  if (object$level == 'regional') {
+    if (is.null(region)) {
+      regions <- DT.sum[, levels(region)]
+    } else {
+      regions <- region
+    }
+    DT.sum[, avg := mean(RC), by=list(Group, region)]
+    DT.sum[, stdev := sd(RC), by=list(Group, region)]
+    DT.sum[, se := stdev / sqrt(.N), by=list(Group, region)]
+    outliers <- DT.sum[, .SD[RC > mean(RC) + 2 * stdev], by=list(Group, region)]
+    outliers.reg <- outliers[, .N, by=region]
+    outliers.reg.vec <- structure(outliers.reg$N, names=as.character(outliers.reg$region))
+    object$outliers <- list(DT=outliers, region=outliers.reg.vec)
   } else {
-    regions <- region
+    object$outliers$DT <- DT.sum[, .SD[IC > mean(IC) + 2 * sd(IC)], by=Group]
   }
-  DT.sum[, avg := mean(RC), by=list(Group, region)]
-  DT.sum[, stdev := sd(RC), by=list(Group, region)]
-  DT.sum[, se := stdev / .N, by=list(Group, region)]
-
-  outliers <- DT.sum[, .SD[RC > mean(RC) + 2 * stdev], by=list(Group, region)]
-  outliers.reg <- outliers[, .N, by=region]
-  outliers.reg.vec <- structure(outliers.reg$N, names=as.character(outliers.reg$region))
   object$DT.sum <- DT.sum
-  object$outliers <- list(DT=outliers, region=outliers.reg.vec)
   class(object) <- c('summary.IC', class(object))
   return(object)
 }
@@ -193,10 +196,15 @@ print.summary.IC <- function(x, ...) {
   cat('Method: ', x$method, '\n')
   cat('Level: ', x$level, '\n\n')
 
-  cat('Number of outliers per region: (sorted in descending order)\n')
-  print(sort(x$outliers$region, decreasing=TRUE))
-  cat('\n')
-  print(x$DT.sum[, .SD[1, !c('Study.ID', 'RC')], by=list(Group, region)])
+  if (x$level == 'regional') {
+    cat('Number of outliers per region: (sorted in descending order)\n')
+    print(sort(x$outliers$region, decreasing=TRUE))
+    cat('\n')
+    print(x$DT.sum[, .SD[1, !c('Study.ID', 'RC')], by=list(Group, region)])
+  } else {
+    cat('"Outliers"\n')
+    print(x$outliers$DT[order(Group, -IC)])
+  }
   invisible(x)
 }
 
@@ -211,41 +219,61 @@ print.summary.IC <- function(x, ...) {
 #' @param plot.type Character string indicating the type of plot; the default is
 #'   to plot the mean (along with standard errors)
 #' @export
+#' @importFrom ggrepel geom_text_repel
 #' @method plot IC
 #' @rdname individ_contrib
 
 plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ...) {
-  stopifnot(x$level == 'regional')
   DT <- copy(x$DT)
-  if (is.null(region)) {
-    regions <- DT[, levels(region)]
-  } else {
-    regions <- region
-  }
-  txtsize <- ifelse(length(regions) > 50, 6, 9)
-
-  plot.type <- match.arg(plot.type)
-  if (plot.type == 'boxplot') {
-    p <- ggplot(DT[region %in% regions], aes(x=region, y=RC)) +
-      geom_boxplot(aes(fill=Group, group=interaction(Group, region)))
-
-  } else {
-    if (plot.type == 'smooth') {
-      p <- ggplot(DT[region %in% regions], aes(x=region, col=Group, group=Group)) +
-        stat_smooth(method='loess', aes(y=RC))
-    } else if (plot.type == 'mean') {
-      DT[, avg := mean(RC), by=list(Group, region)]
-      DT[, se := sd(RC) / .N, by=list(Group, region)]
-      p <- ggplot(DT[region %in% regions], aes(x=region, col=Group, group=Group)) +
-        geom_line(aes(y=avg)) +
-        geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=Group), alpha=0.5)
+  if (x$level == 'regional') {
+    if (is.null(region)) {
+      regions <- DT[, levels(region)]
+    } else {
+      regions <- region
     }
+    txtsize <- ifelse(length(regions) > 50, 6, 9)
+
+    plot.type <- match.arg(plot.type)
+    if (plot.type == 'boxplot') {
+      p <- ggplot(DT[region %in% regions], aes(x=region, y=RC)) +
+        geom_boxplot(aes(fill=Group, group=interaction(Group, region)))
+
+    } else {
+      if (plot.type == 'smooth') {
+        p <- ggplot(DT[region %in% regions], aes(x=region, col=Group, group=Group)) +
+          stat_smooth(method='loess', aes(y=RC))
+
+      } else if (plot.type == 'mean') {
+        DT[, avg := mean(RC), by=list(Group, region)]
+        DT[, se := sd(RC) / sqrt(.N), by=list(Group, region)]
+        p <- ggplot(DT[region %in% regions], aes(x=region, col=Group, group=Group)) +
+          geom_line(aes(y=avg)) +
+          geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=Group), alpha=0.5)
+      }
+    }
+    p <- p +
+      theme(legend.position='bottom',
+            axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
+            plot.title=element_text(hjust=0.5, face='bold')) +
+      labs(x='Region', y='Regional contribution',
+           title=paste0('Regional contributions, ', tolower(x$method), ' method'))
+
+  } else {
+    txtsize <- ifelse(nrow(DT) > 50, 9, 12)
+    DT[, ind := as.character(.SD[, .I])]
+    DT[, mark := ifelse(IC > mean(IC) + 2*sd(IC), 1, 0)]
+    DT[mark == 0, ind := '']
+    DT[, mark := as.factor(mark)]
+    p <- ggplot(DT, aes(x=Study.ID, y=IC, col=Group)) +
+      geom_text_repel(aes(label=ind), size=3) +
+      geom_point(aes(shape=mark, size=mark)) +
+      scale_shape_manual(values=c(20, 17)) +
+      scale_size_manual(values=c(2, 3)) +
+      labs(x='Subject', y='Individual contribution',
+           title=paste0('Individual contributions, ', tolower(x$method), ' method')) +
+      theme(legend.position='none',
+            axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
+            plot.title=element_text(hjust=0.5, face='bold'))
   }
-  p <- p +
-    theme(legend.position='bottom',
-          axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
-          plot.title=element_text(hjust=0.5, face='bold')) +
-    labs(x='Region', y='Regional contribution',
-         title=paste0('Regional contributions, ', tolower(x$method), ' method'))
   return(p)
 }
