@@ -68,11 +68,11 @@ corrs <- corr.matrix(myResids, densities=densities)))
 \seealso{
 \code{\link[Hmisc]{rcorr}}
 
-Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{Residuals}}, \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_init}},
+Other Structural covariance network functions: \code{\link{Bootstrapping}},
+  \code{\link{IndividualContributions}},
+  \code{\link{Residuals}},
   \code{\link{brainGraph_permute}},
-  \code{\link{plot_volumetric}}
+  \code{\link{import_scn}}, \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

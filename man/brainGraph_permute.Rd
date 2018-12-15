@@ -109,15 +109,15 @@ out <- brainGraph_permute(densities, m, perms=myPerms,
 }
 }
 \seealso{
-Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}},
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{GLM}}, \code{\link{IndividualContributions}},
   \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{brainGraph_boot}}, \code{\link{mtpc}}
+  \code{\link{mtpc}}
 
-Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{Residuals}}, \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_init}}, \code{\link{corr.matrix}},
-  \code{\link{plot_volumetric}}
+Other Structural covariance network functions: \code{\link{Bootstrapping}},
+  \code{\link{IndividualContributions}},
+  \code{\link{Residuals}}, \code{\link{corr.matrix}},
+  \code{\link{import_scn}}, \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

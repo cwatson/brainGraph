@@ -158,10 +158,9 @@ Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
   118:313-333.
 }
 \seealso{
-Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}},
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{GLM}}, \code{\link{IndividualContributions}},
   \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_permute}}
 
 Other GLM functions: \code{\link{GLMdesign}},

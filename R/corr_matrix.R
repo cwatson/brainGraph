@@ -58,7 +58,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   what <- match.arg(what)
   type <- match.arg(type)
   stopifnot(inherits(resids, 'brainGraph_resids'))
-  
+
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
     res.all <- as.matrix(resids$resids.all[, !c('Study.ID', 'Group')])
@@ -73,7 +73,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     return(list(list(R=r, r.thresh=r.thresh)))
   }
 
-  groups <- resids$resids.all[, levels(Group)]
+  groups <- resids$groups
   out <- sapply(groups, function(x) NULL)
   if (what == 'resids') {
     res.all <- resids$resids.all[, !'Study.ID']

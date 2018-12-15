@@ -98,10 +98,9 @@ Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
 \seealso{
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 
-Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}},
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{GLM}}, \code{\link{IndividualContributions}},
   \code{\link{MediationAnalysis}},
-  \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
