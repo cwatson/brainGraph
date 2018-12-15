@@ -164,6 +164,7 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
 #' @rdname individ_contrib
 
 summary.IC <- function(object, region=NULL, ...) {
+  avg <- RC <- Group <- stdev <- se <- IC <- NULL
   DT.sum <- copy(object$DT)
   if (object$level == 'regional') {
     if (is.null(region)) {
@@ -191,6 +192,7 @@ summary.IC <- function(object, region=NULL, ...) {
 #' @keywords internal
 
 print.summary.IC <- function(x, ...) {
+  Group <- region <- IC <- NULL
   title <- 'Individual contributions'
   message('\n', title, '\n', rep('-', getOption('width') / 2))
   cat('Method: ', x$method, '\n')
@@ -224,6 +226,7 @@ print.summary.IC <- function(x, ...) {
 #' @rdname individ_contrib
 
 plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ...) {
+  RC <- Group <- avg <- se <- ind <- mark <- IC <- Study.ID <- NULL
   DT <- copy(x$DT)
   if (x$level == 'regional') {
     if (is.null(region)) {

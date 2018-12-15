@@ -179,10 +179,10 @@ Imai K, Yamamoto T (2013). \emph{Identification
 \seealso{
 \code{\link[mediation]{mediate}}
 
-Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}}, \code{\link{NBS}},
-  \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{GLM}}, \code{\link{IndividualContributions}},
+  \code{\link{NBS}}, \code{\link{brainGraph_permute}},
+  \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

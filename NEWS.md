@@ -1,3 +1,21 @@
+# brainGraph 2.7.0
+
+2018-12-15
+
+## New functions/features
+* `import_scn` replaces `brainGraph_init`, with a few changes in behavior:
+    * It is no longer necessary to abbreviate region names yourself; the function does it automatically
+    * Expects files with the name `${parcellation}_${hemi}_${modality}.csv` in the `datadir`
+        - Here, `${parcellation}` could be `aparc`, for example
+        - Also, `${modality}` could be `thickness`
+    * If the *atlas* you are using includes `scgm`, there should be a `asegstats.csv` file
+* `aop` and `loo` now return *S3* objects, with class name `IC`
+    * These also have `summary` and `plot` methods
+    * Furthermore, these objects return some more information
+
+## Minor changes
+* The `exclude` argument to `get.resid` is now `exclude.cov` to highlight that it is for specifying *covariates* to exclude from the GLM
+
 # brainGraph 2.6.1
 
 2018-12-07

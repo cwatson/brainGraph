@@ -179,9 +179,9 @@ Winkler AM, Ridgway GR, Webster MA, Smith SM, Nichols TE (2014).
 Other GLM functions: \code{\link{GLMdesign}},
   \code{\link{GLMfit}}, \code{\link{mtpc}}
 
-Other Group analysis functions: \code{\link{IndividualContributions}},
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{IndividualContributions}},
   \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{brainGraph_boot}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{
