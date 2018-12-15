@@ -2,11 +2,14 @@
 % Please edit documentation in R/create_graphs.R
 \name{make_brainGraph}
 \alias{make_brainGraph}
+\alias{is.brainGraph}
 \alias{summary.brainGraph}
 \title{Create a brainGraph object}
 \usage{
 make_brainGraph(g, atlas, rand = FALSE, modality = NULL,
   weighting = NULL, threshold = NULL, subject = NULL, group = NULL)
+
+is.brainGraph(x)
 
 \method{summary}{brainGraph}(object, print.attrs = c("all", "none"), ...)
 }
@@ -31,6 +34,8 @@ thresholded (if at all). Default: \code{NULL}}
 
 \item{group}{Character vector indicating group membership. Default:
 \code{NULL}}
+
+\item{x}{An object to test}
 
 \item{object}{A \code{brainGraph} object}
 
@@ -87,3 +92,4 @@ Other Graph creation functions: \code{\link{make_ego_brainGraph}},
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \concept{Graph creation functions}
+\keyword{internal}

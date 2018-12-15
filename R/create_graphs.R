@@ -148,6 +148,7 @@ make_brainGraph <- function(g, atlas, rand=FALSE, modality=NULL, weighting=NULL,
 #' @param x An object to test
 #' @keywords internal
 #' @export
+#' @rdname make_brainGraph
 is.brainGraph <- function(x) inherits(x, 'brainGraph')
 
 #' Print a summary of a brainGraph object
