@@ -373,11 +373,14 @@ vec.transform <- function(x, min.val=0, max.val=1) {
 #' \emph{lowest} weights. Then you may calculate e.g., the \emph{shortest path
 #' length} which will include the strongest connections.
 #'
-#' There are 3 options for the type of transform to apply:
+#' There are 5 options for the type of transform to apply:
 #' \enumerate{
 #'   \item \code{1/w}: calculate the inverse
 #'   \item \code{-log(w)}: calculate the negative (natural) logarithm
 #'   \item \code{1-w}: subtract each weight from 1
+#'   \item \code{-log10(w/max(w))}: negative (base-10) log of normalized weights
+#'   \item \code{-log10(w/max(w)+1)}: same as above, but add 1 before taking
+#'     the log
 #' }
 #'
 #' To transform the weights back to original values, specify \code{invert=TRUE}.
@@ -393,19 +396,39 @@ vec.transform <- function(x, min.val=0, max.val=1) {
 #'   graph attribute, \code{xfm.type}, of the type of transform
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-xfm.weights <- function(g, xfm.type=c('1/w', '-log(w)', '1-w'), invert=FALSE) {
+xfm.weights <- function(g,
+        xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)'),
+        invert=FALSE) {
   stopifnot(is_igraph(g), is_weighted(g))
   xfm.type <- match.arg(xfm.type)
   if (xfm.type == '1/w') {
     E(g)$weight <- 1 / E(g)$weight
+
   } else if (xfm.type == '-log(w)') {
     if (isTRUE(invert)) {
       E(g)$weight <- exp(-E(g)$weight)
     } else {
       E(g)$weight <- -log(E(g)$weight)
     }
+
   } else if (xfm.type == '1-w') {
     E(g)$weight <- 1 - E(g)$weight
+
+  } else if (xfm.type == '-log10(w/max(w))') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- g$max.weight / 10^(E(g)$weight)
+    } else {
+      g$max.weight <- max(E(g)$weight)
+      E(g)$weight <- -log10(E(g)$weight / g$max.weight)
+    }
+
+  } else if (xfm.type == '-log10(w/max(w)+1)') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- g$max.weight * (1 / 10^(E(g)$weight) - 1)
+    } else {
+      g$max.weight <- max(E(g)$weight)
+      E(g)$weight <- -log10(E(g)$weight / g$max.weight + 1)
+    }
   }
 
   g$xfm.type <- xfm.type

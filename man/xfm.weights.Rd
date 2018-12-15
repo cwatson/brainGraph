@@ -4,7 +4,8 @@
 \alias{xfm.weights}
 \title{Transform edge weights}
 \usage{
-xfm.weights(g, xfm.type = c("1/w", "-log(w)", "1-w"), invert = FALSE)
+xfm.weights(g, xfm.type = c("1/w", "-log(w)", "1-w", "-log10(w/max(w))",
+  "-log10(w/max(w)+1)"), invert = FALSE)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -26,11 +27,14 @@ that the \emph{strongest} connections are re-mapped to having the
 length} which will include the strongest connections.
 }
 \details{
-There are 3 options for the type of transform to apply:
+There are 5 options for the type of transform to apply:
 \enumerate{
   \item \code{1/w}: calculate the inverse
   \item \code{-log(w)}: calculate the negative (natural) logarithm
   \item \code{1-w}: subtract each weight from 1
+  \item \code{-log10(w/max(w))}: negative (base-10) log of normalized weights
+  \item \code{-log10(w/max(w)+1)}: same as above, but add 1 before taking
+    the log
 }
 
 To transform the weights back to original values, specify \code{invert=TRUE}.

@@ -10,7 +10,7 @@
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
   "E.global", "Cp", "Lp", "assortativity", "strength", "mod.wt",
   "E.global.wt"), conf = 0.95, .progress = TRUE, xfm.type = c("1/w",
-  "-log(w)", "1-w"))
+  "-log(w)", "1-w", "-log10(w/max(w))", "-log10(w/max(w)+1)"))
 
 \method{summary}{brainGraph_boot}(object, ...)
 

@@ -6,7 +6,8 @@
 \usage{
 set_brainGraph_attr(g, atlas = NULL, rand = FALSE,
   use.parallel = TRUE, A = NULL, xfm.type = c("1/w", "-log(w)",
-  "1-w"), clust.method = "louvain", ...)
+  "1-w", "-log10(w/max(w))", "-log10(w/max(w)+1)"),
+  clust.method = "louvain", ...)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -23,8 +24,8 @@ set_brainGraph_attr(g, atlas = NULL, rand = FALSE,
 \item{A}{Numeric matrix; the (weighted) adjacency matrix, which can be used
 for faster calculation of local efficiency (default: \code{NULL})}
 
-\item{xfm.type}{Character string indicating how to transform edge weights
-(default: \code{1/w} [reciprocal])}
+\item{xfm.type}{Character string specifying how to transform the weights
+(default: \code{1/w})}
 
 \item{clust.method}{Character string indicating which method to use for
 community detection. Default: \code{'louvain'}}
@@ -52,7 +53,7 @@ given \code{igraph} graph object. These are all measures that are common in
 MRI analyses of brain networks.
 }
 \details{
-\code{xfm.type} allows you to choose from 3 options for transforming edge
+\code{xfm.type} allows you to choose from 5 options for transforming edge
 weights when calculating distance-based metrics (e.g., shortest paths). There
 is no "best-practice" for choosing one over the other, but the reciprocal is
 probably most common.
@@ -60,6 +61,9 @@ probably most common.
   \item \code{1/w}: reciprocal (default)
   \item \code{-log(w)}: the negative (natural) logarithm
   \item \code{1-w}: subtract weights from 1
+  \item \code{-log10(w/max(w))}: negative (base-10) log of normalized weights
+  \item \code{-log10(w/max(w)+1)}: same as above, but add 1 before taking
+    the log
 }
 
 \code{clust.method} allows you to choose from any of the clustering
