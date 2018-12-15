@@ -4,12 +4,19 @@
 \alias{IndividualContributions}
 \alias{loo}
 \alias{aop}
+\alias{summary.IC}
+\alias{plot.IC}
 \title{Approaches to estimate individual network contribution}
 \usage{
 loo(resids, corrs, level = c("global", "regional"))
 
 aop(resids, corr.mat, level = c("global", "regional"),
   control.value = 1)
+
+\method{summary}{IC}(object, region = NULL, ...)
+
+\method{plot}{IC}(x, plot.type = c("mean", "smooth", "boxplot"),
+  region = NULL, ...)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -25,6 +32,18 @@ contributions (either \code{global} or \code{regional})}
 
 \item{control.value}{Integer or character string specifying the control group
 (default: 1)}
+
+\item{object}{A \code{IC} object}
+
+\item{region}{Character vector of regions to plot; default is to plot for all
+regions}
+
+\item{...}{Unused}
+
+\item{x}{A \code{IC} object}
+
+\item{plot.type}{Character string indicating the type of plot; the default is
+to plot the mean (along with standard errors)}
 }
 \value{
 A \code{data.table} with columns for
@@ -43,6 +62,13 @@ compared to the original correlation matrix using the Mantel test.
 approach. The residuals of a single patient are added to those of a control
 group, and a correlation matrix is created. This is repeated for all
 individual patients and each patient group.
+
+The \code{summary} method prints the group/region-wise means and standard
+deviations.
+
+The \code{plot} method is only valid for \emph{regional} contribution
+estimates, and plots the average regional contribution for each
+vertex/region.
 }
 \examples{
 \dontrun{
@@ -61,16 +87,16 @@ Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
   doi:10.1016/j.neuroimage.2015.07.006
 }
 \seealso{
-Other Structural covariance network functions: \code{\link{Residuals}},
-  \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_init}},
+Other Structural covariance network functions: \code{\link{Bootstrapping}},
+  \code{\link{Residuals}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}, \code{\link{plot_volumetric}}
+  \code{\link{corr.matrix}}, \code{\link{import_scn}},
+  \code{\link{plot_volumetric}}
 
-Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
+Other Group analysis functions: \code{\link{Bootstrapping}},
+  \code{\link{GLM}}, \code{\link{MediationAnalysis}},
+  \code{\link{NBS}}, \code{\link{brainGraph_permute}},
+  \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

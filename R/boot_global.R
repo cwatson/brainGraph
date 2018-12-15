@@ -117,7 +117,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' @importFrom boot boot.ci
 #' @export
 #' @method summary brainGraph_boot
-#' @rdname brainGraph_boot
+#' @rdname Bootstrapping
 
 summary.brainGraph_boot <- function(object, ...) {
   # Get everything into a data.table
@@ -173,7 +173,7 @@ print.summary.brainGraph_boot <- function(x, ...) {
 #'   \code{\link[ggplot2]{geom_ribbon}}
 #' @export
 #' @method plot brainGraph_boot
-#' @rdname brainGraph_boot
+#' @rdname Bootstrapping
 #'
 #' @return \code{plot} -- \emph{list} with the following elements:
 #'   \item{se}{A ggplot object with ribbon representing standard error}

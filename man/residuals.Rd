@@ -10,7 +10,7 @@
 \title{Linear model residuals in structural covariance networks}
 \usage{
 get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
-  use.mean = FALSE, exclude = NULL, ...)
+  use.mean = FALSE, exclude.cov = NULL, ...)
 
 \method{[}{brainGraph_resids}(x, i, g = NULL)
 
@@ -31,7 +31,7 @@ groups separately or combined (default: \code{comb.groups})}
 \item{use.mean}{Logical should we control for the mean hemispheric brain
 value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
 
-\item{exclude}{Character vector of covariates to exclude (default:
+\item{exclude.cov}{Character vector of covariates to exclude (default:
 \code{NULL})}
 
 \item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
@@ -106,11 +106,11 @@ ggsave('residuals.pdf', ml)
 
 \code{\link[stats]{qqnorm}}
 
-Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_init}},
+Other Structural covariance network functions: \code{\link{Bootstrapping}},
+  \code{\link{IndividualContributions}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}, \code{\link{plot_volumetric}}
+  \code{\link{corr.matrix}}, \code{\link{import_scn}},
+  \code{\link{plot_volumetric}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

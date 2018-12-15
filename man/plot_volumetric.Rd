@@ -35,11 +35,11 @@ more groups, and of 1 or more brain regions.
 \seealso{
 \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
 
-Other Structural covariance network functions: \code{\link{IndividualContributions}},
-  \code{\link{Residuals}}, \code{\link{brainGraph_boot}},
-  \code{\link{brainGraph_init}},
+Other Structural covariance network functions: \code{\link{Bootstrapping}},
+  \code{\link{IndividualContributions}},
+  \code{\link{Residuals}},
   \code{\link{brainGraph_permute}},
-  \code{\link{corr.matrix}}
+  \code{\link{corr.matrix}}, \code{\link{import_scn}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
