@@ -4,6 +4,7 @@
 \alias{make_brainGraph}
 \alias{is.brainGraph}
 \alias{summary.brainGraph}
+\alias{make_empty_brainGraph}
 \title{Create a brainGraph object}
 \usage{
 make_brainGraph(g, atlas, rand = FALSE, modality = NULL,
@@ -12,6 +13,8 @@ make_brainGraph(g, atlas, rand = FALSE, modality = NULL,
 is.brainGraph(x)
 
 \method{summary}{brainGraph}(object, print.attrs = c("all", "none"), ...)
+
+make_empty_brainGraph(atlas, ...)
 }
 \arguments{
 \item{g}{An \emph{igraph} graph object.}
@@ -43,6 +46,10 @@ thresholded (if at all). Default: \code{NULL}}
 object's attributes (default: \code{all})}
 
 \item{...}{Unused}
+
+\item{atlas}{Character string of the atlas to create a graph from}
+
+\item{...}{Other arguments passed to \code{\link{make_brainGraph}}}
 }
 \value{
 A \code{brainGraph} graph object with additional attributes:
@@ -65,11 +72,19 @@ A \code{brainGraph} graph object with additional attributes:
   \item{color.class,color.network}{(vertex- and edge-level) If applicable}
   \item{circle.layout}{Integer vector for ordering the vertices for circle
     plots}
+
+\code{make_empty_brainGraph} -- An empty \code{brainGraph} graph
+  object
 }
 \description{
 Create a \code{brainGraph} graph object, which is an \code{igraph} graph
 object with additional attributes (at all levels). The values are dependent
 on the specified brain atlas.
+
+This function creates an empty undirected graph with vertex count equal to
+the atlas specified, and includes some graph-, vertex-, and
+edge-level attributes that are important for \code{brainGraph} functions.
+Basically a wrapper for \code{\link[igraph]{make_empty_graph}}.
 }
 \details{
 For the \code{modality} argument, you can choose anything you like, but the
@@ -82,13 +97,21 @@ density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
 \code{partial} (partial correlation coefficient).
 }
 \seealso{
+\code{\link[igraph]{make_empty_graph}}
+
 Other Graph creation functions: \code{\link{make_ego_brainGraph}},
-  \code{\link{make_empty_brainGraph}},
+  \code{\link{make_glm_brainGraph}},
+  \code{\link{make_mediate_brainGraph}},
+  \code{\link{make_nbs_brainGraph}}
+
+Other Graph creation functions: \code{\link{make_ego_brainGraph}},
   \code{\link{make_glm_brainGraph}},
   \code{\link{make_mediate_brainGraph}},
   \code{\link{make_nbs_brainGraph}}
 }
 \author{
+Christopher G. Watson, \email{cgwatson@bu.edu}
+
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \concept{Graph creation functions}

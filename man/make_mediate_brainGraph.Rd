@@ -25,7 +25,6 @@ This function only creates a graph for \emph{vertex}-level analyses.
 \seealso{
 Other Graph creation functions: \code{\link{make_brainGraph}},
   \code{\link{make_ego_brainGraph}},
-  \code{\link{make_empty_brainGraph}},
   \code{\link{make_glm_brainGraph}},
   \code{\link{make_nbs_brainGraph}}
 }

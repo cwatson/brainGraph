@@ -28,7 +28,6 @@ Create a graph with NBS-specific attributes
 \seealso{
 Other Graph creation functions: \code{\link{make_brainGraph}},
   \code{\link{make_ego_brainGraph}},
-  \code{\link{make_empty_brainGraph}},
   \code{\link{make_glm_brainGraph}},
   \code{\link{make_mediate_brainGraph}}
 }

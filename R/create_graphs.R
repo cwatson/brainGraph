@@ -287,8 +287,10 @@ print.summary.brainGraph <- function(x, ...) {
 #' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @export
 #'
-#' @return An empty \code{brainGraph} graph object
+#' @return \code{make_empty_brainGraph} -- An empty \code{brainGraph} graph
+#'   object
 #' @family Graph creation functions
+#' @rdname make_brainGraph
 #' @seealso \code{\link[igraph]{make_empty_graph}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
