@@ -24,8 +24,10 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Estrada E. & Hatano N. (2008) \emph{Communicability in complex
 #'   networks}. Physical Review E, 77:036111.
+#'   \url{https://dx.doi.org/10.1103/PhysRevE.77.036111}
 #' @references Crofts J.J. & Higham D.J. (2009) \emph{A weighted communicability
-#'   measure applied to complex brain networks}. J. R. Soc. Interface, 6:411-414.
+#'   measure applied to complex brain networks}. J. R. Soc. Interface,
+#'   6:411-414. \url{https://dx.doi.org/10.1098/rsif.2008.0484}
 
 communicability <- function(g, weights=NULL) {
   stopifnot(is_igraph(g), is_connected(g))
@@ -61,6 +63,7 @@ communicability <- function(g, weights=NULL) {
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Estrada E., Higham D.J., Hatano N. (2009) \emph{Communicability
 #'   betweenness in complex networks}. Physica A, 388:764-774.
+#'   \url{https://dx.doi.org/10.1016/j.physa.2008.11.011}
 
 centr_betw_comm <- function(g, A=NULL) {
   stopifnot(is_igraph(g), is_connected(g))

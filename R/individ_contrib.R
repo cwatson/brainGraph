@@ -33,8 +33,8 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
 #'   Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-#'   from group-based structural correlations networks}. NeuroImage, 120:274-284.
-#'   doi:10.1016/j.neuroimage.2015.07.006
+#'   from group-based structural correlations networks}. NeuroImage,
+#'   120:274-284. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL

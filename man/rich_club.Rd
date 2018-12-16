@@ -99,17 +99,19 @@ integer.
 \references{
 Zhou S., Mondragon R.J. (2004) \emph{The rich-club phenomenon
 in the internet topology}. IEEE Comm Lett, 8:180-182.
+\url{https://dx.doi.org/10.4018/978-1-59140-993-9.ch066}
 
 Opsahl T., Colizza V., Panzarasa P., Ramasco J.J. (2008)
 \emph{Prominence and control: the weighted rich-club effect}. Physical Review
 Letters, 101.16:168702.
+\url{https://dx.doi.org/10.1103/PhysRevLett.101.168702}
 
 Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
 \emph{Detecting rich-club ordering in complex networks}. Nature Physics,
-2:110-115.
+2:110-115. \url{https://dx.doi.org/10.1038/nphys209}
 
 Ma A & Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
-  One, 10(3): e0119678. doi: 10.1371/journal.pone.0119678
+  One, 10(3): e0119678. \url{https://dx.doi.org/10.1371/journal.pone.0119678}
 }
 \seealso{
 Other Rich-club functions: \code{\link{plot_rich_norm}},

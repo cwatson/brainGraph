@@ -25,6 +25,7 @@
 #'   H.E.H. (2010) \emph{Aberrant frontal and temporal complex network structure
 #'   in schizophrenia: a graph theoretical analysis}. The Journal of
 #'   Neuroscience, 30(47):15915-15926.
+#'   \url{https://dx.doi.org/10.1523/JNEUROSCI.2874-10.2010}
 
 hubness <- function(g, xfm.type=g$xfm.type, weights=NULL) {
   stopifnot(is_igraph(g))

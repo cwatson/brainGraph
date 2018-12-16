@@ -79,12 +79,13 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Freedman D & Lane D (1983). \emph{A nonstochastic interpretation
 #'   of reported significance levels}. J Bus Econ Stat, 1(4):292-298.
+#'   \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
 #' @references Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
 #'   tests for functional neuroimaging: A primer with examples.} Human Brain
-#'   Mapping, 15(1):1-25.
+#'   Mapping, 15(1):1-25. \url{https://dx.doi.org/10.1002/hbm.1058}
 #' @references Winkler AM, Ridgway GR, Webster MA, Smith SM, Nichols TE (2014).
 #'   \emph{Permutation inference for the general linear model}. NeuroImage,
-#'   92:381-397.
+#'   92:381-397. \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
 #'
 #' @examples
 #' \dontrun{
@@ -255,7 +256,7 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, ...) {
 #' @references Guttman I. Linear Models: An Introduction. Wiley, New York, 1982.
 #' @references Smith SM, Jenkinson M, Beckmann C, Miller K, Woolrich M (2007).
 #'   \emph{Meaningful design and contrast estimability in fMRI.} NeuroImage,
-#'   34(1):127-36.
+#'   34(1):127-36. \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
 
 partition <- function(M, con.mat, part.method=c('beckmann', 'guttman')) {
   part.method <- match.arg(part.method)

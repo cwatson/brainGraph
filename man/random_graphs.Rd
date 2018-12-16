@@ -101,7 +101,7 @@ rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2,
 \references{
 Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 biological network structure with clustered random networks}. BMC
-Bioinformatics, 10:405-421.
+Bioinformatics, 10:405-421. \url{https://dx.doi.org/10.1186/1471-2105-10-405}
 }
 \seealso{
 \code{\link{small.world}}

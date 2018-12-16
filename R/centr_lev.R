@@ -20,6 +20,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 #' \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
+#' \url{https://dx.doi.org/10.1371/journal.pone.0012200}
 
 centr_lev <- function(g) {
   stopifnot(is_igraph(g))

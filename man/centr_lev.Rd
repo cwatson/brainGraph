@@ -28,6 +28,7 @@ This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 \references{
 Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)
 \emph{A new measure of centrality for brain networks}. PLoS One, 5(8):e12200.
+\url{https://dx.doi.org/10.1371/journal.pone.0012200}
 }
 \seealso{
 Other Centrality functions: \code{\link{centr_betw_comm}}

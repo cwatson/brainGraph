@@ -164,14 +164,15 @@ ggsave('glmPlots.pdf', ml, width=8.5, height=11)
 \references{
 Freedman D & Lane D (1983). \emph{A nonstochastic interpretation
   of reported significance levels}. J Bus Econ Stat, 1(4):292-298.
+  \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
 
 Nichols TE & Holmes AP (2001). \emph{Nonparametric permutation
   tests for functional neuroimaging: A primer with examples.} Human Brain
-  Mapping, 15(1):1-25.
+  Mapping, 15(1):1-25. \url{https://dx.doi.org/10.1002/hbm.1058}
 
 Winkler AM, Ridgway GR, Webster MA, Smith SM, Nichols TE (2014).
   \emph{Permutation inference for the general linear model}. NeuroImage,
-  92:381-397.
+  92:381-397. \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
 }
 \seealso{
 \code{\link[stats]{plot.lm}}

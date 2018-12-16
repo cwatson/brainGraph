@@ -99,7 +99,7 @@ dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
 \references{
 Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
   \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
-  145:118-129.
+  145:118-129. \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
 }
 \seealso{
 Other Matrix functions: \code{\link{apply_thresholds}},

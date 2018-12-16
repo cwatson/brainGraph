@@ -84,7 +84,7 @@ sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
 #'
 #' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
 #' biological network structure with clustered random networks}. BMC
-#' Bioinformatics, 10:405-421.
+#' Bioinformatics, 10:405-421. \url{https://dx.doi.org/10.1186/1471-2105-10-405}
 
 sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.iters=100) {
   g <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
@@ -132,12 +132,8 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 #' @return A data frame with four elements; two edges \code{(y1, z1)} and
 #'   \code{(y2, z2)} will be removed, and two edges \code{(y1, y2)} and
 #'   \code{(z1, z2)} will be added between the four vertices.
-#'
 #' @keywords internal
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
-#'   biological network structure with clustered random networks}. BMC
-#'   Bioinformatics, 10:405-421.
 
 choose.edges <- function(A, degs.large) {
   # Uniformly select both a random node with degree > 1 (x), and 2 of its neighbors (y1 & y2)

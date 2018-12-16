@@ -44,6 +44,7 @@ In a random failure analysis, vertices/edges are removed in a random order.
 \references{
 Albert R., Jeong H., Barabasi A. (2000) \emph{Error and attack
 tolerance of complex networks}. Nature, 406:378-381.
+\url{https://dx.doi.org/10.1515/9781400841356.503}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

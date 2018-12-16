@@ -49,13 +49,15 @@ brain, in addition to the \emph{class} variable for Destrieux atlases.
 Destrieux C., Fischl B., Dale E. \& Halgren E. (2010)
   \emph{Automatic parcellation of human cortical gyri and sulci using
   standard anatomic nomenclature}. NeuroImage, 53(1):1-15.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.010}
 
 Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An
   automated labeling system for subdividing the human cerebral cortex on MRI
   scans into gyral based regions of interest}. NeuroImage, 31:968-980.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2006.01.021}
 
 Klein A. and Tourville J. (2012) \emph{101 labeled brain images
-  and a consistent human cortical labeling protocol}. Front Neurosci,
-  doi:10.3389/fnins.2012.00171
+  and a consistent human cortical labeling protocol}. Front Neurosci, 6.
+  \url{https://dx.doi.org/10.3389/fnins.2012.00171}
 }
 \keyword{datasets}

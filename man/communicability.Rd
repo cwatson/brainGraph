@@ -36,9 +36,11 @@ strength,
 \references{
 Estrada E. & Hatano N. (2008) \emph{Communicability in complex
   networks}. Physical Review E, 77:036111.
+  \url{https://dx.doi.org/10.1103/PhysRevE.77.036111}
 
 Crofts J.J. & Higham D.J. (2009) \emph{A weighted communicability
-  measure applied to complex brain networks}. J. R. Soc. Interface, 6:411-414.
+  measure applied to complex brain networks}. J. R. Soc. Interface,
+  6:411-414. \url{https://dx.doi.org/10.1098/rsif.2008.0484}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

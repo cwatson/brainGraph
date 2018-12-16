@@ -22,11 +22,6 @@ A data frame with four elements; two edges \code{(y1, z1)} and
 graphs while controlling for \emph{clustering}. It is based on the algorithm
 by Bansal et al. (2009), BMC Bioinformatics.
 }
-\references{
-Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
-  biological network structure with clustered random networks}. BMC
-  Bioinformatics, 10:405-421.
-}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }

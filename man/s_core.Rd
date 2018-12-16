@@ -35,7 +35,7 @@ separate cores will have a single vertex. See the reference provided below.
 \references{
 Eidsaa M & Almaas E. (2013) \emph{s-core network decomposition: a
   generalization of k-core analysis to weighted networks.} Physical Review E,
-  88:062819.
+  88:062819. \url{https://dx.doi.org/10.1103/PhysRevE.88.062819}
 }
 \seealso{
 \code{\link[igraph]{coreness}}

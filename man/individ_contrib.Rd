@@ -83,8 +83,8 @@ RC <- aop(resids.all, corrs[[1]]$R, level='regional')
 \references{
 Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
   Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-  from group-based structural correlations networks}. NeuroImage, 120:274-284.
-  doi:10.1016/j.neuroimage.2015.07.006
+  from group-based structural correlations networks}. NeuroImage,
+  120:274-284. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 }
 \seealso{
 Other Structural covariance network functions: \code{\link{Bootstrapping}},

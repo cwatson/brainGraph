@@ -24,9 +24,11 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Zhou S., Mondragon R.J. (2004) \emph{The rich-club phenomenon
 #' in the internet topology}. IEEE Comm Lett, 8:180-182.
+#' \url{https://dx.doi.org/10.4018/978-1-59140-993-9.ch066}
 #' @references Opsahl T., Colizza V., Panzarasa P., Ramasco J.J. (2008)
 #' \emph{Prominence and control: the weighted rich-club effect}. Physical Review
 #' Letters, 101.16:168702.
+#' \url{https://dx.doi.org/10.1103/PhysRevLett.101.168702}
 
 rich_club_coeff <- function(g, k=1, weighted=FALSE) {
   stopifnot(is_igraph(g))
@@ -116,7 +118,7 @@ rich_club_all <- function(g, weighted=FALSE) {
 #'
 #' @references Colizza V., Flammini A., Serrano M.A., Vespignani A. (2006)
 #' \emph{Detecting rich-club ordering in complex networks}. Nature Physics,
-#' 2:110-115.
+#' 2:110-115. \url{https://dx.doi.org/10.1038/nphys209}
 
 rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   k <- orig <- p <- p.fdr <- NULL
@@ -251,7 +253,7 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 #' @rdname rich_club
 #'
 #' @references Ma A & Mondragon R.J. (2015) \emph{Rich-cores in networks}. PLoS
-#'   One, 10(3): e0119678. doi: 10.1371/journal.pone.0119678
+#'   One, 10(3): e0119678. \url{https://dx.doi.org/10.1371/journal.pone.0119678}
 
 rich_core <- function(g, weighted=FALSE) {
   stopifnot(is_igraph(g))

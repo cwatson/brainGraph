@@ -24,10 +24,11 @@
 #'   Etard O., Delcroix N., Mazoyer B., Joliot M. (2002) \emph{Automated
 #'   anatomical labeling of activations in SPM using a macroscopic anatomical
 #'   parcellation of the MNI MRI single-subject brain}. NeuroImage,
-#'   15(1):273-289.
+#'   15(1):273-289. \url{https://dx.doi.org/10.1006/nimg.2001.0978}
 #' @references Rolls E.T., Joliot M., Tzourio-Mazoyer N. (2015)
 #'   \emph{Implementation of a new parcellation of the orbitofrontal cortex in
 #'   the automated anatomical labelling atlas}. NeuroImage, 122:1-5.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.075}
 "aal116"
 
 #' @rdname aal
@@ -68,12 +69,14 @@
 #' @references Destrieux C., Fischl B., Dale E. \& Halgren E. (2010)
 #'   \emph{Automatic parcellation of human cortical gyri and sulci using
 #'   standard anatomic nomenclature}. NeuroImage, 53(1):1-15.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.010}
 #' @references Desikan R.S., Segonne F., Fischl B., et al. (2006) \emph{An
 #'   automated labeling system for subdividing the human cerebral cortex on MRI
 #'   scans into gyral based regions of interest}. NeuroImage, 31:968-980.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2006.01.021}
 #' @references Klein A. and Tourville J. (2012) \emph{101 labeled brain images
-#'   and a consistent human cortical labeling protocol}. Front Neurosci,
-#'   doi:10.3389/fnins.2012.00171
+#'   and a consistent human cortical labeling protocol}. Front Neurosci, 6.
+#'   \url{https://dx.doi.org/10.3389/fnins.2012.00171}
 "destrieux"
 
 #' @rdname freesurfer_atlases

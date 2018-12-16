@@ -33,6 +33,7 @@ coefficient, which are used to calculate small-worldness.
 \references{
 Watts D.J., Strogatz S.H. (1998) \emph{Collective dynamics of
 'small-world' networks}. Nature, 393:440-442.
+\url{https://dx.doi.org/10.1515/9781400841356.301}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

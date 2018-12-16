@@ -69,7 +69,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
 #'   \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
-#'   145:118-129.
+#'   145:118-129. \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
 #' @examples
 #' \dontrun{
 #' thresholds <- seq(from=0.001, to=0.01, by=0.001)

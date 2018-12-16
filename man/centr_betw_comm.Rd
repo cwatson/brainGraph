@@ -24,6 +24,7 @@ where \eqn{C = (n - 1)^2 - (n - 1)} is a normalization factor.
 \references{
 Estrada E., Higham D.J., Hatano N. (2009) \emph{Communicability
   betweenness in complex networks}. Physica A, 388:764-774.
+  \url{https://dx.doi.org/10.1016/j.physa.2008.11.011}
 }
 \seealso{
 Other Centrality functions: \code{\link{centr_lev}}

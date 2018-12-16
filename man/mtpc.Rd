@@ -155,7 +155,7 @@ ggsave('mtpc.pdf', ml)
 Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
   DK (2015). \emph{Overcoming the effects of false positives and threshold
   bias in graph theoretical analyses of neuroimaging data.} NeuroImage,
-  118:313-333.
+  118:313-333. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},

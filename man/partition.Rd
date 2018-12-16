@@ -41,6 +41,6 @@ Guttman I. Linear Models: An Introduction. Wiley, New York, 1982.
 
 Smith SM, Jenkinson M, Beckmann C, Miller K, Woolrich M (2007).
   \emph{Meaningful design and contrast estimability in fMRI.} NeuroImage,
-  34(1):127-36.
+  34(1):127-36. \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
 }
 \keyword{internal}

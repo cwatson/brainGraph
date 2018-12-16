@@ -93,7 +93,7 @@ max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 \references{
 Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
   statistic: identifying differences in brain networks}. NeuroImage,
-  53(4):1197-1207.
+  53(4):1197-1207. \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
 }
 \seealso{
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}

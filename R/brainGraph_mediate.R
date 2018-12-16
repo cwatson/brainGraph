@@ -96,18 +96,22 @@
 #' @references Tingley D, Yamamoto T, Hirose K, Keele L, Imai K (2014).
 #'   \emph{mediation: R package for causal mediation analysis.} Journal of
 #'   Statistical Software, 59(5):1-38.
+#'   \url{https://dx.doi.org/10.18637/jss.v059.i05}
 #' @references Imai K, Keele L, Yamamoto T (2010). \emph{Identification,
 #'   inference, and sensitivity analysis for causal mediation effects.}
 #'   Statistical Science, 25(1):51-71.
+#'   \url{https://dx.doi.org/10.1214/10-STS321}
 #' @references Imai K, Keele L, Tingley D (2010). \emph{A general approach to
 #'   causal mediation analysis.} Psychological Methods, 15(4):309-334.
+#'   \url{https://dx.doi.org/10.1037/a0020761}
 #' @references Imai K, Keele L, Tingley D, Yamamoto T (2011). \emph{Unpacking
 #'   the black box of causality: learning about causal mechanisms from
 #'   experimental and observational studies.} American Political Science Review,
-#'   105(4):765-789.
+#'   105(4):765-789. \url{https://dx.doi.org/10.1017/S0003055411000414}
 #' @references Imai K, Yamamoto T (2013). \emph{Identification
 #'   and sensitivity analysis for multiple causal mechanisms: revisiting
 #'   evidence from framing experiments.} Political Analysis, 21(2):141-171.
+#'   \url{https://dx.doi.org/10.1093/pan/mps040}
 #' @examples
 #' \dontrun{
 #' med.EglobWt.FSIQ <- brainGraph_mediate(dt.G[threshold == thresholds[5]],
