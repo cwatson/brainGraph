@@ -1,20 +1,23 @@
 #' Default options for brainGraph
 #'
+#' brainGraph is a package for performing \emph{graph theory analysis} of brain
+#' MRI data.
+#'
 #' @section Package options:
 #'
 #' brainGraph uses the following \code{\link{options}} to configure behavior:
 #' \itemize{
-#'   \item \code{bg.subject.id}: character string specifying the name your
+#'   \item \code{bg.subject_id}: character string specifying the name your
 #'     project/study uses as a subject identifier. All imported data (e.g.,
 #'     covariates tables) \emph{MUST} have a column matching this. One possible
 #'     alternative is \code{'participant_id'}, recommended by BIDS. Default:
 #'     \code{'Study.ID'}
-#'   \item \code{bg.group.id}: character string specifying the name your
+#'   \item \code{bg.group}: character string specifying the name your
 #'     project/study uses as a group identifier. All imported data (e.g.,
 #'     covariates tables) \emph{MUST} have a column matching this. One possible
 #'     alternative is \code{'group'}, recommended by BIDS. Default:
 #'     \code{'Group'}
-#'   \item \code{bg.session.id}: character string specifying the name your
+#'   \item \code{bg.session}: character string specifying the name your
 #'     project/study uses as a "time" identifier, in the case of longitudinal
 #'     studies. All imported data (e.g., covariates tables) \emph{MUST} have a
 #'     column matching this. One possible alternative is \code{'session_id'},
@@ -26,21 +29,21 @@
 #'     a journal)
 #' }
 #' @docType package
-#' @name brainGraph_options
+#' @name brainGraph-options
 NULL
 
 #TODO: think of any more that would help ("datadir"/"studydir"? "atlas"?)
-bg_default_options <- list(
-  bg.subject.id='Study.ID',
-  bg.group.id='Group',  #TODO: would this really be necessary? maybe would be nice for foreign users?
-  bg.session.id='Time',
+bg.options <- list(
+  bg.subject_id='Study.ID',
+  bg.group='Group',
+  bg.session='Time',
   bg.color.palette='rgb'  #TODO: think more about this; see if it's possible to allow only 'rgb'/'cmyk', and what to do from there
 )
 
 .onLoad <- function(libname, pkgname) {
   op <- options()
-  toset <- !(names(bg_default_options) %in% names(op))
-  if (any(toset)) options(bg_default_options[toset])
+  toset <- !(names(bg.options) %in% names(op))
+  if (any(toset)) options(bg.options[toset])
 
   invisible()
 }
