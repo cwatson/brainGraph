@@ -1,0 +1,143 @@
+---
+title: "Programming patterns for brainGraph"
+author: "Richard Beare"
+date: "15 February 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::read_chunk("mod_braingraph.R")
+```
+
+# Introduction
+
+_brainGraph_ can create network representation of brains from a range of sources, perform
+a set of standard computational analyses of the networks (efficiency, comparison to random
+graphs, etc) as well as statistical analysis.
+
+There is a thorough [document](https://cwatson.github.io/files/brainGraph_UserGuide.pdf) 
+introducing the process behind brainGraph. The approach recommended is, I think, more complicated
+than it needs to be, involving multiple nested loops that mirror the design of the experiment. Some of
+this structure is essential at the graph creation phase, but appears less important later on. The
+side effect of employing the nested structure is the need for brainGraph functions to understand
+it, increasing complexity.
+
+This document explores a programming pattern that avoids the nested structure by maintaining
+the relevant information in a companion table, allowing all steps to be performed using a single
+loop or lapply structure.
+
+The crux of the differences start in [Create brain graphs](#cbg)
+
+# Simulate data
+
+Create some test data. Each subject has a folder, there's a count file in each. There's
+nothing in the or path to specify patient groups.
+```{r SimData, message=FALSE}
+
+```
+
+# Getting started
+
+## Study design data
+
+Create R variables containing the relevant study data. Most of this is covered in the brainGraph manual.
+In this case we need a vector of filenames, and we'll also create 3 groups. We've included an index column.
+It is included to record the position in the original table later
+on.
+
+```{r StudyDesign}
+
+```
+
+Other covariates can be included here too, as described in the user guide. A useful trick, since
+the other data is usually kept in a separate table with an ID column, is to load and merge or join
+it to the study data table at this point, for example:
+
+```{r OtherStudyData, eval=FALSE}
+demographics <- readxl::read_excel("some_excel_file_with_id_column.xlsx")
+studydata <- left_join(studydata, demographics, by=c("IDNum", "StudyID"))
+```
+
+## Load data
+
+Many of the decisions in network analysis happen pretty early and involve threshold choices, and this
+leads to the complexity we're trying to reduce. Some thresholding approaches need to know about group structure
+and often we want to produce several networks with varying densities for comparison purposes. The
+data structure produced at in this first step can be complex and leads to trickier analysis code later.
+
+### Three thresholds, specifying density
+```{r LoadData3Threshold}
+
+```
+
+```{r LoadData3ThresholdStructure}
+
+```
+
+### Three thresholds, consensus thresholds
+
+Consensus and subject thresholding can be use group information, as below. Structure ends up the same as
+the previous one, but values are different.
+
+```{r LoadDataConsensus3Group}
+
+```
+
+
+
+Now we turn the networks into brain graphs. 
+```{r LoadDataConsensus3GroupStructure}
+
+```
+
+In both cases the thresholded networks are in a list of 3D arrays.
+
+## Create brain graphs {#cbg}
+
+This is where my suggestions begin.
+
+First, create a table with all the combinations of variables of interest. This replaces
+the nested loop. Fortunately there's a nice base R function to help with this:
+
+```{r CreateBrainGraphParams}
+
+```
+
+This table contains columns of indexes (which correspond to loop indexes), plus
+corresponding data that has been pulled out of our study data based on those indexes. This
+is a similar strategy to ggplot2/tidyverse - data is repeated, leading to everything
+required for computation being available on a row. Thus we can loop over rows, an/or
+parallelize using any mechanism - I like mclapply:
+
+```{r CreateBrainGraph}
+
+```
+
+## Random graphs
+
+Now that we have our brain graphs in a list that is aligned with the parameters table we
+can simplify much of the post processing code. I haven't dealt with groups in this example, or
+written data to and from disk, but that is doable. The main change is the elimination of the need
+for the helper functions to do so much checking of the nesting structure.
+
+```{r RandomGraphs}
+
+```
+
+# Other thoughts
+
+Complex structures are good when the analysis structure is fixed. However they tend to
+be a problem when analysis is more exploratory. Enumerating the choices of parameters in
+a table is a very flexible approach, and reduces the number of changes needed when
+experimental structures change. It seems unnatural if you're coming from a C/C++ background,
+but works really well in many situations. There are tools in R for creating the table easily,
+and the support functions then only need to know about tables, rather than more complex structures.
+This idea has worked well in tidyverse and could work here too.
+
+I realise that I've only addressed the first couple of steps in the analysis pipeline. I think the ideas
+are likely to be applicable to later stages. The data extraction is already producing nice tabular data.
+
+   
+
+
