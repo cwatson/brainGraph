@@ -79,16 +79,16 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   A.m.sub <- A.m[pos.vals]
 
   # Do the model fitting/estimation
-  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')$DT.lm
+  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')
 
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
   comps.obs <- vector('list', length=length(con.name))
   T.max <- p.mat <- array(0, dim=c(Nv, Nv, nC))
   compfun <- switch(alt,
-                    two.sided=function(x) {abs(x) > t(abs(x))},
-                    less=function(x) {x < t(x)},
-                    greater=function(x) {x > t(x)})
+                    two.sided=function(x) abs(x) > t(abs(x)),
+                    less=function(x) x < t(x),
+                    greater=function(x) x > t(x))
   for (j in seq_len(nC)) {
     T.mat <- matrix(0, Nv, Nv)
     if (nrow(DT.lm[contrast == j]) == 0) {
@@ -123,9 +123,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   #---------------------------------------------------------
   if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-  randMats <- setup_randomise(X, con.mat, ctype, nC)
-  comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, randMats, p.init, alt, Nv)
-
+  comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, p.init, alt, Nv)
   kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_along(con.name)) {
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
@@ -138,63 +136,6 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   out <- c(out, list(components=comps.out))
   class(out) <- c('NBS', class(out))
   return(out)
-}
-
-################################################################################
-# HELPER FUNCTION
-################################################################################
-randomise_nbs <- function(ctype, N, perms, DT, nC, skip, randMats, p.init, alt, Nv) {
-  se <- perm <- Var1 <- Var2 <- i <- value <- stat <- numer <- NULL
-  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
-
-  if (ctype == 't') {
-    statfun <- switch(alt,
-                      two.sided=function(stat, df) {abs(stat) > qt(p.init / 2, df, lower.tail=FALSE)},
-                      less=function(stat, df) {stat < qt(p.init, df)},
-                      greater=function(stat, df) {stat > qt(p.init, df, lower.tail=FALSE)})
-  } else {
-    statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
-    CMtM <- randMats$CMtM; rkC <- randMats$rkC
-  }
-  maxfun.mat <- switch(alt,
-                       two.sided=function(mat) {ifelse(abs(mat) > t(abs(mat)), mat, t(mat))},
-                       less=function(mat) {pmin(mat, t(mat))},
-                       greater=function(mat) {pmax(mat, t(mat))})
-  null.dist <- comps.perm <- vector('list', length=nC)
-  perm.order <- rep(seq_len(N), each=DT[, length(unique(interaction(Var1, Var2)))])
-
-  for (j in seq_len(nC)) {
-    if (j %in% skip) next
-    # T-contrasts
-    if (ctype == 't') {
-      null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, MtM[[j]], eC[[j]]), by=list(Var1, Var2)]
-      }
-      null.dist[[j]][, stat := gamma / se]
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][statfun(stat, dfR), list(Var1, Var2, stat, perm)]
-
-    # F-contrasts
-    } else {
-      null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, dfR, eC[[j]], rkC, CMtM), by=list(Var1, Var2)]
-      }
-      null.dist[[j]][, stat := numer / (se / dfR)]
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC, dfR), list(Var1, Var2, stat, perm)]
-    }
-
-    comps.perm[[j]] <- foreach(i=null.dist[[j]][, unique(perm)], .combine='c') %dopar% {
-      T.mat.tmp <- matrix(0, Nv, Nv)
-      T.mat.tmp[null.dist[[j]][perm == i, cbind(Var1, Var2)]] <- null.dist[[j]][perm == i, stat]
-      T.max.tmp <- maxfun.mat(T.mat.tmp)
-      max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
-    }
-    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
-    comps.perm[[j]] <- data.table(perm=comps.perm[[j]])
-  }
-  comps.perm <- rbindlist(comps.perm, idcol='contrast')
-  return(comps.perm)
 }
 
 ################################################################################
