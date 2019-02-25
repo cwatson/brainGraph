@@ -300,7 +300,7 @@ set_edge_color <- function(g, name, memb) {
 #' @return A graph object
 
 subset_graph <- function(g, subgraph) {
-  stopifnot(nchar(subgraph) > 0)
+  stopifnot(nzchar(subgraph))
   orig.class <- class(g)
   # Function for creating the condition string to later subset the graph
   get_cond_string <- function(orig) {
@@ -312,7 +312,7 @@ subset_graph <- function(g, subgraph) {
       nchars <- cumsum(sapply(substrings, nchar))
       splits <- sapply(seq_along(substrings), function(x)
                        substr(orig, start=nchars[x]+(3*x-1), stop=nchars[x]+(3*x-1)))
-      substrings <- gsub('^\\s+|\\s+$', '', substrings) # Remove unnecessary whitespace
+      substrings <- trimws(substrings) # Remove unnecessary whitespace
 
       cond.string <- paste(sapply(seq_along(substrings), function(x)
                                   paste0('V(g)$', substrings[x], splits[x])),
