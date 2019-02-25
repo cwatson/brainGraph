@@ -3,21 +3,14 @@
 #' \code{make_bgList} creates a \code{brainGraphList} object, a list containing
 #' a set of graphs for all subjects in a study at a specific threshold (or
 #' density), in addition to some graph-level attributes common to those graphs.
-#' The elements are:
-#' \itemize{
-#'   \item \code{threshold}
-#'   \item \code{version} -- the version of \code{brainGraph} used when creating
-#'     the graphs
-#'   \item \code{atlas} -- the atlas common to all the graphs
-#'   \item \code{modality} -- the imaging modality
-#'   \item \code{weighting} -- a string indicating what edge weights represent
-#'     (if applicable)
-#'   \item \code{graphs} -- the \emph{list} of graphs
-#' }
+#'
+#' In addition to creating the initial \code{igraph} graphs from the
+#' connectivity matrices, \code{\link{set_brainGraph_attr}} will be called on
+#' each graph.
 #'
 #' This object can be considered comparable to a 4-D \emph{NIfTI} file,
 #' particularly those returned by FSL's \emph{TBSS} prestats step since this
-#' contains the FA volumes for all study subjects..
+#' contains the FA volumes for all study subjects.
 #'
 #' @param A 3-D numeric array of all subjects connectivity matrices (for a
 #'   single threshold)
@@ -31,11 +24,29 @@
 #'   subsequently to \code{\link{make_brainGraph}})
 #' @export
 #'
-#' @return A list with elements
+#' @return An object of class \code{brainGraphList} with elements:
+#'   \item{threshold}{The specified threshold/density}
+#'   \item{version}{The version of \code{brainGraph} used when creating the
+#'     graphs}
+#'   \item{atlas}{The atlas common to all the graphs}
+#'   \item{modality}{The imaging modality (if supplied)}
+#'   \item{weighting}{A string indicating what edge weights represent (if
+#'     applicable)}
+#'   \item{graphs}{The \emph{list} of \code{brainGraph} graphs. The names of
+#'     this list will correspond to the Study ID's}
 #'
 #' @name brainGraphList
 #' @rdname brainGraphList
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' # Create a list, one for each threshold
+#' g <- vector('list', length(thresholds))
+#' for (i in seq_along(thresholds)) {
+#'   g[[i]] <- make_brainGraph_list(A.norm.sub[[i]], thresholds[i], atlas,
+#'       covars.dti$Study.ID, covars.dti$Group, modality='dti', weighting='fa')
+#' }
+#' }
 
 make_brainGraph_list <- function(A, threshold, atlas, study.ids=NULL, groups=NULL, ...) {
   num.subjects <- dim(A)[3]
@@ -83,10 +94,18 @@ make_brainGraph_list <- function(A, threshold, atlas, study.ids=NULL, groups=NUL
 #'
 #' @name Extract.brainGraphList
 #' @rdname brainGraphList
+#' @examples
+#' \dontrun{
+#' # Get the first 5 subjects
+#' my.bgL[1:5]
+#'
+#' # Get subjects by Study ID
+#' my.bgL[c('s003', 's008', 's054')]
+#'}
 
 `[.brainGraphList` <- function(x, i) {
   if (is.logical(i) && length(i) != length(x$graphs)) {
-    stop('Logical vector is not the correct length')
+    stop('Logical indexing vector must be of the same length as the number of graphs')
   }
   if (length(i) > 1) {
     out <- x$graphs[i]
