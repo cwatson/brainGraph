@@ -37,23 +37,25 @@
 #'
 #' @name brainGraphList
 #' @rdname brainGraphList
+#' @family Graph creation functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' # Create a list, one for each threshold
 #' g <- vector('list', length(thresholds))
 #' for (i in seq_along(thresholds)) {
-#'   g[[i]] <- make_brainGraph_list(A.norm.sub[[i]], thresholds[i], atlas,
+#'   g[[i]] <- make_brainGraphList(A.norm.sub[[i]], thresholds[i], atlas,
 #'       covars.dti$Study.ID, covars.dti$Group, modality='dti', weighting='fa')
 #' }
 #' }
 
-make_brainGraph_list <- function(A, threshold, atlas, study.ids=NULL, groups=NULL, ...) {
+make_brainGraphList <- function(A, threshold, atlas, study.ids=NULL, groups=NULL, ...) {
   num.subjects <- dim(A)[3]
   if (!is.null(study.ids)) stopifnot(length(study.ids) == num.subjects)
   if (!is.null(groups)) stopifnot(length(groups) == num.subjects)
 
-  out <- list(threshold=threshold, version=packageVersion('brainGraph'), atlas=atlas)
+  out <- list(threshold=threshold, version=packageVersion('brainGraph'), atlas=atlas,
+              rand=FALSE, modality=NULL, weighting=NULL)
 
   # Get any extra arguments
   fargs <- list(...)
@@ -113,5 +115,34 @@ make_brainGraph_list <- function(A, threshold, atlas, study.ids=NULL, groups=NUL
     out <- x$graphs[[i]]
   }
 
+  return(out)
+}
+
+#' Coerce list of graphs to a brainGraphList object
+#'
+#' \code{as_brainGraphList} will coerce a list of graphs to a
+#' \code{brainGraphList} object. It is assumed that certain "bookkeeping"
+#' attributes -- threshold, package version, brain atlas, imaging modality, edge
+#' weighting, and whether these are random graphs -- are identical for all
+#' graphs in the list. For any that are not, the vector of values will be
+#' stored; this may be an issue for downstream analysis.
+#'
+#' @param g.list List of graph objects
+#' @export
+#' @return A \code{brainGraphList} object
+#'
+#' @rdname brainGraphList
+
+as_brainGraphList <- function(g.list) {
+  if (!inherits(g.list, 'list')) g.list <- list(g.list)
+  stopifnot(all(sapply(g.list, inherits, 'brainGraph')))
+
+  #TODO: check for uniqueness, and save the vector if necessary
+  out <- list(threshold=NULL, version=g.list[[1]]$version, atlas=g.list[[1]]$atlas,
+              rand=FALSE, modality=g.list[[1]]$modality, weighting=g.list[[1]]$weighting,
+              graphs=g.list)
+  if ('threshold' %in% graph_attr_names(g.list[[1]])) out$threshold <- g.list[[1]]$threshold
+
+  class(out) <- c('brainGraphList', 'list')
   return(out)
 }

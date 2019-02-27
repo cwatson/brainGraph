@@ -188,7 +188,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
         A.norm.sub[[i]] <- tmp
       }
 
-} else if (threshold.by == 'mean') {
+    } else if (threshold.by == 'mean') {
       # Threshold: mean + 2SD > mat.thresh
       #---------------------------------
       all.mean <- rowMeans(A.norm, dims=2)
@@ -212,6 +212,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
                                    ifelse(y > thresh, y, 0)
                                  }))
   }
+  A.norm.mean <- lapply(A.norm.mean, function(x) abind(x, along=length(inds)))
 
   return(list(A=A, A.norm=A.norm, A.bin=A.bin, A.bin.sums=A.bin.sums,
               A.inds=A.inds, A.norm.sub=A.norm.sub, A.norm.mean=A.norm.mean))#,
@@ -331,9 +332,10 @@ apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
                                     ifelse(x[, , y] > 0, W[, , y], 0)),
                              dim=dim(x)))
   W.norm.mean <- lapply(seq_along(group.mats), function(x)
-                        lapply(seq_along(group.mats[[x]]), function(y)
-                               ifelse(group.mats[[x]][[y]] > 0,
+                        lapply(seq_len(dim(group.mats[[x]])[3]), function(y)
+                               ifelse(group.mats[[x]][, , y] > 0,
                                       rowMeans(W.norm.sub[[x]][, , inds[[y]]], dims=2),
                                       0)))
+  W.norm.mean <- lapply(W.norm.mean, function(x) abind(x, along=length(inds)))
   return(list(W=W, W.norm.sub=W.norm.sub, W.norm.mean=W.norm.mean))
 }
