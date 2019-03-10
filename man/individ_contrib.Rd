@@ -33,14 +33,12 @@ contributions (either \code{global} or \code{regional})}
 \item{control.value}{Integer or character string specifying the control group
 (default: 1)}
 
-\item{object}{A \code{IC} object}
+\item{object, x}{A \code{IC} object}
 
 \item{region}{Character vector of regions to plot; default is to plot for all
 regions}
 
 \item{...}{Unused}
-
-\item{x}{A \code{IC} object}
 
 \item{plot.type}{Character string indicating the type of plot; the default is
 to plot the mean (along with standard errors)}
@@ -81,10 +79,11 @@ RC <- aop(resids.all, corrs[[1]]$R, level='regional')
 }
 }
 \references{
-Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
-  Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-  from group-based structural correlations networks}. NeuroImage,
-  120:274-284. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
+Saggar, M. and Hosseini, S.M.H. and Buno, J.L. and Quintin, E.
+  and Raman, M.M. and Kesler, S.R. and Reiss, A.L. (2015) Estimating
+  individual contributions from group-based structural correlations networks.
+  \emph{NeuroImage}, \bold{120}, 274--284.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 }
 \seealso{
 Other Structural covariance network functions: \code{\link{Bootstrapping}},

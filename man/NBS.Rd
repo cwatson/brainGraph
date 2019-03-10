@@ -6,9 +6,11 @@
 \title{Network-based statistic for brain MRI data}
 \usage{
 NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL,
-  con.name = NULL, p.init = 0.001, N = 1000, perms = NULL,
-  symm.by = c("max", "min", "avg"), alternative = c("two.sided",
-  "less", "greater"), long = FALSE, ...)
+  con.name = NULL, p.init = 0.001, perm.method = c("freedmanLane",
+  "terBraak", "smith"), part.method = c("beckmann", "guttman",
+  "ridgway"), N = 1000, perms = NULL, symm.by = c("max", "min",
+  "avg"), alternative = c("two.sided", "less", "greater"),
+  long = FALSE, ...)
 
 \method{summary}{NBS}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), ...)
@@ -32,6 +34,12 @@ has row names, those will be used for reporting results (default:
 \code{NULL})}
 
 \item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
+
+\item{perm.method}{Character string indicating the permutation method
+(default: \code{'freedmanLane'})}
+
+\item{part.method}{Character string; the method of partitioning the design
+matrix into covariates of interest and nuisance (default: \code{beckmann})}
 
 \item{N}{Integer; number of permutations to create (default: 5e3)}
 
@@ -60,8 +68,8 @@ to showing results for all contrasts}
 An object of class \code{NBS} with some input arguments in addition
   to:
   \item{X}{The design matrix}
-  \item{removed}{Character vector of subject ID's removed due to incomplete
-    data (if any)}
+  \item{removed.subs}{Character vector of subject ID's removed due to
+    incomplete data (if any)}
   \item{T.mat}{3-d array of (symmetric) numeric matrices containing the
     statistics for each edge}
   \item{p.mat}{3-d array of (symmetric) numeric matrices containing the
@@ -91,9 +99,10 @@ max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 }
 }
 \references{
-Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
-  statistic: identifying differences in brain networks}. NeuroImage,
-  53(4):1197-1207. \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
+Zalesky, A. and Fornito,  A. and Bullmore, E.T. (2010)
+  Network-based statistic: identifying differences in brain networks.
+  \emph{NeuroImage}, \bold{53(4)}, 1197--1207.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
 }
 \seealso{
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}

@@ -55,8 +55,8 @@
 #'
 #' @return An object of class \code{bg_mediate} with elements:
 #'   \item{level}{Either \code{graph} or \code{vertex}.}
-#'   \item{removed}{A character vector of Study.ID's removed due to incomplete
-#'     data}
+#'   \item{removed.subs}{A character vector of Study.ID's removed due to
+#'     incomplete data}
 #'   \item{X.m, X.y}{Design matrices for the model with the mediator as the
 #'     outcome variable (\code{X.m}) and for the model with the mediator as an
 #'     additional predictor (\code{X.y})}
@@ -93,24 +93,25 @@
 #' @rdname mediation
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Tingley D, Yamamoto T, Hirose K, Keele L, Imai K (2014).
-#'   \emph{mediation: R package for causal mediation analysis.} Journal of
-#'   Statistical Software, 59(5):1-38.
+#' @references Tingley, D. and Yamamoto, T. and Hirose, K. and Keele, L. and
+#'   Imai, K. (2014) mediation: R package for causal mediation analysis.
+#'   \emph{Journal of Statistical Software}, \bold{59(5)}, 1--38.
 #'   \url{https://dx.doi.org/10.18637/jss.v059.i05}
-#' @references Imai K, Keele L, Yamamoto T (2010). \emph{Identification,
-#'   inference, and sensitivity analysis for causal mediation effects.}
-#'   Statistical Science, 25(1):51-71.
+#' @references Imai, K. and Keele, L. and Yamamoto, T. (2010) Identification
+#'   inference, and sensitivity analysis for causal mediation effects.
+#'   \emph{Statistical Science}, \bold{25(1)}, 51--71.
 #'   \url{https://dx.doi.org/10.1214/10-STS321}
-#' @references Imai K, Keele L, Tingley D (2010). \emph{A general approach to
-#'   causal mediation analysis.} Psychological Methods, 15(4):309-334.
-#'   \url{https://dx.doi.org/10.1037/a0020761}
-#' @references Imai K, Keele L, Tingley D, Yamamoto T (2011). \emph{Unpacking
-#'   the black box of causality: learning about causal mechanisms from
-#'   experimental and observational studies.} American Political Science Review,
-#'   105(4):765-789. \url{https://dx.doi.org/10.1017/S0003055411000414}
-#' @references Imai K, Yamamoto T (2013). \emph{Identification
-#'   and sensitivity analysis for multiple causal mechanisms: revisiting
-#'   evidence from framing experiments.} Political Analysis, 21(2):141-171.
+#' @references Imai, K. and Keele, L. and Tingley, D. (2010) A general approach
+#'   to causal mediation analysis. \emph{Psychological Methods}, \bold{15(4)},
+#'   309--334. \url{https://dx.doi.org/10.1037/a0020761}
+#' @references Imai, K. and Keele, L. and Tingley, D. and Yamamoto, T. (2011)
+#'   Unpacking the black box of causality: learning about causal mechanisms from
+#'   experimental and observational studies. \emph{American Political Science
+#'   Review}, \bold{105(4)}, 765--789.
+#'   \url{https://dx.doi.org/10.1017/S0003055411000414}
+#' @references Imai, K. and Yamamoto, T. (2013) Identification and sensitivity
+#'   analysis for multiple causal mechanisms: revisiting evidence from framing
+#'   experiments. \emph{Political Analysis}, \bold{21(2)}, 141--171.
 #'   \url{https://dx.doi.org/10.1093/pan/mps040}
 #' @examples
 #' \dontrun{
@@ -200,7 +201,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
 
   if (!isTRUE(long)) res_boot <- NULL
 
-  out <- list(level=level, removed=incomp, X.m=X.m, X.y=X.y, y.m=y.m, y.y=y.y,
+  out <- list(level=level, removed.subs=incomp, X.m=X.m, X.y=X.y, y.m=y.m, y.y=y.y,
               res.obs=res_obs, res.ci=res_ci, res.p=res_p,
               boot=boot, boot.ci.type=boot.ci.type, res.boot=res_boot,
               treat=treat, mediator=mediator, outcome=outcome, covariates=NULL, INT=int,
@@ -391,8 +392,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL
-  title <- paste('brainGraph mediation results')
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  print_title_summary('brainGraph mediation results')
   cat('# of observations: ', x$nobs, '\n')
   cat('Level: ', x$level, '\n')
   cat('Mediator: ', x$mediator, '\n')

@@ -36,13 +36,11 @@ value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
 
 \item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
 
-\item{x}{A \code{brainGraph_resids} object}
+\item{x, object}{A \code{brainGraph_resids} object}
 
 \item{i}{Numeric vector of the indices}
 
 \item{g}{Character string indicating the group (default: \code{NULL})}
-
-\item{object}{A \code{brainGraph_resids} object}
 
 \item{regions}{Character vector of region(s) to focus on; default behavior is
 to show summary for all regions}

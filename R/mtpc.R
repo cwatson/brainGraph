@@ -57,10 +57,11 @@
 #' @family Group analysis functions
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
-#'   DK (2015). \emph{Overcoming the effects of false positives and threshold
-#'   bias in graph theoretical analyses of neuroimaging data.} NeuroImage,
-#'   118:313-333. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
+#' @references Drakesmith, M. and Caeyenberghs, K. and Dutt, A. and Lewis, G. and
+#'   David, A.S. and Jones, D.K. (2015) Overcoming the effects of false
+#'   positives and threshold bias in graph theoretical analyses of neuroimaging
+#'   data. \emph{NeuroImage}, \bold{118}, 313--333.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
 #' @examples
 #' \dontrun{
 #' diffs.mtpc <- mtpc(g.list=g.norm, thresholds=thresholds, N=N,
@@ -71,8 +72,10 @@
 #' }
 
 mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', 'f'),
-                 con.name=NULL, level=c('vertex', 'graph'),
-                 clust.size=3L, N=500L, perms=NULL, alpha=0.05, res.glm=NULL, long=TRUE, ...) {
+                 outcome=NULL, con.name=NULL, level=c('vertex', 'graph'),
+                 clust.size=3L, perm.method=c('freedmanLane', 'terBraak', 'smith'),
+                 part.method=c('beckmann', 'guttman', 'ridgway'), N=500L, perms=NULL,
+                 alpha=0.05, res.glm=NULL, long=TRUE, ...) {
   A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
   stopifnot(all(lengths(g.list) == length(thresholds)))
   if (is.null(perms)) perms <- shuffleSet(n=sum(vapply(g.list, function(x) length(x[[1]]), numeric(1))), nset=N)
@@ -80,8 +83,9 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   g.list <- do.call(Map, c(c, g.list))
   if (is.null(res.glm)) {
     res.glm <- lapply(g.list, function(z)
-      brainGraph_GLM(z, covars, measure, con.mat, con.type, con.name=con.name, N=N,
-                     level=level, permute=TRUE, perms=perms, alpha=alpha, long=TRUE, ...))
+      brainGraph_GLM(z, covars, measure, con.mat, con.type, outcome, con.name=con.name, N=N,
+                     level=level, permute=TRUE, perm.method=perm.method, part.method=part.method,
+                     perms=perms, alpha=alpha, long=TRUE, ...))
   }
   alt <- res.glm[[1]]$alt
   for (i in seq_along(thresholds)) res.glm[[i]]$DT[, threshold := thresholds[i]]
@@ -89,14 +93,15 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   setkey(mtpc.all, contrast, region)
   mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
+  con.type <- match.arg(con.type)
   kNumContrasts <- ifelse(con.type == 't', nrow(res.glm[[1]]$con.mat), 1)
   null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
   Scrit <- Acrit <- rep(0, kNumContrasts)
-  maxfun <- switch(alt, two.sided=function(x) {max(abs(x))}, less=min, greater=max)
+  maxfun <- switch(alt, two.sided=function(x) max(abs(x)), less=min, greater=max)
   sortfun <- switch(alt,
-                    two.sided=function(x) {sort(abs(x))},
-                    less=function(x) {sort(x, decreasing=TRUE)},
-                    greater=function(x) {sort(x)})
+                    two.sided=function(x) sort(abs(x)),
+                    less=function(x) sort(x, decreasing=TRUE),
+                    greater=function(x) sort(x))
   for (i in seq_len(kNumContrasts)) {
     null.dist.all[[i]] <- vapply(res.glm, function(x) x$perm$null.dist[contrast == i, V1], numeric(N))
     null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, maxfun)
@@ -105,9 +110,9 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   }
 
   rlefun <- switch(alt,
-                   two.sided=function(x, y) {rle(abs(x) > abs(y))},
-                   less=function(x, y) {rle(x < y)},
-                   greater=function(x, y) {rle(x > y)})
+                   two.sided=function(x, y) rle(abs(x) > abs(y)),
+                   less=function(x, y) rle(x < y),
+                   greater=function(x, y) rle(x > y))
   crit.regions <- mtpc.all[, rlefun(stat, S.crit), by=key(mtpc.all)][values == TRUE & lengths >= clust.size, list(region=unique(region)), by=contrast]
   setkey(crit.regions, contrast, region)
   mtpc.all[crit.regions,
@@ -115,9 +120,9 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
            by=list(contrast, region)]
 
   maxobsfun <- switch(alt,
-                      two.sided=function(x) {max(is.finite(abs(x)) * abs(x), na.rm=TRUE)},
-                      less=function(x) {min(is.finite(x) * x, na.rm=TRUE)},
-                      greater=function(x) {max(is.finite(x) * x, na.rm=TRUE)})
+                      two.sided=function(x) max(is.finite(abs(x)) * abs(x), na.rm=TRUE),
+                      less=function(x) min(is.finite(x) * x, na.rm=TRUE),
+                      greater=function(x) max(is.finite(x) * x, na.rm=TRUE))
   S.mtpc <- mtpc.all[, maxobsfun(stat), by=contrast]
   S.mtpc <- S.mtpc[, unique(V1), by=contrast]
   tau.mtpc <- mtpc.all[stat %in% S.mtpc$V1, threshold, by=contrast]
@@ -140,7 +145,8 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
                            S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
 
   if (isTRUE(long)) null.out <- null.dist.all
-  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms))
+  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms,
+                          perm.method=glm.attr$perm.method, part.method=glm.attr$part.method))
   class(out) <- c('mtpc', class(out))
   return(out)
 }
@@ -155,9 +161,9 @@ auc_rle <- function(t.stat, S.crit, thresholds, alt, clust.size) {
 
 get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
   compfun <- switch(alt,
-                    two.sided=function(x, y) {rle(abs(x) > abs(y))},
-                    less=function(x, y) {rle(x < y)},
-                    greater=function(x, y) {rle(x > y)})
+                    two.sided=function(x, y) rle(abs(x) > abs(y)),
+                    less=function(x, y) rle(x < y),
+                    greater=function(x, y) rle(x > y))
   runs <- compfun(t.stat, S.crit)
   myruns <- which(runs$values == TRUE & runs$lengths >= clust.size)
   runs.len.cumsum <- cumsum(runs$lengths)
@@ -174,7 +180,7 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
 
 #' Print a summary of MTPC results
 #'
-#' @param object A \code{mtpc} object
+#' @param object,x A \code{mtpc} object
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @method summary mtpc
@@ -187,7 +193,7 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
   object$print.head <- print.head
 
   # Summary table
-  whichmaxfun <- switch(object$alt, two.sided=function(x) {which.max(abs(x))}, less=which.min, greater=which.max)
+  whichmaxfun <- switch(object$alt, two.sided=function(x) which.max(abs(x)), less=which.min, greater=which.max)
   DT.sum <- object$DT[A.mtpc > A.crit, .SD[whichmaxfun(is.finite(stat) * stat)], by=list(contrast, region)]
   DT.sum <- DT.sum[, c('region', 'contrast', 'stat', 'Outcome', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
   setcolorder(DT.sum, c('Outcome', 'Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
@@ -196,7 +202,7 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
   object$DT.sum <- DT.sum
 
   class(object) <- c('summary.mtpc', class(object))
-  object
+  return(object)
 }
 
 #' @aliases summary.mtpc
@@ -205,22 +211,17 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
 
 print.summary.mtpc <- function(x, ...) {
   A.mtpc <- A.crit <- contrast <- region <- NULL
-  title <- paste('MTPC results')
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  print_title_summary('MTPC results')
   cat('Level: ', x$level, '\n')
-  cat('Graph metric of interest: ', x$outcome, '\n')
-  cat('# of permutations: ', prettyNum(x$N, ','), '\n')
+
+  print_measure_summary(x)
+  print_permutation_summary(x)
+
   cat('# of thresholds: ', length(x$res.glm), '\n')
   cat('Cluster size (across thresholds): ', x$clust.size, '\n\n')
 
-  cat('Contrast type: ', paste(toupper(x$con.type), 'contrast'), '\n')
-  alt <- switch(x$alt,
-                two.sided='C != 0',
-                greater='C > 0',
-                less='C < 0')
-  cat('Alternative hypothesis: ', alt, '\n')
-  cat('Contrast matrix: ', '\n')
-  print(x$con.mat)
+  print_contrast_type_summary(x)
+  print_subs_summary(x)
 
   message('\n', 'Statistics', '\n', rep('-', 20))
   clp <- 100 * (1 - x$alpha)
@@ -232,24 +233,7 @@ print.summary.mtpc <- function(x, ...) {
   cat('\n')
 
   # Print results for each contrast
-  if (is.null(x$contrast)) {
-    contrast <- x$DT[, unique(contrast)]
-  } else {
-    contrast <- x$contrast
-  }
-  for (i in contrast) {
-    message(x$con.name[i])
-    if (nrow(x$DT.sum[contrast == i]) == 0) {
-      message('\tNo signficant results!\n')
-    } else {
-      if (isTRUE(x$print.head)) {
-        print(x$DT.sum[contrast == i, !c('Contrast', 'contrast')], topn=5, nrows=10, digits=x$digits)
-      } else {
-        print(x$DT.sum[contrast == i, !c('Contrast', 'contrast')], digits=x$digits)
-      }
-      cat('\n')
-    }
-  }
+  print_contrast_stats_summary(x)
 
   invisible(x)
 }
@@ -259,7 +243,6 @@ print.summary.mtpc <- function(x, ...) {
 #' Plot the statistics from an MTPC analysis, along with the maximum permuted
 #' statistics. The output is similar to Figure 11 in Drakesmith et al. (2015).
 #'
-#' @param x A \code{mtpc} object
 #' @param only.sig.regions Logical indicating whether to plot only significant
 #'   regions (default: \code{TRUE})
 #' @param show.null Logical indicating whether to plot points of the maximum
@@ -293,8 +276,8 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
   DT[, stat_ribbon := stat]  # For filling in supra-threshold areas
   thresholds <- DT[, unique(threshold)]
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
-  whichmaxfun <- switch(x$alt, two.sided=function(y) {which.max(abs(y))}, less=which.min, greater=which.max)
-  maxfun <- switch(x$alt, two.sided=function(y) {max(abs(y), na.rm=TRUE)}, less=min, greater=max)
+  whichmaxfun <- switch(x$alt, two.sided=function(y) which.max(abs(y)), less=which.min, greater=which.max)
+  maxfun <- switch(x$alt, two.sided=function(y) max(abs(y), na.rm=TRUE), less=min, greater=max)
   thr <- apply(x$null.dist[[mycontrast]], 1, whichmaxfun)
   thr.y <- apply(x$null.dist[[mycontrast]], 1, maxfun)
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)

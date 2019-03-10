@@ -3,12 +3,17 @@
 \name{GLMhelpers}
 \alias{GLMhelpers}
 \alias{setup_glm}
+\alias{contrast_names}
 \alias{glm_fit_helper}
 \title{Helper function to set-up for GLM analyses}
 \usage{
-setup_glm(covars, X, con.mat, con.type, con.name, ...)
+setup_glm(covars, X, con.mat, con.type, con.name, measure, outcome, DT.y.m,
+  level, ...)
 
-glm_fit_helper(DT, X, con.type, con.mat, alt, measure, mykey)
+contrast_names(con.mat, con.type, con.name)
+
+glm_fit_helper(DT, X, con.type, con.mat, alt, outcome, mykey,
+  alpha = NULL)
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
@@ -26,22 +31,37 @@ F-statistics). Default: \code{'t'}}
 has row names, those will be used for reporting results (default:
 \code{NULL})}
 
+\item{measure}{Character string of the graph measure of interest}
+
+\item{outcome}{Character string specifying the name of the outcome variable,
+if it differs from the graph metric (\code{measure})}
+
+\item{DT.y.m}{A \code{data.table} containing the outcome variable and
+\code{Study.ID}}
+
+\item{level}{Character string; either \code{vertex} (default) or
+\code{graph}}
+
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 
-\item{DT}{A data.table with all the necessary data}
-
-\item{measure}{Character string of the graph measure of interest}
+\item{DT}{A data.table with all the necessary data; namely, \code{Study.ID},
+\code{region} (which is just \code{graph} if \code{level='graph'}), and the
+outcome measure(s)}
 
 \item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
 analyses)}
+
+\item{alpha}{Numeric; the significance level (default: 0.05)}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses
 the main GLM functionality in \code{brainGraph}.
+
+Simple helper function to generate contrast names for GLM functions.
 }
 \details{
-This function performs several tasks: it removes unused levels from
-\code{covars}, removes subjects with incomplete data, creates a design matrix
-(if not supplied), and supplies names to the contrast matrix.
+This function: removes unused levels from \code{covars} and \code{DT.y.m},
+removes subjects with incomplete data, creates a design matrix (if not
+supplied), and supplies names to the contrast matrix.
 }
 \keyword{internal}
