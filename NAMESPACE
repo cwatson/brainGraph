@@ -1,4 +1,4 @@
-S3method('[',brainGraph_resids)
+S3method("[",brainGraph_resids)
 S3method(plot,IC)
 S3method(plot,bg_GLM)
 S3method(plot,brainGraph)
@@ -98,7 +98,7 @@ export(write_brainnet)
 export(xfm.weights)
 
 importFrom(Hmisc,rcorr)
-importFrom(MASS,Null)
+importFrom(MASS,Null,ginv)
 importFrom(Matrix,colSums,rowSums)
 importFrom(RcppEigen,fastLmPure)
 importFrom(abind,abind)
@@ -121,7 +121,7 @@ importFrom(grDevices, adjustcolor, dev.copy, dev.cur, dev.list, dev.new,
   dev.off, dev.set, nclass.FD, png, gray)
 importFrom(methods, hasArg)
 importFrom(stats, as.dist, as.formula, complete.cases, density, lm, p.adjust, pf,
-  pnorm, ppoints, printCoefmat, pt, qf, qnorm, qt, quantile, resid, rnorm, sd, t.test, wilcox.test)
+  pnorm, ppoints, printCoefmat, pt, qf, qnorm, qt, quantile, resid, rnorm, sd, setNames, t.test, wilcox.test)
 importFrom(tools,toTitleCase)
 importFrom(utils, combn, data, flush.console, head, packageVersion,
   setTxtProgressBar, tail, txtProgressBar, write.table)

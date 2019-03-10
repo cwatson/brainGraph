@@ -35,12 +35,9 @@ intervals (default: 0.95)}
 \item{xfm.type}{Character string specifying how to transform the weights
 (default: \code{1/w})}
 
-\item{object}{A \code{brainGraph_boot} object (from
-\code{\link{brainGraph_boot}})}
+\item{object, x}{A \code{brainGraph_boot} object}
 
 \item{...}{Unused}
-
-\item{x}{A \code{\link{brainGraph_boot}} object}
 
 \item{alpha}{A numeric indicating the opacity for
 \code{\link[ggplot2]{geom_ribbon}}}

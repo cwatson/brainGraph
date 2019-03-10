@@ -211,7 +211,7 @@ permute_other_foreach <- function(perms, densities, resids, groups, .function) {
 
 #' Print a summary from a permutation analysis
 #'
-#' @param object A \code{brainGraph_permute} object (output by
+#' @param object,x A \code{brainGraph_permute} object (output by
 #'   \code{\link{brainGraph_permute}}).
 #' @param p.sig Character string specifying which p-value to use for displaying
 #'   significant results (default: \code{p})
@@ -356,7 +356,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
 #' @method print summary.brainGraph_permute
 
 print.summary.brainGraph_permute <- function(x, ...) {
-  message('\nPermutation analysis\n', rep('-', getOption('width') / 2))
+  print_title_summary('Permutation analysis')
   cat('# of permutations:', prettyNum(x$N, ','), '\n')
   cat('Level: ', x$level, '\n')
   cat('Graph metric: ', x$meas.full, '\n')
@@ -378,8 +378,6 @@ print.summary.brainGraph_permute <- function(x, ...) {
 
 #' Plot results from permutation testing
 #'
-#' @param x A \code{brainGraph_permute} object (output by
-#'   \code{\link{brainGraph_permute}}).
 #' @param ptitle Character string specifying a title for the plot (default:
 #'   \code{NULL})
 #' @export

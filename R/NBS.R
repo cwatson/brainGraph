@@ -25,8 +25,8 @@
 #' @return An object of class \code{NBS} with some input arguments in addition
 #'   to:
 #'   \item{X}{The design matrix}
-#'   \item{removed}{Character vector of subject ID's removed due to incomplete
-#'     data (if any)}
+#'   \item{removed.subs}{Character vector of subject ID's removed due to
+#'     incomplete data (if any)}
 #'   \item{T.mat}{3-d array of (symmetric) numeric matrices containing the
 #'     statistics for each edge}
 #'   \item{p.mat}{3-d array of (symmetric) numeric matrices containing the
@@ -37,16 +37,19 @@
 #' @family Group analysis functions
 #' @seealso \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Zalesky A., Fornito A., Bullmore E.T. (2010) \emph{Network-based
-#'   statistic: identifying differences in brain networks}. NeuroImage,
-#'   53(4):1197-1207. \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
+#' @references Zalesky, A. and Fornito,  A. and Bullmore, E.T. (2010)
+#'   Network-based statistic: identifying differences in brain networks.
+#'   \emph{NeuroImage}, \bold{53(4)}, 1197--1207.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
 #' @examples
 #' \dontrun{
 #' max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 #' }
 
 NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
-                p.init=0.001, N=1e3, perms=NULL, symm.by=c('max', 'min', 'avg'),
+                p.init=0.001, perm.method=c('freedmanLane', 'terBraak', 'smith'),
+                part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
+                perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
   skip <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
   stopifnot(dim(A)[3] == nrow(covars))
@@ -56,7 +59,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, ...)
+  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
   covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
   con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name; nC <- glmSetup$nC
 
@@ -79,7 +82,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   A.m.sub <- A.m[pos.vals]
 
   # Do the model fitting/estimation
-  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, 'value', 'Var1,Var2')
+  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, outcome='value', mykey='Var1,Var2')
 
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
@@ -111,8 +114,11 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   }
   comps.obs <- rbindlist(comps.obs, idcol='contrast')
 
+  part.method <- match.arg(part.method)
+  perm.method <- match.arg(perm.method)
   out <- list(X=X, p.init=p.init, con.type=ctype, con.mat=con.mat, con.name=con.name,
-              alt=alt, N=N, removed=incomp, T.mat=T.max, p.mat=p.mat)
+              alt=alt, N=N, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
+              perm.method=perm.method, part.method=part.method)
   if (length(skip) == length(con.name)) {
     out <- c(out, list(components=list(observed=comps.obs, permuted=NULL)))
     class(out) <- c('NBS', class(out))
@@ -123,7 +129,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   #---------------------------------------------------------
   if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-  comps.perm <- randomise_nbs(ctype, N, perms, A.m.sub, nC, skip, p.init, alt, Nv)
+  comps.perm <- randomise_nbs(perm.method, part.method, ctype, N, perms, A.m.sub, nC, skip, p.init, X, con.mat, alt, Nv)
   kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_along(con.name)) {
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
@@ -177,7 +183,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
     if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
     nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
   }
-  nbs.sum <- list(contrast=contrast, res.nbs=object, DT.sum=nbs.dt, digits=digits)
+  nbs.sum <- c(object, list(contrast=contrast, DT.sum=nbs.dt, digits=digits))
   class(nbs.sum) <- c('summary.NBS', class(nbs.sum))
   return(nbs.sum)
 }
@@ -187,21 +193,13 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
 
 print.summary.NBS <- function(x, ...) {
   `p-value` <- `# edges` <- csize <- p.perm <- NULL
-  title <- 'Network-based statistic results'
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
-  cat('Number of permutations: ', prettyNum(x$res.nbs$N, ','), '\n')
-  cat('Initial p-value: ', x$res.nbs$p.init, '\n\n')
+  print_title_summary('Network-based statistic results')
+  print_permutation_summary(x)
 
-  cat('Contrast type: ', paste(toupper(x$res.nbs$con.type), 'contrast'), '\n')
-  alt <- switch(x$res.nbs$alt,
-                two.sided='C != 0',
-                greater='C > 0',
-                less='C < 0')
-  cat('Alternative hypothesis: ', alt, '\n')
-  cat('Contrast matrix: ', '\n')
-  print(x$res.nbs$con.mat)
+  cat('Initial p-value: ', x$p.init, '\n\n')
 
-  if (length(x$res.nbs$removed) != 0) cat('\nSubjects removed due to incomplete data:\n', x$res.nbs$removed, '\n')
+  print_contrast_type_summary(x)
+  print_subs_summary(x)
 
   xdt <- x$DT.sum[csize > 1]
   setnames(xdt, c('csize', 'ecount'), c('# vertices', '# edges'))
@@ -217,7 +215,7 @@ print.summary.NBS <- function(x, ...) {
   }
 
   for (i in contrast) {
-    message(x$res.nbs$con.name[i])
+    message(x$con.name[i])
     if (nrow(xdt[contrast == i]) == 0) {
       message('\tNo signficant results!\n')
     } else {

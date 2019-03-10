@@ -46,7 +46,7 @@ For the \code{summary} method, this is to focus on a single
 
 \item{.function}{A custom function you can pass if \code{level='other'}}
 
-\item{object}{A \code{brainGraph_permute} object (output by
+\item{object, x}{A \code{brainGraph_permute} object (output by
 \code{\link{brainGraph_permute}}).}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test
@@ -58,9 +58,6 @@ For the \code{summary} method, this is to focus on a single
 significant results (default: \code{p})}
 
 \item{...}{Unused}
-
-\item{x}{A \code{brainGraph_permute} object (output by
-\code{\link{brainGraph_permute}}).}
 
 \item{ptitle}{Character string specifying a title for the plot (default:
 \code{NULL})}

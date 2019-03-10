@@ -31,10 +31,11 @@
 #' }
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
-#'   Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-#'   from group-based structural correlations networks}. NeuroImage,
-#'   120:274-284. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
+#' @references Saggar, M. and Hosseini, S.M.H. and Buno, J.L. and Quintin, E.
+#'   and Raman, M.M. and Kesler, S.R. and Reiss, A.L. (2015) Estimating
+#'   individual contributions from group-based structural correlations networks.
+#'   \emph{NeuroImage}, \bold{120}, 274--284.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL
@@ -155,7 +156,7 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
 #' The \code{summary} method prints the group/region-wise means and standard
 #' deviations.
 #'
-#' @param object A \code{IC} object
+#' @param object,x A \code{IC} object
 #' @param region Character vector of regions to plot; default is to plot for all
 #'   regions
 #' @param ... Unused
@@ -193,8 +194,7 @@ summary.IC <- function(object, region=NULL, ...) {
 
 print.summary.IC <- function(x, ...) {
   Group <- region <- IC <- NULL
-  title <- 'Individual contributions'
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  print_title_summary('Individual contributions')
   cat('Method: ', x$method, '\n')
   cat('Level: ', x$level, '\n\n')
 
@@ -217,7 +217,6 @@ print.summary.IC <- function(x, ...) {
 #' estimates, and plots the average regional contribution for each
 #' vertex/region.
 #'
-#' @param x A \code{IC} object
 #' @param plot.type Character string indicating the type of plot; the default is
 #'   to plot the mean (along with standard errors)
 #' @export

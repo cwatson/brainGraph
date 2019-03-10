@@ -156,7 +156,7 @@ rstudent_mat <- function(lmvars, y) {
 #' numeric vector. However, this is used in bootstrap and permutation analysis
 #' and should generally not be called directly by the user.
 #'
-#' @param x A \code{brainGraph_resids} object
+#' @param x,object A \code{brainGraph_resids} object
 #' @param i Numeric vector of the indices
 #' @param g Character string indicating the group (default: \code{NULL})
 #' @export
@@ -180,7 +180,6 @@ rstudent_mat <- function(lmvars, y) {
 #' The \code{summary} method prints the number of outliers per region, and the
 #' number of times a given subject was an outlier (i.e., across regions).
 #'
-#' @param object A \code{brainGraph_resids} object
 #' @param regions Character vector of region(s) to focus on; default behavior is
 #'   to show summary for all regions
 #' @export
@@ -214,8 +213,7 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
 #' @keywords internal
 
 print.summary.brainGraph_resids <- function(x, ...) {
-  title <- 'Structural covariance residuals'
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  print_title_summary('Structural covariance residuals')
   cat('Number of outliers per region: (sorted in descending order)\n')
   print(sort(x$outliers$region, decreasing=TRUE))
 

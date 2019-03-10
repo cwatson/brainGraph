@@ -7,9 +7,11 @@
 \title{Multi-threshold permutation correction}
 \usage{
 mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
-  "f"), con.name = NULL, level = c("vertex", "graph"),
-  clust.size = 3L, N = 500L, perms = NULL, alpha = 0.05,
-  res.glm = NULL, long = TRUE, ...)
+  "f"), outcome = NULL, con.name = NULL, level = c("vertex",
+  "graph"), clust.size = 3L, perm.method = c("freedmanLane",
+  "terBraak", "smith"), part.method = c("beckmann", "guttman",
+  "ridgway"), N = 500L, perms = NULL, alpha = 0.05, res.glm = NULL,
+  long = TRUE, ...)
 
 \method{summary}{mtpc}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), print.head = TRUE, ...)
@@ -35,6 +37,9 @@ only one contrast is desired, you can supply a vector}
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
 
+\item{outcome}{Character string specifying the name of the outcome variable,
+if it differs from the graph metric (\code{measure})}
+
 \item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
 has row names, those will be used for reporting results (default:
 \code{NULL})}
@@ -45,6 +50,12 @@ has row names, those will be used for reporting results (default:
 \item{clust.size}{Integer indicating the size of "clusters" (i.e.,
 consecutive thresholds for which the observed statistic exceeds the null)
 (default: \code{3L})}
+
+\item{perm.method}{Character string indicating the permutation method
+(default: \code{'freedmanLane'})}
+
+\item{part.method}{Character string; the method of partitioning the design
+matrix into covariates of interest and nuisance (default: \code{beckmann})}
 
 \item{N}{Integer; number of permutations to create (default: 5e3)}
 
@@ -63,7 +74,7 @@ results (default: \code{FALSE})}
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM}} and/or
 \code{\link{brainGraph_GLM_design}}}
 
-\item{object}{A \code{mtpc} object}
+\item{object, x}{A \code{mtpc} object}
 
 \item{contrast}{Integer specifying the contrast to plot/summarize; defaults
 to showing results for all contrasts}
@@ -72,8 +83,6 @@ to showing results for all contrasts}
 
 \item{print.head}{Logical indicating whether or not to print only the first
 and last 5 rows of the statistics tables (default: \code{TRUE})}
-
-\item{x}{A \code{mtpc} object}
 
 \item{region}{Character string specifying which region's results to
 plot; only relevant if \code{level='vertex'} (default: \code{NULL})}
@@ -152,10 +161,11 @@ ggsave('mtpc.pdf', ml)
 }
 }
 \references{
-Drakesmith M, Caeyenberghs K, Dutt A, Lewis G, David AS, Jones
-  DK (2015). \emph{Overcoming the effects of false positives and threshold
-  bias in graph theoretical analyses of neuroimaging data.} NeuroImage,
-  118:313-333. \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
+Drakesmith, M. and Caeyenberghs, K. and Dutt, A. and Lewis, G. and
+  David, A.S. and Jones, D.K. (2015) Overcoming the effects of false
+  positives and threshold bias in graph theoretical analyses of neuroimaging
+  data. \emph{NeuroImage}, \bold{118}, 313--333.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},

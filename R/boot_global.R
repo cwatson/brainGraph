@@ -112,8 +112,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 
 #' Print a summary from a bootstrap analysis
 #'
-#' @param object A \code{brainGraph_boot} object (from
-#'   \code{\link{brainGraph_boot}})
+#' @param object,x A \code{brainGraph_boot} object
 #' @importFrom boot boot.ci
 #' @export
 #' @method summary brainGraph_boot
@@ -152,7 +151,7 @@ summary.brainGraph_boot <- function(object, ...) {
 #' @method print summary.brainGraph_boot
 
 print.summary.brainGraph_boot <- function(x, ...) {
-  message('Bootstrap analysis\n', rep('-', getOption('width') / 2))
+  print_title_summary('Bootstrap analysis')
   cat('Graph metric: ', x$meas.full, '\n')
   cat('Number of bootstrap samples generated: ', x$R, '\n')
   conf.pct <- 100 * x$conf
@@ -167,7 +166,6 @@ print.summary.brainGraph_boot <- function(x, ...) {
 #' regions based on the standard error, and the other based on confidence
 #' intervals (calculated using the normal approximation.
 #'
-#' @param x A \code{\link{brainGraph_boot}} object
 #' @param ... Unused
 #' @param alpha A numeric indicating the opacity for
 #'   \code{\link[ggplot2]{geom_ribbon}}
