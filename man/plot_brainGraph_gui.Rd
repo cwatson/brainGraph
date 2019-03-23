@@ -15,12 +15,12 @@ vertex- and edge-level attributes (set by
 \code{\link{set_brainGraph_attr}}).
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
+Other Plotting functions: \code{\link{plot.brainGraphList}},
+  \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot.brainGraph_NBS}},
   \code{\link{plot.brainGraph_mediate}},
   \code{\link{plot.brainGraph_mtpc}},
   \code{\link{plot.brainGraph}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \concept{Plotting functions}

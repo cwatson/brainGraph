@@ -2,15 +2,9 @@
 % Please edit documentation in R/plot_brainGraph.R
 \name{plot.brainGraph}
 \alias{plot.brainGraph}
-\alias{plot_brainGraph}
 \title{Plot a brain graph with a specific spatial layout}
 \usage{
 \method{plot}{brainGraph}(x, plane = c("axial", "sagittal", "circular"),
-  hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
-  rescale = FALSE, asp = 0, main = NULL, subt = "default",
-  mni = TRUE, ...)
-
-plot_brainGraph(x, plane = c("axial", "sagittal", "circular"),
   hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
   rescale = FALSE, asp = 0, main = NULL, subt = "default",
   mni = TRUE, ...)
@@ -65,12 +59,12 @@ plot(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
 }
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
+Other Plotting functions: \code{\link{plot.brainGraphList}},
+  \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot.brainGraph_NBS}},
   \code{\link{plot.brainGraph_mediate}},
   \code{\link{plot.brainGraph_mtpc}},
   \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \author{

@@ -10,7 +10,7 @@
 \title{Linear model residuals in structural covariance networks}
 \usage{
 get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
-  use.mean = FALSE, exclude.cov = NULL, ...)
+  use.mean = FALSE, exclude.cov = NULL, atlas = NULL, ...)
 
 \method{[}{brainGraph_resids}(x, i, g = NULL)
 
@@ -20,19 +20,21 @@ get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
 }
 \arguments{
 \item{dt.vol}{A \code{data.table} containing all the volumetric measure of
-interest (i.e., the object \code{lhrh} as ouptut by
-\code{\link{brainGraph_init}})}
+interest (i.e., the object \code{lhrh} as output by
+\code{\link{import_scn}})}
 
 \item{covars}{A \code{data.table} of the covariates of interest}
 
 \item{method}{Character string indicating whether to test models for subject
-groups separately or combined (default: \code{comb.groups})}
+groups separately or combined. Default: \code{comb.groups}}
 
 \item{use.mean}{Logical should we control for the mean hemispheric brain
-value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})}
+value (e.g. mean LH/RH cortical thickness). Default: \code{FALSE}}
 
-\item{exclude.cov}{Character vector of covariates to exclude (default:
-\code{NULL})}
+\item{exclude.cov}{Character vector of covariates to exclude. Default:
+\code{NULL}}
+
+\item{atlas}{Character string indicating the brain atlas}
 
 \item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
 
@@ -69,7 +71,7 @@ The \code{plot} method returns a \emph{list} of
 }
 \description{
 \code{get.resid} runs linear models across brain regions listed in a
-\code{data.table} (e.g. cortical thickness), adjusting for variables in
+\code{data.table} (e.g., cortical thickness), adjusting for variables in
 \code{covars} (e.g. age, sex, etc.), and calculates the
 \emph{externally Studentized} (or \emph{leave-one-out}) residuals.
 
@@ -90,6 +92,11 @@ combined (the default) via the \code{method} argument. You may also choose
 whether or not to include the mean, per-hemisphere structural measure in the
 models. Finally, you can specify variables that are present in \code{covars}
 but you would like to exclude from the models.
+
+If you do not explicitly specify the atlas name, then it will be guessed from
+the size of your data. This could cause problems if you are using a custom
+atlas, with or without the same number of regions as a dataset in the
+package.
 }
 \examples{
 \dontrun{

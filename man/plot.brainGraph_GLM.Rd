@@ -9,8 +9,7 @@
   subt = NULL, cex.main = 2, ...)
 }
 \arguments{
-\item{x}{A \code{brainGraph_GLM} graph object (from
-\code{\link{make_glm_brainGraph}})}
+\item{x}{A \code{brainGraph_GLM} graph object}
 
 \item{p.sig}{Character string indicating which p-value to use for determining
 significance (default: \code{p})}
@@ -35,12 +34,12 @@ vertices for which \eqn{p < \alpha}; a plot title with the outcome
 measure and contrast name, and to omit the plot subtitle.
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_NBS}},
+Other Plotting functions: \code{\link{plot.brainGraphList}},
+  \code{\link{plot.brainGraph_NBS}},
   \code{\link{plot.brainGraph_mediate}},
   \code{\link{plot.brainGraph_mtpc}},
   \code{\link{plot.brainGraph}},
   \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \concept{Plotting functions}

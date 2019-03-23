@@ -22,8 +22,6 @@ neighbors. The equation is:
 where \eqn{k_i} is the degree of the \eqn{i^{th}} vertex and \eqn{N_i} is the
 set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 \emph{NA} (for functions that have the argument \emph{na.rm}).
-
-This function was adapted from the igraph wiki (http://igraph.wikidot.com).
 }
 \references{
 Joyce K.E., Laurienti P.J., Burdette J.H., Hayasaka S. (2010)

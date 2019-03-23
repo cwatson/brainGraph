@@ -9,8 +9,6 @@
 #' set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 #' \emph{NA} (for functions that have the argument \emph{na.rm}).
 #'
-#' This function was adapted from the igraph wiki (http://igraph.wikidot.com).
-#'
 #' @param g An \code{igraph} graph object
 #' @export
 #'

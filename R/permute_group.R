@@ -145,7 +145,7 @@ diffFun_graph_noAUC <- function(densities, meas.list) {
   return(tmp)
 }
 graph_attr_perm <- function(g, densities, atlas) {
-  g <- lapply(g, lapply, make_brainGraph, atlas, rand=TRUE)
+  g <- lapply(g, lapply, make_brainGraph, atlas, type='random')
 
   mod <- sapply(g, sapply, function(x) modularity(cluster_louvain(x)))
   Cp <- sapply(g, sapply, function(x) transitivity(x, type='localaverage'))
@@ -275,7 +275,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
     stopifnot(measure %in% names(permDT))
     permDT[, region := 'graph']
     if (measure %in% c('asymm', 'assortativity.lobe')) {
-      g <- lapply(g, lapply, make_brainGraph, object$atlas, rand=TRUE)
+      g <- lapply(g, lapply, make_brainGraph, object$atlas, type='random')
     }
     meas.list <- with(object, graph_attr_perm(g, densities, atlas))
 
@@ -410,7 +410,9 @@ plot.brainGraph_permute <- function(x, measure=NULL,
     plot.dt <- melt(sum.dt, id.vars=setdiff(names(sum.dt), paste0(measure, '.', x$groups)),
                     variable.name='Group', value.name='obs')
     plot.dt[, Group := factor(Group, labels=x$groups)]
-    plot.dt <- melt(plot.dt, id.vars=c('densities', 'region', 'p', 'p.fdr', 'Group', 'obs'))
+    idvars <- c('densities', 'region', 'p', 'Group', 'obs')
+    if (!isTRUE(x$auc)) idvars <- c(idvars, 'p.fdr')
+    plot.dt <- melt(plot.dt, id.vars=idvars)
     plot.dt[, c('sig', 'trend') := '']
     plot.dt[get(p.sig) < alpha, sig := '*']
     plot.dt[get(p.sig) >= alpha & get(p.sig) < 2 * alpha, trend := '*']

@@ -173,32 +173,28 @@ cor.diff.test <- function(r1, r2, n1, n2,
   return(list(p=p, z=diff.z))
 }
 
-#' Delete all attributes of a graph
+#' Add metadata to a list-like object
 #'
-#' Deletes all graph-, vertex-, and edge-level attributes of an \code{igraph}
-#' graph object.
+#' \code{get_metadata} adds metadata to a list-like object.
 #'
-#' @param g An \code{igraph} graph object
-#' @param keep.names Logical indicating whether to keep the \code{name} vertex
-#'   attribute (default: \code{FALSE})
+#' The information added are:
+#' \itemize{
+#'   \item{version}{R, brainGraph, and igraph versions}
+#'   \item{sys}{System information}
+#'   \item{date}{The date and time of creation}
+#' }
 #'
+#' @param object A list-like object
 #' @keywords internal
-#' @return An \code{igraph} graph object
-#' @seealso \code{\link[igraph]{delete_graph_attr},
-#'   \link[igraph]{delete_vertex_attr}, \link[igraph]{delete_edge_attr}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @return The same object with version, system, and date information added
 
-delete_all_attr <- function(g, keep.names=FALSE) {
-  for (att in graph_attr_names(g)) g <- delete_graph_attr(g, att)
-  for (att in edge_attr_names(g)) g <- delete_edge_attr(g, att)
-  if (isTRUE(keep.names)) {
-    vattrs <- setdiff(vertex_attr_names(g), 'name')
-  } else {
-    vattrs <- vertex_attr_names(g)
-  }
-  for (att in vattrs) g <- delete_vertex_attr(g, att)
-
-  return(g)
+get_metadata <- function(object) {
+  object$version <- list(r=R.version.string,
+                         bg=packageVersion('brainGraph'),
+                         ig=packageVersion('igraph'))
+  object$sys <- Sys.info()[c(1:3, 5)]
+  object$date <- format(as.POSIXct(Sys.time()), '%Y-%m-%dT%H:%M:%OS0')
+  return(object)
 }
 
 #' Symmetrize a matrix with the mean of off-diagonal elements
@@ -231,60 +227,6 @@ rotation <- function(x, theta) {
               nrow=2, ncol=2, byrow=F)
   x.rot <- x %*% R
   return(x.rot)
-}
-
-#' Color graph vertices and edges
-#'
-#' \code{set_vertex_color} takes an integer vector representing membership of
-#' some grouping (e.g., a community or connected component) and creates a
-#' character vector of colors for each grouping. Isolated vertices will be
-#' colored \emph{gray}.
-#'
-#' @param g An \code{igraph} graph object
-#' @param name Character string of the name of the vertex attribute to add
-#' @param memb An integer vector representing membership of e.g. a community
-#'
-#' @return The same graph with additional vertex or edge attribute
-#'
-#' @keywords internal
-#' @name GraphColors
-#' @aliases set_vertex_color
-#' @rdname color_vertices_edges
-
-set_vertex_color <- function(g, name, memb) {
-  big.groups <- which(as.integer(table(memb)) > 1)
-
-  group.cols.memb <- rep('gray', length=max(memb))
-  group.cols.memb[big.groups] <- group.cols[big.groups]
-
-  g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
-  return(g)
-}
-
-#' Color graph edges
-#'
-#' \code{set_edge_color} assigns a color to each edge (the same as the vertex
-#' membership colors). Edges that connect vertices of two different groups are
-#' colored gray.
-#'
-#' @keywords internal
-#' @aliases set_edge_color
-#' @rdname color_vertices_edges
-
-set_edge_color <- function(g, name, memb) {
-  stopifnot(length(memb) == vcount(g))
-  big.groups <- as.integer(names(which(table(memb) > 1)))
-
-  newcols <- rep('gray50', length=ecount(g))
-  tmp <- vector('list', length=max(big.groups))
-  for (i in big.groups) {
-    x <- which(memb == i)
-    tmp[[i]] <- as.vector(E(g)[x %--% x])
-    if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
-  }
-
-  g <- set_edge_attr(g, name, value=newcols)
-  return(g)
 }
 
 #' Subset graphs based on a given logical condition
@@ -364,73 +306,4 @@ vec.transform <- function(x, min.val=0, max.val=1) {
   } else {
     return(((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diff(range(x, na.rm=TRUE))) + min.val)
   }
-}
-
-#' Transform edge weights
-#'
-#' For distance-based measures, it is important to transform the edge weights so
-#' that the \emph{strongest} connections are re-mapped to having the
-#' \emph{lowest} weights. Then you may calculate e.g., the \emph{shortest path
-#' length} which will include the strongest connections.
-#'
-#' There are 5 options for the type of transform to apply:
-#' \enumerate{
-#'   \item \code{1/w}: calculate the inverse
-#'   \item \code{-log(w)}: calculate the negative (natural) logarithm
-#'   \item \code{1-w}: subtract each weight from 1
-#'   \item \code{-log10(w/max(w))}: negative (base-10) log of normalized weights
-#'   \item \code{-log10(w/max(w)+1)}: same as above, but add 1 before taking
-#'     the log
-#' }
-#'
-#' To transform the weights back to original values, specify \code{invert=TRUE}.
-#'
-#' @param g An \code{igraph} graph object
-#' @param xfm.type Character string specifying how to transform the weights
-#'   (default: \code{1/w})
-#' @param invert Logical indicating whether or not to invert the transformation
-#'   (default: \code{FALSE})
-#' @export
-#'
-#' @return An \code{igraph} graph object with transformed edge weights and a
-#'   graph attribute, \code{xfm.type}, of the type of transform
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-
-xfm.weights <- function(g,
-        xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)'),
-        invert=FALSE) {
-  stopifnot(is_igraph(g), is_weighted(g))
-  xfm.type <- match.arg(xfm.type)
-  if (xfm.type == '1/w') {
-    E(g)$weight <- 1 / E(g)$weight
-
-  } else if (xfm.type == '-log(w)') {
-    if (isTRUE(invert)) {
-      E(g)$weight <- exp(-E(g)$weight)
-    } else {
-      E(g)$weight <- -log(E(g)$weight)
-    }
-
-  } else if (xfm.type == '1-w') {
-    E(g)$weight <- 1 - E(g)$weight
-
-  } else if (xfm.type == '-log10(w/max(w))') {
-    if (isTRUE(invert)) {
-      E(g)$weight <- g$max.weight / 10^(E(g)$weight)
-    } else {
-      g$max.weight <- max(E(g)$weight)
-      E(g)$weight <- -log10(E(g)$weight / g$max.weight)
-    }
-
-  } else if (xfm.type == '-log10(w/max(w)+1)') {
-    if (isTRUE(invert)) {
-      E(g)$weight <- g$max.weight * (1 / 10^(E(g)$weight) - 1)
-    } else {
-      g$max.weight <- max(E(g)$weight)
-      E(g)$weight <- -log10(E(g)$weight / g$max.weight + 1)
-    }
-  }
-
-  g$xfm.type <- xfm.type
-  return(g)
 }

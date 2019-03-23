@@ -19,6 +19,7 @@
 #' }
 #'
 #' @name AAL
+#' @aliases aal116
 #' @rdname aal
 #' @references Tzourio-Mazoyer N., Landeau B., Papathanassiou D., Crivello F.,
 #'   Etard O., Delcroix N., Mazoyer B., Joliot M. (2002) \emph{Automated
@@ -31,12 +32,15 @@
 #'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.075}
 "aal116"
 
+#' @aliases aal90
 #' @rdname aal
 "aal90"
 
+#' @aliases aal2.120
 #' @rdname aal
 "aal2.120"
 
+#' @aliases aal2.94
 #' @rdname aal
 "aal2.94"
 
@@ -65,6 +69,7 @@
 #' }
 #'
 #' @name FreesurferAtlases
+#' @aliases destrieux destrieux.scgm dk dk.scgm dkt dkt.scgm
 #' @rdname freesurfer_atlases
 #' @references Destrieux C., Fischl B., Dale E. \& Halgren E. (2010)
 #'   \emph{Automatic parcellation of human cortical gyri and sulci using

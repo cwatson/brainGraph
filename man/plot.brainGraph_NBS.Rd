@@ -11,8 +11,7 @@
   ...)
 }
 \arguments{
-\item{x}{A \code{brainGraph_NBS} graph object (from
-\code{\link{make_nbs_brainGraph}})}
+\item{x}{A \code{brainGraph_NBS} graph object}
 
 \item{alpha}{Numeric; the significance level (default: 0.05)}
 
@@ -48,12 +47,12 @@ only those vertices in which \code{V(g)$p.nbs > 1 - alpha} will be shown.
 Finally, vertex names will be omitted.
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
+Other Plotting functions: \code{\link{plot.brainGraphList}},
+  \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot.brainGraph_mediate}},
   \code{\link{plot.brainGraph_mtpc}},
   \code{\link{plot.brainGraph}},
   \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \concept{Plotting functions}

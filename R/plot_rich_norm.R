@@ -12,7 +12,7 @@
 #' @param alpha The significance level (default: 0.05)
 #' @param fdr A logical, indicating whether or not to use the FDR-adjusted
 #'   p-value for determining significance (default: TRUE)
-#' @param g A list (of lists) of \code{igraph} graph objects; required if you
+#' @param g A list \code{brainGraphList} objects; required if you
 #'   want to plot a shaded region demarcating the \code{\link{rich_core}}
 #' @param smooth Logical indicating whether or not to use
 #'   \code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
@@ -53,10 +53,14 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
                       Group=rep(subDT[, unique(Group)],
                                 each=length(densities)))
   if (!is.null(g)) {
-    densities.g <- round(vapply(g[[1]], graph_attr, numeric(1), 'density'), 2)
+    # Check if components are 'brainGraphList' objects
+    matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+    if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
+
+    densities.g <- round(vapply(g, function(x) graph_attr(x[1], 'density'), numeric(1)),  2)
     densities.g <- which(densities.g %in% round(densities, 2))
     g <- lapply(g, `[`, densities.g)
-    k <- vapply(g, vapply, integer(length(densities)), function(x) rich_core(x)$k.r, integer(1))
+    k <- vapply(g, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(densities)))
     max.k <- apply(as.matrix(k), 1, max)
 
     rects[, xstart := max.k]

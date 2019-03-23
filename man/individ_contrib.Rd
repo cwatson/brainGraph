@@ -10,8 +10,7 @@
 \usage{
 loo(resids, corrs, level = c("global", "regional"))
 
-aop(resids, corr.mat, level = c("global", "regional"),
-  control.value = 1)
+aop(resids, corrs, level = c("global", "regional"), control.value = 1L)
 
 \method{summary}{IC}(object, region = NULL, ...)
 
@@ -27,8 +26,6 @@ aop(resids, corr.mat, level = c("global", "regional"),
 
 \item{level}{Character string; the level at which you want to calculate
 contributions (either \code{global} or \code{regional})}
-
-\item{corr.mat}{Numeric; correlation matrix of the \emph{control} group}
 
 \item{control.value}{Integer or character string specifying the control group
 (default: 1)}
@@ -70,14 +67,18 @@ The \code{plot} method is only valid for \emph{regional} contribution
 estimates, and plots the average regional contribution for each
 vertex/region.
 }
+\note{
+For \code{aop}, it is assumed by default that the control group is the
+  first group.
+}
 \examples{
 \dontrun{
 IC <- loo(resids.all, corrs)
 RC <- loo(resids.all, corrs, level='regional')
 }
 \dontrun{
-IC <- aop(resids.all, corrs[[1]]$R)
-RC <- aop(resids.all, corrs[[1]]$R, level='regional')
+IC <- aop(resids.all, corrs)
+RC <- aop(resids.all, corrs, level='regional')
 }
 }
 \references{

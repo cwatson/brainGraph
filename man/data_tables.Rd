@@ -6,25 +6,20 @@
 \alias{vertex_attr_dt}
 \title{Create a data table with graph global and vertex measures}
 \usage{
-graph_attr_dt(g.list, group = NULL)
+graph_attr_dt(bg.list)
 
-vertex_attr_dt(g, group = NULL)
+vertex_attr_dt(bg.list)
 }
 \arguments{
-\item{g.list}{A list of \code{igraph} graph objects}
-
-\item{group}{A character string indicating group membership (default:
-\code{NULL})}
-
-\item{g}{An \code{igraph} graph object}
+\item{bg.list}{A \code{brainGraphList} object, or a list of graph objects}
 }
 \value{
 A \code{data.table}
 }
 \description{
-\code{graph_attr_dt} is a helper function that takes a list of graphs and
-creates a \code{data.table} of global measures for each graph. Each row will
-be for a different graph.
+\code{graph_attr_dt} is a helper function that takes a \code{brainGraphList}
+or a list of graphs and creates a \code{data.table} of global measures for
+each graph. Each row will be for a different graph.
 
 \code{vertex_attr_dt} is a helper function that creates a \code{data.table}
 in which each row is a vertex and each column is a different network measure
