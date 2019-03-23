@@ -8,7 +8,8 @@
 \usage{
 setup_glm(covars, X, con.mat, con.type, con.name, ...)
 
-glm_fit_helper(DT, X, con.type, con.mat, alt, measure, mykey)
+glm_fit_helper(DT, X, con.type, con.mat, alt, measure, mykey,
+  alpha = NULL)
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
@@ -34,14 +35,16 @@ has row names, those will be used for reporting results (default:
 
 \item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
 analyses)}
+
+\item{alpha}{Numeric; the significance level (default: 0.05)}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses
 the main GLM functionality in \code{brainGraph}.
 }
 \details{
-This function performs several tasks: it removes unused levels from
-\code{covars}, removes subjects with incomplete data, creates a design matrix
-(if not supplied), and supplies names to the contrast matrix.
+This function: removes unused levels from \code{covars}, removes subjects
+with incomplete data, creates a design matrix (if not supplied), and supplies
+names to the contrast matrix.
 }
 \keyword{internal}
