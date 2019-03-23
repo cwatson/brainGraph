@@ -244,6 +244,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
   out <- list(level=level, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, con.mat=con.mat,
               con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=incomp,
               permute=permute, perm.method=perm.method, part.method=part.method, N=N, perm=perm)
+  out$atlas <- if (is.null(g.list[1]$atlas)) guess_atlas(g.list[1]) else g.list[1]$atlas
   class(out) <- c('bg_GLM', class(out))
   return(out)
 }

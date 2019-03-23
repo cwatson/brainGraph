@@ -120,15 +120,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 
   out <- list(X=X, method=method, use.mean=use.mean, all.dat.tidy=DT.m,
               resids.all=resids.all, groups=groups, atlas=NULL)
-  if (is.null(atlas)) {
-    bgAtlases <- data(package='brainGraph')$results[, 3]
-    Nv <- sapply(bgAtlases, function(x) nrow(get(x)))
-    n <- ncol(dt.vol) - 1
-    matched <- which(Nv == n)
-    if (length(matched > 0)) out$atlas <- names(matched)
-  } else {
-    out$atlas <- atlas
-  }
+  out$atlas <- if (is.null(atlas)) guess_atlas(dt.vol) else atlas
+
   class(out) <- c('brainGraph_resids', class(out))
   return(out)
 }
