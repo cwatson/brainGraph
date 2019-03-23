@@ -270,7 +270,7 @@ rich_core <- function(g, weighted=FALSE) {
 
   dens <- ifelse('density' %in% graph_attr_names(g), g$density, graph.density(g))
   r <- max(which(kplus == max(kplus)))
-  k.r <- degs[vorder][r]
+  k.r <- as.integer(degs[vorder][r])
   core.size <- r / ncol(A)
   return(data.table(density=dens, rank=r, k.r=k.r, core.size=core.size, weighted=weighted))
 }
