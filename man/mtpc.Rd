@@ -21,8 +21,7 @@ mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
   ...)
 }
 \arguments{
-\item{g.list}{A list of lists of \code{igraph} graph objects for all
-thresholds and subjects}
+\item{g.list}{A list of \code{brainGraphList} objects for all thresholds}
 
 \item{thresholds}{Numeric vector of the thresholds applied to the raw
 connectivity matrices.}

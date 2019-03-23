@@ -129,8 +129,10 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
                                boot=TRUE, boot.ci.type=c('perc', 'bca'), N=1e3,
                                conf.level=0.95, control.value=0, treat.value=1,
                                long=TRUE, int=FALSE, ...) {
-
   Study.ID <- region <- treatintstr <- NULL
+  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  g.list <- g.list[]
+
   stopifnot(all(c(treat, outcome, covar.names) %in% names(covars)))
   if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
   covars <- droplevels(covars[, c('Study.ID', treat, covar.names, outcome), with=F])

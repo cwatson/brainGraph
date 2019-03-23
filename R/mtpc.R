@@ -23,8 +23,7 @@
 #'   \item Reject \eqn{H_0} if \eqn{A_{MTPC} > A_{crit}}.
 #' }
 #'
-#' @param g.list A list of lists of \code{igraph} graph objects for all
-#'   thresholds and subjects
+#' @param g.list A list of \code{brainGraphList} objects for all thresholds
 #' @param thresholds Numeric vector of the thresholds applied to the raw
 #'   connectivity matrices.
 #' @param clust.size Integer indicating the size of \dQuote{clusters} (i.e.,
@@ -77,10 +76,14 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
                  part.method=c('beckmann', 'guttman', 'ridgway'), N=500L, perms=NULL,
                  alpha=0.05, res.glm=NULL, long=TRUE, ...) {
   A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
-  stopifnot(all(lengths(g.list) == length(thresholds)))
-  if (is.null(perms)) perms <- shuffleSet(n=sum(vapply(g.list, function(x) length(x[[1]]), numeric(1))), nset=N)
 
-  g.list <- do.call(Map, c(c, g.list))
+  # Check if components are 'brainGraphList' objects
+  matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+  if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
+  stopifnot(length(g.list) == length(thresholds))
+
+  if (is.null(perms)) perms <- shuffleSet(n=length(g.list[[1]]$graphs), nset=N)
+
   if (is.null(res.glm)) {
     res.glm <- lapply(g.list, function(z)
       brainGraph_GLM(z, covars, measure, con.mat, con.type, outcome, con.name=con.name, N=N,

@@ -18,7 +18,7 @@ brainGraph_mediate(g.list, covars, mediator, treat, outcome, covar.names,
 bg_to_mediate(x, region = NULL)
 }
 \arguments{
-\item{g.list}{A list of \code{igraph} graph objects for all subjects}
+\item{g.list}{A \code{brainGraphList} object}
 
 \item{covars}{A data table containing covariates of interest. It must include
 columns for \emph{Study.ID}, the treatment variable, \code{covar.names},

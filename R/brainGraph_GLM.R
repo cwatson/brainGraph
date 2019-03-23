@@ -42,7 +42,7 @@
 #' The default permutation strategy is that of Freedman & Lane (1983), and is
 #' the same as that in FSL's \emph{randomise}.
 #'
-#' @param g.list A list of \code{igraph} graph objects for all subjects
+#' @param g.list A \code{brainGraphList} object
 #' @param covars A \code{data.table} of covariates
 #' @param measure Character string of the graph measure of interest
 #' @param con.mat Numeric matrix specifying the contrast(s) of interest; if
@@ -121,11 +121,8 @@
 #' conmat <- matrix(c(0, 0, 0, 1), nrow=1)
 #' rownames(conmat) <- 'Control > Patient'
 #'
-#' ## Note that I concatenate the graphs from each group's 6th threshold
-#' g.lm <- brainGraph_GLM(g.list=do.call(Map, c(c, g))[[6]],
-#'   covars=covars.all[tract == 1],
-#'   measure='strength', con.mat=conmat, alt='greater',
-#'   permute=TRUE, long=TRUE)
+#' g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
+#'   measure='strength', con.mat=conmat, alt='greater', permute=TRUE, long=TRUE)
 #' }
 brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'),
                            outcome=NULL, X=NULL, con.name=NULL,
@@ -136,6 +133,9 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
                            N=5e3, perms=NULL, long=FALSE, ...) {
   Study.ID <- region <- Outcome <- p.fdr <- p <- Contrast <- i <-
     stat <- p.perm <- perm <- contrast <- V1 <- NULL
+
+  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  g.list <- g.list[]
 
   # Get the outcome variable(s) into a data.table
   DT.y <- data.table(Study.ID=vapply(g.list, graph_attr, character(1), 'name'))

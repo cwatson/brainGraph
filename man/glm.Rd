@@ -22,7 +22,7 @@ brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
 \method{plot}{bg_GLM}(x, region = NULL, which = c(1L:3L, 5L), ...)
 }
 \arguments{
-\item{g.list}{A list of \code{igraph} graph objects for all subjects}
+\item{g.list}{A \code{brainGraphList} object}
 
 \item{covars}{A \code{data.table} of covariates}
 
@@ -171,11 +171,8 @@ the same as that in FSL's \emph{randomise}.
 conmat <- matrix(c(0, 0, 0, 1), nrow=1)
 rownames(conmat) <- 'Control > Patient'
 
-## Note that I concatenate the graphs from each group's 6th threshold
-g.lm <- brainGraph_GLM(g.list=do.call(Map, c(c, g))[[6]],
-  covars=covars.all[tract == 1],
-  measure='strength', con.mat=conmat, alt='greater',
-  permute=TRUE, long=TRUE)
+g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
+  measure='strength', con.mat=conmat, alt='greater', permute=TRUE, long=TRUE)
 }
 \dontrun{
 ## Save objects and then to multipage PDF
