@@ -21,17 +21,16 @@
 #'
 #' @param g.list A list of lists of \code{igraph} graph objects
 #' @param groups An integer vector indicating which groups to plot; corresponds
-#'   to the first element of the list \code{g.list} (default: 1)
+#'   to the first element of the list \code{g.list}. Default: \code{1}
 #' @param N Integer corresponding to the second element of the list
-#'   \code{g.list} (default: 1)
-#' @param filename Character string of the filename of the PNG to be written
-#'   (default: 'tmp.png')
+#'   \code{g.list}. Default: \code{1}
+#' @param filename Character string of the filename of the PNG to be written.
+#'   Default: \code{'tmp.png'}
 #' @param subgraph A list of character strings to (optionally) subset the
-#'   graph(s), possibly by multiple conditions (default: \code{NULL})
+#'   graph(s), possibly by multiple conditions
 #' @param main A list of character strings to be placed in the main title of the
-#'   center plot for each group (default: \code{NULL})
-#' @param ... Other arguments passed to
-#'   \code{\link{plot_brainGraph}}
+#'   center plot for each group.
+#' @param ... Other arguments passed to \code{\link{plot.brainGraph}}
 #' @export
 #' @importFrom oro.nifti nifti
 #'

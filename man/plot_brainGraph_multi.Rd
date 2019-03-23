@@ -11,22 +11,21 @@ plot_brainGraph_multi(g.list, groups = 1, N = 1,
 \item{g.list}{A list of lists of \code{igraph} graph objects}
 
 \item{groups}{An integer vector indicating which groups to plot; corresponds
-to the first element of the list \code{g.list} (default: 1)}
+to the first element of the list \code{g.list}. Default: \code{1}}
 
 \item{N}{Integer corresponding to the second element of the list
-\code{g.list} (default: 1)}
+\code{g.list}. Default: \code{1}}
 
-\item{filename}{Character string of the filename of the PNG to be written
-(default: 'tmp.png')}
+\item{filename}{Character string of the filename of the PNG to be written.
+Default: \code{'tmp.png'}}
 
 \item{subgraph}{A list of character strings to (optionally) subset the
-graph(s), possibly by multiple conditions (default: \code{NULL})}
+graph(s), possibly by multiple conditions}
 
 \item{main}{A list of character strings to be placed in the main title of the
-center plot for each group (default: \code{NULL})}
+center plot for each group.}
 
-\item{...}{Other arguments passed to
-\code{\link{plot_brainGraph}}}
+\item{...}{Other arguments passed to \code{\link{plot.brainGraph}}}
 }
 \description{
 This function will save a PNG file to disk containing three views (columns)

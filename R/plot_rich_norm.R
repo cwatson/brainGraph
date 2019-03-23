@@ -12,7 +12,7 @@
 #' @param alpha The significance level. Default: \code{0.05}
 #' @param fdr A logical, indicating whether or not to use the FDR-adjusted
 #'   p-value for determining significance. Default: \code{TRUE}
-#' @param g A list \code{brainGraphList} objects; required if you
+#' @param g.list A list \code{brainGraphList} objects; required if you
 #'   want to plot a shaded region demarcating the \code{\link{rich_core}}
 #' @param smooth Logical indicating whether or not to use
 #'   \code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
@@ -29,7 +29,7 @@
 #' }
 
 plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
-                           densities, alpha=0.05, fdr=TRUE, g=NULL, smooth=TRUE) {
+                           densities, alpha=0.05, fdr=TRUE, g.list=NULL, smooth=TRUE) {
   p.fdr <- yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
 
   facet.by <- match.arg(facet.by)

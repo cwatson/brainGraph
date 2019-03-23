@@ -213,7 +213,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas, type='observed', level='contras
     V(g.diffs[[i]])$se <- x$DT[contrast == i, se]
     V(g.diffs[[i]])$size2 <- x$DT[contrast == i, stat]
     V(g.diffs[[i]])$size <- vec.transform(V(g.diffs[[i]])$size2, 0, 20)
-    if (isTRUE(x$permute)) V(g.diffs[[i]])$p.perm <- 1 - res.glm$DT[contrast == i, p.perm]
+    if (isTRUE(x$permute)) V(g.diffs[[i]])$p.perm <- 1 - x$DT[contrast == i, p.perm]
     class(g.diffs[[i]]) <- c('brainGraph_GLM', class(g.diffs[[i]]))
   }
   out$graphs <- g.diffs
@@ -230,7 +230,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas, type='observed', level='contras
 make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast',
                                      set.attrs=FALSE, modality=NULL, weighting=NULL,
                                      threshold=NULL, gnames=x$con.name, ...) {
-  A.mtpc <- A.crit <- S.crit <- S.mtpc <- tau.mtpc <- NULL
+  contrast <- region <- A.mtpc <- A.crit <- S.crit <- S.mtpc <- tau.mtpc <- NULL
   if (x$level == 'graph') stop('Not valid for graph-level results.')
 
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting', 'threshold')

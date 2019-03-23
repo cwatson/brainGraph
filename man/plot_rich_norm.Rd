@@ -5,7 +5,7 @@
 \title{Plot normalized rich club coefficients against degree threshold}
 \usage{
 plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
-  alpha = 0.05, fdr = TRUE, g = NULL, smooth = TRUE)
+  alpha = 0.05, fdr = TRUE, g.list = NULL, smooth = TRUE)
 }
 \arguments{
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
@@ -20,7 +20,7 @@ interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 \item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
 p-value for determining significance. Default: \code{TRUE}}
 
-\item{g}{A list \code{brainGraphList} objects; required if you
+\item{g.list}{A list \code{brainGraphList} objects; required if you
 want to plot a shaded region demarcating the \code{\link{rich_core}}}
 
 \item{smooth}{Logical indicating whether or not to use
