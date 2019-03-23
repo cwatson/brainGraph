@@ -5,7 +5,7 @@
 [![GPL License](https://img.shields.io/cran/l/brainGraph.svg)](https://opensource.org/licenses/GPL-3.0/)
 [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/grand-total/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
 
-`brainGraph` is an R package for performing graph theory analyses of brain MRI
+`brainGraph` is an [R package](https://cran.r-project.org/web/packages/brainGraph/index.html) for performing graph theory analyses of brain MRI
 data. It is most useful in atlas-based analyses (e.g., using an atlas such as
 [AAL](http://www.gin.cnrs.fr/en/tools/aal-aal2/),
 or one from [Freesurfer](https://surfer.nmr.mgh.harvard.edu/)); however, many of
@@ -21,9 +21,14 @@ Table of Contents
 ====
 <!-- vim-markdown-toc GFM -->
 
-* [Installation](#installation)
-    * [Installation commands](#installation-commands)
+* [Requirements](#requirements)
+    * [Operating Systems](#operating-systems)
     * [Multi-core processing](#multi-core-processing)
+    * [Compatible neuroimaging software](#compatible-neuroimaging-software)
+    * [Compatible brain atlases](#compatible-brain-atlases)
+        * [Other atlases](#other-atlases)
+* [Installation](#installation)
+    * [Multi-core processing](#multi-core-processing-1)
     * [GUI](#gui)
 * [Usage - the User Guide](#usage---the-user-guide)
 * [Graph measures](#graph-measures)
@@ -37,7 +42,9 @@ Table of Contents
 * [Future versions](#future-versions)
 
 <!-- vim-markdown-toc -->
-# Installation
+# Requirements
+
+## Operating Systems
 The package ***should*** work "out-of-the-box" on *Linux* systems (at least on Red
 Hat-based systems; i.e., CentOS, RHEL, Scientific Linux, etc.) since almost all
 development (and use, by me) has been on computers running CentOS 6 and (currently)
@@ -45,7 +52,50 @@ CentOS 7. I have also had success running it (and did some development) on
 Windows 7, and have heard from users that it works on some versions of Mac OS
 and on Ubuntu. Please see the User Guide (mentioned below) for more details.
 
-## Installation commands
+## Multi-core processing
+Many `brainGraph` functions utilize multiple CPU cores. This is primarily done
+via the [foreach](https://cran.r-project.org/web/packages/foreach/index.html)
+package. Depending on your OS, you may need to install
+[doMC](https://cran.r-project.org/web/packages/doMC/index.html) (*macOS* and *Linux*)
+or [doSNOW](https://cran.r-project.org/web/packages/doSNOW/index.html)
+(*Windows*).
+
+## Compatible neuroimaging software
+I mostly use Freesurfer and FSL, but the following software packages should be suitable.
+Note that this is an incomplete list; any software that can output a connectivity matrix will work.
+* [Freesurfer](https://surfer.nmr.mgh.harvard.edu/)
+* [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki)
+* [DPARSF](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki)
+* [PANDA](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki)
+* [TrackVis](http://trackvis.org/)
+
+## Compatible brain atlases
+There are several brain atlases for which the data are present in `brainGraph`.
+Atlases containing `.scgm` in the name contain both cortical and *SubCortical Gray Matter (SCGM)* regions.
+1. `dk` and `dk.scgm`: [Desikan-Killiany](https://dx.doi.org/10.1016/j.neuroimage.2006.01.021)
+2. `dkt` and `dkt.scgm`: [Desikan-Killiany-Tourville](https://dx.doi.org/10.3389/fnins.2012.00171)
+3. `destrieux` and `destrieux.scgm`: [Destrieux](https://dx.doi.org/10.1016/j.neuroimage.2010.06.010)
+4. `aal90` and `aal116`: [Automated Anatomical Labeling atlas](https://dx.doi.org/10.1006/nimg.2001.0978)
+5. `aal2.94` and `aal2.120`: [AAL-2](https://dx.doi.org/10.1016/j.neuroimage.2015.07.075)
+6. `brainsuite`: [Brainsuite](https://dx.doi.org/10.1016/S1361-8415(02)00054-3)
+7. `craddock200`: [Craddock-200](https://dx.doi.org/10.1002/hbm.21333)
+8. `dosenbach160`: [Dosenbach-160](https://dx.doi.org/10.1126/science.1194144)
+9. `hoa112`: [Harvard-Oxford atlas](https://dx.doi.org/10.1016/j.schres.2005.11.020)
+10. `lpba40`: [LONI Probabilistic Brain Atlas](https://dx.doi.org/10.1016/j.neuroimage.2007.09.031)
+
+### Other atlases
+Some functions accept a `custom.atlas` argument, so that you can analyze data that is from an atlas not present in `brainGraph`.
+Other atlases to be added in the future include the following (I would need specific coordinate, region name, and lobe and hemisphere information):
+* HCP-1mm
+* Power-264
+* Gordon-333
+* Shen-268
+* Von Economo-Koskinas
+* Brainnetome
+* Willard-499
+* Schaefer-400
+
+# Installation
 There are (primarily) two ways to install this package:
 
 1. Directly from CRAN: (use one of the following commands)
@@ -61,17 +111,10 @@ package be installed:
 devtools::install_github('cwatson/brainGraph')
 ```
 This should install all of the dependencies needed along with the package
-itself. For more details, see the User Guide (link to PDF in next section).
+itself. For more details, see the [User Guide (PDF link)](https://cwatson.github.io/files/brainGraph_UserGuide.pdf).
 
 ## Multi-core processing
-Many `brainGraph` functions utilize multiple CPU cores. This is primarily done
-via the [foreach](https://cran.r-project.org/web/packages/foreach/index.html)
-package. Depending on your OS, you may need to install
-[doMC](https://cran.r-project.org/web/packages/doMC/index.html) (*macOS* and *Linux*)
-or [doSNOW](https://cran.r-project.org/web/packages/doSNOW/index.html)
-(*Windows*).
-
-Then, to set up your R session for parallel processing:
+To set up your R session for parallel processing:
 ``` r
 OS <- .Platform$OS.type
 if (OS == 'windows') {
@@ -137,20 +180,20 @@ that have different purposes.
     Colizza et al., 2006)
 
 ## Other measures
-* Efficiency (global, nodal, and local; see Latora & Marchiori, 2001)
-* The *rich-core* (see Ma & Mondragon, 2015)
-* Leverage centrality (see Joyce et al., 2010)
+* Efficiency (global, nodal, and local; see [Latora & Marchiori, 2001](https://dx.doi.org/10.1103/PhysRevLett.87.198701))
+* The *rich-core* (see [Ma & Mondragon, 2015](https://dx.doi.org/10.1371/journal.pone.0119678))
+* Leverage centrality (see [Joyce et al., 2010](https://dx.doi.org/10.1371/journal.pone.0012200))
 * Asymmetry index
 * Robustness ("targeted attack" and "random failure") and vulnerability
 * Euclidean distances of edges
-* Participation coefficient and within-module degree z-score (see Guimera & Amaral, 2005)
-* Gateway coefficient (see Vargas & Wahl, 2014)
-* *Communicability* and *communicability betweenness* (see Estrada & Hatano, 2008; Estrada et al., 2009; Crofts & Higham, 2009)
-* Vertex *s-core* membership (see Eidsaa & Almaas, 2013)
+* Participation coefficient and within-module degree z-score (see [Guimera & Amaral, 2005a](https://dx.doi.org/10.1038/nature03288) and [2005b](https://dx.doi.org/10.1088/1742-5468/2005/02/P02001))
+* Gateway coefficient (see [Vargas & Wahl, 2014](https://dx.doi.org/10.1140/epjb/e2014-40800-7))
+* *Communicability* and *communicability betweenness* (see [Estrada & Hatano, 2008](https://dx.doi.org/10.1103/PhysRevE.77.036111); [Estrada et al., 2009](https://dx.doi.org/10.1016/j.physa.2008.11.011); [Crofts & Higham, 2009](https://dx.doi.org/10.1098/rsif.2008.0484))
+* Vertex *s-core* membership (see [Eidsaa & Almaas, 2013](https://dx.doi.org/10.1103/PhysRevE.88.062819))
 
 # Visualization
 There is a plotting GUI for fast and easy data exploration that will *not* work
-without data from a standard atlas (ideally to be fixed some time in the future).
+without data from a standard atlas (ideally to be extended some time in the future).
 You may use a custom atlas if you follow the same format as the other atlases in
 the package (see Chapter 4 of the *User Guide* for instructions).
 
