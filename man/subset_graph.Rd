@@ -17,7 +17,7 @@ A graph object
 }
 \description{
 \code{subset_graph} will subset a given graph based on the given logical
-condition(s). This can be a "simple" logical equation, or can include
+condition(s). This can be a \dQuote{simple} logical equation, or can include
 combinations of \emph{AND} and \emph{OR} (i.e., \code{&} and \code{|}).
 }
 \keyword{internal}

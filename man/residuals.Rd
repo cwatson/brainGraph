@@ -58,7 +58,7 @@ to show summary for all regions}
   \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
     mean regional cortical thickness) and covariates, along with
     \emph{resids} column added}
-  \item{resids.all}{The "wide" \code{data.table} of residuals}
+  \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
   \item{groups}{Group names}
 
 \code{\link{summary.brainGraph_resids}} returns a list with two

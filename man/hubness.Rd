@@ -20,26 +20,27 @@ To avoid using weights, this should be \code{NA}.}
 A numeric vector with the vertices' hubness score
 }
 \description{
-\code{hubness} calculates the "hubness" (see reference) of the vertices in a
-graph. These are vertices which meet at least two of the following four
-criteria:
+\code{hubness} calculates the \dQuote{hubness} (see reference) of the
+vertices in a graph. These are vertices which meet at least two of the
+following four criteria:
 \enumerate{
   \item Have high degree/strength
   \item Have high betweenness centrality
   \item Have low clustering coefficient
   \item Have low average path length
 }
-For each criterion, "high" or "low" means "in the top 20\%" across all
-vertices. Vertices meeting any of the criteria get a value of 1 for that
-metric; these are summed to yield the hubness score which ranges from 0-4. As
-in the reference article, vertices with a score of 2 or higher are to be
-considered hubs, although that determination isn't made in this function.
+For each criterion, \dQuote{high} or \dQuote{low} means \dQuote{in the top
+20\%} across all vertices. Vertices meeting any of the criteria get a value
+of 1 for that metric; these are summed to yield the hubness score which
+ranges from 0-4. As in the reference article, vertices with a score of 2 or
+higher are to be considered hubs, although that determination isn't made in
+this function.
 }
 \references{
-van den Heuvel M.P., Mandl R.C.W., Stam C.J., Kahn R.S., Pol
-  H.E.H. (2010) \emph{Aberrant frontal and temporal complex network structure
-  in schizophrenia: a graph theoretical analysis}. The Journal of
-  Neuroscience, 30(47):15915-15926.
+van den Heuvel, M.P. and Mandl, R.C.W. and Stam, C.J. and Kahn,
+  R.S. and Pol, H.E.H. (2010) Aberrant frontal and temporal complex network
+  structure in schizophrenia: a graph theoretical analysis. \emph{The Journal
+  of Neuroscience}, \bold{30(47)}, 15915--15926.
   \url{https://dx.doi.org/10.1523/JNEUROSCI.2874-10.2010}
 }
 \author{

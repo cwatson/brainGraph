@@ -34,10 +34,10 @@ graph-level attribute.
 average Euclidean distance across all of that vertex's connections.
 }
 \references{
-Alexander-Bloch A.F., Vertes P.E., Stidd R. et al. (2013)
-  \emph{The anatomical distance of functional connections predicts brain
-  network topology in health and schizophrenia}. Cerebral Cortex, 23:127-138.
-  \url{https://dx.doi.org/10.1093/cercor/bhr388}
+Alexander-Bloch, A.F. and Vertes, P.E. and Stidd, R. et al.
+  (2013) The anatomical distance of functional connections predicts brain
+  network topology in health and schizophrenia. \emph{Cerebral Cortex},
+  \bold{23}, 127--138. \url{https://dx.doi.org/10.1093/cercor/bhr388}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

@@ -11,8 +11,7 @@ brainGraph_GLM_fit_t(X, y, XtX, con.mat)
 brainGraph_GLM_fit_f(X, y, dfR, con.mat, rkC, CXtX)
 }
 \arguments{
-\item{X}{Numeric matrix, if you wish to supply your own design matrix
-(default: \code{NULL})}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
 \item{y}{Numeric vector; the outcome variable}
 

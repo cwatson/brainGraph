@@ -46,9 +46,9 @@ write_brainnet(g, node.color='community', node.size='degree',
 }
 }
 \references{
-Xia M, Wang J, He Y (2013). \emph{BrainNet Viewer: a network
-visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
-\url{https://dx.doi.org/10.1371/journal.pone.0068910}
+Xia, M and Wang, J and He, Y (2013). BrainNet Viewer: a network
+  visualization tool for human brain connectomics. \emph{PLoS One},
+  \bold{8(7)}, e68910. \url{https://dx.doi.org/10.1371/journal.pone.0068910}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

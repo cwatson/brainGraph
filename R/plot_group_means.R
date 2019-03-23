@@ -1,6 +1,6 @@
 #' Plot group distributions of volumetric measures for a given brain region
 #'
-#' This function takes a "tidied" dataset of cortical volumetric measures
+#' This function takes a \dQuote{tidied} dataset of cortical volumetric measures
 #' (thickness, volume, LGI, etc.) and plots a histogram or violin plot for 1 or
 #' more groups, and of 1 or more brain regions.
 #'

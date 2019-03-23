@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_brainGraph_gui.R
 \name{plot_brainGraph_gui}
 \alias{plot_brainGraph_gui}
-\title{GUI for plotting graphs overlaid on an MNI152 image or in a circle.}
+\title{GUI for plotting graphs overlaid on an MNI152 image or in a circle}
 \usage{
 plot_brainGraph_gui()
 }

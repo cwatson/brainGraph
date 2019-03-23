@@ -30,9 +30,10 @@
 #' @rdname vertex_roles
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Vargas E.R. & Wahl L.M. (2014) The gateway coefficient: a novel
-#'   metric for identifying critical connections in modular networks. Eur Phys J
-#'   B, 87:161-170. \url{https://dx.doi.org/10.1140/epjb/e2014-40800-7}
+#' @references Vargas, E.R. and Wahl, L.M. (2014) The gateway coefficient: a
+#'   novel metric for identifying critical connections in modular networks.
+#'   \emph{Eur Phys J B}, \bold{87}, 161--170.
+#'   \url{https://dx.doi.org/10.1140/epjb/e2014-40800-7}
 
 gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
   stopifnot(is_igraph(g))
@@ -94,9 +95,9 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
 #' @rdname vertex_roles
 #'
 #' @references Guimera, R. and Amaral, L.A.N. (2005) Cartography of complex
-#' networks: modules and universal roles, Journal of Statistical Mechanics:
-#' Theory and Experiment, 02, P02001.
-#' \url{https://dx.doi.org/10.1088/1742-5468/2005/02/P02001}
+#'   networks: modules and universal roles. \emph{Journal of Statistical
+#'   Mechanics: Theory and Experiment}, \bold{02}, P02001.
+#'   \url{https://dx.doi.org/10.1088/1742-5468/2005/02/P02001}
 
 part_coeff <- function(g, memb) {
   stopifnot(is_igraph(g))

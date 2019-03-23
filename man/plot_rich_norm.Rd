@@ -11,21 +11,21 @@ plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
 
 \item{facet.by}{A character string indicating whether the variable of
-interest is "density" or "threshold" (e.g. with DTI data)}
+interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 
 \item{densities}{A numeric vector of the densities to plot}
 
-\item{alpha}{The significance level (default: 0.05)}
+\item{alpha}{The significance level. Default: \code{0.05}}
 
 \item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
-p-value for determining significance (default: TRUE)}
+p-value for determining significance. Default: \code{TRUE}}
 
 \item{g}{A list \code{brainGraphList} objects; required if you
 want to plot a shaded region demarcating the \code{\link{rich_core}}}
 
 \item{smooth}{Logical indicating whether or not to use
 \code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
-group) are present (default: \code{TRUE}). Ignored for group-level data.}
+group) are present. Default: \code{TRUE}. Ignored for group-level data.}
 }
 \value{
 A \code{\link[ggplot2]{ggplot}} object

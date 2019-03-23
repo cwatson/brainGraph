@@ -9,38 +9,38 @@ plot_global(tidy.dt, xvar = c("density", "threshold"), vline = NULL,
   alt = NULL)
 }
 \arguments{
-\item{tidy.dt}{A \code{\link{data.table}} that has been "tidied", containing
-global graph measures for all densities and subject groups}
+\item{tidy.dt}{A \code{\link{data.table}} that has been \dQuote{tidied},
+containing global graph measures for all densities and subject groups}
 
 \item{xvar}{A character string indicating whether the variable of
-interest is "density" or "threshold" (e.g. with DTI data)}
+interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 
-\item{vline}{Numeric; required to plot a dashed vertical line (default: NULL)}
+\item{vline}{Numeric; required to plot a dashed vertical line.}
 
 \item{level.names}{Character vector of facet label names, if you wish to
 change them (default: NULL)}
 
-\item{exclude}{Character vector of variables to exclude (default: NULL)}
+\item{exclude}{Character vector of variables to exclude}
 
-\item{perms}{A \code{\link{data.table}} of permutation group differences
-(default: NULL)}
+\item{perms}{A \code{\link{data.table}} of permutation group differences}
 
 \item{g}{A list of lists of \code{igraph} graph objects; required if
-\emph{perms} is provided (default: NULL)}
+\emph{perms} is provided}
 
 \item{alt}{Character vector of alternative hypotheses; required if
-\emph{perms} is provided, but defaults to "two.sided" for all variables}
+\emph{perms} is provided, but defaults to \dQuote{two.sided} for all
+variables}
 }
 \value{
 A \code{\link[ggplot2]{ggplot}} object
 }
 \description{
 Create a faceted line plot of global graph measures across a range of graph
-densities. Given a "tidied" \code{data.table}, you can choose to insert a
-dashed vertical line at a density of interest, rename the variable levels
-(which become the facet titles), exclude certain variables, and include a
-\code{data.table} of permutation data to add asterisks indicating signficant
-group differences.
+densities. Given a \dQuote{tidied} \code{data.table}, you can choose to
+insert a dashed vertical line at a density of interest, rename the variable
+levels (which become the facet titles), exclude certain variables, and
+include a \code{data.table} of permutation data to add asterisks indicating
+signficant group differences.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

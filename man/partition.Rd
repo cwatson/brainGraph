@@ -13,7 +13,7 @@ partition(M, con.mat, part.method = c("beckmann", "guttman", "ridgway"))
 only one contrast is desired, you can supply a vector}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance (default: \code{beckmann})}
+matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 }
 \value{
 A list containing:

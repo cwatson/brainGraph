@@ -1,4 +1,4 @@
-#' Simulate N random graphs w/ same clustering and degree sequence as the input.
+#' Simulate N random graphs w/ same clustering and degree sequence as the input
 #'
 #' \code{sim.rand.graph.par} simulates \code{N} simple random graphs with the
 #' same clustering (optional) and degree sequence as the input. Essentially a
@@ -72,24 +72,23 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
   }
 }
 
-#' Simulate a random graph with given degree sequence and clustering.
+#' Simulate a random graph with given degree sequence and clustering
 #'
 #' \code{sim.rand.graph.clust} simulates a random graph with a given degree
 #' sequence \emph{and} clustering coefficient. Increasing the \code{max.iters}
 #' value will result in a closer match of clustering with the observed graph.
 #'
 #' @export
-#'
 #' @return \code{sim.rand.graph.clust} - A single \code{igraph} graph object
 #'
 #' @aliases sim.rand.graph.clust
 #' @rdname random_graphs
 #'
 #' @seealso \code{\link[igraph]{transitivity}}
-#'
-#' @references Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
-#' biological network structure with clustered random networks}. BMC
-#' Bioinformatics, 10:405-421. \url{https://dx.doi.org/10.1186/1471-2105-10-405}
+#' @references Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
+#'   biological network structure with clustered random networks. \emph{BMC
+#'   Bioinformatics}, \bold{10}, 405--421.
+#'   \url{https://dx.doi.org/10.1186/1471-2105-10-405}
 
 sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.iters=100) {
   g <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
@@ -124,7 +123,7 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
   return(g)
 }
 
-#' Select edges for re-wiring.
+#' Select edges for re-wiring
 #'
 #' \code{choose.edges} selects edges to be re-wired when simulating random
 #' graphs while controlling for \emph{clustering}. It is based on the algorithm

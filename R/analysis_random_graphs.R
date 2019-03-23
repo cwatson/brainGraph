@@ -20,7 +20,7 @@
 #' @param g.list List of \code{brainGraphList} objects; the length of this list
 #'   should equal the number of thresholds/densities in the study
 #' @param savedir Character string specifying the directory in which to save the
-#'   generated graphs (default: current working directory)
+#'   generated graphs. Default: current working directory
 #' @inheritParams CreateGraphs
 #' @export
 #'

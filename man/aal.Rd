@@ -36,15 +36,16 @@ newer AAL2 atlases, along with indices for the major lobes and hemispheres of
 the brain.
 }
 \references{
-Tzourio-Mazoyer N., Landeau B., Papathanassiou D., Crivello F.,
-  Etard O., Delcroix N., Mazoyer B., Joliot M. (2002) \emph{Automated
-  anatomical labeling of activations in SPM using a macroscopic anatomical
-  parcellation of the MNI MRI single-subject brain}. NeuroImage,
-  15(1):273-289. \url{https://dx.doi.org/10.1006/nimg.2001.0978}
+Tzourio-Mazoyer, N. and Landeau, B. and Papathanassiou, D. and
+  Crivello, F. and Etard, O. and Delcroix, N. and Mazoyer, B. and Joliot, M.
+  (2002) Automated anatomical labeling of activations in SPM using a
+  macroscopic anatomical parcellation of the MNI MRI single-subject brain.
+  \emph{NeuroImage}, \bold{15(1)}, 273--289.
+  \url{https://dx.doi.org/10.1006/nimg.2001.0978}
 
-Rolls E.T., Joliot M., Tzourio-Mazoyer N. (2015)
-  \emph{Implementation of a new parcellation of the orbitofrontal cortex in
-  the automated anatomical labelling atlas}. NeuroImage, 122:1-5.
+Rolls, E.T. and Joliot, M. and Tzourio-Mazoyer, N. (2015)
+  Implementation of a new parcellation of the orbitofrontal cortex in the
+  automated anatomical labelling atlas. \emph{NeuroImage}, \bold{122}, 1--5.
   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.075}
 }
 \keyword{datasets}

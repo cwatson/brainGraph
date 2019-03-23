@@ -1,4 +1,4 @@
-#' GUI for plotting graphs overlaid on an MNI152 image or in a circle.
+#' GUI for plotting graphs overlaid on an MNI152 image or in a circle
 #'
 #' This function creates a GUI for plotting graphs over an image from the MNI152
 #' template. It gives the user control over several plotting parameters. Also

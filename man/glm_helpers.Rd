@@ -18,8 +18,7 @@ glm_fit_helper(DT, X, con.type, con.mat, alt, outcome, mykey,
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix
-(default: \code{NULL})}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
 \item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
@@ -28,8 +27,7 @@ only one contrast is desired, you can supply a vector}
 F-statistics). Default: \code{'t'}}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
-has row names, those will be used for reporting results (default:
-\code{NULL})}
+has row names, those will be used for reporting results}
 
 \item{measure}{Character string of the graph measure of interest}
 
@@ -51,7 +49,7 @@ outcome measure(s)}
 \item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
 analyses)}
 
-\item{alpha}{Numeric; the significance level (default: 0.05)}
+\item{alpha}{Numeric; the significance level. Default: 0.05}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses

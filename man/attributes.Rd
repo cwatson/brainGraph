@@ -92,7 +92,7 @@ length} which will include the strongest connections.
 
 \code{xfm.type} allows you to choose from 5 options for transforming edge
 weights when calculating distance-based metrics (e.g., shortest paths). There
-is no "best-practice" for choosing one over the other, but the reciprocal is
+is no \dQuote{best-practice} for choosing one over the other, but the reciprocal is
 probably most common.
 \describe{
   \item{\code{1/w}}{reciprocal (default)}

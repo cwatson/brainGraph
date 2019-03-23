@@ -4,22 +4,17 @@
 \alias{CountEdges}
 \alias{count_homologous}
 \alias{count_inter}
-\alias{count_interlobar}
 \title{Count number of edges of a brain graph}
 \usage{
 count_homologous(g)
 
 count_inter(g, group = c("lobe", "hemi", "network", "class"))
-
-count_interlobar(g, lobe)
 }
 \arguments{
 \item{g}{An \code{brainGraph} graph object}
 
 \item{group}{Character string specifying which grouping to calculate edge
 counts for. Default: \code{'lobe'}}
-
-\item{lobe}{Lobe name (deprecated)}
 }
 \value{
 \code{count_homologous} - a named vector of the edge ID's connecting

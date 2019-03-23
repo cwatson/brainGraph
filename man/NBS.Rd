@@ -26,34 +26,32 @@ only one contrast is desired, you can supply a vector}
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix
-(default: \code{NULL})}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
-has row names, those will be used for reporting results (default:
-\code{NULL})}
+has row names, those will be used for reporting results}
 
 \item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
 
-\item{perm.method}{Character string indicating the permutation method
-(default: \code{'freedmanLane'})}
+\item{perm.method}{Character string indicating the permutation method.
+Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance (default: \code{beckmann})}
+matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 
-\item{N}{Integer; number of permutations to create (default: 5e3)}
+\item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
-\item{perms}{Matrix of permutations, if you would like to provide your own
-(default: \code{NULL})}
+\item{perms}{Matrix of permutations, if you would like to provide your own.
+Default: \code{NULL}}
 
 \item{symm.by}{Character string; how to create symmetric off-diagonal
 elements (default: \code{max})}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{'two.sided'})}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 
 \item{long}{Logical indicating whether or not to return all permutation
-results (default: \code{FALSE})}
+results. Default: \code{FALSE}}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 

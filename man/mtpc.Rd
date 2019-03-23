@@ -41,35 +41,34 @@ F-statistics). Default: \code{'t'}}
 if it differs from the graph metric (\code{measure})}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
-has row names, those will be used for reporting results (default:
-\code{NULL})}
+has row names, those will be used for reporting results}
 
 \item{level}{Character string; either \code{vertex} (default) or
 \code{graph}}
 
-\item{clust.size}{Integer indicating the size of "clusters" (i.e.,
+\item{clust.size}{Integer indicating the size of \dQuote{clusters} (i.e.,
 consecutive thresholds for which the observed statistic exceeds the null)
 (default: \code{3L})}
 
-\item{perm.method}{Character string indicating the permutation method
-(default: \code{'freedmanLane'})}
+\item{perm.method}{Character string indicating the permutation method.
+Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance (default: \code{beckmann})}
+matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 
-\item{N}{Integer; number of permutations to create (default: 5e3)}
+\item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
-\item{perms}{Matrix of permutations, if you would like to provide your own
-(default: \code{NULL})}
+\item{perms}{Matrix of permutations, if you would like to provide your own.
+Default: \code{NULL}}
 
-\item{alpha}{Numeric; the significance level (default: 0.05)}
+\item{alpha}{Numeric; the significance level. Default: 0.05}
 
 \item{res.glm}{A list of \code{bg_GLM} objects, as output by a previous run
 of \code{mtpc}. Useful if you want to change the cluster size without
 re-running all of the GLM's and permutations (default: \code{NULL})}
 
 \item{long}{Logical indicating whether or not to return all permutation
-results (default: \code{FALSE})}
+results. Default: \code{FALSE}}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM}} and/or
 \code{\link{brainGraph_GLM_design}}}

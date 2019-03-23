@@ -28,10 +28,11 @@
 #' argument \code{con.mat}. If you supply a multi-row matrix and you choose
 #' \code{con.type="t"}, then statistics will be calculated for each contrast
 #' individually. If you choose \code{con.type="f"}, in the return object's data
-#' table the calculated effect size is represented by the \code{ESS} ("extra sum
-#' of squares"), the additional variance explained for by the model parameters
-#' of interest (as determined by the contrast matrix). The standard error for
-#' F-contrasts is the sum of squared errors of the \emph{full model}.
+#' table the calculated effect size is represented by the \code{ESS}
+#' (\dQuote{extra sum of squares}), the additional variance explained for by the
+#' model parameters of interest (as determined by the contrast matrix). The
+#' standard error for F-contrasts is the sum of squared errors of the \emph{full
+#' model}.
 #'
 #' @section Non-parametric permutation tests:
 #' You can calculate permutations of the data to build a null distribution of
@@ -51,26 +52,24 @@
 #' @param outcome Character string specifying the name of the outcome variable,
 #'   if it differs from the graph metric (\code{measure})
 #' @param X Numeric matrix, if you wish to supply your own design matrix
-#'   (default: \code{NULL})
 #' @param con.name Character vector of the contrast name(s); if \code{con.mat}
-#'   has row names, those will be used for reporting results (default:
-#'   \code{NULL})
-#' @param alternative Character string, whether to do a two- or one-sided test
-#'   (default: \code{'two.sided'})
-#' @param alpha Numeric; the significance level (default: 0.05)
+#'   has row names, those will be used for reporting results
+#' @param alternative Character string, whether to do a two- or one-sided test.
+#'   Default: \code{'two.sided'}
+#' @param alpha Numeric; the significance level. Default: 0.05
 #' @param level Character string; either \code{vertex} (default) or
 #'   \code{graph}
-#' @param permute Logical indicating whether or not to permute group labels
-#'   (default: \code{FALSE})
-#' @param perm.method Character string indicating the permutation method
-#'   (default: \code{'freedmanLane'})
+#' @param permute Logical indicating whether or not to permute group labels.
+#'   Default: \code{FALSE}
+#' @param perm.method Character string indicating the permutation method.
+#'   Default: \code{'freedmanLane'}
 #' @param part.method Character string; the method of partitioning the design
-#' matrix into covariates of interest and nuisance (default: \code{beckmann})
-#' @param N Integer; number of permutations to create (default: 5e3)
-#' @param perms Matrix of permutations, if you would like to provide your own
-#'   (default: \code{NULL})
+#' matrix into covariates of interest and nuisance. Default: \code{beckmann}
+#' @param N Integer; number of permutations to create. Default: \code{5e3}
+#' @param perms Matrix of permutations, if you would like to provide your own.
+#'   Default: \code{NULL}
 #' @param long Logical indicating whether or not to return all permutation
-#'   results (default: \code{FALSE})
+#'   results. Default: \code{FALSE}
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #' @export
 #' @importFrom permute shuffleSet
@@ -471,7 +470,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #'
 #' The \code{summary} method prints the results, only for which
 #' \eqn{p < \alpha}, where \code{alpha} comes from the \code{bg_GLM} object.
-#' "Simple" P-values are used by default, but you may change this to the
+#' \dQuote{Simple} P-values are used by default, but you may change this to the
 #' FDR-adjusted or permutation P-values via the function argument \code{p.sig}.
 #' You may also choose to subset by \emph{contrast}.
 #'

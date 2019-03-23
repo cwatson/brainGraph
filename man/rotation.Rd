@@ -16,7 +16,7 @@ A matrix with 2 columns of the points' new locations
 }
 \description{
 This function takes a set of points and applies a rotation matrix (e.g. will
-rotate points 90 deg. if given "pi/2" as input)
+rotate points 90 deg. if given \dQuoe{pi/2} as input)
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

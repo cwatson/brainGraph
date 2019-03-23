@@ -7,16 +7,16 @@
 #'
 #' @param rich.dt A \code{data.table} with rich-club coefficients
 #' @param facet.by A character string indicating whether the variable of
-#' interest is "density" or "threshold" (e.g. with DTI data)
+#' interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)
 #' @param densities A numeric vector of the densities to plot
-#' @param alpha The significance level (default: 0.05)
+#' @param alpha The significance level. Default: \code{0.05}
 #' @param fdr A logical, indicating whether or not to use the FDR-adjusted
-#'   p-value for determining significance (default: TRUE)
+#'   p-value for determining significance. Default: \code{TRUE}
 #' @param g A list \code{brainGraphList} objects; required if you
 #'   want to plot a shaded region demarcating the \code{\link{rich_core}}
 #' @param smooth Logical indicating whether or not to use
 #'   \code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
-#'   group) are present (default: \code{TRUE}). Ignored for group-level data.
+#'   group) are present. Default: \code{TRUE}. Ignored for group-level data.
 #' @export
 #'
 #' @return A \code{\link[ggplot2]{ggplot}} object

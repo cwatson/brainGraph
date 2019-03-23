@@ -33,7 +33,7 @@ your own (default: \code{NULL})}
 \item{auc}{Logical indicating whether or not to calculate differences in the
 area-under-the-curve of metrics (default: \code{FALSE})}
 
-\item{level}{A character string for the attribute "level" to calculate
+\item{level}{A character string for the attribute \dQuote{level} to calculate
 differences (default: \code{graph})}
 
 \item{measure}{A character string specifying the vertex-level metric to
@@ -49,10 +49,10 @@ For the \code{summary} method, this is to focus on a single
 \item{object, x}{A \code{brainGraph_permute} object (output by
 \code{\link{brainGraph_permute}}).}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{'two.sided'})}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 
-\item{alpha}{Numeric; the significance level (default: 0.05)}
+\item{alpha}{Numeric; the significance level. Default: 0.05}
 
 \item{p.sig}{Character string specifying which p-value to use for displaying
 significant results (default: \code{p})}
@@ -82,7 +82,7 @@ types of data.
 If you would like to calculate differences in the area-under-the-curve (AUC)
 across densities, then specify \code{auc=TRUE}.
 
-There are three possible "levels":
+There are three possible \dQuote{levels}:
 \enumerate{
   \item \emph{graph} Calculate modularity (Louvain algorithm), clustering
   coefficient, characteristic path length, degree assortativity, global

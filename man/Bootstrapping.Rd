@@ -22,15 +22,15 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
 \code{\link{get.resid}})}
 
-\item{R}{Integer; the number of bootstrap replicates (default: \code{1e3})}
+\item{R}{Integer; the number of bootstrap replicates. Default: \code{1e3}}
 
-\item{measure}{Character string of the measure to test (default: \code{mod})}
+\item{measure}{Character string of the measure to test. Default: \code{mod}}
 
 \item{conf}{Numeric; the confidence level for calculating confidence
-intervals (default: 0.95)}
+intervals. Default: \code{0.95}}
 
-\item{.progress}{Logical indicating whether or not to show a progress bar
-(default: \code{TRUE})}
+\item{.progress}{Logical indicating whether or not to show a progress bar.
+Default: \code{TRUE}}
 
 \item{xfm.type}{Character string specifying how to transform the weights
 (default: \code{1/w})}

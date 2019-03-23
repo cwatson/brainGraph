@@ -37,37 +37,35 @@ F-statistics). Default: \code{'t'}}
 \item{outcome}{Character string specifying the name of the outcome variable,
 if it differs from the graph metric (\code{measure})}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix
-(default: \code{NULL})}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
-has row names, those will be used for reporting results (default:
-\code{NULL})}
+has row names, those will be used for reporting results}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{'two.sided'})}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 
-\item{alpha}{Numeric; the significance level (default: 0.05)}
+\item{alpha}{Numeric; the significance level. Default: 0.05}
 
 \item{level}{Character string; either \code{vertex} (default) or
 \code{graph}}
 
-\item{permute}{Logical indicating whether or not to permute group labels
-(default: \code{FALSE})}
+\item{permute}{Logical indicating whether or not to permute group labels.
+Default: \code{FALSE}}
 
-\item{perm.method}{Character string indicating the permutation method
-(default: \code{'freedmanLane'})}
+\item{perm.method}{Character string indicating the permutation method.
+Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance (default: \code{beckmann})}
+matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 
-\item{N}{Integer; number of permutations to create (default: 5e3)}
+\item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
-\item{perms}{Matrix of permutations, if you would like to provide your own
-(default: \code{NULL})}
+\item{perms}{Matrix of permutations, if you would like to provide your own.
+Default: \code{NULL}}
 
 \item{long}{Logical indicating whether or not to return all permutation
-results (default: \code{FALSE})}
+results. Default: \code{FALSE}}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
 
@@ -115,7 +113,7 @@ or F-contrast), it will calculate the associated statistic(s).
 
 The \code{summary} method prints the results, only for which
 \eqn{p < \alpha}, where \code{alpha} comes from the \code{bg_GLM} object.
-"Simple" P-values are used by default, but you may change this to the
+\dQuote{Simple} P-values are used by default, but you may change this to the
 FDR-adjusted or permutation P-values via the function argument \code{p.sig}.
 You may also choose to subset by \emph{contrast}.
 
@@ -151,10 +149,11 @@ Both t- and F-contrasts are allowed by supplying a \emph{matrix} to the
 argument \code{con.mat}. If you supply a multi-row matrix and you choose
 \code{con.type="t"}, then statistics will be calculated for each contrast
 individually. If you choose \code{con.type="f"}, in the return object's data
-table the calculated effect size is represented by the \code{ESS} ("extra sum
-of squares"), the additional variance explained for by the model parameters
-of interest (as determined by the contrast matrix). The standard error for
-F-contrasts is the sum of squared errors of the \emph{full model}.
+table the calculated effect size is represented by the \code{ESS}
+(\dQuote{extra sum of squares}), the additional variance explained for by the
+model parameters of interest (as determined by the contrast matrix). The
+standard error for F-contrasts is the sum of squared errors of the \emph{full
+model}.
 }
 
 \section{Non-parametric permutation tests}{

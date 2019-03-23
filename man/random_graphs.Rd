@@ -27,7 +27,7 @@ group-, or contrast-specific. Default: \code{'subject'}}
 \item{N}{Integer; the number of random graphs to simulate (default: 100)}
 
 \item{savedir}{Character string specifying the directory in which to save the
-generated graphs (default: current working directory)}
+generated graphs. Default: current working directory}
 
 \item{...}{Other parameters (passed to \code{\link{make_brainGraph}})}
 
@@ -104,9 +104,10 @@ rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2,
 }
 }
 \references{
-Bansal S., Khandelwal S., Meyers L.A. (2009) \emph{Exploring
-biological network structure with clustered random networks}. BMC
-Bioinformatics, 10:405-421. \url{https://dx.doi.org/10.1186/1471-2105-10-405}
+Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
+  biological network structure with clustered random networks. \emph{BMC
+  Bioinformatics}, \bold{10}, 405--421.
+  \url{https://dx.doi.org/10.1186/1471-2105-10-405}
 }
 \seealso{
 \code{\link{small.world}}

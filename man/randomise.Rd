@@ -15,14 +15,13 @@ randomise_nbs(perm.method, part.method, ctype, N, perms, DT, nC, skip,
   p.init, X, con.mat, alternative, Nv)
 }
 \arguments{
-\item{perm.method}{Character string indicating the permutation method
-(default: \code{'freedmanLane'})}
+\item{perm.method}{Character string indicating the permutation method.
+Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance (default: \code{beckmann})}
+matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix
-(default: \code{NULL})}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
 \item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
@@ -32,17 +31,17 @@ F-statistics). Default: \code{'t'}}
 
 \item{nC}{Integer; the number of contrasts}
 
-\item{N}{Integer; number of permutations to create (default: 5e3)}
+\item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
-\item{perms}{Matrix of permutations, if you would like to provide your own
-(default: \code{NULL})}
+\item{perms}{Matrix of permutations, if you would like to provide your own.
+Default: \code{NULL}}
 
 \item{DT}{\code{data.table} with outcome variables}
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{'two.sided'})}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 
 \item{skip}{Integer vector of the contrast(s) to skip}
 

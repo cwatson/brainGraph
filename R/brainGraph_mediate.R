@@ -435,7 +435,7 @@ print.summary.bg_mediate <- function(x, ...) {
   invisible(x)
 }
 
-#' Convert brainGraph results to "mediate" object
+#' Convert brainGraph results to mediate object
 #'
 #' \code{\link{bg_to_mediate}} converts the results into an object of class
 #' \code{\link[mediation]{mediate}}. In \code{brainGraph}, it is only used for

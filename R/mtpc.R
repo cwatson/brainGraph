@@ -27,7 +27,7 @@
 #'   thresholds and subjects
 #' @param thresholds Numeric vector of the thresholds applied to the raw
 #'   connectivity matrices.
-#' @param clust.size Integer indicating the size of "clusters" (i.e.,
+#' @param clust.size Integer indicating the size of \dQuote{clusters} (i.e.,
 #'   consecutive thresholds for which the observed statistic exceeds the null)
 #'   (default: \code{3L})
 #' @param res.glm A list of \code{bg_GLM} objects, as output by a previous run

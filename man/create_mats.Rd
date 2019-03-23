@@ -71,7 +71,7 @@ The argument \code{threshold.by} has 4 options:
 \enumerate{
   \item \code{consensus} Threshold based on the raw (normalized, if selected)
     values in the matrices. If this is selected, it uses the
-    \code{sub.thresh} value to perform "consensus" thresholding.
+    \code{sub.thresh} value to perform \dQuote{consensus} thresholding.
   \item \code{density} Threshold the matrices to yield a specific graph
     density (given by the \code{mat.thresh} argument).
   \item \code{mean} Keep only connections for which the cross-subject mean is
@@ -80,7 +80,8 @@ The argument \code{threshold.by} has 4 options:
   \item \code{consistency} Threshold based on the coefficient of variation to
     yield a graph with a specific density (given by \code{mat.thresh}). The
     edge weights will still represent those of the input matrices. See
-    Roberts et al. (2017) for more on "consistency-based" thresholding.
+    Roberts et al. (2017) for more on \dQuote{consistency-based}
+    thresholding.
 }
 
 The argument \code{mat.thresh} allows you to choose a numeric threshold,
@@ -99,9 +100,10 @@ dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
 }
 }
 \references{
-Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
-  \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
-  145:118-129. \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
+Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
+  Breakspear, M (2017) Consistency-based thresholding of the human
+  connectome. \emph{NeuroImage}. \bold{145}, 118--129.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
 }
 \seealso{
 Other Matrix functions: \code{\link{apply_thresholds}},

@@ -52,8 +52,8 @@ mean-centering.
 
 The argument \code{mean.center} will mean-center (i.e., subtract the mean of
 the entire dataset from each variable) any non-factor variables (including
-any dummy/indicator covariates). This is done \emph{after} "factorizing" and
-"binarizing".
+any dummy/indicator covariates). This is done \emph{after}
+\dQuote{factorizing} and \dQuote{binarizing}.
 
 \code{int} specifies which variables should interact with one another. This
 argument accepts both numeric (e.g., \emph{Age}) and factor variables (e.g.,

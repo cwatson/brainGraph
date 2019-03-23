@@ -24,9 +24,10 @@
 #'
 #' @seealso \code{\link[igraph]{coreness}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Eidsaa M & Almaas E. (2013) \emph{s-core network decomposition: a
-#'   generalization of k-core analysis to weighted networks.} Physical Review E,
-#'   88:062819. \url{https://dx.doi.org/10.1103/PhysRevE.88.062819}
+#' @references Eidsaa, M and Almaas, E. (2013) s-core network decomposition: a
+#'   generalization of k-core analysis to weighted networks. \emph{Physical
+#'   Review E}, \bold{88}, 062819.
+#'   \url{https://dx.doi.org/10.1103/PhysRevE.88.062819}
 
 s_core <- function(g, W=NULL) {
   stopifnot(is_igraph(g))

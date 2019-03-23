@@ -9,7 +9,7 @@
 #' If you would like to calculate differences in the area-under-the-curve (AUC)
 #' across densities, then specify \code{auc=TRUE}.
 #'
-#' There are three possible "levels":
+#' There are three possible \dQuote{levels}:
 #' \enumerate{
 #'   \item \emph{graph} Calculate modularity (Louvain algorithm), clustering
 #'   coefficient, characteristic path length, degree assortativity, global
@@ -30,7 +30,7 @@
 #'   your own (default: \code{NULL})
 #' @param auc Logical indicating whether or not to calculate differences in the
 #'   area-under-the-curve of metrics (default: \code{FALSE})
-#' @param level A character string for the attribute "level" to calculate
+#' @param level A character string for the attribute \dQuote{level} to calculate
 #'   differences (default: \code{graph})
 #' @param atlas Character string of the atlas name; required if
 #'   \code{level='graph'} (default: \code{NULL})

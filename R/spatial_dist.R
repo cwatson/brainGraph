@@ -44,10 +44,10 @@ edge_spatial_dist <- function(g) {
 #'
 #' @aliases vertex_spatial_dist
 #' @rdname spatial_dist
-#' @references Alexander-Bloch A.F., Vertes P.E., Stidd R. et al. (2013)
-#'   \emph{The anatomical distance of functional connections predicts brain
-#'   network topology in health and schizophrenia}. Cerebral Cortex, 23:127-138.
-#'   \url{https://dx.doi.org/10.1093/cercor/bhr388}
+#' @references Alexander-Bloch, A.F. and Vertes, P.E. and Stidd, R. et al.
+#'   (2013) The anatomical distance of functional connections predicts brain
+#'   network topology in health and schizophrenia. \emph{Cerebral Cortex},
+#'   \bold{23}, 127--138. \url{https://dx.doi.org/10.1093/cercor/bhr388}
 
 vertex_spatial_dist <- function(g) {
   from <- to <- dist <- NULL

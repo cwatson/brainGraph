@@ -10,14 +10,14 @@ robustness(g, type = c("vertex", "edge"), measure = c("btwn.cent",
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{type}{Character string; either 'vertex' or 'edge' removals (default:
-\code{vertex})}
+\item{type}{Character string; either \code{'vertex'} or \code{'edge'}
+removals. Default: \code{vertex}}
 
-\item{measure}{Character string; sort by either 'btwn.cent' or 'degree', or
-choose 'random' (default: \code{btwn.cent})}
+\item{measure}{Character string; sort by either \code{'btwn.cent'} or
+\code{'degree'}, or choose \code{'random'}. Default: \code{'btwn.cent'}}
 
-\item{N}{Integer; the number of iterations if \emph{random} is chosen
-(default: \code{1e3})}
+\item{N}{Integer; the number of iterations if \code{'random'} is chosen.
+Default: \code{1e3}}
 }
 \value{
 Data table with elements:
@@ -29,9 +29,9 @@ Data table with elements:
   \item{Group}{Character string indicating the subject group, if applicable}
 }
 \description{
-This function performs a "targeted attack" of a graph or a "random failure"
-analysis, calculating the size of the largest component after edge or vertex
-removal.
+This function performs a \dQuote{targeted attack} of a graph or a
+\dQuote{random failure} analysis, calculating the size of the largest
+component after edge or vertex removal.
 }
 \details{
 In a targeted attack, it will sort the vertices by either degree or
@@ -42,9 +42,9 @@ component.
 In a random failure analysis, vertices/edges are removed in a random order.
 }
 \references{
-Albert R., Jeong H., Barabasi A. (2000) \emph{Error and attack
-tolerance of complex networks}. Nature, 406:378-381.
-\url{https://dx.doi.org/10.1515/9781400841356.503}
+Albert, R. and Jeong, H. and Barabasi, A. (2000) Error and attack
+  tolerance of complex networks. \emph{Nature}, \bold{406}, 378--381.
+  \url{https://dx.doi.org/10.1515/9781400841356.503}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

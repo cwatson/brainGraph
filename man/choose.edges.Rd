@@ -2,7 +2,7 @@
 % Please edit documentation in R/random_graphs.R
 \name{choose.edges}
 \alias{choose.edges}
-\title{Select edges for re-wiring.}
+\title{Select edges for re-wiring}
 \usage{
 choose.edges(A, degs.large)
 }

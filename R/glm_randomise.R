@@ -70,7 +70,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'   \item Calculate the new contrast(s) based on this new design matrix (also
 #'     through \code{\link{partition}}
 #'   \item Calculate the inverse of the cross produce of the full model
-#'   \item Calculate the "hat" and residual-forming matrices due to nuisance
+#'   \item Calculate the \dQuote{hat} and residual-forming matrices due to nuisance
 #'     alone
 #'   \item For F contrasts, return an inverse of the cross product between the
 #'     contrast and the inverted design matrix, and the contrast's rank

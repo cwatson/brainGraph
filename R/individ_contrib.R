@@ -1,9 +1,10 @@
 #' Approaches to estimate individual network contribution
 #'
 #' \code{loo} calculates the individual contribution to group network data for
-#' each subject in each group using a "leave-one-out" approach. The residuals of
-#' a single subject are excluded, and a correlation matrix is created. This is
-#' compared to the original correlation matrix using the Mantel test.
+#' each subject in each group using a \dQuote{leave-one-out} approach. The
+#' residuals of a single subject are excluded, and a correlation matrix is
+#' created. This is compared to the original correlation matrix using the Mantel
+#' test.
 #'
 #' @param resids An object of class \code{brainGraph_resids} (the output from
 #'   \code{\link{get.resid}})
@@ -70,12 +71,12 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   return(out)
 }
 
-#' "Add-one-patient" approach to estimate individual network contribution
+#' Add-one-patient approach to estimate individual network contribution
 #'
-#' \code{aop} calculates the individual contribution using an "add-one-patient"
-#' approach. The residuals of a single patient are added to those of a control
-#' group, and a correlation matrix is created. This is repeated for all
-#' individual patients and each patient group.
+#' \code{aop} calculates the individual contribution using an
+#' \dQuote{add-one-patient} approach. The residuals of a single patient are
+#' added to those of a control group, and a correlation matrix is created. This
+#' is repeated for all individual patients and each patient group.
 #'
 #' @note For \code{aop}, it is assumed by default that the control group is the
 #'   first group.

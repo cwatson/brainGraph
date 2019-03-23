@@ -72,7 +72,7 @@
 #'   Default: \code{NULL}
 #' @param weighting Character string indicating how the edges are weighted
 #'   (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}
-#' @param threshold Numeric indicating the threshold used when "sparsifying" the
+#' @param threshold Numeric indicating the threshold used when sparsifying the
 #'   connectivity matrix (if any). Default: \code{NULL}
 #' @param name Character string indicating subject ID or group/contrast name,
 #'   depending on the \code{level}. Default: \code{NULL}
