@@ -20,7 +20,7 @@ interest is "density" or "threshold" (e.g. with DTI data)}
 \item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
 p-value for determining significance (default: TRUE)}
 
-\item{g}{A list (of lists) of \code{igraph} graph objects; required if you
+\item{g}{A list \code{brainGraphList} objects; required if you
 want to plot a shaded region demarcating the \code{\link{rich_core}}}
 
 \item{smooth}{Logical indicating whether or not to use

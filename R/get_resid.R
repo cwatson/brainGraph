@@ -1,7 +1,7 @@
 #' Linear model residuals in structural covariance networks
 #'
 #' \code{get.resid} runs linear models across brain regions listed in a
-#' \code{data.table} (e.g. cortical thickness), adjusting for variables in
+#' \code{data.table} (e.g., cortical thickness), adjusting for variables in
 #' \code{covars} (e.g. age, sex, etc.), and calculates the
 #' \emph{externally Studentized} (or \emph{leave-one-out}) residuals.
 #'
@@ -11,16 +11,22 @@
 #' models. Finally, you can specify variables that are present in \code{covars}
 #' but you would like to exclude from the models.
 #'
+#' If you do not explicitly specify the atlas name, then it will be guessed from
+#' the size of your data. This could cause problems if you are using a custom
+#' atlas, with or without the same number of regions as a dataset in the
+#' package.
+#'
 #' @param dt.vol A \code{data.table} containing all the volumetric measure of
-#'   interest (i.e., the object \code{lhrh} as ouptut by
-#'   \code{\link{brainGraph_init}})
+#'   interest (i.e., the object \code{lhrh} as output by
+#'   \code{\link{import_scn}})
 #' @param covars A \code{data.table} of the covariates of interest
 #' @param method Character string indicating whether to test models for subject
-#'   groups separately or combined (default: \code{comb.groups})
+#'   groups separately or combined. Default: \code{comb.groups}
 #' @param use.mean Logical should we control for the mean hemispheric brain
-#'   value (e.g. mean LH/RH cortical thickness) (default: \code{FALSE})
-#' @param exclude.cov Character vector of covariates to exclude (default:
-#'   \code{NULL})
+#'   value (e.g. mean LH/RH cortical thickness). Default: \code{FALSE}
+#' @param exclude.cov Character vector of covariates to exclude. Default:
+#'   \code{NULL}
+#' @param atlas Character string indicating the brain atlas
 #' @param ... Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)
 #' @export
 #'
@@ -41,7 +47,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
-                      use.mean=FALSE, exclude.cov=NULL, ...) {
+                      use.mean=FALSE, exclude.cov=NULL, atlas=NULL, ...) {
   region <- resids <- Group <- Study.ID <- value <- NULL
 
   stopifnot('Group' %in% names(covars))
@@ -112,7 +118,17 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   resids.all <- dcast(DT.m, 'Study.ID + Group ~ region', value.var='resids')
   setkey(resids.all, Group, Study.ID)
 
-  out <- list(X=X, method=method, use.mean=use.mean, all.dat.tidy=DT.m, resids.all=resids.all, groups=groups)
+  out <- list(X=X, method=method, use.mean=use.mean, all.dat.tidy=DT.m,
+              resids.all=resids.all, groups=groups, atlas=NULL)
+  if (is.null(atlas)) {
+    bgAtlases <- data(package='brainGraph')$results[, 3]
+    Nv <- sapply(bgAtlases, function(x) nrow(get(x)))
+    n <- ncol(dt.vol) - 1
+    matched <- which(Nv == n)
+    if (length(matched > 0)) out$atlas <- names(matched)
+  } else {
+    out$atlas <- atlas
+  }
   class(out) <- c('brainGraph_resids', class(out))
   return(out)
 }
@@ -167,9 +183,10 @@ rstudent_mat <- function(lmvars, y) {
 
 `[.brainGraph_resids` <- function(x, i, g=NULL) {
   Group <- Study.ID <- NULL
-  if (!is.null(g)) x$resids.all <- x$resids.all[g]
+  if (!is.null(g)) x$resids.all <- droplevels(x$resids.all[g])
   if (missing(i)) i <- seq_len(nrow(x$resids.all))
   x$resids.all <- x$resids.all[i]
+  x$groups <- x$resids.all[, levels(factor(Group))]
   setkey(x$resids.all, Group, Study.ID)
   x$all.dat.tidy <- x$all.dat.tidy[Study.ID %in% x$resids.all$Study.ID]
   return(x)

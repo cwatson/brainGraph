@@ -1,58 +1,67 @@
 #' Set graph, vertex, and edge attributes common in MRI analyses
 #'
-#' This function sets a number of graph, vertex, and edge attributes for a
-#' given \code{igraph} graph object. These are all measures that are common in
-#' MRI analyses of brain networks.
+#' \code{set_brainGraph_attr} sets a number of graph, vertex, and edge
+#' attributes for a given graph object. Specifically, it calculates measures
+#' that are common in MRI analyses of brain networks.
+#'
+#' Including \code{type='random'} in the function call will reduce the number of
+#' attributes calculated.
+#'
+#' @section Community detection:
+#' \code{clust.method} allows you to choose from any of the clustering
+#' (community detection) functions available in \code{igraph}. These functions
+#' all begin with \code{clust_}; the function argument should not include this
+#' leading character string. There are a few possibilities, depending on the
+#' value and the type of input graph:
+#' \enumerate{
+#'   \item By default, \code{louvain} is used, calling
+#'     \code{\link[igraph]{cluster_louvain}}
+#'   \item Uses \code{spinglass} if there are any negative edges and/or the
+#'     selected method is \code{spinglass}
+#'   \item Uses \code{walktrap} if there are any negative edge weights and any
+#'     other method (besided \code{spinglass}) is selected
+#'   \item Automatically transforms the edge weights if \code{edge_betweenness}
+#'     is selected and the graph is weighted, because the algorithm considers
+#'     edges as \emph{distances}
+#' }
+#'
+#' @section Transforming edge weights:
+#' For distance-based measures, it is important to transform the edge weights so
+#' that the \emph{strongest} connections are re-mapped to having the
+#' \emph{lowest} weights. Then you may calculate e.g., the \emph{shortest path
+#' length} which will include the strongest connections.
 #'
 #' \code{xfm.type} allows you to choose from 5 options for transforming edge
 #' weights when calculating distance-based metrics (e.g., shortest paths). There
 #' is no "best-practice" for choosing one over the other, but the reciprocal is
 #' probably most common.
-#' \itemize{
-#'   \item \code{1/w}: reciprocal (default)
-#'   \item \code{-log(w)}: the negative (natural) logarithm
-#'   \item \code{1-w}: subtract weights from 1
-#'   \item \code{-log10(w/max(w))}: negative (base-10) log of normalized weights
-#'   \item \code{-log10(w/max(w)+1)}: same as above, but add 1 before taking
-#'     the log
+#' \describe{
+#'   \item{\code{1/w}}{reciprocal (default)}
+#'   \item{\code{-log(w)}}{the negative (natural) logarithm}
+#'   \item{\code{1-w}}{subtract weights from 1}
+#'   \item{\code{-log10(w/max(w))}}{negative (base-10) log of normalized
+#'   weights}
+#'   \item{\code{-log10(w/max(w)+1)}}{same as above, but add 1 before taking
+#'     the log}
 #' }
 #'
-#' \code{clust.method} allows you to choose from any of the clustering
-#' (community detection) functions available in \code{igraph}. These functions
-#' all begin with \code{clust_}; the function argument should not include this
-#' leading character string. The default value is \code{louvain}, which calls
-#' \code{\link[igraph]{cluster_louvain}}. If there are any negative edge
-#' weights, and the selected method is anything other than \code{spinglass} or
-#' \code{walktrap}, then \code{walktrap} is used (calling
-#' \code{\link[igraph]{cluster_walktrap}}). If \code{edge_betweenness} is
-#' selected and the graph is weighted, then the edges are first transformed (via
-#' \code{\link{xfm.weights}}), because the algorithm considers edges as
-#' \emph{distances}.
+#' To transform the weights back to original values, specify \code{invert=TRUE}.
 #'
-#' Since \code{v2.4.0}, hubs are calculated by the new function
-#' \code{\link{hubness}}. It is calculated using edge weights in addition to the
-#' unweighted version of the graph.
-#'
-#' @param g An \code{igraph} graph object
-#' @param atlas Character vector indicating which atlas was used (default:
-#'   \code{NULL})
-#' @param rand Logical indicating if the graph is random or not (default:
-#'   \code{FALSE})
-#' @param use.parallel Logical indicating whether or not to use \emph{foreach}
-#'   (default: \code{TRUE})
+#' @param g A graph object
+#' @param use.parallel Logical indicating whether to use \emph{foreach}.
+#'   Default: \code{TRUE}
 #' @param A Numeric matrix; the (weighted) adjacency matrix, which can be used
-#'   for faster calculation of local efficiency (default: \code{NULL})
+#'   for faster calculation of local efficiency. Default: \code{NULL}
 #' @param clust.method Character string indicating which method to use for
 #'   community detection. Default: \code{'louvain'}
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @inheritParams xfm.weights
+#' @inheritParams CreateGraphs
 #' @export
 #'
-#' @return g An \code{igraph} graph object with the following attributes:
-#'   \item{Graph-level}{Density, connected component sizes, diameter, \# of
+#' @return A graph object with the following attributes:
+#'   \item{Graph-level}{Density, connected component sizes, diameter, # of
 #'     triangles, transitivity, average path length, assortativity, global &
 #'     local efficiency, modularity, vulnerability, hub score, rich-club
-#'     coefficient, \# of hubs, edge asymmetry, and modality}
+#'     coefficient, # of hubs, edge asymmetry}
 #'   \item{Vertex-level}{Degree, strength; betweenness, eigenvector, and
 #'     leverage centralities; hubs; transitivity (local); k-core, s-core; local
 #'     & nodal efficiency; color (community, lobe, component); membership
@@ -62,40 +71,48 @@
 #'   \item{Edge-level}{Color (community, lobe, component), edge betweenness,
 #'     Euclidean distance (in mm), weight (if weighted)}
 #'
+#TODO: change these to *destinations* and use in "@return"
 #' @seealso \code{\link[igraph]{components}}, \code{\link[igraph]{diameter}},
-#' \code{\link[igraph]{clique_num}}, \code{\link[igraph]{centr_betw}},
-#' \code{\link{part_coeff}}, \code{\link[igraph]{edge.betweenness}},
-#' \code{\link[igraph]{centr_eigen}}, \code{\link{gateway_coeff}},
+#' \code{\link[igraph]{centr_betw}},
+#' \code{\link{VertexRoles}}, \code{\link[igraph]{edge.betweenness}},
+#' \code{\link[igraph]{centr_eigen}},
 #' \code{\link[igraph]{transitivity}}, \code{\link[igraph]{mean_distance}},
 #' \code{\link[igraph]{assortativity_degree}}, \code{\link{efficiency}},
 #' \code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
-#' \code{\link[igraph]{communities}}, \code{\link{set_edge_color}},
+#' \code{\link[igraph]{communities}},
 #' \code{\link{rich_club_coeff}}, \code{\link{s_core}}, \code{\link{centr_lev}},
-#' \code{\link{within_module_deg_z_score}}, \code{\link{edge_spatial_dist}},
+#' \code{\link{edge_spatial_dist}},
 #' \code{\link{vulnerability}}, \code{\link{edge_asymmetry}},
 #' \code{\link[igraph]{graph.knn}}, \code{\link{vertex_spatial_dist}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @name Attributes
+#' @rdname attributes
 
-set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=NULL,
-                                xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)'),
-                                clust.method='louvain', ...) {
-  name <- NULL
-  stopifnot(is_igraph(g))
+set_brainGraph_attr <- function(g, type=c('observed', 'random'),
+                                use.parallel=TRUE, A=NULL,
+                                xfm.type=c('1/w', '-log(w)', '1-w',
+                                           '-log10(w/max(w))',
+                                           '-log10(w/max(w)+1)'),
+                                clust.method='louvain') {
+  if (!is_igraph(g) && !is.brainGraph(g)) {
+    stop('Input graph must have class either "brainGraph" or "igraph"')
+  }
   clust.funs <- ls('package:igraph')[grep('cluster_', ls('package:igraph'))]
   clust.funs <- gsub('cluster_', '', clust.funs)
   if (!clust.method %in% clust.funs) {
-    stop('Invalid clustering method! You must choose from the following:\n', paste(clust.funs, collapse='\n'))
+    stop('Invalid clustering method! You must choose from the following:\n',
+         paste(clust.funs, collapse='\n'))
   }
 
-  if (!'degree' %in% vertex_attr_names(g)) V(g)$degree <- degree(g)
+  V(g)$degree <- degree(g)
   g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- mean_distance(g)
   g$rich <- rich_club_all(g)
   g$E.global <- efficiency(g, 'global', weights=NA)
 
   # Handle different cases for different community detection methods
-  if (clust.method == 'spinglass' & !is.connected(g)) {
+  if (clust.method == 'spinglass' && !is_connected(g)) {
     warning('Invalid clustering method for an unconnected graph; using "louvain".')
     clust.method <- 'louvain'
   }
@@ -109,7 +126,8 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
   }
   g$mod <- max(comm$modularity)
 
-  if (!isTRUE(rand)) {
+  type <- match.arg(type)
+  if (type == 'observed') {
     # Graph-level attributes
     #-----------------------------------------------------------------------------
     g$density <- graph.density(g)
@@ -128,7 +146,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
     if (is_weighted(g)) {
       xfm.type <- match.arg(xfm.type)
       # Handle different cases for different community detection methods
-      if (any(E(g)$weight < 0) & !clust.method %in% c('spinglass', 'walktrap')) {
+      if (any(E(g)$weight < 0) && !clust.method %in% c('spinglass', 'walktrap')) {
         warning('Invalid clustering method for negative edge weights; using "walktrap".')
         clust.method <- 'walktrap'
       }
@@ -148,8 +166,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
-      g <- set_vertex_color(g, 'color.comm.wt', V(g)$comm.wt)
-      g <- set_edge_color(g, 'color.comm.wt', V(g)$comm.wt)
+      g <- set_graph_colors(g, 'color.comm.wt', V(g)$comm.wt)
       V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt)
       V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt)
       V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt)
@@ -185,13 +202,7 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
 
     # Vertex-level attributes
     #-----------------------------------------------------------------------------
-    # 'lobe', 'hemi', 'lobe.hemi' attributes, and colors for each lobe
-    if (!is.null(atlas)) {
-      g$atlas <- atlas
-      atlas.dt <- get(atlas)
-      if (!is_named(g)) V(g)$name <- atlas.dt[, name]
-
-      g <- make_brainGraph(g, atlas, ...)
+    if (!is.null(g$atlas)) {
       g$assortativity.lobe <- assortativity_nominal(g, as.integer(factor(V(g)$lobe)))
       g$assortativity.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
 
@@ -203,10 +214,10 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
       V(g)$dist <- vertex_spatial_dist(g)
       V(g)$dist.strength <- V(g)$dist * V(g)$degree
 
-      if (atlas %in% c('destrieux', 'destrieux.scgm')) {
+      if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
         g$assortativity.class <- assortativity_nominal(g, V(g)$class)
       }
-      if (atlas == 'dosenbach160') {
+      if (g$atlas == 'dosenbach160') {
         g$assortativity.network <- assortativity_nominal(g, as.integer(factor(V(g)$network)))
       }
     }
@@ -236,13 +247,11 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
     # Community stuff
     x <- comm$membership
     V(g)$comm <- match(x, order(table(x), decreasing=TRUE))
-    g <- set_vertex_color(g, 'color.comm', V(g)$comm)
-    g <- set_edge_color(g, 'color.comm', V(g)$comm)
+    g <- set_graph_colors(g, 'color.comm', V(g)$comm)
 
     x <- clusts$membership
     V(g)$comp <- match(x, order(table(x), decreasing=TRUE))
-    g <- set_vertex_color(g, 'color.comp', V(g)$comp)
-    g <- set_edge_color(g, 'color.comp', V(g)$comp)
+    g <- set_graph_colors(g, 'color.comp', V(g)$comp)
 
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
 
@@ -251,5 +260,122 @@ set_brainGraph_attr <- function(g, atlas=NULL, rand=FALSE, use.parallel=TRUE, A=
     V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
   }
 
+  return(g)
+}
+
+#' Delete all attributes of a graph
+#'
+#' Deletes all graph-, vertex-, and edge-level attributes of an \code{igraph}
+#' graph object.
+#'
+#' @param g An \code{igraph} graph object
+#' @param keep.names Logical indicating whether to keep the \code{name} vertex
+#'   attribute (default: \code{FALSE})
+#'
+#' @keywords internal
+#' @return An \code{igraph} graph object
+#' @seealso \code{\link[igraph]{delete_graph_attr},
+#'   \link[igraph]{delete_vertex_attr}, \link[igraph]{delete_edge_attr}}
+#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+
+delete_all_attr <- function(g, keep.names=FALSE) {
+  for (att in graph_attr_names(g)) g <- delete_graph_attr(g, att)
+  for (att in edge_attr_names(g)) g <- delete_edge_attr(g, att)
+  if (isTRUE(keep.names)) {
+    vattrs <- setdiff(vertex_attr_names(g), 'name')
+  } else {
+    vattrs <- vertex_attr_names(g)
+  }
+  for (att in vattrs) g <- delete_vertex_attr(g, att)
+
+  return(g)
+}
+
+#' Color graph vertices and edges
+#'
+#' \code{set_graph_colors} takes an integer vector representing membership of
+#' some grouping (e.g., a community or connected component) and creates a
+#' character vector of colors for each grouping. Isolated vertices will be
+#' colored \emph{gray}. Edges are assigned the same color if connected to
+#' vertices in the same group, and assigned \emph{gray} otherwise.
+#'
+#' @param g An \code{igraph} graph object
+#' @param name Character string of the name of the attribute to add
+#' @param memb An integer vector representing membership of e.g. a community
+#'
+#' @return The same graph with additional vertex and edge attributes
+#' @keywords internal
+
+set_graph_colors <- function(g, name, memb) {
+  stopifnot(length(memb) == vcount(g))
+  memb <- as.integer(factor(memb))
+  big.groups <- which(table(memb) > 1)
+
+  # Vertex colors
+  group.cols.memb <- rep('gray', length=max(memb))
+  group.cols.memb[big.groups] <- group.cols[big.groups]
+
+  # Edge colors
+  newcols <- rep('gray50', length=ecount(g))
+  tmp <- vector('list', length=max(big.groups))
+  for (i in big.groups) {
+    x <- which(memb == i)
+    tmp[[i]] <- as.vector(E(g)[x %--% x])
+    if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
+  }
+
+  g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
+  g <- set_edge_attr(g, name, value=newcols)
+  return(g)
+}
+
+#' Transform edge weights
+#'
+#' @param xfm.type Character string specifying how to transform the weights
+#'   (default: \code{1/w})
+#' @param invert Logical indicating whether or not to invert the transformation
+#'   (default: \code{FALSE})
+#' @export
+#' @return \code{xfm.weights} returns the same graph object, with transformed
+#'   edge weights plus a graph attribute (\code{xfm.type}) recording the method
+#'   of transformation
+#' @rdname attributes
+
+xfm.weights <- function(g, xfm.type=c('1/w', '-log(w)', '1-w',
+                                      '-log10(w/max(w))', '-log10(w/max(w)+1)'),
+                        invert=FALSE) {
+  stopifnot(is_igraph(g), is_weighted(g))
+  xfm.type <- match.arg(xfm.type)
+  if (xfm.type == '1/w') {
+    E(g)$weight <- 1 / E(g)$weight
+
+  } else if (xfm.type == '-log(w)') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- exp(-E(g)$weight)
+    } else {
+      E(g)$weight <- -log(E(g)$weight)
+    }
+
+  } else if (xfm.type == '1-w') {
+    E(g)$weight <- 1 - E(g)$weight
+
+  } else if (xfm.type == '-log10(w/max(w))') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- g$max.weight / 10^(E(g)$weight)
+    } else {
+      g$max.weight <- max(E(g)$weight)
+      E(g)$weight <- -log10(E(g)$weight / g$max.weight)
+    }
+
+  } else if (xfm.type == '-log10(w/max(w)+1)') {
+    if (isTRUE(invert)) {
+      E(g)$weight <- g$max.weight * (1 / 10^(E(g)$weight) - 1)
+    } else {
+      g$max.weight <- max(E(g)$weight)
+      E(g)$weight <- -log10(E(g)$weight / g$max.weight + 1)
+    }
+  }
+
+  g$xfm.type <- xfm.type
   return(g)
 }

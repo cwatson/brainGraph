@@ -47,10 +47,12 @@ element should be a vector of length equal to the group sizes}
 A list containing:
 \item{A}{A 3-d array of the raw connection matrices}
 \item{A.norm}{A 3-d array of the normalized connection matrices}
-\item{A.bin}{A 3-d array of binarized connection matrices}
-\item{A.bin.sums}{A list of 2-d arrays of connection matrices, with each
+\item{A.bin}{A list of 3-d arrays of binarized connection matrices, one array
+  for each threshold}
+\item{A.bin.sums}{A list of 3-d arrays of connection matrices, with each
   entry signifying the number of subjects with a connection present; the
-  number of list elements equals the length of \code{mat.thresh}}
+  number of list elements equals the length of \code{mat.thresh}, and the
+  extent of the arrays equals the number of groups}
 \item{A.inds}{A list of arrays of binarized connection matrices, containing 1
   if that entry is to be included}
 \item{A.norm.sub}{List of 3-d arrays of the normalized connection matrices

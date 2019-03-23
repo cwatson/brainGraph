@@ -55,10 +55,12 @@
 #' @return A list containing:
 #' \item{A}{A 3-d array of the raw connection matrices}
 #' \item{A.norm}{A 3-d array of the normalized connection matrices}
-#' \item{A.bin}{A 3-d array of binarized connection matrices}
-#' \item{A.bin.sums}{A list of 2-d arrays of connection matrices, with each
+#' \item{A.bin}{A list of 3-d arrays of binarized connection matrices, one array
+#'   for each threshold}
+#' \item{A.bin.sums}{A list of 3-d arrays of connection matrices, with each
 #'   entry signifying the number of subjects with a connection present; the
-#'   number of list elements equals the length of \code{mat.thresh}}
+#'   number of list elements equals the length of \code{mat.thresh}, and the
+#'   extent of the arrays equals the number of groups}
 #' \item{A.inds}{A list of arrays of binarized connection matrices, containing 1
 #'   if that entry is to be included}
 #' \item{A.norm.sub}{List of 3-d arrays of the normalized connection matrices
@@ -151,35 +153,36 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       # Use the given thresholds as-is
       #---------------------------------
       # Binarize the array, then keep entries w/ >= "sub.thresh"% for each group
-      A.bin <- lapply(mat.thresh, function(x) (A.norm > x) + 0L)
+      A.bin <- lapply(mat.thresh, function(x) {A.norm > x} + 0L)
       A.bin.sums <- lapply(seq_along(mat.thresh), function(y)
-                           lapply(inds, function(x)
-                                  rowSums(A.bin[[y]][, , x], dims=2)))
+                           abind(lapply(inds, function(x)
+                                        rowSums(A.bin[[y]][, , x], dims=2)), along=3))
 
       # For deterministic, threshold by size *after* binarizing
       if (modality == 'dti' & algo == 'deterministic' & divisor == 'size') {
         A.norm <- normalize_mats(A.norm, div.files, Nv, kNumSubjs, P=1)
       }
 
-      # This is a list (# mat.thresh) of lists (# groups) of the Nv x Nv group matrix
+      # This is a list (# mat.thresh) of Nv x Nv x Ng arrays
       if (sub.thresh == 0) {
         A.inds <- lapply(seq_along(mat.thresh), function(y)
-                         lapply(seq_along(inds), function(x)
-                                ifelse(A.bin.sums[[y]][[x]] > 0, 1L, 0L)))
+                         abind(lapply(seq_along(inds), function(x)
+                                      ifelse(A.bin.sums[[y]][, , x] > 0, 1L, 0L)),
+                               along=3))
       } else {
         A.inds <- lapply(seq_along(mat.thresh), function(y)
-                         lapply(seq_along(inds), function(x)
-                                ifelse(A.bin.sums[[y]][[x]] >= sub.thresh * kNumSubjs[x], 1L, 0L)))
+                         abind(lapply(seq_along(inds), function(x)
+                                      ifelse(A.bin.sums[[y]][, , x] >= sub.thresh * kNumSubjs[x], 1L, 0L)),
+                               along=3))
       }
 
       # Back to a list of arrays for all subjects
       A.norm.sub <-
         lapply(seq_along(mat.thresh), function(z)
-               lapply(seq_along(inds), function(x)
-                      array(sapply(inds[[x]], function(y)
-                                   ifelse(A.inds[[z]][[x]] == 1, A.norm[, , y], 0)),
-                            dim=dim(A.norm[, , inds[[x]]]))))
-      A.norm.sub <- lapply(A.norm.sub, function(x) do.call(abind, x))
+               abind(lapply(seq_along(inds), function(x)
+                            array(sapply(inds[[x]], function(y)
+                                         ifelse(A.inds[[z]][, , x] == 1, A.norm[, , y], 0)),
+                                  dim=dim(A.norm[, , inds[[x]]]))), along=3))
 
       # Re-order A.norm.sub so that it matches the input files, A, A.norm, etc.
       for (i in seq_along(mat.thresh)) {
@@ -188,7 +191,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
         A.norm.sub[[i]] <- tmp
       }
 
-} else if (threshold.by == 'mean') {
+    } else if (threshold.by == 'mean') {
       # Threshold: mean + 2SD > mat.thresh
       #---------------------------------
       all.mean <- rowMeans(A.norm, dims=2)
@@ -203,14 +206,14 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   }
 
   A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
-                        lapply(inds, function(y)
-                               rowMeans(A.norm.sub[[x]][, , y], dims=2)))
+                        abind(lapply(inds, function(y)
+                                     rowMeans(A.norm.sub[[x]][, , y], dims=2)), along=3))
   if (threshold.by == 'density') {
     A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
-                          lapply(A.norm.mean[[x]], function(y) {
+                          array(apply(A.norm.mean[[x]], 3, function(y) {
                                    thresh <- sort(y[lower.tri(y)])[emax - mat.thresh[x] * emax]
                                    ifelse(y > thresh, y, 0)
-                                 }))
+                                 }), dim=dim(A.norm.mean[[x]])))
   }
 
   return(list(A=A, A.norm=A.norm, A.bin=A.bin, A.bin.sums=A.bin.sums,
@@ -331,9 +334,10 @@ apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
                                     ifelse(x[, , y] > 0, W[, , y], 0)),
                              dim=dim(x)))
   W.norm.mean <- lapply(seq_along(group.mats), function(x)
-                        lapply(seq_along(group.mats[[x]]), function(y)
-                               ifelse(group.mats[[x]][[y]] > 0,
+                        lapply(seq_len(dim(group.mats[[x]])[3]), function(y)
+                               ifelse(group.mats[[x]][, , y] > 0,
                                       rowMeans(W.norm.sub[[x]][, , inds[[y]]], dims=2),
                                       0)))
+  W.norm.mean <- lapply(W.norm.mean, function(x) abind(x, along=3))
   return(list(W=W, W.norm.sub=W.norm.sub, W.norm.mean=W.norm.mean))
 }

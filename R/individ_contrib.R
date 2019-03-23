@@ -39,7 +39,7 @@
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL
-  stopifnot(inherits(resids, 'brainGraph_resids'))
+  stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
   level <- match.arg(level)
   group.vec <- resids$resids.all$Group
   group.num <- as.integer(group.vec)
@@ -49,8 +49,8 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
 
-      1 - mantel.rtest(as.dist(corrs[[group.num[i]]]$R),
-                       as.dist(new.corrs[[1]]$R),
+      1 - mantel.rtest(as.dist(corrs$R[, , group.num[i]]),
+                       as.dist(new.corrs$R[, , 1]),
                        nrepet=1e3)$obs
     }
 
@@ -59,7 +59,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
     RC <- foreach (i=seq_len(nrow(resids$resids.all)), .combine='rbind') %dopar% {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
-      colSums(abs(corrs[[group.num[i]]]$R - new.corrs[[1]]$R))
+      colSums(abs(corrs$R[, , group.num[i]] - new.corrs$R[, , 1]))
     }
     RC.dt <- cbind(resids$resids.all[, list(Study.ID, Group)], RC)
     DT <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
@@ -77,7 +77,9 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' group, and a correlation matrix is created. This is repeated for all
 #' individual patients and each patient group.
 #'
-#' @param corr.mat Numeric; correlation matrix of the \emph{control} group
+#' @note For \code{aop}, it is assumed by default that the control group is the
+#'   first group.
+#'
 #' @param control.value Integer or character string specifying the control group
 #'   (default: 1)
 #' @export
@@ -87,14 +89,15 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' @rdname individ_contrib
 #' @examples
 #' \dontrun{
-#' IC <- aop(resids.all, corrs[[1]]$R)
-#' RC <- aop(resids.all, corrs[[1]]$R, level='regional')
+#' IC <- aop(resids.all, corrs)
+#' RC <- aop(resids.all, corrs, level='regional')
 #' }
 
-aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1) {
+aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) {
   Group <- Study.ID <- i <- NULL
-  stopifnot(inherits(resids, 'brainGraph_resids'))
+  stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
 
+  corr.mat <- corrs[, control.value]$R[, , 1]
   groups <- resids$groups
   kNumSubj <- resids$resids.all[, tabulate(Group)]
   if (is.numeric(control.value)) {
@@ -117,8 +120,9 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
         resids.aop <- resids[c(control.inds, pat.inds[i])]
         resids.aop$resids.all[, Group := control.str]
         resids.aop$resids.all <- droplevels(resids.aop$resids.all)
+        resids.aop$groups <- resids.aop$resids.all[, factor(levels(Group))]
         setkey(resids.aop$resids.all, Group)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)[[1]]$R
+        new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1]
         1 - mantel.rtest(as.dist(corr.mat),
                          as.dist(new.corr),
                          nrepet=1e3)$obs
@@ -136,8 +140,9 @@ aop <- function(resids, corr.mat, level=c('global', 'regional'), control.value=1
         resids.aop <- resids[c(control.inds, pat.inds[i])]
         resids.aop$resids.all[, Group := control.str]
         resids.aop$resids.all <- droplevels(resids.aop$resids.all)
+        resids.aop$groups <- resids.aop$resids.all[, factor(levels(Group))]
         setkey(resids.aop$resids.all, Group)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)[[1]]$R
+        new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1]
         data.table(t(colSums(abs(corr.mat - new.corr))))
       }
       RC[[groups[j]]] <- cbind(resids$resids.all[groups[j], c('Study.ID', 'Group')], RC[[groups[j]]])

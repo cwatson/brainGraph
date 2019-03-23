@@ -44,7 +44,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
                             hemi=c('both', 'L', 'R'),
                             subgraph=NULL, show.legend=FALSE,
                             rescale=FALSE, asp=0, main=NULL, subt='default', mni=TRUE, ...) {
-  stopifnot(is.brainGraph(x), 'atlas' %in% graph_attr_names(x))
+  stopifnot(is.brainGraph(x))
   lobe <- network <- NULL
 
   plane <- match.arg(plane)
@@ -99,47 +99,35 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
         V(x)$x <- -V(x)$y.mni
         xlim.g <- switch(atlas,
                          destrieux=, destrieux.scgm=, dosenbach160=c(-85, 120),
-                         hoa112=c(-85, 125),
-                         lpba40=c(-75, 120),
-                         c(-85, 110))
+                         hoa112=c(-85, 125), lpba40=c(-75, 120), c(-85, 110))
         ylim.g <- switch(atlas,
                          destrieux=, destrieux.scgm=, dosenbach160=c(-85, 120),
-                         hoa112=c(-85, 130),
-                         lpba40=c(-80, 100),
-                         c(-85, 125))
+                         hoa112=c(-85, 130), lpba40=c(-80, 100), c(-85, 125))
       } else if (hemi == 'R') {
         V(x)$x <- V(x)$y.mni
         xlim.g <- switch(atlas,
-                         hoa112=c(-125, 85),
-                         lpba40=c(-125, 75),
-                         dosenbach160=c(-120, 85),
-                         c(-115, 85))
+                         hoa112=c(-125, 85), lpba40=c(-125, 75),
+                         dosenbach160=c(-120, 85), c(-115, 85))
         ylim.g <- switch(atlas,
                          aal90=, aal116=, aal2.94=, aal2.120=, brainsuite=c(-85, 125),
-                         hoa112=c(-85, 130),
-                         lpba40=c(-87, 107),
-                         c(-85, 120))
+                         hoa112=c(-85, 130), lpba40=c(-87, 107), c(-85, 120))
       }
     } else if (plane == 'axial') {
       xlim.g <- switch(atlas,
                        dk=, dk.scgm=, dkt=, dkt.scgm=c(-105, 105),
                        hoa112=, lpba40=c(-100, 100),
-                       dosenbach160=c(-95, 95),
-                       c(-92, 95))
+                       dosenbach160=c(-95, 95), c(-92, 95))
       ylim.g <- switch(atlas,
                        aal90=, aal116=, aal2.94=, aal2.120=c(-110, 70),
                        brainsuite=, dosenbach160=c(-115, 85),
                        destrieux=, destrieux.scgm=c(-120, 83),
-                       hoa112=c(-122, 77),
-                       lpba40=c(-115, 70),
-                       c(-125, 85))
+                       hoa112=c(-122, 77), lpba40=c(-115, 70), c(-125, 85))
     }
   } else {
     if (plane != 'circular') {
       xlim.g <- switch(atlas,
                        dk=, dk.scgm=, dkt=, dkt.scgm=c(-105, 105),
-                       hoa112=, lpba40=c(-100, 100),
-                       dosenbach160=c(-95, 95),
+                       hoa112=, lpba40=c(-100, 100), dosenbach160=c(-95, 95),
                        c(-92, 95))
       ylim.g <- switch(atlas,
                        aal90=, aal116=, aal2.94=, aal2.120=c(-110, 70),
@@ -302,17 +290,6 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   }
 }
 
-#' @inheritParams plot.brainGraph
-#' @export
-#' @rdname plot.brainGraph
-
-plot_brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
-                            hemi=c('both', 'L', 'R'),
-                            subgraph=NULL, show.legend=FALSE,
-                            rescale=FALSE, asp=0, main=NULL, subt='default', mni=TRUE, ...) {
-  plot.brainGraph(x, plane, hemi, subgraph, show.legend, rescale, asp, main, subt, mni, ...)
-}
-
 #' Plot a graph with results from the network-based statistic
 #'
 #' This is a convenience function for plotting a graph based on results from
@@ -321,8 +298,7 @@ plot_brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 #' only those vertices in which \code{V(g)$p.nbs > 1 - alpha} will be shown.
 #' Finally, vertex names will be omitted.
 #'
-#' @param x A \code{brainGraph_NBS} graph object (from
-#'   \code{\link{make_nbs_brainGraph}})
+#' @param x A \code{brainGraph_NBS} graph object
 #' @param alpha Numeric; the significance level (default: 0.05)
 #' @param subgraph Character string specifying the condition for subsetting the
 #'   graph. By default, it will show only the vertices which are members of
@@ -359,8 +335,7 @@ plot.brainGraph_NBS <- function(x, alpha=0.05, subgraph=paste('p.nbs >', 1 - alp
 #' vertices for which \eqn{p < \alpha}; a plot title with the outcome
 #' measure and contrast name, and to omit the plot subtitle.
 #'
-#' @param x A \code{brainGraph_GLM} graph object (from
-#'   \code{\link{make_glm_brainGraph}})
+#' @param x A \code{brainGraph_GLM} graph object
 #' @param p.sig Character string indicating which p-value to use for determining
 #'   significance (default: \code{p})
 #' @param cex.main Numeric indicating the scaling for plot title size (see
@@ -387,8 +362,7 @@ plot.brainGraph_GLM <- function(x, p.sig=c('p', 'p.fdr', 'p.perm'),
 #' vertices for which \eqn{A_{mtpc} > A_{crit}}; a plot title with the outcome
 #' measure and contrast name, and to omit the plot subtitle.
 #'
-#' @param x A \code{brainGraph_mtpc} graph object (from
-#'   \code{\link{make_glm_brainGraph}})
+#' @param x A \code{brainGraph_mtpc} graph object
 #' @param cex.main Numeric indicating the scaling for plot title size (see
 #'   \code{\link[graphics]{par}}.
 #' @inheritParams plot.brainGraph
@@ -405,8 +379,7 @@ plot.brainGraph_mtpc <- function(x, subgraph='sig == 1',
 
 #' Plot a graph with results from a mediation analysis
 #'
-#' @param x A \code{brainGraph_mediate} graph object (from
-#'   \code{\link{make_mediate_brainGraph}})
+#' @param x A \code{brainGraph_mediate} graph object
 #' @param cex.main Numeric indicating the scaling for plot title size (see
 #'   \code{\link[graphics]{par}}.
 #' @inheritParams plot.brainGraph

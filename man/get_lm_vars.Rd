@@ -9,8 +9,8 @@ get_lm_vars(covars, exclude.cov, ...)
 \arguments{
 \item{covars}{A \code{data.table} of the covariates of interest}
 
-\item{exclude.cov}{Character vector of covariates to exclude (default:
-\code{NULL})}
+\item{exclude.cov}{Character vector of covariates to exclude. Default:
+\code{NULL}}
 
 \item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}} (optional)}
 }

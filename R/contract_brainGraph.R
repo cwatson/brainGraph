@@ -33,7 +33,7 @@ contract_brainGraph <- function(g) {
   vcols <- rep(vcols, 2)
   V(g.sub)$color <- vcols
   V(g.sub)$lobe <- rep(sort(unique(V(g)$lobe)), 2)
-  g.sub <- set_edge_color(g.sub, 'color.lobe', V(g.sub)$lobe)
+  g.sub <- set_graph_colors(g.sub, 'color.lobe', V(g.sub)$lobe)
 
   class(g.sub) <- c('brainGraph', class(g.sub))
   return(g.sub)

@@ -2,11 +2,15 @@
 % Please edit documentation in R/corr_matrix.R
 \name{corr.matrix}
 \alias{corr.matrix}
+\alias{Extract.corr_mats}
+\alias{[.corr_mats}
 \title{Calculate correlation matrix and threshold}
 \usage{
 corr.matrix(resids, densities, thresholds = NULL, what = c("resids",
   "raw"), exclude.reg = NULL, type = c("pearson", "spearman"),
   rand = FALSE)
+
+\method{[}{corr_mats}(x, i, g = NULL)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -29,20 +33,31 @@ to calculate (default: \code{'pearson'})}
 
 \item{rand}{Logical indicating whether the function is being called for
 permutation testing; not intended for general use (default: \code{FALSE})}
+
+\item{x}{A \code{corr_mats} object}
+
+\item{i}{Integer for subsetting by density/threshold}
+
+\item{g}{Integer, character, or logical for subsetting by group}
 }
 \value{
-A nested list containing a list for all subject groups; each of these
-  has the following components:
-  \item{R}{Numeric matrix of correlation coefficients.}
-  \item{P}{Numeric matrix of p-values.}
-  \item{r.thresh}{A 3-d binary array indicating correlations that are above a
-    certain threshold. The length of the 3rd dimension equals the number of
-    thresholds/densities supplied.}
-  \item{thresholds}{Numeric vector; the thresholds supplied.}
-  \item{densities}{Numeric vector; the densities supplied.}
+A \code{corr_mats} object containing the following components:
+  \item{R}{Numeric array of correlation coefficients. The length of the 3rd
+    dimension equals the number of groups}
+  \item{P}{Numeric array of p-values. The length of the 3rd dimension equals
+    the number of groups}
+  \item{r.thresh}{A list of 3-d binary arrays indicating correlations that
+    are above a certain threshold. The length of the list equals the number
+    of groups, and the length of the 3rd dimension equals the number of
+    thresholds/densities.}
+  \item{thresholds}{Numeric matrix of the thresholds supplied. The number of
+    columns equals the number of groups.}
   \item{what}{Residuals or raw values}
   \item{exclude.reg}{Excluded regions (if any)}
   \item{type}{Pearson or Spearman}
+  \item{atlas}{The brain atlas used}
+  \item{densities}{Numeric vector; the densities of the resulting graphs, if
+    you chose to threshold each group to have equal densities.}
 }
 \description{
 \code{corr.matrix} calculates the correlation between all column pairs of a

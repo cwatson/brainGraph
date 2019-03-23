@@ -188,8 +188,7 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
       V(g)[as.numeric(names(tab[tab > 1]))]$nbhood <- i + 2
       V(g)[neighbInd]$nbhood <- 1 + 1:length(neighbInd)
       V(g)$nbhood <- V(g)$nbhood - 1
-      g <- set_vertex_color(g, 'color.nbhood', V(g)$nbhood)
-      g <- set_edge_color(g, 'color.nbhood', V(g)$nbhood)
+      g <- set_graph_colors(g, 'color.nbhood', V(g)$nbhood)
     }
   }
 

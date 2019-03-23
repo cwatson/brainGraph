@@ -4,7 +4,7 @@
 #' same clustering (optional) and degree sequence as the input. Essentially a
 #' wrapper for \code{\link[igraph]{sample_degseq}} (or, if you want to match by
 #' clustering, \code{\link{sim.rand.graph.clust}}) and
-#' \code{\link{set_brainGraph_attr}}. It uses \code{\link[foreach]{foreach}} for
+#' \code{\link{make_brainGraph}}. It uses \code{\link[foreach]{foreach}} for
 #' parallel processing.
 #'
 #' If you do not want to match by clustering, then simple rewiring of the input
@@ -15,7 +15,14 @@
 #' @param N Integer; the number of random graphs to simulate (default: 100)
 #' @param clustering Logical; whether or not to control for clustering (default:
 #'   \code{FALSE})
-#' @param ... Other parameters (passed to \code{\link{sim.rand.graph.clust}})
+#' @param rewire.iters Integer; number of rewiring iterations for the initial
+#'   graph randomization (default: 1e4)
+#' @param cl The clustering measure (default: transitivity)
+#' @param max.iters The maximum number of iterations to perform; choosing a
+#'   lower number may result in clustering that is further away from the
+#'   observed graph's (default: 100)
+#' @param ... Other parameters (passed to \code{\link{make_brainGraph}})
+#' @inheritParams CreateGraphs
 #' @export
 #'
 #' @return \code{sim.rand.graph.par} - a \emph{list} of \emph{N} random graphs
@@ -26,7 +33,7 @@
 #' @rdname random_graphs
 #'
 #' @seealso \code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
-#' \link[igraph]{keeping_degseq}}
+#'   \link[igraph]{keeping_degseq}}
 #' @examples
 #' \dontrun{
 #' rand1 <- sim.rand.graph.par(g[[1]][[N]], N=1e3)
@@ -34,13 +41,14 @@
 #'   clustering=T, max.iters=1e3)
 #' }
 
-sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
+sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
+                               clustering=FALSE, rewire.iters=max(10*ecount(g), 1e4L),
+                               cl=g$transitivity, max.iters=100L, ...) {
   stopifnot(is_igraph(g))
-  iters <- max(10*ecount(g), 1e4)
   if (isTRUE(clustering)) {
     r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
-      tmp <- sim.rand.graph.clust(g, rewire.iters=iters, ...)
-      tmp <- set_brainGraph_attr(tmp, rand=TRUE)
+      tmp <- sim.rand.graph.clust(g, rewire.iters, cl, max.iters)
+      tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
       tmp
     }
   } else {
@@ -48,13 +56,16 @@ sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
       V(g)$degree <- degree(g)
       r <- foreach(i=seq_len(N)) %dopar% {
         tmp <- sample_degseq(V(g)$degree, method='vl')
-        tmp <- set_brainGraph_attr(tmp, rand=TRUE)
+        tmp$Group <- g$Group
+        tmp$name <- g$name
+        tmp$threshold <- g$threshold
+        tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
         tmp
       }
     } else {
       r <- foreach(i=seq_len(N)) %dopar% {
-        tmp <- rewire(g, keeping_degseq(loops=FALSE, iters))
-        tmp <- set_brainGraph_attr(tmp, rand=TRUE)
+        tmp <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
+        tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
         tmp
       }
     }
@@ -67,12 +78,6 @@ sim.rand.graph.par <- function(g, N=100, clustering=FALSE, ...) {
 #' sequence \emph{and} clustering coefficient. Increasing the \code{max.iters}
 #' value will result in a closer match of clustering with the observed graph.
 #'
-#' @param rewire.iters Integer; number of rewiring iterations for the initial
-#'   graph randomization (default: 1e4)
-#' @param cl The clustering measure (default: transitivity)
-#' @param max.iters The maximum number of iterations to perform; choosing a
-#'   lower number may result in clustering that is further away from the
-#'   observed graph's (default: 100)
 #' @export
 #'
 #' @return \code{sim.rand.graph.clust} - A single \code{igraph} graph object

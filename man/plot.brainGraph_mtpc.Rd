@@ -9,8 +9,7 @@
   cex.main = 2, ...)
 }
 \arguments{
-\item{x}{A \code{brainGraph_mtpc} graph object (from
-\code{\link{make_glm_brainGraph}})}
+\item{x}{A \code{brainGraph_mtpc} graph object}
 
 \item{subgraph}{Character string specifying an equation for vertices to plot
 (default: \code{NULL})}
@@ -32,12 +31,12 @@ vertices for which \eqn{A_{mtpc} > A_{crit}}; a plot title with the outcome
 measure and contrast name, and to omit the plot subtitle.
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
+Other Plotting functions: \code{\link{plot.brainGraphList}},
+  \code{\link{plot.brainGraph_GLM}},
   \code{\link{plot.brainGraph_NBS}},
   \code{\link{plot.brainGraph_mediate}},
   \code{\link{plot.brainGraph}},
   \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \concept{Plotting functions}

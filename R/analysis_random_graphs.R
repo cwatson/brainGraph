@@ -1,27 +1,27 @@
 #' Perform an analysis with random graphs for brain MRI data
 #'
-#' \code{analysis_random_graphs} is not quite a "proper" function. It performs
-#' the steps needed for doing typical graph theory analyses with brain MRI data
-#' if you need to generate equivalent random graphs. This includes calculating
-#' \emph{small world} parameters and normalized \emph{rich club} coefficients.
+#' \code{analysis_random_graphs} performs the steps needed for doing typical
+#' graph theory analyses with brain MRI data if you need to generate equivalent
+#' random graphs. This includes calculating \emph{small world} parameters and
+#' normalized \emph{rich club} coefficients.
 #'
 #' \code{analysis_random_graphs} does the following:
 #' \enumerate{
-#'   \item Generate \code{N} random graphs for each group and density/threshold
-#'     (and subject if you have subject-specific graphs).
+#'   \item Generate \code{N} random graphs for each graph and density/threshold
 #'   \item Write graphs to disk in \code{savedir}. Read them back into \code{R}
-#'     and combine into lists; then write these lists to disk (in a
-#'     sub-directory named \code{ALL}), so you can delete the individual
-#'     \code{.rds} files afterwards.
+#'     and combine into lists; then write these lists to disk. You can later
+#'     delete the individual \code{.rds} files afterwards.
 #'   \item Calculate \emph{small world} parameters, along with values for a few
 #'     global graph measures that may be of interest.
 #'   \item Calculate \emph{normalized rich club coefficients} and associated
 #'     p-values.
 #' }
 #'
-#' @param g.list List of lists containing \code{igraph} graph objects
+#' @param g.list List of \code{brainGraphList} objects; the length of this list
+#'   should equal the number of thresholds/densities in the study
 #' @param savedir Character string specifying the directory in which to save the
 #'   generated graphs (default: current working directory)
+#' @inheritParams CreateGraphs
 #' @export
 #'
 #' @return \code{analysis_random_graphs} returns a \emph{list} containing:
@@ -42,129 +42,91 @@
 #'   savedir='/home/cwatson/dti/rand', clustering=F)
 #' }
 
-analysis_random_graphs <- function(g.list, N=100, savedir='.', ...) {
-  Group <- Study.ID <- threshold <- NULL
-  if (!isTRUE(dir.exists(paste0(savedir, '/ALL')))) {
-    dir.create(paste0(savedir, '/ALL/'), recursive=TRUE)
-  }
+analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, savedir='.', ...) {
+  Group <- NULL
 
-  # Convenience function
-  create.rand.dt <- function(rand, group, V1, N) {
-    rand.mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'mod'))
-    rand.Cp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Cp'))
-    rand.E.glob <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'E.global'))
-    rand.Lp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Lp'))
-    rand.dt <- data.table(V1=rep(V1, each=N),
-                          Group=rep(group, N), mod=rand.mod,
-                          Cp=rand.Cp, Lp=rand.Lp,
-                          E.global=rand.E.glob)
-    return(rand.dt)
-  }
-  nesting <- 2
-  if (is_igraph(g.list[[1]][[1]][[1]])) nesting <- 3
+  # Check if components are 'brainGraphList' objects
+  matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+  if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
+
+  kNumThresh <- length(g.list)
+  kNumSubj <- vapply(g.list, function(x) length(x$graphs), integer(1))
+  if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE)
+  prog_str <- 'Random graphs for threshold #'
 
   # Loop through all graphs, generate random graphs, calculate rich club coeff's
-  phi.norm <- vector('list', length=length(g.list))
-  groups <- vector('character', length=length(g.list))
+  phi.norm <- rand.dt <- small.dt <- vector('list', kNumThresh)
   for (i in seq_along(g.list)) {
-    phi.norm[[i]] <- vector('list', length=length(g.list[[i]]))
+    phi.norm[[i]] <- vector('list', kNumSubj[i])
 
-    if (nesting == 2) {
-      groups[i] <- g.list[[i]][[1]]$Group
-      print(paste0('Random graphs for group #', i, '; ',
-                   format(Sys.time(), '%H:%M:%S')))
-      progbar <- txtProgressBar(min=0, max=length(g.list[[i]]), style=3)
-      for (j in seq_along(g.list[[i]])) {
-        rand <- sim.rand.graph.par(g.list[[i]][[j]], N, ...)
-        saveRDS(rand, file=paste0(savedir, '/',
-                                  sprintf('rand%i_thr%02i%s', i, j, '.rds')))
-        phi.norm[[i]][[j]] <- rich_club_norm(g.list[[i]][[j]], rand=rand)
-        rm(list='rand')
-        gc()
-        setTxtProgressBar(progbar, j)
-      }
-    } else {
-      groups[i] <- g.list[[i]][[1]][[1]]$Group
-      kNumSubjs <- length(g.list[[i]][[1]])
-      for (j in seq_along(g.list[[i]])) {
-        phi.norm[[i]][[j]] <- vector('list', length=kNumSubjs)
-        print(paste0('Random graphs for group #', i, '; threshold #', j, '; ',
-                     format(Sys.time(), '%H:%M:%S')))
-        progbar <- txtProgressBar(min=0, max=length(g.list[[i]][[j]]), style=3)
-
-        for (k in seq_along(g.list[[i]][[j]])) {
-          rand <- sim.rand.graph.par(g.list[[i]][[j]][[k]], N, ...)
-          saveRDS(rand, file=paste0(savedir, '/',
-                                    sprintf('rand%i_thr%02i_subj%03i%s', i, j, k, '.rds')))
-          phi.norm[[i]][[j]][[k]] <- rich_club_norm(g.list[[i]][[j]][[k]], rand=rand)
-          rm(list='rand')
-          gc()
-          setTxtProgressBar(progbar, k)
-        }
-      }
+    print(paste0(prog_str, i, '; ', format(Sys.time(), '%H:%M:%S')))
+    progbar <- txtProgressBar(min=0, max=kNumSubj[i], style=3)
+    for (j in seq_along(g.list[[i]]$graphs)) {
+      rand <- sim.rand.graph.par(g.list[[i]][j], level=level, N=N, atlas=g.list[[i]]$atlas, ...)
+      saveRDS(rand, file=paste0(savedir, '/',
+                                sprintf('rand%02i_sub%04i%s', i, j, '.rds')))
+      phi.norm[[i]][[j]] <- rich_club_norm(g.list[[i]][j], rand=rand)
+      rm(list='rand')
+      gc()
+      setTxtProgressBar(progbar, j)
     }
   }
+  close(progbar)
 
   # Get all small-worldness and random measures, all thresholds
   #-----------------------------------------------------------------------------
-  rand.dt <- small.dt <- ids <- vector('list', length=length(g.list))
-  if (nesting == 2) {
-    densities <- sapply(g.list[[1]], graph_attr, 'density')
-    for (i in seq_along(g.list)) {
-      fnames <- list.files(savedir, sprintf('rand%i_thr.*', i), full.names=TRUE)
-      rand.all <- lapply(fnames, readRDS)
-      saveRDS(rand.all, file=paste0(savedir, '/ALL/rand', i, '_all.rds'))
-      small.dt[[i]] <- small.world(g.list[[i]], rand.all)
+  for (i in seq_along(g.list)) {
+    fnames <- list.files(savedir, sprintf('rand%02i.*', i), full.names=TRUE)
+    rand.all <- lapply(fnames, readRDS)
+    rand.all <- as_brainGraphList(rand.all, type='random', level=level)
+    saveRDS(rand.all, file=paste0(savedir, '/', sprintf('rand%02i%s', i, '_all.rds')))
 
-      rand.dt[[i]] <- create.rand.dt(rand.all, groups[i], V1=densities, N)
-      setnames(rand.dt[[i]], 1, 'density')
-      setkey(rand.dt[[i]], density)
-      rm(list='rand.all')
-      gc()
-    }
-    rand.dt <- rbindlist(rand.dt)
-    small.dt <- rbindlist(small.dt)
-    small.dt[, Group := rep(groups, times=lengths(g.list))]
-    setkey(small.dt, Group, density)
-    rich.dt <- rbindlist(lapply(phi.norm, rbindlist))
-
-  } else {
-    for (i in seq_along(g.list)) {
-      if ('name' %in% graph_attr_names(g.list[[i]][[1]][[1]])) {
-        ids[[i]] <- sapply(g.list[[i]][[1]], graph_attr, 'name')
-      } else {
-        ids[[i]] <- seq_along(g.list[[i]][[1]])
-      }
-      rand.dt[[i]] <- small.dt[[i]] <- vector('list', length=length(g.list[[i]]))
-      for (j in seq_along(g.list[[i]])) {
-        fnames <- list.files(savedir, sprintf('rand%i_thr%02i.*', i, j), full.names=TRUE)
-        rand.all <- lapply(fnames, readRDS)
-        saveRDS(rand.all, file=paste0(savedir, '/ALL/',
-                                      sprintf('rand%i_thr%02i%s', i, j, '.rds')))
-        small.dt[[i]][[j]] <- small.world(g.list[[i]][[j]], rand.all)
-        small.dt[[i]][[j]]$threshold <- j
-        small.dt[[i]][[j]]$Study.ID <- ids[[i]]
-        rand.dt[[i]][[j]] <- create.rand.dt(rand.all, groups[i], V1=ids[[i]], N)
-        setnames(rand.dt[[i]][[j]], 1, 'Study.ID')
-        rand.dt[[i]][[j]]$threshold <- j
-        rm(list='rand.all')
-        gc()
-      }
-    }
-    rand.dt <- rbindlist(lapply(rand.dt, rbindlist))
-    rand.dt[, Group := as.factor(Group)]
-    rand.dt[, Study.ID := as.factor(Study.ID)]
-    setcolorder(rand.dt, c('threshold', 'Group', 'Study.ID', names(rand.dt)[3:6]))
-    setkey(rand.dt, threshold, Group, Study.ID)
-
-    small.dt <- rbindlist(lapply(small.dt, rbindlist))
-    kNumSubjs <- sapply(g.list, function(x) length(x[[1]]))
-    small.dt[, Group := rep(groups, times=kNumSubjs*length(g.list[[1]]))]
-    small.dt[, Group := as.factor(Group)]
-    small.dt[, Study.ID := as.factor(Study.ID)]
-    setkey(small.dt, Group, threshold)
-    rich.dt <- rbindlist(lapply(phi.norm, function(x) rbindlist(lapply(x, rbindlist))))
+    small.dt[[i]] <- small.world(g.list[[i]], rand.all)
+    rand.dt[[i]] <- get_rand_attrs(rand.all, level)
+    rm(list='rand.all')
+    gc()
   }
+  rand.dt <- rbindlist(rand.dt)
+  small.dt <- rbindlist(small.dt)
+  setkey(small.dt, Group, density)
+  rich.dt <- rbindlist(lapply(phi.norm, rbindlist))
 
   return(list(rich=rich.dt, small=small.dt, rand=rand.dt))
+}
+
+#' Convenience function to get attributes for lists of random graphs
+#'
+#' @param bg.list A \code{brainGraphList} object, created in
+#'   \code{\link{analysis_random_graphs}}
+#' @keywords internal
+#' @return A \code{data.table}
+
+get_rand_attrs <- function(bg.list, level) {
+  threshold <- NULL
+  rand <- bg.list$graphs
+
+  groups <- vapply(rand, function(x) graph_attr(x[[1]], 'Group'), character(1))
+  N <- lengths(rand)
+
+  mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'mod'))
+  Cp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Cp'))
+  Lp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Lp'))
+  E.global <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'E.global'))
+
+  if (level == 'subject') {
+    ids <- names(rand)
+    DT <- data.table(Study.ID=rep(ids, times=N), Group=rep(groups, times=N))
+  } else if (level == 'group') {
+    DT <- data.table(Group=rep(groups, times=N))
+  }
+  DT <- cbind(DT, data.table(mod=mod, Cp=Cp, Lp=Lp, E.global=E.global))
+  if ('density' %in% graph_attr_names(rand[[1]][[1]])) {
+    densities <- vapply(rand, function(x) graph_attr(x[[1]], 'density'), numeric(1))
+    DT[, density := rep(densities, times=N)]
+  }
+  if ('threshold' %in% graph_attr_names(rand[[1]][[1]])) {
+    threshes <- vapply(rand, function(x) graph_attr(x[[1]], 'threshold'), numeric(1))
+    DT[, threshold := rep(threshes, times=N)]
+  }
+  return(DT)
 }

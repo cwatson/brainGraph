@@ -7,22 +7,29 @@
 \alias{sim.rand.graph.clust}
 \title{Perform an analysis with random graphs for brain MRI data}
 \usage{
-analysis_random_graphs(g.list, N = 100, savedir = ".", ...)
+analysis_random_graphs(g.list, level = g.list[[1]]$level, N = 100L,
+  savedir = ".", ...)
 
-sim.rand.graph.par(g, N = 100, clustering = FALSE, ...)
+sim.rand.graph.par(g, level = c("subject", "group"), N = 100L,
+  clustering = FALSE, rewire.iters = max(10 * ecount(g), 10000L),
+  cl = g$transitivity, max.iters = 100L, ...)
 
 sim.rand.graph.clust(g, rewire.iters = 10000, cl = g$transitivity,
   max.iters = 100)
 }
 \arguments{
-\item{g.list}{List of lists containing \code{igraph} graph objects}
+\item{g.list}{List of \code{brainGraphList} objects; the length of this list
+should equal the number of thresholds/densities in the study}
+
+\item{level}{Character string indicating whether the graphs are subject-,
+group-, or contrast-specific. Default: \code{'subject'}}
 
 \item{N}{Integer; the number of random graphs to simulate (default: 100)}
 
 \item{savedir}{Character string specifying the directory in which to save the
 generated graphs (default: current working directory)}
 
-\item{...}{Other parameters (passed to \code{\link{sim.rand.graph.clust}})}
+\item{...}{Other parameters (passed to \code{\link{make_brainGraph}})}
 
 \item{g}{An \code{igraph} graph object}
 
@@ -52,16 +59,16 @@ observed graph's (default: 100)}
 \code{sim.rand.graph.clust} - A single \code{igraph} graph object
 }
 \description{
-\code{analysis_random_graphs} is not quite a "proper" function. It performs
-the steps needed for doing typical graph theory analyses with brain MRI data
-if you need to generate equivalent random graphs. This includes calculating
-\emph{small world} parameters and normalized \emph{rich club} coefficients.
+\code{analysis_random_graphs} performs the steps needed for doing typical
+graph theory analyses with brain MRI data if you need to generate equivalent
+random graphs. This includes calculating \emph{small world} parameters and
+normalized \emph{rich club} coefficients.
 
 \code{sim.rand.graph.par} simulates \code{N} simple random graphs with the
 same clustering (optional) and degree sequence as the input. Essentially a
 wrapper for \code{\link[igraph]{sample_degseq}} (or, if you want to match by
 clustering, \code{\link{sim.rand.graph.clust}}) and
-\code{\link{set_brainGraph_attr}}. It uses \code{\link[foreach]{foreach}} for
+\code{\link{make_brainGraph}}. It uses \code{\link[foreach]{foreach}} for
 parallel processing.
 
 \code{sim.rand.graph.clust} simulates a random graph with a given degree
@@ -71,12 +78,10 @@ value will result in a closer match of clustering with the observed graph.
 \details{
 \code{analysis_random_graphs} does the following:
 \enumerate{
-  \item Generate \code{N} random graphs for each group and density/threshold
-    (and subject if you have subject-specific graphs).
+  \item Generate \code{N} random graphs for each graph and density/threshold
   \item Write graphs to disk in \code{savedir}. Read them back into \code{R}
-    and combine into lists; then write these lists to disk (in a
-    sub-directory named \code{ALL}), so you can delete the individual
-    \code{.rds} files afterwards.
+    and combine into lists; then write these lists to disk. You can later
+    delete the individual \code{.rds} files afterwards.
   \item Calculate \emph{small world} parameters, along with values for a few
     global graph measures that may be of interest.
   \item Calculate \emph{normalized rich club coefficients} and associated
@@ -107,7 +112,7 @@ Bioinformatics, 10:405-421. \url{https://dx.doi.org/10.1186/1471-2105-10-405}
 \code{\link{small.world}}
 
 \code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
-\link[igraph]{keeping_degseq}}
+  \link[igraph]{keeping_degseq}}
 
 \code{\link[igraph]{transitivity}}
 

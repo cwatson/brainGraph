@@ -1,152 +1,281 @@
+################################################################################
+# MAIN CREATION FUNCTIONS
+################################################################################
+
 #' Create a brainGraph object
 #'
-#' Create a \code{brainGraph} graph object, which is an \code{igraph} graph
-#' object with additional attributes (at all levels). The values are dependent
-#' on the specified brain atlas.
+#' \code{make_brainGraph} is the main creation function for creating a
+#' \code{brainGraph} graph object. This is simply an \code{igraph} graph
+#' object with additional attributes (at all levels). Several of the graph-level
+#' attributes serve the purpose of providing metadata on how the connectivity
+#' matrices/networks were created.
 #'
-#' For the \code{modality} argument, you can choose anything you like, but the
-#' \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
-#' \code{thickness}, \code{area}, and \code{volume}.
+#' @section Graph-level attributes:
+#' Graph-level attributes added are:
+#' \describe{
+#'   \item{version}{The R, \code{brainGraph}, and \code{igraph} package versions
+#'     used to create the graph}
+#'   \item{date}{The creation date, from \code{\link{as.POSIXct}}}
+#'   \item{atlas}{Character string denoting the brain atlas used}
+#'   \item{type}{Character string specifying whether this is an \emph{observed}
+#'     or \emph{random} graph}
+#'   \item{modality}{The imaging modality; you can choose anything you like,
+#'     but the \code{summary.brainGraph} knows about \code{dti}, \code{fmri},
+#'     \code{thickness}, \code{area}, and \code{volume}}
+#'   \item{weighting}{What edge weights represent; you can choose anything you
+#'     like, but \code{summary.brainGraph} knows about \code{fa}, \code{sld}
+#'     (streamline density, tractography), \code{pearson}, \code{spearman},
+#'     \code{kendall}, and \code{partial} (partial correlation coefficient)}
+#'   \item{threshold}{Numeric indicating the threshold used to create the final
+#'     connectivity matrix (if any)}
+#'   \item{name}{Character string specifying the study ID or group/contrast
+#'     name, depending on the \code{level} argument}
+#'   \item{Group}{Character string specifying the experimental group the given
+#'     subject belongs to, or if it is a group-level graph}
+#' }
 #'
-#' For the \code{weighting} argument, you can choose anything you like, but
-#' \code{summary.brainGraph} knows about \code{fa}, \code{sld} (streamline
-#' density, tractography), \code{pearson}, \code{spearman}, \code{kendall}, and
-#' \code{partial} (partial correlation coefficient).
+#' @section Vertex attributes:
+#' Vertex-level attributes added are:
+#' \describe{
+#'   \item{name}{The names of the brain regions in the network}
+#'   \item{lobe}{The names of the major brain lobes for each vertex}
+#'   \item{hemi}{The names of the hemisphere for each vertex}
+#'   \item{lobe.hemi}{The lobe-hemisphere combination}
+#'   \item{class}{The tissue class (if applicable)}
+#'   \item{network}{The network (if the atlas is \code{dosenbach160})}
+#'   \item{x,y,z}{The coordinates of the (centers-of-mass) brain regions in MNI
+#'     space}
+#'   \item{color.lobe,color.class,color.network}{Colors for vertices of their
+#'     respective membership}
+#'   \item{circle.layout}{Integer vector indicating the order (going
+#'     counter-clockwise from the top) for circular layouts}
+#' }
 #'
-#' @param g An \emph{igraph} graph object.
+#' @section Edge attributes:
+#' Edge-level attributes added are:
+#' \describe{
+#'   \item{color.lobe,color.class,color.network}{Correspond(s) to the vertex
+#'   attribute(s) of the same name. Inter-group edges will be colored
+#'   \emph{gray}}
+#' }
+#'
+#' @param x An \code{igraph} graph object or numeric matrix
 #' @param atlas Character string specifying the brain atlas
-#' @param rand A character string indicating whether this function is being run
-#'   for a random graph. Default: \code{FALSE}
-#' @param modality Character vector indicating imaging modality (e.g. 'dti').
+#' @param type Character string indicating the type of graphs. Default:
+#'   \code{observed}
+#' @param level Character string indicating whether the graphs are subject-,
+#'   group-, or contrast-specific. Default: \code{'subject'}
+#' @param set.attrs Logical indicating whether to assign all graph-, vertex-,
+#'   and edge-level attributes (via \code{\link{set_brainGraph_attr}}). Default:
+#'   \code{TRUE}
+#' @param modality Character string indicating imaging modality (e.g. 'dti').
 #'   Default: \code{NULL}
 #' @param weighting Character string indicating how the edges are weighted
 #'   (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}
-#' @param threshold Numeric indicating the level at which the matrices were
-#'   thresholded (if at all). Default: \code{NULL}
-#' @param subject Character vector indicating subject ID. Default: \code{NULL}
-#' @param group Character vector indicating group membership. Default:
+#' @param threshold Numeric indicating the threshold used when "sparsifying" the
+#'   connectivity matrix (if any). Default: \code{NULL}
+#' @param name Character string indicating subject ID or group/contrast name,
+#'   depending on the \code{level}. Default: \code{NULL}
+#' @param Group Character string indicating group membership. Default:
 #'   \code{NULL}
+#' @param ... Arguments passed to \code{\link{set_brainGraph_attr}}
 #' @export
 #'
 #' @return A \code{brainGraph} graph object with additional attributes:
-#'   \item{version}{(graph-level) The current version of \code{brainGraph}}
-#'   \item{atlas}{(graph-level)}
-#'   \item{lobe}{(vertex-leve) Character vector of lobe names}
-#'   \item{hemi}{(vertex-leve) Character vector of hemispheres (\code{'L'},
+#'   \item{version}{(graph) The current versions of R, \code{brainGraph}, and
+#'     \code{igraph}}
+#'   \item{date}{(graph)}
+#'   \item{atlas}{(graph)}
+#'   \item{type}{(graph)}
+#'   \item{modality}{(graph)}
+#'   \item{weighting}{(graph)}
+#'   \item{threshold}{(graph)}
+#'   \item{name}{(graph) The subject ID, group name, or contrast name (depending
+#'     on the value of \code{level})}
+#'   \item{Group}{(graph) only if \code{group} is specified}
+#'   \item{lobe}{(vertex) Character vector of lobe names}
+#'   \item{hemi}{(vertex) Character vector of hemispheres (\code{'L'},
 #'     \code{'R'}, or \code{'B'})}
-#'   \item{lobe.hemi}{Integer vector indicating the lobe and hemisphere}
-#'   \item{class}{(vertex-leve) Character vector of class names (if applicable)}
-#'   \item{network}{(vertex-leve) Character vector of network names (if
+#'   \item{lobe.hemi}{(vertex) Integer vector indicating the lobe and
+#'     hemisphere}
+#'   \item{class}{(vertex) Character vector of class names (if applicable)}
+#'   \item{network}{(vertex) Character vector of network names (if
 #'     applicable)}
-#'   \item{modality}{(graph-level)}
-#'   \item{weighting}{(graph-level)}
-#'   \item{threshold}{(graph-level)}
-#'   \item{name}{(graph-level) The subject ID (if specified by \code{subject})}
-#'   \item{Group}{(graph-level) only if \code{group} is specified}
-#'   \item{x, y, z, x.mni, y.mni, z.mni}{Spatial coordinates}
-#'   \item{color.lobe}{(vertex- and edge-level) Colors based on \emph{lobe}}
-#'   \item{color.class,color.network}{(vertex- and edge-level) If applicable}
-#'   \item{circle.layout}{Integer vector for ordering the vertices for circle
-#'     plots}
+#'   \item{x, y, z, x.mni, y.mni, z.mni}{(vertex) Spatial coordinates}
+#'   \item{color.lobe}{(vertex and edge) Colors based on \emph{lobe}}
+#'   \item{color.class,color.network}{(vertex and edge) If applicable}
+#'   \item{circle.layout}{(vertex) Integer vector for ordering the vertices for
+#'     plots with circular layout}
+#' @name CreateGraphs
+#' @rdname make_brainGraph
 #' @family Graph creation functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-make_brainGraph <- function(g, atlas, rand=FALSE, modality=NULL, weighting=NULL,
-                            threshold=NULL, subject=NULL, group=NULL) {
-  stopifnot(is_igraph(g))
-  lobe <- hemi <- name <- index <- N <- class <- network <- x <- y <- z <- x.mni <- y.mni <- z.mni <- NULL
+make_brainGraph <- function(x, atlas, type=c('observed', 'random'),
+                            level=c('subject', 'group', 'contrast'), set.attrs=TRUE,
+                            modality=NULL, weighting=NULL, threshold=NULL,
+                            name=NULL, Group=NULL, ...) {
+  UseMethod('make_brainGraph')
+}
 
-  g$version <- packageVersion('brainGraph')
-  g$atlas <- atlas
+#' Create a brainGraph object from an igraph graph
+#'
+#' @export
+#' @method make_brainGraph igraph
+#' @rdname make_brainGraph
+
+make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
+                                   level=c('subject', 'group', 'contrast'),
+                                   set.attrs=TRUE, modality=NULL, weighting=NULL,
+                                   threshold=NULL, name=NULL, Group=NULL, ...) {
+  lobe <- hemi <- index <- class <- network <- x.mni <- y.mni <- z.mni <- NULL
+
+  x <- get_metadata(x)
+  x$atlas <- atlas
   DT <- get(atlas)
-  nonmatches <- !V(g)$name %in% DT[, name]
-  if (any(nonmatches)) {
-    stop(paste('Check the following vertex names: ',
-               paste(V(g)$name[nonmatches], collapse=' ')))
+  if (!is_named(x)) {
+    V(x)$name <- DT$name
+  } else {
+    nonmatches <- !V(x)$name %in% DT[, name]
+    if (any(nonmatches)) {
+      stop(paste('Check the following vertex names: ',
+                 paste(V(x)$name[nonmatches], collapse=' ')))
+    }
   }
 
-  if (!is_named(g)) V(g)$name <- DT[, name]
-  vorder <- match(V(g)$name, DT$name)
-  lobe.nums <- DT[vorder, as.numeric(lobe)]
-  V(g)$lobe <- DT[vorder, as.character(lobe)]
-  V(g)$lobe.hemi <- as.numeric(DT[vorder, interaction(lobe, hemi)])
-  V(g)$hemi <- DT[vorder, as.character(hemi)]
+  vorder <- match(V(x)$name, DT$name)
+  V(x)$lobe <- DT[vorder, as.character(lobe)]
+  V(x)$lobe.hemi <- as.numeric(DT[vorder, interaction(lobe, hemi)])
+  V(x)$hemi <- DT[vorder, as.character(hemi)]
 
-  if (isTRUE(grepl('destr', g$atlas))) V(g)$class <- DT[vorder, as.numeric(class)]
-  if (g$atlas == 'dosenbach160') V(g)$network <- DT[vorder, as.character(network)]
+  if (isTRUE(grepl('destr', x$atlas))) V(x)$class <- DT[vorder, as.numeric(class)]
+  if (x$atlas == 'dosenbach160') V(x)$network <- DT[vorder, as.character(network)]
 
-  if (!isTRUE(rand)) {
-    # First add some "bookkeeping" attributes
-    if (!is.null(modality)) g$modality <- modality
-    if (!is.null(weighting)) g$weighting <- weighting
-    if (!is.null(threshold)) g$threshold <- threshold
-    if (!is.null(subject)) g$name <- subject
-    if (!is.null(group)) g$Group <- group
+  level <- match.arg(level)
+  type <- match.arg(type)
+  x$level <- level
+  x$type <- type
+  if (type == 'observed') {
+    attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
+    for (a in attrs) {
+      if (!is.null(get(a))) x <- set_graph_attr(x, a, get(a))
+    }
+    if (level == 'group' && !is.null(Group)) x$name <- x$Group
 
     l.cir <- vector('integer')
     lobes <- DT[, levels(lobe)]
-    V(g)$x <- V(g)$x.mni <- DT[vorder, x.mni]
-    V(g)$y <- V(g)$y.mni <- DT[vorder, y.mni]
-    V(g)$z <- V(g)$z.mni <- DT[vorder, z.mni]
-    V(g)$color.lobe <- group.cols[lobe.nums]
-    g <- set_edge_color(g, 'color.lobe', lobe.nums)
-    if (g$atlas %in% c('destrieux', 'destrieux.scgm')) {
-      V(g)$color.class <- group.cols[V(g)$class]
-      g <- set_edge_color(g, 'color.class', V(g)$class)
-    }
-    if (g$atlas == 'dosenbach160') {
-      V(g)$color.network <- group.cols[DT[vorder, as.numeric(network)]]
-      g <- set_edge_color(g, 'color.network', DT[vorder, as.numeric(network)])
-      l.cir <- c(l.cir, which(V(g)$hemi == 'B'))
+    V(x)$x <- V(x)$x.mni <- DT[vorder, x.mni]
+    V(x)$y <- V(x)$y.mni <- DT[vorder, y.mni]
+    V(x)$z <- V(x)$z.mni <- DT[vorder, z.mni]
+    x <- set_graph_colors(x, 'color.lobe', DT[vorder, as.numeric(lobe)])
+    if (x$atlas %in% c('destrieux', 'destrieux.scgm')) {
+      x <- set_graph_colors(x, 'color.class', V(x)$class)
+    } else if (x$atlas == 'dosenbach160') {
+      x <- set_graph_colors(x, 'color.network', DT[vorder, as.numeric(network)])
+      l.cir <- c(l.cir, which(V(x)$hemi == 'B'))
     }
 
-    l.cir <- c(l.cir,
-      DT[lobe == 'Frontal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
-      DT[lobe %in% c('Insula', 'Central') & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
-      DT[lobe %in% c('Limbic', 'Cingulate') & hemi == 'L', .SD[order(-y.mni, x.mni), index]])
-    if ('SCGM' %in% lobes) {
-      l.cir <- c(l.cir, DT[lobe == 'SCGM' & hemi == 'L', .SD[order(-y.mni, x.mni), index]])
+    lobeorder <- list('Frontal', c('Insula', 'Central'), c('Limbic', 'Cingulate'),
+                      'SCGM', 'Temporal', 'Parietal', 'Occipital', 'Cerebellum', 'Brainstem')
+    if (!'Brainstem' %in% lobes) lobeorder <- lobeorder[-9]
+    if (!'Cerebellum' %in% lobes) lobeorder <- lobeorder[-8]
+    if (!'SCGM' %in% lobes) lobeorder <- lobeorder[-4]
+    for (i in seq_along(lobeorder)) {
+      l.cir <- c(l.cir, DT[lobe %in% lobeorder[[i]] & !hemi %in% c('B', 'R'),
+                           .SD[order(-y.mni, x.mni), index]])
     }
-    l.cir <- c(l.cir,
-      DT[lobe == 'Temporal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
-      DT[lobe == 'Parietal' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
-      DT[lobe == 'Occipital' & hemi == 'L', .SD[order(-y.mni, x.mni), index]],
-      DT[lobe == 'Occipital' & hemi == 'R', .SD[order(y.mni, x.mni), index]],
-      DT[lobe == 'Parietal' & hemi == 'R', .SD[order(y.mni, x.mni), index]],
-      DT[lobe == 'Temporal' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
-    if ('SCGM' %in% lobes) {
-      l.cir <- c(l.cir, DT[lobe == 'SCGM' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
+    for (i in seq_along(lobeorder)) {
+      l.cir <- c(l.cir, DT[lobe %in% rev(lobeorder)[[i]] & hemi == 'R',
+                           .SD[order(y.mni, x.mni), index]])
     }
-    l.cir <- c(l.cir,
-      DT[lobe %in% c('Limbic', 'Cingulate') & hemi == 'R', .SD[order(y.mni, x.mni), index]],
-      DT[lobe %in% c('Insula', 'Central') & hemi == 'R', .SD[order(y.mni, x.mni), index]],
-      DT[lobe == 'Frontal' & hemi == 'R', .SD[order(y.mni, x.mni), index]])
-    if ('Cerebellum' %in% lobes) {
-      counts <- DT[order(lobe, hemi), .N, by=list(lobe, hemi)]
-      mid1 <- counts[!lobe %in% c('Cerebellum', 'Brainstem') & hemi != 'R', sum(N)]
-      mid2 <- counts[!lobe %in% c('Cerebellum', 'Brainstem') & hemi == 'R', sum(N)]
-      l.cir <- c(l.cir[1:mid1],
-                       which(V(g)$lobe == 'Cerebellum'),
-                       l.cir[(mid1+1):(mid2+mid1)])
-    }
-    if ('Brainstem' %in% lobes) {
-      mid1 <- counts[lobe != 'Brainstem' & hemi != 'R', sum(N)]
-      mid2 <- counts[lobe != 'Brainstem' & hemi == 'R', sum(N)]
-      l.cir <- c(l.cir[1:mid1],
-                       which(V(g)$lobe == 'Brainstem'),
-                       l.cir[(mid1+1):(mid2+mid1)])
-    }
-    V(g)$circle.layout <- l.cir
+    V(x)$circle.layout <- l.cir
   }
 
-  class(g) <- c('brainGraph', class(g))
+  # Set a bunch of attributes
+  if (isTRUE(set.attrs) && ecount(x) > 1) x <- set_brainGraph_attr(x, type, ...)
+
+  class(x) <- c('brainGraph', class(x))
+  return(x)
+}
+
+#' Create a brainGraph object from an adjacency matrix
+#'
+#' @param mode Character string defining how the matrix should be interpreted.
+#'   Default: \code{'undirected'}
+#' @param weighted Logical specifying whether to create a weighted network
+#' @param diag Logical indicating whether to include the diagonal of the
+#'   connectivity matrix. Default: \code{FALSE}
+#' @export
+#' @method make_brainGraph matrix
+#'
+#' @rdname make_brainGraph
+#' @examples
+#' \dontrun{
+#' bg <- make_brainGraph(A, 'dkt', modality='dti', weighting='fa',
+#'   mode='undirected', diag=FALSE, weighted=TRUE)
+#' }
+
+make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
+                                   level=c('subject', 'group', 'contrast'),
+                                   set.attrs=TRUE, modality=NULL, weighting=NULL,
+                                   threshold=NULL, name=NULL, Group=NULL,
+                                   mode='undirected', weighted=NULL, diag=FALSE, ...) {
+  g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
+  type <- match.arg(type)
+  level <- match.arg(level)
+  g <- make_brainGraph(g, atlas, type, level, set.attrs, modality, weighting,
+                       threshold, name, Group, A=x, ...)
   return(g)
 }
 
-#' Determine whether x is a brainGraph object
+#' Create a graph with mediation-specific attributes
 #'
-#' @param x An object to test
-#' @keywords internal
+#' This function only creates a graph for \emph{vertex}-level analyses.
+#'
+#' @param x A \code{bg_mediate} object
+#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
+#' @inheritParams CreateGraphs
+#' @export
+#'
+#' @return A \code{brainGraph_mediate} graph object with attributes:
+#'   \item{Graph}{\emph{mediator}, \emph{treat}, \emph{outcome}, \emph{nobs}}
+#'   \item{Vertex}{\emph{b?.acme, p?.acme}, \emph{b?.ade, p?.ade},
+#'     \emph{b?.prop, p?.prop}, \emph{b.tot, p.tot}}
+#' @family Graph creation functions
+
+make_brainGraph.bg_mediate <- function(x, atlas, type='observed', level='contrast',
+                                       set.attrs=FALSE, modality=NULL, weighting=NULL,
+                                       threshold=NULL, ...) {
+  stopifnot(inherits(x, 'bg_mediate'), x$level == 'vertex')
+  med.sum <- summary(x)$DT
+  g.med <- make_empty_brainGraph(atlas, ...)
+  for (a in c('mediator', 'treat', 'outcome', 'nobs')) {
+    g.med <- set_graph_attr(g.med, a, x[[a]])
+  }
+  for (a in c('b0.acme', 'b0.ade', 'b.tot', 'b0.prop')) {
+    g.med <- set_vertex_attr(g.med, a, value=med.sum[[a]])
+  }
+  for (a in c('p0.acme', 'p0.ade', 'p.tot', 'p0.prop')) {
+    g.med <- set_vertex_attr(g.med, a, value=1 - med.sum[[a]])
+  }
+  if (isTRUE(x$INT)) {
+    for (a in c('b1.acme', 'b1.ade', 'b1.prop', 'b.avg.acme', 'b.avg.ade', 'b.avg.prop')) {
+      g.med <- set_vertex_attr(g.med, a, value=med.sum[[a]])
+    }
+    for (a in c('p1.acme', 'p1.ade', 'p1.prop', 'p.avg.acme', 'p.avg.ade', 'p.avg.prop')) {
+      g.med <- set_vertex_attr(g.med, a, value=1 - med.sum[[a]])
+    }
+  }
+  class(g.med) <- c('brainGraph_mediate', class(g.med))
+  return(g.med)
+}
+
+################################################################################
+# OTHER METHODS
+################################################################################
+
+#' Determine whether the input is a brainGraph object
+#'
 #' @export
 #' @rdname make_brainGraph
 is.brainGraph <- function(x) inherits(x, 'brainGraph')
@@ -156,99 +285,103 @@ is.brainGraph <- function(x) inherits(x, 'brainGraph')
 #' @param object A \code{brainGraph} object
 #' @param print.attrs Character string indicating whether or not to list the
 #'   object's attributes (default: \code{all})
-#' @param ... Unused
 #' @export
 #' @method summary brainGraph
 #' @rdname make_brainGraph
 
-summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
-  if (!is.brainGraph(object)) {
-    NextMethod(generic='summary', object=object)
-    return(invisible(object))
-  }
-  ver <- weighting <- name <- Group <- modality <- clustmethod <- 'N/A'
+summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', 'edge', 'none'), ...) {
+  if (!is.brainGraph(object)) NextMethod(generic='summary', object=object)
+  weighting <- name <- Group <- modality <- thresh <- clustmethod <- 'N/A'
 
-  if ('version' %in% graph_attr_names(object)) ver <- as.character(object$version)
-  atlasfull <- switch(object$atlas,
-                      aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
-                      brainsuite='Brainsuite',
-                      craddock200='Craddock-200',
-                      destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
-                      dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
-                      dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
-                      dosenbach160='Dosenbach-160',
-                      hoa112='Harvard-Oxford cortical and subcortical',
-                      lpba40='LONI probabilistic brain atlas',
-                      object$atlas)
+  ver <- sapply(object$version, as.character)
+  date_created <- sub('T', ' ', object$date)
+  atlasfull <-
+    switch(object$atlas,
+           aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
+           brainsuite='Brainsuite', craddock200='Craddock-200',
+           destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
+           dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
+           dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
+           dosenbach160='Dosenbach-160', hoa112='Harvard-Oxford cortical and subcortical',
+           lpba40='LONI probabilistic brain atlas', object$atlas)
+  type <- tools::toTitleCase(object$type)
   if ('modality' %in% graph_attr_names(object)) {
-    modality <- switch(object$modality,
-                       dti='DTI', fmri='fMRI', thickness='Cortical thickness',
-                       area='Cortical surface area', volume='Cortical/subcortical volume',
-                       object$modality)
+    modality <-
+      switch(object$modality, dti='DTI', fmri='fMRI', thickness='Cortical thickness',
+             area='Cortical surface area', volume='Cortical/subcortical volume', object$modality)
   }
   if (is_weighted(object)) {
     if ('weighting' %in% graph_attr_names(object)) {
-      weighting <- switch(object$weighting,
-                          fa='FA (fractional anisotropy)',
-                          sld='Streamline density',
-                          pearson='Pearson correlation',
-                          spearman='Spearman\'s rank correlation',
-                          kendall='Kendall\'s rank correlation',
-                          partial='Partial correlation',
-                          object$weighting)
+      weighting <-
+        switch(object$weighting, fa='FA (fractional anisotropy)',
+               sld='Streamline density', pearson='Pearson correlation',
+               spearman='Spearman\'s rank correlation',
+               kendall='Kendall\'s rank correlation', partial='Partial correlation',
+               object$weighting)
     }
   } else {
     weighting <- 'Unweighted'
   }
+  if ('threshold' %in% graph_attr_names(object)) thresh <- object$threshold
   if ('clust.method' %in% graph_attr_names(object)) {
-    clustmethod <- switch(object$clust.method,
-                          edge_betweenness='Edge betweenness',
-                          fast_greedy='Greedy optimization (hierarchical agglomeration)',
-                          infomap='Infomap',
-                          label_prop='Label propagation',
-                          leading_eigen='Leading eigenvector',
-                          louvain='Louvain (multi-level modularity optimization)',
-                          optimal='Optimal',
-                          spinglass='Potts spin glass model',
-                          walktrap='Walktrap algorithm',
-                          object$clust.method)
+    clustmethod <-
+      switch(object$clust.method, edge_betweenness='Edge betweenness',
+             fast_greedy='Greedy optimization (hierarchical agglomeration)',
+             infomap='Infomap', label_prop='Label propagation',
+             leading_eigen='Leading eigenvector',
+             louvain='Louvain (multi-level modularity optimization)', optimal='Optimal',
+             spinglass='Potts spin glass model', walktrap='Walktrap algorithm',
+             object$clust.method)
   }
   dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
-  if ('name' %in% graph_attr_names(object)) name <- object$name
+  if ('name' %in% graph_attr_names(object) && !is.null(object$name)) name <- object$name
   if ('Group' %in% graph_attr_names(object)) Group <- object$Group
 
-  df <- data.frame(A=c('brainGraph version: ', 'Brain atlas used: ',
-                       'Imaging modality: ', 'Edge weighting: ',
-                       'Clustering method: ', 'Graph density: ',
-                       'Subject ID: ', 'Group: '),
-                   B=c(ver, atlasfull, modality, weighting, clustmethod, dens.pct, name, Group))
+  name_str <- 'Subject ID:'
+  if (object$level == 'group') {
+    name_str <- 'Group:'
+  } else if (object$level == 'contrast') {
+    name_str <- 'Contrast:'
+  }
+  df <- data.frame(A=c('Softare versions:',
+                       '       R release:', '      brainGraph:', '          igraph:',
+                       'Date created:',
+                       'Observed or random?', 'Brain atlas used:', 'Imaging modality:',
+                       'Edge weighting:', 'Clustering method:', 'Graph density:',
+                       'Threshold:', name_str, 'Group:'),
+                   B=c('', ver, date_created, type, atlasfull, modality, weighting, clustmethod, dens.pct,
+                       prettyNum(thresh, ','), name, Group))
   dimnames(df)[[2]] <- rep('', 2)
+  if (object$level %in% c('Group', 'contrast')) {
+    df <- df[-14, ]
+  }
 
-  attrtypes <- c('graph', 'vertex', 'edge')
+  print.attrs <- match.arg(print.attrs)
+  if (print.attrs == 'all') {
+    attrtypes <- c('graph', 'vertex', 'edge')
+  } else if (print.attrs == 'none') {
+    attrtypes <- NULL
+  } else {
+    attrtypes <- print.attrs
+  }
   attrs.l <- sapply(attrtypes, function(x) NULL)
-  for (type in attrtypes) {
-    attrs <- switch(type,
+  for (atype in attrtypes) {
+    attrs <- switch(atype,
                     graph=graph_attr_names(object),
                     vertex=vertex_attr_names(object),
                     edge=edge_attr_names(object))
     len <- length(attrs)
     if (len > 0) {
-      div <- seq_len(len)
-      factors <- div[len %% div == 0L]
-      if (len > 6 && length(factors) == 2L) {
-        attrs <- c(attrs, '')
-        len <- length(attrs)
-        div <- seq_len(len)
-        factors <- div[len %% div == 0L]
-      }
-      mod <- max(factors[which(factors <= 6)])
-      attrs.df <- as.data.frame(split(attrs, ceiling(seq_along(attrs) / (len %/% mod))))
+      splits <- split(attrs, ceiling(seq_along(attrs) / (len %/% 3)))
+      lens <- lengths(splits)
+      nsplits <- length(splits)
+      splits[[nsplits]] <- c(splits[[nsplits]], rep('', (len %/% 3) - lens[nsplits]))
+      attrs.df <- as.data.frame(splits)
       dimnames(attrs.df)[[2]] <- rep('', ncol(attrs.df))
-      attrs.l[[type]] <- attrs.df
+      attrs.l[[atype]] <- attrs.df
     }
   }
-  print.attrs <- match.arg(print.attrs)
-  out <- list(df=df, attrs=attrs.l, print.attrs=print.attrs)
+  out <- list(object=object, df=df, attrs=attrs.l, print.attrs=print.attrs)
   class(out) <- c('summary.brainGraph', class(out))
   out
 }
@@ -257,18 +390,21 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'none'), ...) {
 #' @method print summary.brainGraph
 
 print.summary.brainGraph <- function(x, ...) {
+  message(paste0(rep('=', getOption('width') / 3)))
+  message(paste0('Summary for ', x$object$type, ' ', x$object$level, '-level graph: ', x$object$name))
+  message(paste0(rep('=', getOption('width') / 3)), '\n')
   print(x$df, right=FALSE, row.names=FALSE)
   cat('\n')
 
-  if (x$print.attrs == 'all') {
-    for (type in names(x$attrs)) {
-      if (is.null(x$attrs[[type]])) {
-        cat('No', tolower(type), 'attributes!')
+  if (x$print.attrs != 'none') {
+    for (atype in names(x$attrs)) {
+      if (is.null(x$attrs[[atype]])) {
+        cat('No', tolower(atype), 'attributes!')
       } else {
-        title <- paste(type, 'attributes')
+        title <- paste(tools::toTitleCase(atype), 'attributes')
         width <- getOption('width') - nchar(title) - 1
         message(title, paste(rep('-', width / 2), collapse=''))
-        print(x$attrs[[type]], right=FALSE, row.names=FALSE)
+        print(x$attrs[[atype]], right=FALSE, row.names=FALSE)
       }
       cat('\n')
     }
@@ -276,31 +412,34 @@ print.summary.brainGraph <- function(x, ...) {
   invisible(x)
 }
 
+################################################################################
+# OTHER CREATION FUNCTIONS
+################################################################################
+
 #' Create an empty graph with attributes for brainGraph
 #'
-#' This function creates an empty undirected graph with vertex count equal to
-#' the atlas specified, and includes some graph-, vertex-, and
-#' edge-level attributes that are important for \code{brainGraph} functions.
-#' Basically a wrapper for \code{\link[igraph]{make_empty_graph}}.
+#' \code{make_empty_brainGraph} creates an empty undirected \code{brainGraph}
+#' object with vertex count equal to the atlas specified; i.e., it creates a
+#' graph with 0 edges. Typically used to present results from an analysis in
+#' which edges don't make sense (e.g., GLM comparing differences in a
+#' vertex-level attribute).
 #'
-#' @param atlas Character string of the atlas to create a graph from
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @export
-#'
 #' @return \code{make_empty_brainGraph} -- An empty \code{brainGraph} graph
 #'   object
-#' @family Graph creation functions
 #' @rdname make_brainGraph
-#' @seealso \code{\link[igraph]{make_empty_graph}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-make_empty_brainGraph <- function(atlas, ...) {
-  atlas.dt <- get(atlas)
-  g.new <- make_empty_graph(nrow(atlas.dt), directed=FALSE)
-  V(g.new)$name <- atlas.dt$name
-  g.new <- make_brainGraph(g.new, atlas, ...)
-
-  return(g.new)
+make_empty_brainGraph <- function(atlas, type=c('observed', 'random'),
+                                  level=c('subject', 'group', 'contrast'),
+                                  modality=NULL, weighting=NULL, threshold=NULL,
+                                  name=NULL, Group=NULL, ...) {
+  n <- nrow(get(atlas))
+  A <- matrix(0, nrow=n, ncol=n)
+  type <- match.arg(type)
+  level <- match.arg(level)
+  g <- make_brainGraph(A, atlas, type, level, set.attrs=FALSE, modality,
+                       weighting, threshold, name, Group, ...)
+  return(g)
 }
 
 #' Create a graph of the union of multiple vertex neighborhoods
@@ -349,173 +488,6 @@ make_ego_brainGraph <- function(g, vs) {
   inds <- unique(c(vs, unlist(lapply(vs, function(x) neighbors(g, x)))))
   subg.all <- combine_graphs(subgs, make_empty_graph(directed=F) + vertices(V(g)$name[inds]))
   return(subg.all)
-}
-
-#' Create a graph with GLM-specific attributes
-#'
-#' \code{make_glm_brainGraph} will create graphs with attributes specific to the
-#' results of \code{\link{brainGraph_GLM}} or \code{\link{mtpc}}. The function
-#' returns a list, with one element for each specified contrast.
-#'
-#' This function only creates a graph for \emph{vertex}-level analyses.
-#'
-#' @param res.glm List as output by \code{\link{brainGraph_GLM}} or by
-#' \code{\link{mtpc}}.
-#' @param atlas Character string specifying the brain atlas to use
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @export
-#'
-#' @return A list of \code{igraph} graph objects (length equal to the number of
-#'   contrasts) with additional attributes:
-#'   \item{Graph}{\emph{name} (contrast name), \emph{outcome} (the outcome
-#'     variable), \emph{alpha} (the significance level); for MTPC:
-#'     \emph{tau.mtpc}, \emph{S.mtpc}, \emph{S.crit}, \emph{A.crit}}
-#'   \item{Vertex}{\emph{size2} (t-statistic), \emph{size} (the t-stat
-#'     transformed for visualization purposes), \emph{p} (equal to \eqn{1-p}),
-#'     \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the FDR-adjusted p-value),
-#'     \emph{gamma} (the contrast of parameter estimaties, \emph{se} (the
-#'     standard error of \emph{gamma}); \emph{A.mtpc}, \emph{sig} (binary
-#'     indicating whether \code{A.mtpc > A.crit}) (for MTPC)}
-#' @family Graph creation functions
-#' @seealso \code{\link{brainGraph_GLM}, \link{mtpc}}
-
-make_glm_brainGraph <- function(res.glm, atlas, ...) {
-  contrast <- p <- p.fdr <- p.perm <- se <- stat <- A.mtpc <- region <- A.crit <- S.crit <- S.mtpc <- tau.mtpc <- NULL
-  check.class <- inherits(res.glm, c('bg_GLM', 'mtpc'), which=TRUE)
-  stopifnot(any(check.class == 1), res.glm$level == 'vertex')
-
-  g.diffs <- vector('list', length=length(res.glm$con.name))
-  for (i in seq_along(g.diffs)) {
-    g.diffs[[i]] <- make_empty_brainGraph(atlas, ...)
-    g.diffs[[i]]$name <- res.glm$con.name[i]
-    g.diffs[[i]]$con.type <- res.glm$con.type
-    g.diffs[[i]]$outcome <- res.glm$outcome
-    g.diffs[[i]]$alt <- res.glm$alt
-
-    if (check.class[1] == 1) {  # bg_GLM
-      g.diffs[[i]]$alpha <- res.glm$alpha
-      V(g.diffs[[i]])$p <- 1 - res.glm$DT[contrast == i, p]
-      V(g.diffs[[i]])$p.fdr <- 1 - res.glm$DT[contrast == i, p.fdr]
-      V(g.diffs[[i]])$gamma <- res.glm$DT[contrast == i, gamma]
-      V(g.diffs[[i]])$se <- res.glm$DT[contrast == i, se]
-      V(g.diffs[[i]])$size2 <- res.glm$DT[contrast == i, stat]
-      V(g.diffs[[i]])$size <- vec.transform(V(g.diffs[[i]])$size2, 0, 20)
-      if (isTRUE(res.glm$permute)) V(g.diffs[[i]])$p.perm <- 1 - res.glm$DT[contrast == i, p.perm]
-      class(g.diffs[[i]]) <- c('brainGraph_GLM', class(g.diffs[[i]]))
-    } else {  # mtpc
-      g.diffs[[i]]$tau.mtpc <- res.glm$stats[contrast == i, tau.mtpc]
-      g.diffs[[i]]$S.mtpc <- res.glm$stats[contrast == i, S.mtpc]
-      g.diffs[[i]]$S.crit <- res.glm$stats[contrast == i, S.crit]
-      g.diffs[[i]]$A.crit <- res.glm$stats[contrast == i, A.crit]
-      V(g.diffs[[i]])$A.mtpc <- res.glm$DT[contrast == i, unique(A.mtpc), by=region]$V1
-      V(g.diffs[[i]])$sig <- 0
-      V(g.diffs[[i]])[res.glm$DT[contrast == i & A.mtpc > A.crit, unique(region)]]$sig <- 1
-      class(g.diffs[[i]]) <- c('brainGraph_mtpc', class(g.diffs[[i]]))
-    }
-  }
-  return(g.diffs)
-}
-
-#' Create a graph with NBS-specific attributes
-#'
-#' @param res.nbs List that is output by \code{\link{NBS}}
-#' @param atlas Character string specifying the brain atlas to use
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @export
-#'
-#' @return A list of \code{igraph} graph objects (length equal to the number of
-#'   contrasts) with additional attributes:
-#'   \item{Graph}{\emph{name} (contrast name)}
-#'   \item{Vertex}{\emph{comp} (integer vector indicating connected component
-#'     membership), \emph{p.nbs} (P-value for each component)}
-#'   \item{Edge}{\emph{stat} (the test statistic for each connection), \emph{p}
-#'     (the P-value)}
-#' @family Graph creation functions
-
-make_nbs_brainGraph <- function(res.nbs, atlas, ...) {
-  contrast <- p.perm <- csize <- NULL
-  stopifnot(inherits(res.nbs, 'NBS'))
-  g.nbs <- vector('list', length=length(res.nbs$con.name))
-  for (i in seq_along(g.nbs)) {
-    g.nbs[[i]] <- graph_from_adjacency_matrix(res.nbs$T.mat[, , i], diag=F, mode='undirected', weighted=TRUE)
-    g.nbs[[i]]$name <- res.nbs$con.name[i]
-    g.nbs[[i]]$con.type <- res.nbs$con.type
-    g.nbs[[i]]$alt <- res.nbs$alt
-    if (ecount(g.nbs[[i]]) > 0) {
-      E(g.nbs[[i]])$stat <- E(g.nbs[[i]])$weight
-      E(g.nbs[[i]])$p <- 1 - E(graph_from_adjacency_matrix(res.nbs$p.mat[, , i], diag=F, mode='undirected', weighted=TRUE))$weight
-      if (any(E(g.nbs[[i]])$weight < 0)) g.nbs[[i]] <- delete_edge_attr(g.nbs[[i]], 'weight')
-      clusts <- components(g.nbs[[i]])
-      comps <- sort(unique(clusts$csize), decreasing=TRUE)
-      x <- clusts$membership
-      x.tab <- table(x)
-      x.tab.st <- sort(x.tab, decreasing=TRUE)
-      V(g.nbs[[i]])$comp <- match(x, order(x.tab, decreasing=TRUE))
-      V(g.nbs[[i]])$p.nbs <- 0
-      xdt <- copy(res.nbs$components$observed)
-      for (j in seq_along(comps)) {
-        inds <- which(xdt[contrast == i, csize[j]] == x.tab.st)
-        V(g.nbs[[i]])[V(g.nbs[[i]])$comp %in% inds]$p.nbs <- 1 - xdt[contrast == i, p.perm[j]]
-      }
-      if (ecount(g.nbs[[i]]) > 1) {
-        g.nbs[[i]] <- set_brainGraph_attr(g.nbs[[i]], atlas=atlas, ...)
-      } else {
-        g.nbs[[i]] <- make_brainGraph(g.nbs[[i]], atlas=atlas, ...)
-      }
-    }
-    class(g.nbs[[i]]) <- c('brainGraph_NBS', class(g.nbs[[i]]))
-  }
-  return(g.nbs)
-}
-
-#' Create a graph with mediation-specific attributes
-#'
-#' This function only creates a graph for \emph{vertex}-level analyses.
-#'
-#' @param res.med List object output by \code{\link{brainGraph_mediate}}
-#' @param atlas Character string specifying the brain atlas to use
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @export
-#'
-#' @return A \code{brainGraph_mediate} graph object with attributes:
-#'   \item{Graph}{\emph{mediator}, \emph{treat}, \emph{outcome}, \emph{nobs}}
-#'   \item{Vertex}{\emph{b?.acme, p?.acme}, \emph{b?.ade, p?.ade},
-#'     \emph{b?.prop, p?.prop}, \emph{b.tot, p.tot}}
-#' @family Graph creation functions
-
-make_mediate_brainGraph <- function(res.med, atlas, ...) {
-  stopifnot(inherits(res.med, 'bg_mediate'), res.med$level == 'vertex')
-  med.sum <- summary(res.med)$DT
-  g.med <- make_empty_brainGraph(atlas, ...)
-  g.med$mediator <- res.med$mediator
-  g.med$treat <- res.med$treat
-  g.med$outcome <- res.med$outcome
-  g.med$nobs <- res.med$nobs
-  V(g.med)$b0.acme <- med.sum$b0.acme
-  V(g.med)$p0.acme <- 1 - med.sum$p0.acme
-  V(g.med)$b0.ade <- med.sum$b0.ade
-  V(g.med)$p0.ade <- 1 - med.sum$p0.ade
-  V(g.med)$b.tot <- med.sum$b.tot
-  V(g.med)$p.tot <- 1 - med.sum$p.tot
-  V(g.med)$b0.prop <- med.sum$b0.prop
-  V(g.med)$p0.prop <- 1 - med.sum$p0.prop
-  if (isTRUE(res.med$INT)) {
-    V(g.med)$b1.acme <- med.sum$b1.acme
-    V(g.med)$p1.acme <- 1 - med.sum$p1.acme
-    V(g.med)$b1.ade <- med.sum$b1.ade
-    V(g.med)$p1.ade <- 1 - med.sum$p1.ade
-    V(g.med)$b1.prop <- med.sum$b1.prop
-    V(g.med)$p1.prop <- 1 - med.sum$p1.prop
-    V(g.med)$b.avg.acme <- med.sum$b.avg.acme
-    V(g.med)$b.avg.acme <- med.sum$b.avg.acme
-    V(g.med)$p.avg.acme <- med.sum$p.avg.acme
-    V(g.med)$b.avg.ade <- med.sum$b.avg.ade
-    V(g.med)$p.avg.ade <- med.sum$p.avg.ade
-    V(g.med)$b.avg.prop <- med.sum$b.avg.prop
-    V(g.med)$p.avg.prop <- med.sum$p.avg.prop
-  }
-  class(g.med) <- c('brainGraph_mediate', class(g.med))
-  return(g.med)
 }
 
 #' Create the intersection of graphs based on a logical condition

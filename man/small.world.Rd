@@ -4,36 +4,33 @@
 \alias{small.world}
 \title{Calculate graph small-worldness}
 \usage{
-small.world(g, rand)
+small.world(g.list, rand)
 }
 \arguments{
-\item{g}{The graph (or list of graphs) of interest}
+\item{g.list}{A \code{brainGraphList} object or list of graphs}
 
 \item{rand}{List of (lists of) equivalent random graphs (output from
 \code{\link{sim.rand.graph.par}})}
 }
 \value{
-A data frame with the following components:
+A \code{data.table} with the following components:
 \item{density}{The range of density thresholds used.}
 \item{N}{The number of random graphs that were generated.}
-\item{Lp}{The characteristic path length.}
-\item{Cp}{The clustering coefficient.}
-\item{Lp.rand}{The mean characteristic path length of the random graphs with
-the same degree distribution as g.}
-\item{Cp.rand}{The mean clustering coefficient of the random graphs with
-the same degree distribution as g.}
-\item{Lp.norm}{The normalized characteristic path length.}
-\item{Cp.norm}{The normalized clustering coefficient.}
+\item{Lp,Lp.rand,Lp.norm}{The observed, average random, and normalized
+  characteristic path length.}
+\item{Cp,Cp.rand,Cp.norm}{The observed, average random, and normalized
+  clustering coefficient.}
 \item{sigma}{The small-world measure of the graph.}
 }
 \description{
-This function will calculate the characteristic path length and clustering
-coefficient, which are used to calculate small-worldness.
+\code{small.world} calculates the normalizaed characteristic path length and
+clustering coefficient based on observed and random graphs. These are used to
+calculate the small-world coefficient \eqn{\sigma}.
 }
 \references{
-Watts D.J., Strogatz S.H. (1998) \emph{Collective dynamics of
-'small-world' networks}. Nature, 393:440-442.
-\url{https://dx.doi.org/10.1515/9781400841356.301}
+Watts, D.J. and Strogatz S.H. (1998) Collective dynamics of
+  "small-world" networks. \emph{Nature}, \bold{393} 440--442.
+  \url{https://dx.doi.org/10.1515/9781400841356.301}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
