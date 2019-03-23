@@ -71,13 +71,3 @@ count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
   setnames(DT, 'group', group)
   return(list(mat=mat, DT=DT))
 }
-
-#' @param lobe Lobe name (deprecated)
-#' @export
-#' @aliases count_interlobar
-#' @rdname count_edges
-
-count_interlobar <- function(g, lobe) {
-  .Deprecated('count_inter')
-  count_inter(g, 'lobe')
-}

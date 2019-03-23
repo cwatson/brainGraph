@@ -156,14 +156,3 @@ update_fs_names <- function(filename, modality, parcellation, hemi) {
 
   return(DT)
 }
-
-#' @param densities Numeric vector of densities (deprecated)
-#' @param covars Data table of covariates (deprecated)
-#' @export
-#' @aliases brainGraph_init
-#' @rdname import_scn
-brainGraph_init <- function(atlas, densities, datadir, modality='thickness',
-                            covars=NULL, exclude.subs=NULL, custom.atlas=NULL) {
-  .Deprecated('import_scn')
-  import_scn(datadir, atlas, modality=modality, exclude.subs, custom.atlas)
-}
