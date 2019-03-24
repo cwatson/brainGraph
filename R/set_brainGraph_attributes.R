@@ -72,12 +72,11 @@
 #'     Euclidean distance (in mm), weight (if weighted)}
 #'
 #' @seealso \code{\link[igraph]{components}}, \code{\link[igraph]{diameter}},
-#' \code{\link[igraph]{centr_betw}}, \code{\link[igraph]{edge.betweenness}},
+#' \code{\link[igraph]{centr_betw}}, \code{\link[igraph]{betweenness}},
 #' \code{\link[igraph]{centr_eigen}}, \code{\link[igraph]{transitivity}},
-#' \code{\link[igraph]{mean_distance}},
-#' \code{\link[igraph]{assortativity_degree}},
-#' \code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
-#' \code{\link[igraph]{communities}}, \code{\link[igraph]{graph.knn}}
+#' \code{\link[igraph]{distances}}, \code{\link[igraph]{assortativity}},
+#' \code{\link[igraph]{coreness}}, \code{\link[igraph]{communities}},
+#' \code{\link[igraph]{knn}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @name Attributes

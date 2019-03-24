@@ -20,7 +20,7 @@
 #'
 #' @return A ggplot object
 #' @family Structural covariance network functions
-#' @seealso \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
+#' @seealso \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_abline}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),

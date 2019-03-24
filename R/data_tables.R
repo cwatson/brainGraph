@@ -52,8 +52,7 @@ graph_attr_dt <- function(bg.list) {
 #'
 #' \code{vertex_attr_dt} is a helper function that creates a \code{data.table}
 #' in which each row is a vertex and each column is a different network measure
-#' (degree, centrality, etc.). It is partly a wrapper for
-#' \code{\link[igraph]{as_data_frame}}.
+#' (degree, centrality, etc.).
 #'
 #' @inheritParams graph_attr_dt
 #' @export
@@ -62,7 +61,7 @@ graph_attr_dt <- function(bg.list) {
 #' @rdname data_tables
 #'
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
-#' \link[igraph]{as_data_frame}}
+#' \link[igraph]{graph_from_data_frame}}
 #' @examples
 #' \dontrun{
 #' dt.V <- vertex_attr_dt(g)

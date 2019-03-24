@@ -28,7 +28,7 @@ subg <- make_ego_brainGraph(g1[[N]], c('lPCUN', 'rPCUN'))
 }
 }
 \seealso{
-\code{\link[igraph]{make_ego_graph}}
+\code{\link[igraph]{ego}}
 
 Other Graph creation functions: \code{\link{CreateGraphs}},
   \code{\link{brainGraphList}},

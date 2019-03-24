@@ -22,7 +22,7 @@
 \code{\link[graphics]{par}}.}
 
 \item{...}{Other parameters (passed to \code{\link[igraph]{plot.igraph}}).
-See \code{\link[igraph]{igraph.plotting}} for details.}
+See \code{\link[igraph]{plot.common}} for details.}
 }
 \description{
 This is a convenience function for plotting a graph based on results from

@@ -24,7 +24,7 @@ p-value for determining significance. Default: \code{TRUE}}
 want to plot a shaded region demarcating the \code{\link{rich_core}}}
 
 \item{smooth}{Logical indicating whether or not to use
-\code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
+\code{\link[ggplot2]{geom_smooth}} when data from multiple subjects (per
 group) are present. Default: \code{TRUE}. Ignored for group-level data.}
 }
 \value{

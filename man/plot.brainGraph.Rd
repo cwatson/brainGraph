@@ -37,7 +37,7 @@
 brain (default: \code{TRUE})}
 
 \item{...}{Other parameters (passed to \code{\link[igraph]{plot.igraph}}).
-See \code{\link[igraph]{igraph.plotting}} for details.}
+See \code{\link[igraph]{plot.common}} for details.}
 }
 \description{
 \code{plot.brainGraph} plots a graph in which the spatial layout of the nodes

@@ -15,7 +15,7 @@
 #' @param g.list A list \code{brainGraphList} objects; required if you
 #'   want to plot a shaded region demarcating the \code{\link{rich_core}}
 #' @param smooth Logical indicating whether or not to use
-#'   \code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
+#'   \code{\link[ggplot2]{geom_smooth}} when data from multiple subjects (per
 #'   group) are present. Default: \code{TRUE}. Ignored for group-level data.
 #' @export
 #'

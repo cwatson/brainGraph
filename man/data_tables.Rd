@@ -23,8 +23,7 @@ each graph. Each row will be for a different graph.
 
 \code{vertex_attr_dt} is a helper function that creates a \code{data.table}
 in which each row is a vertex and each column is a different network measure
-(degree, centrality, etc.). It is partly a wrapper for
-\code{\link[igraph]{as_data_frame}}.
+(degree, centrality, etc.).
 }
 \examples{
 \dontrun{
@@ -36,5 +35,5 @@ setcolorder(dt.V, c('modality', 'atlas', 'Group', names(dt.V)[1:28]))
 \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 
 \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
-\link[igraph]{as_data_frame}}
+\link[igraph]{graph_from_data_frame}}
 }

@@ -395,7 +395,7 @@ make_empty_brainGraph <- function(atlas, type=c('observed', 'random'),
 #'   vertices in the neighborhoods of the input vertices; only the vertex
 #'   attribute \emph{name} will be present
 #' @family Graph creation functions
-#' @seealso \code{\link[igraph]{make_ego_graph}}
+#' @seealso \code{\link[igraph]{ego}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{

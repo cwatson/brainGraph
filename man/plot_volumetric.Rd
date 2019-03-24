@@ -33,7 +33,7 @@ This function takes a \dQuote{tidied} dataset of cortical volumetric measures
 more groups, and of 1 or more brain regions.
 }
 \seealso{
-\code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_vline}}
+\code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_abline}}
 
 Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{IndividualContributions}},

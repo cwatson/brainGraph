@@ -22,7 +22,7 @@
 \code{\link[graphics]{par}}.}
 
 \item{...}{Other parameters (passed to \code{\link[igraph]{plot.igraph}}).
-See \code{\link[igraph]{igraph.plotting}} for details.}
+See \code{\link[igraph]{plot.common}} for details.}
 }
 \description{
 Plot a graph with results from a mediation analysis
