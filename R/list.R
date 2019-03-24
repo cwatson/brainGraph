@@ -417,49 +417,13 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 #' @keywords internal
 
 print.brainGraphList <- function(x, ...) {
-  modality <- weighting <- thresh <- 'N/A'
-
   kNumGraphs <- length(x$graphs)
   gnames <- names(x$graphs)
-  message(rep('=', getOption('width') / 1.5))
-  message(paste0('A "brainGraphList" object of *', x$type, '* graphs'))
-  message(paste0('containing ', kNumGraphs, ' ', x$level, 's.'))
-  message(rep('=', getOption('width') / 1.5))
+  print_title_summary(paste0('A "brainGraphList" object of *', x$type,
+                             '* graphs containing ', kNumGraphs, ' ', x$level, 's.'))
 
-  #TODO: put this stuff into "method_helpers" or whatever
-  ver <- sapply(x$version, as.character)
-  date_created <- sub('T', ' ', x$date)
-  atlasfull <-
-    switch(x$atlas,
-           aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
-           brainsuite='Brainsuite', craddock200='Craddock-200',
-           destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
-           dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
-           dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
-           dosenbach160='Dosenbach-160', hoa112='Harvard-Oxford cortical and subcortical',
-           lpba40='LONI probabilistic brain atlas', x$atlas)
-  if (!is.null(x$modality)) {
-    modality <-
-      switch(x$modality, dti='DTI', fmri='fMRI', thickness='Cortical thickness',
-             area='Cortical surface area', volume='Cortical/subcortical volume', x$modality)
-  }
-  if (!is.null(x$weighting)) {
-    weighting <-
-        switch(x$weighting, fa='FA (fractional anisotropy)',
-               sld='Streamline density', pearson='Pearson correlation',
-               spearman='Spearman\'s rank correlation',
-               kendall='Kendall\'s rank correlation', partial='Partial correlation',
-               x$weighting)
-  }
-  if (!is.null(x$threshold)) thresh <- prettyNum(x$threshold, ',')
-
-  df <- data.frame(A=c('Softare versions:',
-                       '       R release:', '      brainGraph:', '          igraph:',
-                       'Date created:',
-                       'Brain atlas used:', 'Imaging modality:',
-                       'Edge weighting:', 'Threshold:'),
-                   B=c('', ver, date_created, atlasfull, modality, weighting, thresh))
-  dimnames(df)[[2]] <- rep('', 2)
+  df <- print_bg_summary(x)
+  df <- df[-c(6, 10, 11, 13, 14), ]
   print(df, right=FALSE, row.names=FALSE)
   cat('\n')
 

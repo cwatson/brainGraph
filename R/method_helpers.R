@@ -1,10 +1,81 @@
+# Get info from brainGraph and brainGraphList objects
+#-------------------------------------------------------------------------------
+print_bg_summary <- function(object) {
+  name <- name_str <- dens.pct <- Group <- modality <- weighting <- thresh <- clustmethod <- 'N/A'
+
+  ver <- sapply(object$version, as.character)
+  date_created <- sub('T', ' ', object$date)
+  type <- tools::toTitleCase(object$type)
+  atlasfull <-
+    switch(object$atlas,
+           aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
+           brainsuite='Brainsuite', craddock200='Craddock-200',
+           destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
+           dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
+           dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
+           dosenbach160='Dosenbach-160', hoa112='Harvard-Oxford cortical and subcortical',
+           lpba40='LONI probabilistic brain atlas', object$atlas)
+  if (!is.null(object$modality)) {
+    modality <-
+      switch(object$modality, dti='DTI', fmri='fMRI', thickness='Cortical thickness',
+             area='Cortical surface area', volume='Cortical/subcortical volume', object$modality)
+  }
+  if (!is.null(object$weighting)) {
+    weighting <-
+        switch(object$weighting, fa='FA (fractional anisotropy)',
+               sld='Streamline density', pearson='Pearson correlation',
+               spearman='Spearman\'s rank correlation',
+               kendall='Kendall\'s rank correlation', partial='Partial correlation',
+               object$weighting)
+  }
+  if (is.brainGraph(object) && !is_weighted(object)) weighting <- 'Unweighted'
+  if (!is.null(object$threshold)) thresh <- prettyNum(object$threshold, ',')
+  if (!is.null(object$clust.method)) {
+    clustmethod <-
+      switch(object$clust.method, edge_betweenness='Edge betweenness',
+             fast_greedy='Greedy optimization (hierarchical agglomeration)',
+             infomap='Infomap', label_prop='Label propagation',
+             leading_eigen='Leading eigenvector',
+             louvain='Louvain (multi-level modularity optimization)', optimal='Optimal',
+             spinglass='Potts spin glass model', walktrap='Walktrap algorithm',
+             object$clust.method)
+  }
+  # Only for 'brainGraph' objects
+  if (inherits(object, 'brainGraph')) {
+    dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
+    if (!is.null(object$name)) name <- object$name
+    if (!is.null(object$Group)) Group <- object$Group
+    name_str <- 'Subject ID:'
+    if (object$level == 'group') {
+      name_str <- 'Group:'
+    } else if (object$level == 'contrast') {
+      name_str <- 'Contrast:'
+    }
+  }
+
+  df <- data.frame(
+          A=c('Softare versions:',
+              '       R release:', '      brainGraph:', '          igraph:',
+              'Date created:', 'Observed or random?', 'Brain atlas used:',
+              'Imaging modality:', 'Edge weighting:', 'Clustering method:',
+              'Graph density:', 'Threshold:', name_str, 'Group:'),
+          B=c('', ver, date_created, type, atlasfull, modality, weighting,
+              clustmethod, dens.pct, thresh, name, Group))
+  dimnames(df)[[2]] <- rep('', 2)
+  return(df)
+}
+
 # Print a simple title
+#-------------------------------------------------------------------------------
 print_title_summary <- function(title) {
   title <- paste(title)
-  message('\n', title, '\n', rep('-', getOption('width') / 2))
+  message('\n', rep('=', getOption('width') / 2))
+  message(title)
+  message(rep('=', getOption('width') / 2))
 }
 
 # Print info about the outcome and/or graph measure of interest
+#-------------------------------------------------------------------------------
 print_measure_summary <- function(x) {
   if (x$outcome == x$measure) {
     cat('Graph metric of interest (outcome): ', x$outcome, '\n\n')
@@ -16,6 +87,7 @@ print_measure_summary <- function(x) {
 }
 
 # Print details about the contrast matrix
+#-------------------------------------------------------------------------------
 print_contrast_type_summary <- function(x) {
   cat('Contrast type: ', paste(toupper(x$con.type), 'contrast'), '\n')
   alt <- switch(x$alt,
@@ -31,6 +103,7 @@ print_contrast_type_summary <- function(x) {
 }
 
 # Print the subjects removed due to incomplete data
+#-------------------------------------------------------------------------------
 print_subs_summary <- function(x) {
   n <- length(x$removed.subs)
   if (n > 0) {
@@ -40,6 +113,7 @@ print_subs_summary <- function(x) {
 }
 
 # Print per-contrast statistics
+#-------------------------------------------------------------------------------
 print_contrast_stats_summary <- function(x) {
   if (is.null(x$contrast)) {
     contrast <- x$DT[, unique(contrast)]
@@ -63,6 +137,7 @@ print_contrast_stats_summary <- function(x) {
 }
 
 # Print details regarding permutation analyses
+#-------------------------------------------------------------------------------
 print_permutation_summary <- function(x) {
   message('\n', 'Permutation analysis', '\n', rep('-', getOption('width') / 4))
   perm.method <- switch(x$perm.method,

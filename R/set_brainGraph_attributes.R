@@ -71,19 +71,13 @@
 #'   \item{Edge-level}{Color (community, lobe, component), edge betweenness,
 #'     Euclidean distance (in mm), weight (if weighted)}
 #'
-#TODO: change these to *destinations* and use in "@return"
 #' @seealso \code{\link[igraph]{components}}, \code{\link[igraph]{diameter}},
-#' \code{\link[igraph]{centr_betw}},
-#' \code{\link{VertexRoles}}, \code{\link[igraph]{edge.betweenness}},
-#' \code{\link[igraph]{centr_eigen}},
-#' \code{\link[igraph]{transitivity}}, \code{\link[igraph]{mean_distance}},
-#' \code{\link[igraph]{assortativity_degree}}, \code{\link{efficiency}},
+#' \code{\link[igraph]{centr_betw}}, \code{\link[igraph]{edge.betweenness}},
+#' \code{\link[igraph]{centr_eigen}}, \code{\link[igraph]{transitivity}},
+#' \code{\link[igraph]{mean_distance}},
+#' \code{\link[igraph]{assortativity_degree}},
 #' \code{\link[igraph]{assortativity_nominal}}, \code{\link[igraph]{coreness}},
-#' \code{\link[igraph]{communities}},
-#' \code{\link{rich_club_coeff}}, \code{\link{s_core}}, \code{\link{centr_lev}},
-#' \code{\link{edge_spatial_dist}},
-#' \code{\link{vulnerability}}, \code{\link{edge_asymmetry}},
-#' \code{\link[igraph]{graph.knn}}, \code{\link{vertex_spatial_dist}}
+#' \code{\link[igraph]{communities}}, \code{\link[igraph]{graph.knn}}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @name Attributes

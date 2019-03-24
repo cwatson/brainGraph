@@ -291,67 +291,8 @@ is.brainGraph <- function(x) inherits(x, 'brainGraph')
 
 summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', 'edge', 'none'), ...) {
   if (!is.brainGraph(object)) NextMethod(generic='summary', object=object)
-  weighting <- name <- Group <- modality <- thresh <- clustmethod <- 'N/A'
 
-  ver <- sapply(object$version, as.character)
-  date_created <- sub('T', ' ', object$date)
-  atlasfull <-
-    switch(object$atlas,
-           aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
-           brainsuite='Brainsuite', craddock200='Craddock-200',
-           destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
-           dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
-           dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
-           dosenbach160='Dosenbach-160', hoa112='Harvard-Oxford cortical and subcortical',
-           lpba40='LONI probabilistic brain atlas', object$atlas)
-  type <- tools::toTitleCase(object$type)
-  if ('modality' %in% graph_attr_names(object)) {
-    modality <-
-      switch(object$modality, dti='DTI', fmri='fMRI', thickness='Cortical thickness',
-             area='Cortical surface area', volume='Cortical/subcortical volume', object$modality)
-  }
-  if (is_weighted(object)) {
-    if ('weighting' %in% graph_attr_names(object)) {
-      weighting <-
-        switch(object$weighting, fa='FA (fractional anisotropy)',
-               sld='Streamline density', pearson='Pearson correlation',
-               spearman='Spearman\'s rank correlation',
-               kendall='Kendall\'s rank correlation', partial='Partial correlation',
-               object$weighting)
-    }
-  } else {
-    weighting <- 'Unweighted'
-  }
-  if ('threshold' %in% graph_attr_names(object)) thresh <- object$threshold
-  if ('clust.method' %in% graph_attr_names(object)) {
-    clustmethod <-
-      switch(object$clust.method, edge_betweenness='Edge betweenness',
-             fast_greedy='Greedy optimization (hierarchical agglomeration)',
-             infomap='Infomap', label_prop='Label propagation',
-             leading_eigen='Leading eigenvector',
-             louvain='Louvain (multi-level modularity optimization)', optimal='Optimal',
-             spinglass='Potts spin glass model', walktrap='Walktrap algorithm',
-             object$clust.method)
-  }
-  dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
-  if ('name' %in% graph_attr_names(object) && !is.null(object$name)) name <- object$name
-  if ('Group' %in% graph_attr_names(object)) Group <- object$Group
-
-  name_str <- 'Subject ID:'
-  if (object$level == 'group') {
-    name_str <- 'Group:'
-  } else if (object$level == 'contrast') {
-    name_str <- 'Contrast:'
-  }
-  df <- data.frame(A=c('Softare versions:',
-                       '       R release:', '      brainGraph:', '          igraph:',
-                       'Date created:',
-                       'Observed or random?', 'Brain atlas used:', 'Imaging modality:',
-                       'Edge weighting:', 'Clustering method:', 'Graph density:',
-                       'Threshold:', name_str, 'Group:'),
-                   B=c('', ver, date_created, type, atlasfull, modality, weighting, clustmethod, dens.pct,
-                       prettyNum(thresh, ','), name, Group))
-  dimnames(df)[[2]] <- rep('', 2)
+  df <- print_bg_summary(object)
   if (object$level %in% c('Group', 'contrast')) {
     df <- df[-14, ]
   }
@@ -390,9 +331,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
 #' @method print summary.brainGraph
 
 print.summary.brainGraph <- function(x, ...) {
-  message(paste0(rep('=', getOption('width') / 3)))
-  message(paste0('Summary for ', x$object$type, ' ', x$object$level, '-level graph: ', x$object$name))
-  message(paste0(rep('=', getOption('width') / 3)), '\n')
+  print_title_summary(paste0('Summary for *', x$object$type, '* ', x$object$level, '-level graph: ', x$object$name))
   print(x$df, right=FALSE, row.names=FALSE)
   cat('\n')
 
