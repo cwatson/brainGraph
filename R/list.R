@@ -414,7 +414,8 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 }
 
 #' @method print brainGraphList
-#' @keywords internal
+#' @export
+#' @rdname brainGraphList
 
 print.brainGraphList <- function(x, ...) {
   kNumGraphs <- length(x$graphs)

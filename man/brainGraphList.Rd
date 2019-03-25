@@ -7,6 +7,7 @@
 \alias{make_brainGraphList.corr_mats}
 \alias{Extract.brainGraphList}
 \alias{[.brainGraphList}
+\alias{print.brainGraphList}
 \alias{as_brainGraphList}
 \title{Create a list of brainGraph graphs}
 \usage{
@@ -29,6 +30,8 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
   weighted = NULL, diag = FALSE, .progress = TRUE, ...)
 
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
+
+\method{print}{brainGraphList}(x, ...)
 
 as_brainGraphList(g.list, type = c("observed", "random"),
   level = c("subject", "group", "contrast"))
