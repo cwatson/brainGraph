@@ -307,18 +307,21 @@ set_graph_colors <- function(g, name, memb) {
   # Vertex colors
   group.cols.memb <- rep('gray', length=max(memb))
   group.cols.memb[big.groups] <- group.cols[big.groups]
+  g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
 
   # Edge colors
-  newcols <- rep('gray50', length=ecount(g))
-  tmp <- vector('list', length=max(big.groups))
-  for (i in big.groups) {
-    x <- which(memb == i)
-    tmp[[i]] <- as.vector(E(g)[x %--% x])
-    if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
-  }
+  m <- ecount(g)
+  if (m > 0) {
+    newcols <- rep('gray50', length=ecount(g))
+    tmp <- vector('list', length=max(big.groups))
+    for (i in big.groups) {
+      x <- which(memb == i)
+      tmp[[i]] <- as.vector(E(g)[x %--% x])
+      if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
+    }
 
-  g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
-  g <- set_edge_attr(g, name, value=newcols)
+    g <- set_edge_attr(g, name, value=newcols)
+  }
   return(g)
 }
 
