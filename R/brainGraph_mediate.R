@@ -209,6 +209,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
               treat=treat, mediator=mediator, outcome=outcome, covariates=NULL, INT=int,
               conf.level=conf.level, control.value=cat.0, treat.value=cat.1,
               nobs=n, sims=N, covar.names=covar.names)
+  out$atlas <- if (is.null(g.list[1]$atlas)) guess_atlas(g.list[1]) else g.list[1]$atlas
   class(out) <- c('bg_mediate', class(out))
   return(out)
 }

@@ -33,7 +33,7 @@
 #' @param level A character string for the attribute \dQuote{level} to calculate
 #'   differences (default: \code{graph})
 #' @param atlas Character string of the atlas name; required if
-#'   \code{level='graph'} (default: \code{NULL})
+#'   \code{level='graph'}
 #' @param measure A character string specifying the vertex-level metric to
 #'   calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
 #'   For the \code{summary} method, this is to focus on a single
@@ -65,7 +65,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
                                level=c('graph', 'vertex', 'other'),
                                measure=c('btwn.cent', 'degree', 'E.nodal', 'ev.cent',
                                          'knn', 'transitivity', 'vulnerability'),
-                               atlas=NULL, .function=NULL) {
+                               atlas=resids$atlas, .function=NULL) {
   Group <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'))
   measure <- match.arg(measure)

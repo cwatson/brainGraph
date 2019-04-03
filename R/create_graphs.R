@@ -131,7 +131,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   lobe <- hemi <- index <- class <- network <- x.mni <- y.mni <- z.mni <- NULL
 
   x <- get_metadata(x)
-  x$atlas <- atlas
+  x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas
   DT <- get(atlas)
   if (!is_named(x)) {
     V(x)$name <- DT$name
@@ -243,8 +243,9 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
 #'     \emph{b?.prop, p?.prop}, \emph{b.tot, p.tot}}
 #' @family Graph creation functions
 
-make_brainGraph.bg_mediate <- function(x, atlas, type='observed', level='contrast',
-                                       set.attrs=FALSE, modality=NULL, weighting=NULL,
+make_brainGraph.bg_mediate <- function(x, atlas=x$atlas, type='observed',
+                                       level='contrast', set.attrs=FALSE,
+                                       modality=NULL, weighting=NULL,
                                        threshold=NULL, ...) {
   stopifnot(inherits(x, 'bg_mediate'), x$level == 'vertex')
   med.sum <- summary(x)$DT
