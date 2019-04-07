@@ -4,9 +4,9 @@
 \alias{make_brainGraph.bg_mediate}
 \title{Create a graph with mediation-specific attributes}
 \usage{
-\method{make_brainGraph}{bg_mediate}(x, atlas, type = "observed",
-  level = "contrast", set.attrs = FALSE, modality = NULL,
-  weighting = NULL, threshold = NULL, ...)
+\method{make_brainGraph}{bg_mediate}(x, atlas = x$atlas,
+  type = "observed", level = "contrast", set.attrs = FALSE,
+  modality = NULL, weighting = NULL, threshold = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{bg_mediate} object}

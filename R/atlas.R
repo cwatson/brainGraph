@@ -7,6 +7,8 @@
 #' @param x An object to test
 #' @export
 #' @return Character string; either the matched atlas or \code{NA}
+#' @name AtlasHelpers
+#' @rdname atlas
 
 guess_atlas <- function(x) {
   bgAtlases <- data(package='brainGraph')$results[, 3]
@@ -49,12 +51,14 @@ guess_atlas <- function(x) {
 #' @export
 #' @return If possible, it returns a \code{data.table} that conforms to other
 #'   atlases in the package. Otherwise, exits with an error.
+#' @rdname atlas
 #' @examples
 #' my_atlas <- data.frame(name=paste('Region', 1:10), x.mni=rnorm(10),
 #'   y.mni=rnorm(10), z.mni=rnorm(10),
-#'   lobe <- rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2)
-#'   hemi <- c(rep('L', 5), rep('R', 5))
+#'   lobe=rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2),
+#'   hemi=c(rep('L', 5), rep('R', 5)))
 #' my_atlas <- as_atlas(my_atlas)
+#' str(my_atlas)
 
 as_atlas <- function(object) {
   # First, coerce to data.table
@@ -105,12 +109,14 @@ as_atlas <- function(object) {
 #'   bi-hemispheric regions)
 #' @export
 #' @return A \code{data.table} that is compatible with \code{brainGraph} atlases
+#' @rdname atlas
 #' @examples
 #' regions <- paste('Region', 1:10)
 #' xyz <- matrix(rnorm(30), nrow=10, ncol=3)
 #' lobe <- rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2)
 #' hemi <- c(rep('L', 5), rep('R', 5))
 #' my_atlas <- create_atlas(regions, xyz, lobe, hemi)
+#' str(my_atlas)
 
 create_atlas <- function(regions, coords, lobes, hemis) {
   if (is.list(coords)) {

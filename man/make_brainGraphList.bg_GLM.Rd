@@ -5,9 +5,10 @@
 \alias{make_brainGraphList.mtpc}
 \title{Create a graph list with GLM-specific attributes}
 \usage{
-\method{make_brainGraphList}{bg_GLM}(x, atlas, type = "observed",
-  level = "contrast", set.attrs = FALSE, modality = NULL,
-  weighting = NULL, threshold = NULL, gnames = x$con.name, ...)
+\method{make_brainGraphList}{bg_GLM}(x, atlas = x$atlas,
+  type = "observed", level = "contrast", set.attrs = FALSE,
+  modality = NULL, weighting = NULL, threshold = NULL,
+  gnames = x$con.name, ...)
 
 \method{make_brainGraphList}{mtpc}(x, atlas, type = "observed",
   level = "contrast", set.attrs = FALSE, modality = NULL,
@@ -48,10 +49,11 @@ A list of \code{igraph} graph objects (length equal to the number of
   \item{Graph}{\emph{name} (contrast name), \emph{outcome} (the outcome
     variable), \emph{alpha} (the significance level); for MTPC:
     \emph{tau.mtpc}, \emph{S.mtpc}, \emph{S.crit}, \emph{A.crit}}
-  \item{Vertex}{\emph{size2} (t-statistic), \emph{size} (the t-stat
-    transformed for visualization purposes), \emph{p} (equal to \eqn{1-p}),
-    \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the FDR-adjusted p-value),
-    \emph{gamma} (the contrast of parameter estimaties, \emph{se} (the
+  \item{Vertex}{\emph{size2} (t-statistic); \emph{size} (the t-stat
+    transformed for visualization purposes); \emph{p} (equal to \eqn{1-p});
+    \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the FDR-adjusted p-value);
+    \emph{effect.size} (the contrast of parameter estimates for t-contrasts;
+    the extra sum of squares for F-contrasts); \emph{se} (the
     standard error of \emph{gamma}); \emph{A.mtpc}, \emph{sig} (binary
     indicating whether \code{A.mtpc > A.crit}) (for MTPC)}
 }

@@ -19,7 +19,8 @@ brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
   contrast = NULL, digits = max(3L, getOption("digits") - 2L),
   print.head = TRUE, ...)
 
-\method{plot}{bg_GLM}(x, region = NULL, which = c(1L:3L, 5L), ...)
+\method{plot}{bg_GLM}(x, region = NULL, which = c(1L:3L, 5L),
+  ids = TRUE, ...)
 }
 \arguments{
 \item{g.list}{A \code{brainGraphList} object}
@@ -83,10 +84,13 @@ to showing results for all contrasts}
 and last 5 rows of the statistics tables (default: \code{TRUE})}
 
 \item{region}{Character string specifying which region's results to
-plot; only relevant if \code{level='vertex'} (default: \code{NULL})}
+plot; only relevant if \code{level='vertex'}. Default: \code{NULL}}
 
 \item{which}{Integer vector indicating which of the 6 plots to print to the
-plot device (default: \code{c(1:3, 5)})}
+plot device. Default: \code{c(1:3, 5)}}
+
+\item{ids}{Logical indicating whether to plot Study ID's for outliers.
+Otherwise plots the integer index}
 }
 \value{
 An object of class \code{bg_GLM} containing some input-specific

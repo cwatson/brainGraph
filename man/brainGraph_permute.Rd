@@ -9,7 +9,8 @@
 brainGraph_permute(densities, resids, N = 5000, perms = NULL,
   auc = FALSE, level = c("graph", "vertex", "other"),
   measure = c("btwn.cent", "degree", "E.nodal", "ev.cent", "knn",
-  "transitivity", "vulnerability"), atlas = NULL, .function = NULL)
+  "transitivity", "vulnerability"), atlas = resids$atlas,
+  .function = NULL)
 
 \method{summary}{brainGraph_permute}(object, measure = NULL,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
@@ -42,7 +43,7 @@ For the \code{summary} method, this is to focus on a single
 \emph{graph-level} measure (since multiple are calculated at once).}
 
 \item{atlas}{Character string of the atlas name; required if
-\code{level='graph'} (default: \code{NULL})}
+\code{level='graph'}}
 
 \item{.function}{A custom function you can pass if \code{level='other'}}
 

@@ -83,7 +83,7 @@ to showing results for all contrasts}
 and last 5 rows of the statistics tables (default: \code{TRUE})}
 
 \item{region}{Character string specifying which region's results to
-plot; only relevant if \code{level='vertex'} (default: \code{NULL})}
+plot; only relevant if \code{level='vertex'}. Default: \code{NULL}}
 
 \item{only.sig.regions}{Logical indicating whether to plot only significant
 regions (default: \code{TRUE})}
