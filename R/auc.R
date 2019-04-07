@@ -69,3 +69,34 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   class(out) <- c('brainGraphList', 'list')
   return(out)
 }
+
+#' Difference in the area-under-the-curve of two vectors
+#'
+#' This function takes two vectors, calculates the area-under-the-curve (AUC),
+#' and calculates the difference between the two.
+#'
+#' If \code{y} has 2 columns, then each column should be the values for each
+#' subject group. If \code{y} has multiple columns (e.g., equal to the number of
+#' vertices of a graph), it will calculate the AUC for each column.
+#'
+#' @param x Numeric vector of the x-values
+#' @param y A numeric matrix
+#'
+#' @keywords internal
+#' @return A numeric value of the difference between two groups, or a numeric
+#'   vector of the AUC across vertices
+
+auc_diff <- function(x, y) {
+  if (length(x) > 1) {
+    if (NCOL(y) == 1) {  # A single vector, for MTPC
+      return(sum(-diff(x) * (head(y, -1) + tail(y, -1))) / 2)
+    } else if (ncol(y) > 2) {
+      return(apply(y, 2, function(z) auc_diff(x, z)))
+    } else {
+      return(-diff(apply(y, 2, function(z)
+                         sum(diff(x) * (head(z, -1) + tail(z, -1))) / 2)))
+    }
+  } else {
+    return(y[1] - y[2])
+  }
+}
