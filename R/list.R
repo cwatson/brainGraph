@@ -176,18 +176,20 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
 #'   \item{Graph}{\emph{name} (contrast name), \emph{outcome} (the outcome
 #'     variable), \emph{alpha} (the significance level); for MTPC:
 #'     \emph{tau.mtpc}, \emph{S.mtpc}, \emph{S.crit}, \emph{A.crit}}
-#'   \item{Vertex}{\emph{size2} (t-statistic), \emph{size} (the t-stat
-#'     transformed for visualization purposes), \emph{p} (equal to \eqn{1-p}),
-#'     \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the FDR-adjusted p-value),
-#'     \emph{gamma} (the contrast of parameter estimaties, \emph{se} (the
+#'   \item{Vertex}{\emph{size2} (t-statistic); \emph{size} (the t-stat
+#'     transformed for visualization purposes); \emph{p} (equal to \eqn{1-p});
+#'     \emph{p.fdr} (equal to \eqn{1-p_{FDR}}, the FDR-adjusted p-value);
+#'     \emph{effect.size} (the contrast of parameter estimates for t-contrasts;
+#'     the extra sum of squares for F-contrasts); \emph{se} (the
 #'     standard error of \emph{gamma}); \emph{A.mtpc}, \emph{sig} (binary
 #'     indicating whether \code{A.mtpc > A.crit}) (for MTPC)}
 #' @rdname make_brainGraphList.bg_GLM
 #' @family Graph creation functions
 #' @seealso \code{\link{brainGraph_GLM}, \link{mtpc}}
 
-make_brainGraphList.bg_GLM <- function(x, atlas, type='observed', level='contrast',
-                                       set.attrs=FALSE, modality=NULL, weighting=NULL,
+make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
+                                       level='contrast', set.attrs=FALSE,
+                                       modality=NULL, weighting=NULL,
                                        threshold=NULL, gnames=x$con.name, ...) {
   contrast <- p <- p.fdr <- p.perm <- se <- stat <- region <- NULL
   if (x$level == 'graph') stop('Not valid for graph-level results.')
@@ -209,7 +211,11 @@ make_brainGraphList.bg_GLM <- function(x, atlas, type='observed', level='contras
 
     V(g.diffs[[i]])$p <- 1 - x$DT[contrast == i, p]
     V(g.diffs[[i]])$p.fdr <- 1 - x$DT[contrast == i, p.fdr]
-    V(g.diffs[[i]])$gamma <- x$DT[contrast == i, gamma]
+    if (x$con.type == 't') {
+      V(g.diffs[[i]])$effect.size <- x$DT[contrast == i, gamma]
+    } else {
+      V(g.diffs[[i]])$effect.size <- x$DT[contrast == i, ESS]
+    }
     V(g.diffs[[i]])$se <- x$DT[contrast == i, se]
     V(g.diffs[[i]])$size2 <- x$DT[contrast == i, stat]
     V(g.diffs[[i]])$size <- vec.transform(V(g.diffs[[i]])$size2, 0, 20)

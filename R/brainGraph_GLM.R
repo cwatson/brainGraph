@@ -154,14 +154,23 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
+  covars <- copy(covars)
   glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, measure, outcome, DT.y.m, level, ...)
   covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
   con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name; nC <- glmSetup$nC
   DT.y.m <- glmSetup$DT.y.m; outcome <- glmSetup$outcome
+  if (!is.null(outcome) && level == 'vertex') DT.X.m <- glmSetup$DT.X.m
   if (level == 'vertex') {
-    y <- as.matrix(DT.y[!Study.ID %in% incomp, -1])
+    if (outcome == measure) {
+      y <- as.matrix(DT.y[!Study.ID %in% incomp, -1])
+      rownames(y) <- covars$Study.ID
+    } else {
+      y <- DT.y.m[region == levels(region)[1], get(outcome)]
+      names(y) <- covars$Study.ID
+    }
   } else if (level == 'graph') {
     y <- DT.y.m[, get(outcome)]
+    names(y) <- covars$Study.ID
   }
 
   #-------------------------------------
@@ -240,10 +249,11 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 
   perm <- list(thresh=null.thresh)
   if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
-  out <- list(level=level, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, con.mat=con.mat,
+  out <- list(level=level, covars=covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, con.mat=con.mat,
               con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=incomp,
               permute=permute, perm.method=perm.method, part.method=part.method, N=N, perm=perm)
-  out$atlas <- if (is.null(g.list[1]$atlas)) guess_atlas(g.list[1]) else g.list[1]$atlas
+  if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
+  out$atlas <- if (is.null(g.list[[1]]$atlas)) guess_atlas(g.list[[1]]) else g.list[[1]]$atlas
   class(out) <- c('bg_GLM', class(out))
   return(out)
 }
@@ -290,7 +300,7 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, measure, outcome, 
     # Vertex-level has 1 design matrix per region, with the measure changing for each
     } else if (level == 'vertex') {
       DT.X.m <- merge(DT.y.m, covars, by='Study.ID')
-      setcolorder(DT.X.m, c('Study.ID', 'region', names(covars)[-1], measure))
+      setcolorder(DT.X.m, c('Study.ID', 'region', names(covars[, !'Study.ID']), measure))
       DT.X.m[, eval(outcome) := NULL]
 
       # Get all design matrices into a 3-D array
@@ -309,12 +319,15 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, measure, outcome, 
   if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
   if (is.vector(con.mat)) con.mat <- t(con.mat)
   stopifnot(ncol(X) == ncol(con.mat))
+  rownames(X) <- covars$Study.ID
   tmp <- contrast_names(con.mat, con.type, con.name)
   con.mat <- tmp$con.mat; con.name <- tmp$con.name; nC <- tmp$nC
   if (is.null(colnames(con.mat))) colnames(con.mat) <- colnames(X)
 
-  return(list(covars=covars, incomp=incomp, X=X, con.mat=con.mat, con.name=con.name,
-              nC=nC, DT.y.m=DT.y.m, outcome=outcome))
+  out <- list(covars=covars, incomp=incomp, X=X, con.mat=con.mat, con.name=con.name,
+              nC=nC, DT.y.m=DT.y.m, outcome=outcome)
+  if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
+  return(out)
 }
 
 #' Create contrast names for GLM analysis
@@ -560,9 +573,11 @@ print.summary.bg_GLM <- function(x, ...) {
 #' \code{\link[stats]{plot.lm}}. Please see the help for that function.
 #'
 #' @param region Character string specifying which region's results to
-#'   plot; only relevant if \code{level='vertex'} (default: \code{NULL})
+#'   plot; only relevant if \code{level='vertex'}. Default: \code{NULL}
 #' @param which Integer vector indicating which of the 6 plots to print to the
-#'   plot device (default: \code{c(1:3, 5)})
+#'   plot device. Default: \code{c(1:3, 5)}
+#' @param ids Logical indicating whether to plot Study ID's for outliers.
+#'   Otherwise plots the integer index
 #' @export
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom gridExtra arrangeGrob
@@ -587,7 +602,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #' ggsave('glmPlots.pdf', ml, width=8.5, height=11)
 #' }
 
-plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ...) {
+plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   stopifnot(inherits(x, 'bg_GLM'))
 
   # Local function to plot for a single region
@@ -599,7 +614,11 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ...) {
     dt.p1[, leverage := diag(H)]
     dt.p1[, resid.std := resid / (est$s * sqrt(1 - leverage))]
     dt.p1[, cook := (resid.std^2 / ncol(X)) * (leverage / (1 - leverage))]
-    dt.p1[, ind := as.character(.I)]
+    if (isTRUE(ids)) {
+      dt.p1[, ind := rownames(X)]
+    } else {
+      dt.p1[, ind := as.character(.I)]
+    }
     dt.p1[, mark := ifelse(abs(resid) < mean(resid) + 2 * sd(resid), 0, 1)]
     dt.p1[mark == 0, ind := '']
     dt.p1[, mark := as.factor(mark)]
@@ -643,7 +662,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ...) {
     # 4. Cook's distance
     diagPlots[[4]] <- ggplot(dt.p1, aes(x=seq_len(nrow(X)), y=cook)) +
       geom_bar(stat='identity', position='identity') +
-      geom_text_repel(aes(y=cook, label=ind), size=3) +
+      geom_text(aes(y=cook, label=ind), size=3, vjust='outward') +
       theme(plot.title=element_text(hjust=0.5),
             legend.position='none',
             axis.text.y=element_text(hjust=0.5, angle=90)) +
@@ -691,10 +710,18 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ...) {
       region <- x$DT[, levels(region)]
     }
     p.all <- sapply(region, function(x) NULL)
-    for (z in region) {
-      if (all(x$y[, z] == 0)) next
-      p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome)
+    if (x$outcome == x$measure) {
+      for (z in region) {
+        if (all(x$y[, z] == 0)) next
+        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome)
+      }
+    } else {
+      if (all(x$y == 0)) return(NULL)
+      for (z in region) {
+        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome)
+      }
     }
+
     return(p.all)
   }
 }
