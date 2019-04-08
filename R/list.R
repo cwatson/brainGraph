@@ -471,10 +471,10 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
   type <- match.arg(type)
   level <- match.arg(level)
   attrs <- c('atlas', 'modality', 'weighting', 'threshold', 'version', 'sys', 'date')
-  out <- setNames(vector('list', length=8), c('type', 'level', attrs))
+  out <- setNames(vector('list', length=9), c('type', 'level', attrs))
   out$type <- type
   out$level <- level
-  if (type == 'observed') {
+  if (type == 'observed' || level == 'group') {
     stopifnot(all(vapply(g.list, inherits, logical(1), 'brainGraph')))
     g1 <- g.list[[1]]
     ids <- vapply(g.list, graph_attr, character(1), 'name')

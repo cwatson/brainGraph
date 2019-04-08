@@ -155,13 +155,13 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   type <- match.arg(type)
   x$level <- level
   x$type <- type
-  if (type == 'observed') {
-    attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
-    for (a in attrs) {
-      if (!is.null(get(a))) x <- set_graph_attr(x, a, get(a))
-    }
-    if (level == 'group' && !is.null(Group)) x$name <- x$Group
+  attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
+  for (a in attrs) {
+    if (!is.null(get(a))) x <- set_graph_attr(x, a, get(a))
+  }
+  if (level == 'group' && !is.null(Group)) x$name <- x$Group
 
+  if (type == 'observed') {
     l.cir <- vector('integer')
     lobes <- DT[, levels(lobe)]
     V(x)$x <- V(x)$x.mni <- DT[vorder, x.mni]
@@ -223,6 +223,7 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
   g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
   type <- match.arg(type)
   level <- match.arg(level)
+  atlas <- if (missing(atlas)) guess_atlas(x) else atlas
   g <- make_brainGraph(g, atlas, type, level, set.attrs, modality, weighting,
                        threshold, name, Group, A=x, ...)
   return(g)
