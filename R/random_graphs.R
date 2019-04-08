@@ -11,17 +11,17 @@
 #' graph is performed (the number of rewire's equaling the larger of \code{1e4}
 #' and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
 #'
-#' @param g An \code{igraph} graph object
-#' @param N Integer; the number of random graphs to simulate (default: 100)
-#' @param clustering Logical; whether or not to control for clustering (default:
-#'   \code{FALSE})
+#' @param g A graph object
+#' @param N Integer; the number of random graphs to simulate. Default: 100
+#' @param clustering Logical; whether or not to control for clustering. Default:
+#'   \code{FALSE}
 #' @param rewire.iters Integer; number of rewiring iterations for the initial
-#'   graph randomization (default: 1e4)
-#' @param cl The clustering measure (default: transitivity)
+#'   graph randomization. Default: 1e4
+#' @param cl The clustering measure. Default: \emph{transitivity}
 #' @param max.iters The maximum number of iterations to perform; choosing a
 #'   lower number may result in clustering that is further away from the
-#'   observed graph's (default: 100)
-#' @param ... Other parameters (passed to \code{\link{make_brainGraph}})
+#'   observed graph's. Default: 100
+#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @inheritParams CreateGraphs
 #' @export
 #'
@@ -45,10 +45,11 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
                                clustering=FALSE, rewire.iters=max(10*ecount(g), 1e4L),
                                cl=g$transitivity, max.iters=100L, ...) {
   stopifnot(is_igraph(g))
+  level <- match.arg(level)
   if (isTRUE(clustering)) {
     r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- sim.rand.graph.clust(g, rewire.iters, cl, max.iters)
-      tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
+      tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
       tmp
     }
   } else {
@@ -59,13 +60,13 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
         tmp$Group <- g$Group
         tmp$name <- g$name
         tmp$threshold <- g$threshold
-        tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
+        tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
         tmp
       }
     } else {
       r <- foreach(i=seq_len(N)) %dopar% {
         tmp <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
-        tmp <- make_brainGraph(tmp, type='random', set.attrs=TRUE, ...)
+        tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
         tmp
       }
     }
@@ -171,4 +172,71 @@ choose.edges <- function(A, degs.large) {
 
   z2 <- choices2[sample.int(length(choices2), 1)]
   return(data.frame(y1=y[1], y2=y[2], z1, z2))
+}
+
+#' Hirschberger-Qi-Steuer null covariance matrix generation
+#'
+#' \code{sim.rand.graph.hqs} generates a number of random covariance matrices
+#' using the Hirschberger-Qi-Steuer (HQS) algorithm, and create graphs from
+#' those matrices.
+#'
+#' \code{sim.rand.graph.hqs} - By default, weighted graphs will be created in
+#' which the edge weights represent correlation values. If you want binary
+#' matrices, you must provide a correlation threshold.
+#'
+#' @param A Observed covariance matrix
+#' @param weighted Logical indicating whether to create weighted graphs. If
+#'   true, a threshold must be provided.
+#' @param r.thresh Numeric value for the correlation threshold, if
+#'   \code{weighted=FALSE}.
+#' @param ... Other arguments passed to \code{make_brainGraph}
+#' @export
+#' @inheritParams CreateGraphs
+#' @return \code{sim.rand.graph.hqs} - A list of random graphs from the null
+#'   covariance matrices
+#'
+#' @aliases sim.rand.graph.hqs
+#' @rdname random_graphs
+#' @references Hirschberger M., Qi Y., Steuer R.E. (2007) Randomly generating
+#'   portfolio-selection covariance matrices with specified distributional
+#'   characteristics. \emph{European Journal of Operational Research}.
+#'   \bold{177}, 1610--1625. \url{https://dx.doi.org/10.1016/j.ejor.2005.10.014}
+
+sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
+                               weighted=TRUE, r.thresh=NULL, ...) {
+  level <- match.arg(level)
+  e <- mean(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
+  v <- var(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
+  ebar <- mean(diag(A), na.rm=TRUE)
+  n <- nrow(A)
+
+  m <- max(2, floor((ebar^2 - e^2) / v))
+  ehat <- sqrt(e / m)
+  vhat <- sqrt(ehat^4 + v / m) - ehat^2
+
+  hqs <- function(ehat, vhat, n, m) {
+    u <- matrix(0, nrow=n, ncol=m)
+    for (i in seq_len(m)) {
+      u[, i] <- runif(n)
+    }
+    Q <- qnorm(u)
+    f <- ehat + sqrt(vhat)*Q
+    sig <- f %*% t(f)
+    return(sig)
+  }
+
+  if (isTRUE(weighted)) {
+    g <- foreach(i=seq_len(N)) %dopar% {
+      S <- hqs(ehat, vhat, n, m)
+      make_brainGraph(S, type='random', level=level, set.attrs=TRUE, weighted=TRUE, ...)
+    }
+  } else {
+    if (is.null(r.thresh)) stop('Please provide a value for thresholding')
+    g <- foreach(i=seq_len(N)) %dopar% {
+      S <- hqs(ehat, vhat, n, m)
+      S.thresh <- ifelse(S > r.thresh, 1, 0)
+      make_brainGraph(S.thresh, type='random', level=level, set.attrs=TRUE, ...)
+    }
+  }
+  return(g)
 }

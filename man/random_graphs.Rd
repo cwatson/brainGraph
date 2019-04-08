@@ -5,6 +5,7 @@
 \alias{analysis_random_graphs}
 \alias{sim.rand.graph.par}
 \alias{sim.rand.graph.clust}
+\alias{sim.rand.graph.hqs}
 \title{Perform an analysis with random graphs for brain MRI data}
 \usage{
 analysis_random_graphs(g.list, level = g.list[[1]]$level, N = 100L,
@@ -16,6 +17,9 @@ sim.rand.graph.par(g, level = c("subject", "group"), N = 100L,
 
 sim.rand.graph.clust(g, rewire.iters = 10000, cl = g$transitivity,
   max.iters = 100)
+
+sim.rand.graph.hqs(A, level = c("subject", "group"), N = 100L,
+  weighted = TRUE, r.thresh = NULL, ...)
 }
 \arguments{
 \item{g.list}{List of \code{brainGraphList} objects; the length of this list
@@ -24,26 +28,36 @@ should equal the number of thresholds/densities in the study}
 \item{level}{Character string indicating whether the graphs are subject-,
 group-, or contrast-specific. Default: \code{'subject'}}
 
-\item{N}{Integer; the number of random graphs to simulate (default: 100)}
+\item{N}{Integer; the number of random graphs to simulate. Default: 100}
 
 \item{savedir}{Character string specifying the directory in which to save the
 generated graphs. Default: current working directory}
 
-\item{...}{Other parameters (passed to \code{\link{make_brainGraph}})}
+\item{...}{Other arguments passed to \code{\link{make_brainGraph}}}
 
-\item{g}{An \code{igraph} graph object}
+\item{g}{A graph object}
 
-\item{clustering}{Logical; whether or not to control for clustering (default:
-\code{FALSE})}
+\item{clustering}{Logical; whether or not to control for clustering. Default:
+\code{FALSE}}
 
 \item{rewire.iters}{Integer; number of rewiring iterations for the initial
-graph randomization (default: 1e4)}
+graph randomization. Default: 1e4}
 
-\item{cl}{The clustering measure (default: transitivity)}
+\item{cl}{The clustering measure. Default: \emph{transitivity}}
 
 \item{max.iters}{The maximum number of iterations to perform; choosing a
 lower number may result in clustering that is further away from the
-observed graph's (default: 100)}
+observed graph's. Default: 100}
+
+\item{A}{Observed covariance matrix}
+
+\item{weighted}{Logical indicating whether to create weighted graphs. If
+true, a threshold must be provided.}
+
+\item{r.thresh}{Numeric value for the correlation threshold, if
+\code{weighted=FALSE}.}
+
+\item{...}{Other arguments passed to \code{make_brainGraph}}
 }
 \value{
 \code{analysis_random_graphs} returns a \emph{list} containing:
@@ -57,6 +71,9 @@ observed graph's (default: 100)}
   with some additional vertex and graph attributes
 
 \code{sim.rand.graph.clust} - A single \code{igraph} graph object
+
+\code{sim.rand.graph.hqs} - A list of random graphs from the null
+  covariance matrices
 }
 \description{
 \code{analysis_random_graphs} performs the steps needed for doing typical
@@ -74,6 +91,10 @@ parallel processing.
 \code{sim.rand.graph.clust} simulates a random graph with a given degree
 sequence \emph{and} clustering coefficient. Increasing the \code{max.iters}
 value will result in a closer match of clustering with the observed graph.
+
+\code{sim.rand.graph.hqs} generates a number of random covariance matrices
+using the Hirschberger-Qi-Steuer (HQS) algorithm, and create graphs from
+those matrices.
 }
 \details{
 \code{analysis_random_graphs} does the following:
@@ -91,6 +112,10 @@ value will result in a closer match of clustering with the observed graph.
 If you do not want to match by clustering, then simple rewiring of the input
 graph is performed (the number of rewire's equaling the larger of \code{1e4}
 and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
+
+\code{sim.rand.graph.hqs} - By default, weighted graphs will be created in
+which the edge weights represent correlation values. If you want binary
+matrices, you must provide a correlation threshold.
 }
 \examples{
 \dontrun{
@@ -108,6 +133,11 @@ Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
   biological network structure with clustered random networks. \emph{BMC
   Bioinformatics}, \bold{10}, 405--421.
   \url{https://dx.doi.org/10.1186/1471-2105-10-405}
+
+Hirschberger M., Qi Y., Steuer R.E. (2007) Randomly generating
+  portfolio-selection covariance matrices with specified distributional
+  characteristics. \emph{European Journal of Operational Research}.
+  \bold{177}, 1610--1625. \url{https://dx.doi.org/10.1016/j.ejor.2005.10.014}
 }
 \seealso{
 \code{\link{small.world}}

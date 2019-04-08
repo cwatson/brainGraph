@@ -20,6 +20,8 @@ guess_atlas <- function(x) {
     if ('Study.ID' %in% names(x)) n <- n - 1
   } else if (is_igraph(x)) {
     n <- vcount(x)
+  } else if (is.matrix(x)) {
+    n <- nrow(x)
   } else {
     n <- x
   }
