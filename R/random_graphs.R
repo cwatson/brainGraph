@@ -189,7 +189,6 @@ choose.edges <- function(A, degs.large) {
 #'   true, a threshold must be provided.
 #' @param r.thresh Numeric value for the correlation threshold, if
 #'   \code{weighted=FALSE}.
-#' @param ... Other arguments passed to \code{make_brainGraph}
 #' @export
 #' @inheritParams CreateGraphs
 #' @return \code{sim.rand.graph.hqs} - A list of random graphs from the null

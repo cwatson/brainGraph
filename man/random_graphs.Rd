@@ -56,8 +56,6 @@ true, a threshold must be provided.}
 
 \item{r.thresh}{Numeric value for the correlation threshold, if
 \code{weighted=FALSE}.}
-
-\item{...}{Other arguments passed to \code{make_brainGraph}}
 }
 \value{
 \code{analysis_random_graphs} returns a \emph{list} containing:
