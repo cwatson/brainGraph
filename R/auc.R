@@ -38,6 +38,7 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   } else {
     thresholds <- seq(from=0, to=1, length.out=kNumThresh)
   }
+  if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   subjects <- names(g.list[[1]]$graphs)
   kNumSubjs <- length(subjects)
   g.auc <- foreach(i=seq_along(subjects)) %dopar% {
