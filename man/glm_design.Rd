@@ -6,27 +6,34 @@
 \title{Create a design matrix for linear model analysis}
 \usage{
 brainGraph_GLM_design(covars, coding = c("dummy", "effects",
-  "cell.means"), factorize = TRUE, mean.center = FALSE,
-  binarize = NULL, int = NULL)
+  "cell.means"), factorize = TRUE, binarize = NULL, int = NULL,
+  mean.center = FALSE, center.how = c("all", "within-groups"),
+  center.by = "Group")
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
 
-\item{coding}{Character string indicating how factor variables will be coded
-(default: \code{'dummy'})}
+\item{coding}{Character string indicating how factor variables will be coded.
+Default: \code{'dummy'}}
 
 \item{factorize}{Logical indicating whether to convert \emph{character}
-columns into \emph{factor} (default: \code{TRUE})}
-
-\item{mean.center}{Logical indicating whether to mean center non-factor
-variables (default: \code{FALSE})}
+columns into \emph{factor}. Default: \code{TRUE}}
 
 \item{binarize}{Character vector specifying the column name(s) of the
-covariate(s) to be converted from type \code{factor} to \code{numeric}
-(default: \code{NULL})}
+covariate(s) to be converted from type \code{factor} to \code{numeric}.
+Default: \code{NULL}}
 
 \item{int}{Character vector specifying the column name(s) of the
-covariate(s) to test for an interaction (default: \code{NULL})}
+covariate(s) to test for an interaction. Default: \code{NULL}}
+
+\item{mean.center}{Logical indicating whether to mean center non-factor
+variables. Default: \code{FALSE}}
+
+\item{center.how}{Character string indicating whether to use the grand mean
+or groupwise means. Default: \code{'all'}}
+
+\item{center.by}{Character string indicating which grouping variable to use
+for calculating means (if applicable). Default: \code{'Group'}}
 }
 \value{
 A numeric matrix
@@ -37,30 +44,44 @@ returns a \emph{design matrix} to be used in linear model analysis.
 }
 \details{
 There are three different ways to code factors: \emph{dummy}, \emph{effects},
-or \emph{cell-means} (chosen by the argument \code{coding}). To understand
-the difference, see Chapter 8 of the User Guide.
+or \emph{cell-means} (chosen by the argument \code{coding}). \emph{Effects}
+coding is sometimes referred to as \emph{deviation} coding. \emph{Dummy}
+coding is the default when calling \code{lm}. To understand the difference
+between these, see Chapter 8 of the User Guide.
+}
+\section{Character variables}{
 
-Importantly, the default behavior (as of v2.1.0) is to convert all character
-columns (excluding the Study ID column and any that you list in the
-\code{binarize} argument) to factor variables. To change this, set
-\code{factorize=FALSE}. So, if your covariates include multiple character
-columns, but you want to convert \emph{Scanner} to binary instead of a
-factor, you may still specify \code{binarize='Scanner'} and get the expected
-result. \code{binarize} will convert the given
-factor variable(s) into numeric variable(s), which is performed \emph{before}
-mean-centering.
+The default behavior is to convert all character columns (excluding the Study
+ID column and any that you list in the \code{binarize} argument) to factor
+variables. To change this, set \code{factorize=FALSE}. So, if your covariates
+include multiple character columns, but you want to convert \emph{Scanner} to
+binary instead of a factor, you may still specify \code{binarize='Scanner'}
+and get the expected result. \code{binarize} will convert the given factor
+variable(s) into numeric variable(s), which is performed \emph{before}
+centering (if applicable).
+}
+
+\section{Centering}{
 
 The argument \code{mean.center} will mean-center (i.e., subtract the mean of
-the entire dataset from each variable) any non-factor variables (including
-any dummy/indicator covariates). This is done \emph{after}
-\dQuote{factorizing} and \dQuote{binarizing}.
+from each variable) any non-factor variables (including any dummy/indicator
+covariates). This is done \emph{after} \dQuote{factorizing} and
+\dQuote{binarizing}. If \code{center.how='all'}, then the \dQuote{grand mean}
+will be used; otherwise, the groupwise means will be used. The grouping
+variable is determined by \code{center.by} and is by default \code{'Group'}.
+}
+
+\section{Interactions}{
 
 \code{int} specifies which variables should interact with one another. This
-argument accepts both numeric (e.g., \emph{Age}) and factor variables (e.g.,
-\emph{Sex}). All interaction combinations will be generated: if you supply 3
-variables, all two-way and the single three-way interaction will be
-generated. This variable \emph{must} have at least two elements.
+argument accepts both numeric/continuous (e.g., \emph{Age}) and factor
+variables (e.g., \emph{Sex}). All interaction combinations will be generated:
+if you supply 3 variables, all two-way and the single three-way interaction
+will be generated. This variable \emph{must} have at least two elements; it
+is otherwise ignored. It is generally recommended that centering be performed
+when including interaction terms.
 }
+
 \seealso{
 Other GLM functions: \code{\link{GLMfit}},
   \code{\link{GLM}}, \code{\link{mtpc}}
