@@ -579,9 +579,9 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @param ids Logical indicating whether to plot Study ID's for outliers.
 #'   Otherwise plots the integer index
 #' @export
+#' @importFrom RcppEigen fastLmPure
 #' @importFrom ggrepel geom_text_repel
-#' @importFrom gridExtra arrangeGrob
-#' @importFrom gridExtra grid.arrange
+#' @importFrom gridExtra arrangeGrob grid.draw grid.newpage
 #' @method plot bg_GLM
 #' @rdname glm
 #'
@@ -606,7 +606,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   stopifnot(inherits(x, 'bg_GLM'))
 
   # Local function to plot for a single region
-  plot_single <- function(X, y, region, outcome) {
+  plot_single <- function(X, y, region, outcome, model_formula) {
     leverage <- resid.std <- cook <- ind <- mark <- fit <- leverage.tr <- NULL
     est <- fastLmPure(X, y, method=2)
     dt.p1 <- data.table(fit=est$fitted.values, resid=est$residuals)
@@ -669,13 +669,26 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
 
     # 5. Residual vs Leverage plot
+    r.hat <- dt.p1[, range(leverage, na.rm=TRUE)]
+    p <- qr(X)$rank
+    hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1, length.out=101)
+    dt.cook <- data.table(hh=rep(hh, 2), level=rep(c(0.5, 1.0), each=101))
+    dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
+    xmax <- dt.p1[, round(max(leverage), 2)]
+    dt.cook[, ymax := .SD[which(xmax == round(hh, 2)), cl.h], by=level]
+
     diagPlots[[5]] <- ggplot(dt.p1, aes(x=leverage, y=resid.std)) +
       geom_point(aes(shape=mark)) +
       geom_text_repel(aes(x=leverage, y=resid.std, label=ind), size=3) +
       stat_smooth(method='loess', se=FALSE, col='red') +
       geom_vline(xintercept=0, lty=3, col='gray50') +
       geom_hline(yintercept=0, lty=3, col='gray50') +
-      xlim(c(0, NA)) +
+      geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2) +
+      geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2) +
+      geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2) +
+      geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2) +
+      xlim(extendrange(c(0, xmax))) +
+      ylim(dt.p1[, extendrange(range(resid.std), f=0.09)]) +
       theme(plot.title=element_text(hjust=0.5),
             legend.position='none',
             axis.text.y=element_text(hjust=0.5, angle=90)) +
@@ -687,23 +700,42 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       geom_point(aes(shape=mark)) +
       geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
       geom_abline(slope=seq(0, 3, 0.5), lty=2, col='gray50') +
-      xlim(c(0, NA)) +
+      xlim(c(0, dt.p1[, max(leverage.tr)])) +
+      ylim(c(0, dt.p1[, max(cook) * 1.025])) +
       theme(plot.title=element_text(hjust=0.5, size=9),
             legend.position='none',
             axis.text.y=element_text(hjust=0.5, angle=90)) +
       labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
            x=expression(Leverage~h[ii]), y='Cook\'s distance')
 
-    prows <- ifelse(length(which) == 1, 1, 2)
-    p.all <- arrangeGrob(grobs=diagPlots[which], nrow=prows,
-                         top=paste0('Outcome: ', outcome, '    Region: ', region),
-                         bottom=paste0('y ~ ', paste(colnames(X), collapse=' + ')))
+    top_title <- paste0('Outcome: ', outcome, '    Region: ', region)
+    p.all <- arrangeGrob(grobs=diagPlots[which], nrow=prows, top=top_title, bottom=model_formula)
     return(p.all)
   }
 
   X <- x$X
+
+  # Hack to print a model formula w/ newlines
+  model_formula <- paste0('y ~ ', paste(colnames(X), collapse=' + '))
+  form_len <- nchar(model_formula)
+  if (form_len > 80) {
+    lenmult <- (form_len %/% 80) + (form_len %% 80 > 0)
+    pluses <- gregexpr('\\+', model_formula)[[1]]
+    endind <- rep(0, lenmult)
+    for (i in seq_len(lenmult)) {
+      endind[i] <- max(base::which(pluses < 80*i))
+    }
+    endpts <- pluses[endind]
+    startpts <- c(5, endpts[-lenmult] + 1)
+    model_formula <- paste('y ~', paste(paste(Map(function(a, b) substr(model_formula, a, b), startpts, endpts), '\n'), collapse=''))
+    model_formula <- substr(model_formula, 1, nchar(model_formula) - 4)
+  }
+      
+  prows <- ifelse(length(which) == 1, 1, 2)
   if (x$level == 'graph') {
-    p.all <- plot_single(X, x$y, region='graph-level', x$outcome)
+    p.all <- plot_single(X, x$y, region='graph-level', x$outcome, model_formula)
+    grid.newpage()
+    grid.draw(p.all)
     return(p.all)
   } else if (x$level == 'vertex') {
     if (is.null(region)) {
@@ -713,15 +745,17 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     if (x$outcome == x$measure) {
       for (z in region) {
         if (all(x$y[, z] == 0)) next
-        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome)
+        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome, model_formula)
       }
     } else {
       if (all(x$y == 0)) return(NULL)
       for (z in region) {
-        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome)
+        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome, model_formula)
       }
     }
 
+    # Remove any NULL elements
+    p.all[sapply(p.all, is.null)] <- NULL
     return(p.all)
   }
 }
