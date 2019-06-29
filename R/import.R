@@ -112,7 +112,7 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
 
 update_fs_names <- function(filename, modality, parcellation, hemi) {
   Study.ID <- NULL
-  DT <- fread(filename)
+  DT <- fread(filename, colClasses=list(character=1))
   names(DT)[1] <- 'Study.ID'
   DT[, Study.ID := as.character(Study.ID)]
 
