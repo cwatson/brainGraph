@@ -1,3 +1,12 @@
+# brainGraph 2.7.1
+
+2019-06-29
+
+## Bug fix
+* Fix bug in `import_scn` so the *Study.ID* column is always read as `character`
+* Remove deprecated function `brainGraph_init`
+
+
 # brainGraph 2.7.0
 
 2018-12-15

@@ -112,7 +112,7 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
 
 update_fs_names <- function(filename, modality, parcellation, hemi) {
   Study.ID <- NULL
-  DT <- fread(filename)
+  DT <- fread(filename, colClasses=list(character=1))
   names(DT)[1] <- 'Study.ID'
   DT[, Study.ID := as.character(Study.ID)]
 
@@ -155,15 +155,4 @@ update_fs_names <- function(filename, modality, parcellation, hemi) {
   }
 
   return(DT)
-}
-
-#' @param densities Numeric vector of densities (deprecated)
-#' @param covars Data table of covariates (deprecated)
-#' @export
-#' @aliases brainGraph_init
-#' @rdname import_scn
-brainGraph_init <- function(atlas, densities, datadir, modality='thickness',
-                            covars=NULL, exclude.subs=NULL, custom.atlas=NULL) {
-  .Deprecated('import_scn')
-  import_scn(datadir, atlas, modality=modality, exclude.subs, custom.atlas)
 }
