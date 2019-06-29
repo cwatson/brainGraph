@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 2.7.0
-Date: 2018-12-15
+Version: 2.7.1
+Date: 2019-06-29
 Title: Graph Theory Analysis of Brain MRI Data
 Authors@R: person(given="Christopher G.", family="Watson",
                   email="cgwatson@bu.edu", role=c("aut", "cre"),

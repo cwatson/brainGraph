@@ -2,14 +2,10 @@
 % Please edit documentation in R/import.R
 \name{import_scn}
 \alias{import_scn}
-\alias{brainGraph_init}
 \title{Import data for structural connectivity analysis}
 \usage{
 import_scn(datadir, atlas, modality = "thickness", exclude.subs = NULL,
   custom.atlas = NULL)
-
-brainGraph_init(atlas, densities, datadir, modality = "thickness",
-  covars = NULL, exclude.subs = NULL, custom.atlas = NULL)
 }
 \arguments{
 \item{datadir}{The path to the directory containing the data files}
@@ -26,10 +22,6 @@ atlas, please specify \code{'custom'}, and provide the name to the
 \item{custom.atlas}{Character string specifying the name of the R object for
 the atlas in use, if \code{atlas='custom'} was also supplied (default:
 \code{NULL})}
-
-\item{densities}{Numeric vector of densities (deprecated)}
-
-\item{covars}{Data table of covariates (deprecated)}
 }
 \value{
 A list containing:
