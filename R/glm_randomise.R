@@ -146,10 +146,7 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
   if (ctype == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
-  maxfun <- switch(alternative,
-                   two.sided=function(x) max(abs(x), na.rm=TRUE),
-                   less=function(x) min(x, na.rm=TRUE),
-                   greater=function(x) max(x, na.rm=TRUE))
+  myMax <- maxfun(alternative)
   null.dist <- vector('list', length=nC)
   perm.order <- rep(seq_len(N), each=DT[, length(unique(region))])
 
@@ -173,7 +170,7 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure
         }
       }
       null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][, maxfun(gamma / se), by=perm][, !'perm']
+      null.dist[[j]] <- null.dist[[j]][, myMax(gamma / se), by=perm][, !'perm']
 
     # F-contrasts
     #-------------------------------------------------------

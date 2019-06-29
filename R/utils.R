@@ -166,6 +166,28 @@ get_metadata <- function(object) {
   return(object)
 }
 
+#' Helper function to calculate a max or min
+#'
+#' @keywords internal
+maxfun <- function(alternative) {
+  fun <- switch(alternative,
+                two.sided=function(x) max(abs(x), na.rm=TRUE),
+                less=function(x) min(x, na.rm=TRUE),
+                greater=function(x) max(x, na.rm=TRUE))
+  return(fun)
+}
+
+#' Helper function to sort values
+#'
+#' @keywords internal
+sortfun <- function(alternative) {
+  fun <- switch(alternative,
+                two.sided=function(x) sort(abs(x)),
+                less=function(x) sort(x, decreasing=TRUE),
+                greater=sort)
+  return(fun)
+}
+
 #' Symmetrize a matrix with the mean of off-diagonal elements
 #'
 #' \code{symm_mean} returns a symmetric matrix in which the off-diagonal

@@ -100,15 +100,12 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   kNumContrasts <- ifelse(con.type == 't', nrow(res.glm[[1]]$con.mat), 1)
   null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
   Scrit <- Acrit <- rep(0, kNumContrasts)
-  maxfun <- switch(alt, two.sided=function(x) max(abs(x)), less=min, greater=max)
-  sortfun <- switch(alt,
-                    two.sided=function(x) sort(abs(x)),
-                    less=function(x) sort(x, decreasing=TRUE),
-                    greater=function(x) sort(x))
+  myMax <- maxfun(alt)
+  mySort <- sortfun(alt)
   for (i in seq_len(kNumContrasts)) {
     null.dist.all[[i]] <- vapply(res.glm, function(x) x$perm$null.dist[contrast == i, V1], numeric(N))
-    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, maxfun)
-    Scrit[i] <- sortfun(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
+    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, myMax)
+    Scrit[i] <- mySort(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
     mtpc.all[contrast == i, S.crit := Scrit[i]]
   }
 
@@ -280,9 +277,9 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
   thresholds <- DT[, unique(threshold)]
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
   whichmaxfun <- switch(x$alt, two.sided=function(y) which.max(abs(y)), less=which.min, greater=which.max)
-  maxfun <- switch(x$alt, two.sided=function(y) max(abs(y), na.rm=TRUE), less=min, greater=max)
+  myMax <- maxfun(x$alt)
   thr <- apply(x$null.dist[[mycontrast]], 1, whichmaxfun)
-  thr.y <- apply(x$null.dist[[mycontrast]], 1, maxfun)
+  thr.y <- apply(x$null.dist[[mycontrast]], 1, myMax)
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
 
   # Local function to plot for a single region
@@ -326,7 +323,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       lineplot <- lineplot + geom_point(data=nullcoords, aes(y=y), col='darkgreen', alpha=0.4, na.rm=TRUE)
     }
     if (isTRUE(caption.stats)) {
-      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(maxfun(stat))]))
+      Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(myMax(stat))]))
       Scrit <- bquote('S'['crit']*' = '~ .(DT[, format(unique(S.crit))]))
       Amtpc <- bquote('A'['mtpc']*' = '~ .(DT[, format(max(A.mtpc))]))
       Acrit <- bquote('A'['crit']*' = '~ .(DT[, format(unique(A.crit))]))

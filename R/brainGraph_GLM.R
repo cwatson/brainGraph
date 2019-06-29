@@ -178,16 +178,16 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
   #-------------------------------------
   # Handle the case when there is a different design matrix for each region
   if (length(dim(X)) == 3 && level == 'vertex') {
-    regions <- dimnames(X)[[3]]
-    run <- rep(1, dim(X)[3])
-    for (k in seq_along(run)) {
-      if (any(colSums(X[, , k]) == 0)) run[k] <- 0
+    # If any columns are all 0, do not fit a model for that region
+    runX <- names(which(apply(X, 3, function(p) !any(apply(p, 2, function(n) all(n == 0))))))
+    if (length(runX) == 0) {
+      stop('At least one covariate is equal to 0 for all regions; please check your data')
     }
-    run <- which(run == 1)
-    DT.lm <- setNames(vector('list', length(run)), regions[run])
-    for (k in run) {
-      DT.lm[[regions[k]]] <- glm_fit_helper(DT.y.m[region == regions[k]], X[, , k],
-                                            ctype, con.mat, alt, outcome, 'region', alpha)
+
+    DT.lm <- setNames(vector('list', length(runX)), runX)
+    for (k in runX) {
+      DT.lm[[k]] <- glm_fit_helper(DT.y.m[region == k], X[, , k],
+                                   ctype, con.mat, alt, outcome, 'region', alpha)
     }
     DT.lm <- rbindlist(DT.lm)
   } else {
@@ -205,39 +205,25 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
   if (isTRUE(permute)) {
     perm.method <- match.arg(perm.method)
     part.method <- match.arg(part.method)
-    if (is.null(perms) || ncol(perms) != nrow(X)) {
-      perms <- shuffleSet(n=nrow(X), nset=N)
-    }
+    if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-    zeroregions <- DT.y.m[, .SD[all(get(outcome) == 0)], by=region][, unique(as.character(region))]
+    runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
     # Different design matrix for each region
     if (length(dim(X)) == 3 && level == 'vertex') {
-      maxfun <- switch(alt,
-                       two.sided=function(x) max(abs(x), na.rm=TRUE),
-                       less=function(x) min(x, na.rm=TRUE),
-                       greater=function(x) max(x, na.rm=TRUE))
-      null.dist <- setNames(vector('list', length(run)), regions[run])
-      for (k in run) {
-        if (!regions[k] %in% zeroregions) {
-          null.dist[[regions[k]]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == regions[k]],
-                                               nC, outcome, X[, , k], con.mat, alt)
-        }
+      myMax <- maxfun(alt)
+      null.dist <- setNames(vector('list', length(runX)), runX)
+      for (k in intersect(runX, runY)) {
+        null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
+                                    nC, outcome, X[, , k], con.mat, alt)
       }
       null.dist <- rbindlist(null.dist, idcol='region')
-      null.dist <- cbind(null.dist, data.table(perm=rep(seq_len(N), times=length(run))))
-      if (ctype == 't') {
-        null.dist <- null.dist[, maxfun(V1), by=list(perm, contrast)][, !'perm']
-      } else if (ctype == 'f') {
-        null.dist <- null.dist[, max(V1), by=list(perm, contrast)][, !'perm']
-      }
+      null.dist <- cbind(null.dist, data.table(perm=rep(seq_len(N), times=length(runX))))
+      null.dist <- null.dist[, myMax(V1), by=list(perm, contrast)][, !'perm']
     } else {
-      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[!region %in% zeroregions], nC, outcome, X, con.mat, alt)
+      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY], nC, outcome, X, con.mat, alt)
     }
-    sortfun <- switch(alt,
-                      two.sided=function(x) sort(abs(x)),
-                      less=function(x) sort(x, decreasing=TRUE),
-                      greater=function(x) sort(x))
-    null.thresh <- null.dist[, sortfun(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+    mySort <- sortfun(alt)
+    null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
     compfun <- switch(alt,
                       two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
                       less=function(x, y) sum(x <= y, na.rm=TRUE),
@@ -730,7 +716,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     model_formula <- paste('y ~', paste(paste(Map(function(a, b) substr(model_formula, a, b), startpts, endpts), '\n'), collapse=''))
     model_formula <- substr(model_formula, 1, nchar(model_formula) - 4)
   }
-      
+
   prows <- ifelse(length(which) == 1, 1, 2)
   if (x$level == 'graph') {
     p.all <- plot_single(X, x$y, region='graph-level', x$outcome, model_formula)
