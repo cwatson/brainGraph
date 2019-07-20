@@ -2,17 +2,11 @@
 #'
 #' Calculates the \emph{network-based statistic (NBS)}, which allows for
 #' family-wise error (FWE) control over network data, introduced for brain MRI
-#' data by Zalesky et al. Accepts a three-dimensional array of all subjects'
-#' connectivity matrices and a \code{data.table} of covariates, and creates a
-#' null distribution of the largest connected component size by permuting
-#' subjects across groups. The covariates \code{data.table} must have (at least)
-#' a \emph{Group} column.
-#'
-#' The graph that is returned by this function will have a \code{t.stat} edge
-#' attribute which is the t-statistic for that particular connection, along with
-#' a \code{p} edge attribute, which is the p-value for that connection.
-#' Additionally, each vertex will have a \code{p.nbs} attribute representing
-#' \eqn{1 - } the p-value associated with that vertex's component.
+#' data by Zalesky et al. Requires a three-dimensional array of all subjects'
+#' connectivity matrices and a \code{data.table} of covariates, in addition to a
+#' contrast matrix or list. A null distribution of the largest connected
+#' component size is created by fitting a GLM to permuted data. For details, see
+#' \code{\link{GLM}}.
 #'
 #' @param A Three-dimensional array of all subjects' connectivity matrices
 #' @param p.init Numeric; the initial p-value threshold (default: \code{0.001})
@@ -46,7 +40,7 @@
 #' max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
 #' }
 
-NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
+NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NULL,
                 p.init=0.001, perm.method=c('freedmanLane', 'terBraak', 'smith'),
                 part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
@@ -59,9 +53,9 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
+  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
   covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
-  con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name; nC <- glmSetup$nC
+  contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; nC <- glmSetup$nC
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
   if (length(incomp) > 0) A <- A[, , -covars[, which(Study.ID %in% incomp)]]
@@ -82,7 +76,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   A.m.sub <- A.m[pos.vals]
 
   # Do the model fitting/estimation
-  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, con.mat, alt, outcome='value', mykey='Var1,Var2')
+  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, contrasts, alt, outcome='value', mykey='Var1,Var2')
 
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
@@ -116,7 +110,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
 
   part.method <- match.arg(part.method)
   perm.method <- match.arg(perm.method)
-  out <- list(X=X, p.init=p.init, con.type=ctype, con.mat=con.mat, con.name=con.name,
+  out <- list(X=X, p.init=p.init, con.type=ctype, contrasts=contrasts, con.name=con.name,
               alt=alt, N=N, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
               perm.method=perm.method, part.method=part.method)
   if (length(skip) == length(con.name)) {
@@ -129,7 +123,7 @@ NBS <- function(A, covars, con.mat, con.type=c('t', 'f'), X=NULL, con.name=NULL,
   #---------------------------------------------------------
   if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-  comps.perm <- randomise_nbs(perm.method, part.method, ctype, N, perms, A.m.sub, nC, skip, p.init, X, con.mat, alt, Nv)
+  comps.perm <- randomise_nbs(perm.method, part.method, ctype, N, perms, A.m.sub, nC, skip, p.init, X, contrasts, alt, Nv)
   kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_along(con.name)) {
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),

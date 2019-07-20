@@ -6,7 +6,7 @@
 \alias{plot.mtpc}
 \title{Multi-threshold permutation correction}
 \usage{
-mtpc(g.list, thresholds, covars, measure, con.mat, con.type = c("t",
+mtpc(g.list, thresholds, covars, measure, contrasts, con.type = c("t",
   "f"), outcome = NULL, con.name = NULL, level = c("vertex",
   "graph"), clust.size = 3L, perm.method = c("freedmanLane",
   "terBraak", "smith"), part.method = c("beckmann", "guttman",
@@ -30,7 +30,7 @@ connectivity matrices.}
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
@@ -39,7 +39,7 @@ F-statistics). Default: \code{'t'}}
 \item{outcome}{Character string specifying the name of the outcome variable,
 if it differs from the graph metric (\code{measure})}
 
-\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+\item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
 has row names, those will be used for reporting results}
 
 \item{level}{Character string; either \code{vertex} (default) or
@@ -77,7 +77,7 @@ results. Default: \code{FALSE}}
 \item{contrast}{Integer specifying the contrast to plot/summarize; defaults
 to showing results for all contrasts}
 
-\item{digits}{Integer specifying the number of digits to display for p-values}
+\item{digits}{Integer specifying the number of digits to display for P-values}
 
 \item{print.head}{Logical indicating whether or not to print only the first
 and last 5 rows of the statistics tables (default: \code{TRUE})}
@@ -146,7 +146,7 @@ This is a multi-step procedure: (steps 3-4 are the time-consuming steps)
 \dontrun{
 diffs.mtpc <- mtpc(g.list=g.norm, thresholds=thresholds, N=N,
      covars=covars.dti, measure='E.nodal.wt', coding='effects',
-     con.mat=c(0, 0, 0, 0, -2), alt='greater',
+     contrasts=c(0, 0, 0, 0, -2), alt='greater',
      binarize=c('Sex', 'Scanner'), con.name='Group 1 > Group 2')
 sig.regions <- diffs.mtpc$DT[A.mtpc > A.crit]
 }

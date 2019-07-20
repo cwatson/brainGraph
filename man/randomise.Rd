@@ -6,13 +6,13 @@
 \alias{randomise_nbs}
 \title{Helper function to setup for randomise}
 \usage{
-setup_randomise(perm.method, part.method, X, con.mat, con.type, nC)
+setup_randomise(perm.method, part.method, X, contrasts, con.type, nC)
 
 randomise(perm.method, part.method, ctype, N, perms, DT, nC, measure, X,
-  con.mat, alternative)
+  contrasts, alternative)
 
 randomise_nbs(perm.method, part.method, ctype, N, perms, DT, nC, skip,
-  p.init, X, con.mat, alternative, Nv)
+  p.init, X, contrasts, alternative, Nv)
 }
 \arguments{
 \item{perm.method}{Character string indicating the permutation method.
@@ -23,7 +23,7 @@ matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 
 \item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or

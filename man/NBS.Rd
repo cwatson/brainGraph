@@ -5,7 +5,7 @@
 \alias{summary.NBS}
 \title{Network-based statistic for brain MRI data}
 \usage{
-NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL,
+NBS(A, covars, contrasts, con.type = c("t", "f"), X = NULL,
   con.name = NULL, p.init = 0.001, perm.method = c("freedmanLane",
   "terBraak", "smith"), part.method = c("beckmann", "guttman",
   "ridgway"), N = 1000, perms = NULL, symm.by = c("max", "min",
@@ -20,7 +20,7 @@ NBS(A, covars, con.mat, con.type = c("t", "f"), X = NULL,
 
 \item{covars}{A \code{data.table} of covariates}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
@@ -28,7 +28,7 @@ F-statistics). Default: \code{'t'}}
 
 \item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
-\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+\item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
 has row names, those will be used for reporting results}
 
 \item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
@@ -60,7 +60,7 @@ results. Default: \code{FALSE}}
 \item{contrast}{Integer specifying the contrast to plot/summarize; defaults
 to showing results for all contrasts}
 
-\item{digits}{Integer specifying the number of digits to display for p-values}
+\item{digits}{Integer specifying the number of digits to display for P-values}
 }
 \value{
 An object of class \code{NBS} with some input arguments in addition
@@ -78,18 +78,11 @@ An object of class \code{NBS} with some input arguments in addition
 \description{
 Calculates the \emph{network-based statistic (NBS)}, which allows for
 family-wise error (FWE) control over network data, introduced for brain MRI
-data by Zalesky et al. Accepts a three-dimensional array of all subjects'
-connectivity matrices and a \code{data.table} of covariates, and creates a
-null distribution of the largest connected component size by permuting
-subjects across groups. The covariates \code{data.table} must have (at least)
-a \emph{Group} column.
-}
-\details{
-The graph that is returned by this function will have a \code{t.stat} edge
-attribute which is the t-statistic for that particular connection, along with
-a \code{p} edge attribute, which is the p-value for that connection.
-Additionally, each vertex will have a \code{p.nbs} attribute representing
-\eqn{1 - } the p-value associated with that vertex's component.
+data by Zalesky et al. Requires a three-dimensional array of all subjects'
+connectivity matrices and a \code{data.table} of covariates, in addition to a
+contrast matrix or list. A null distribution of the largest connected
+component size is created by fitting a GLM to permuted data. For details, see
+\code{\link{GLM}}.
 }
 \examples{
 \dontrun{

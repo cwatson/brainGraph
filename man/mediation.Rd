@@ -75,7 +75,7 @@ method from \code{\link[mediation]{mediate}} (default: \code{FALSE}). If
 \item{region}{Character string specifying which region's results to
 summarize; only relevant if \code{level='vertex'} (default: \code{NULL})}
 
-\item{digits}{Integer specifying the number of digits to display for p-values}
+\item{digits}{Integer specifying the number of digits to display for P-values}
 
 \item{x}{Object output from \code{\link{brainGraph_mediate}}}
 }

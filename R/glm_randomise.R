@@ -92,15 +92,16 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'   \item{Xp}{(only for Smith method) List of matrices of covariates of interest}
 #'   \item{Zp}{(only for Smith method) List of matrices of nuisance covariates}
 
-setup_randomise <- function(perm.method, part.method, X, con.mat, con.type, nC) {
+setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC) {
   n <- nrow(X)
-  Mp <- MtM <- Rz <- eC <- Xp <- Zp <- vector('list', length=nC)
+  Mp <- MtM <- Rz <- eC <- Xp <- Zp <- CMtM <- vector('list', length=nC)
+  rkC <- rep(0L, nC)
 
   for (j in seq_len(nC)) {
     if (con.type == 'f') {
-      parts <- partition(X, con.mat, part.method)
+      parts <- partition(X, contrasts[[j]], part.method)
     } else {
-      parts <- partition(X, con.mat[j, , drop=FALSE], part.method)
+      parts <- partition(X, contrasts[j, , drop=FALSE], part.method)
     }
     Mp[[j]] <- with(parts, cbind(X, Z))
     MtM[[j]] <- solve(crossprod(Mp[[j]]))
@@ -120,15 +121,15 @@ setup_randomise <- function(perm.method, part.method, X, con.mat, con.type, nC) 
 
     Rz[[j]] <- diag(n) - Hz
     eC[[j]] <- parts$eCm
+    if (con.type == 'f') {
+      CMtM[[j]] <- solve(eC[[j]] %*% MtM[[j]] %*% t(eC[[j]]))
+      rkC[j] <- qr(eC[[j]])$rank
+    }
   }
   dfR <- nrow(Mp[[1]]) - qr(Mp[[1]])$rank
 
   out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC, dfR=dfR)
-  if (con.type == 'f') {
-    CMtM <- solve(eC[[1]] %*% MtM[[1]] %*% t(eC[[1]]))
-    rkC <- qr(eC[[1]])$rank
-    out <- c(out, list(CMtM=CMtM, rkC=rkC))
-  }
+  if (con.type == 'f') out <- c(out, list(CMtM=CMtM, rkC=rkC))
   if (perm.method == 'smith') out <- c(out, list(Xp=Xp, Zp=Zp))
   return(out)
 }
@@ -140,9 +141,9 @@ setup_randomise <- function(perm.method, part.method, X, con.mat, con.type, nC) 
 #' @inheritParams GLM
 #' @keywords internal
 
-randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure, X, con.mat, alternative) {
+randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure, X, contrasts, alternative) {
   i <- region <- numer <- se <- perm <- NULL
-  randMats <- setup_randomise(perm.method, part.method, X, con.mat, ctype, nC)
+  randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
   if (ctype == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
@@ -180,11 +181,11 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure
           M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
           CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, get(measure), dfR, eC[[j]], rkC, CMtM), by=region]
+          DT[, brainGraph_GLM_fit_f(M, get(measure), dfR, eC[[j]], rkC[j], CMtM), by=region]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), dfR, eC[[j]], rkC, CMtM), by=region]
+          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), dfR, eC[[j]], rkC[j], CMtM[[j]]), by=region]
         }
       }
       null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
@@ -202,9 +203,9 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure
 #' @rdname randomise
 #' @keywords internal
 
-randomise_nbs <- function(perm.method, part.method, ctype, N, perms, DT, nC, skip, p.init, X, con.mat, alternative, Nv) {
+randomise_nbs <- function(perm.method, part.method, ctype, N, perms, DT, nC, skip, p.init, X, contrasts, alternative, Nv) {
   se <- perm <- Var1 <- Var2 <- i <- value <- stat <- numer <- NULL
-  randMats <- setup_randomise(perm.method, part.method, X, con.mat, ctype, nC)
+  randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
 
   if (ctype == 't') {
@@ -255,16 +256,16 @@ randomise_nbs <- function(perm.method, part.method, ctype, N, perms, DT, nC, ski
           M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
           CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, value, dfR, eC[[j]], rkC, CMtM), by=list(Var1, Var2)]
+          DT[, brainGraph_GLM_fit_f(M, value, dfR, eC[[j]], rkC[j], CMtM), by=list(Var1, Var2)]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, dfR, eC[[j]], rkC, CMtM), by=list(Var1, Var2)]
+          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, dfR, eC[[j]], rkC[j], CMtM[[j]]), by=list(Var1, Var2)]
         }
       }
       null.dist[[j]][, stat := numer / (se / dfR)]
       null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC, dfR), list(Var1, Var2, stat, perm)]
+      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC[j], dfR), list(Var1, Var2, stat, perm)]
     }
 
     comps.perm[[j]] <- foreach(i=null.dist[[j]][, unique(perm)], .combine='c') %dopar% {

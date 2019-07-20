@@ -7,12 +7,12 @@
 \alias{glm_fit_helper}
 \title{Helper function to set-up for GLM analyses}
 \usage{
-setup_glm(covars, X, con.mat, con.type, con.name, measure, outcome, DT.y.m,
-  level, ...)
+setup_glm(covars, X, contrasts, con.type, con.name, measure, outcome,
+  DT.y.m, level, ...)
 
-contrast_names(con.mat, con.type, con.name)
+contrast_names(contrasts, con.type, con.name, X)
 
-glm_fit_helper(DT, X, con.type, con.mat, alt, outcome, mykey,
+glm_fit_helper(DT, X, con.type, contrasts, alt, outcome, mykey,
   alpha = NULL)
 }
 \arguments{
@@ -20,13 +20,13 @@ glm_fit_helper(DT, X, con.type, con.mat, alt, outcome, mykey,
 
 \item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
 
-\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+\item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
 has row names, those will be used for reporting results}
 
 \item{measure}{Character string of the graph measure of interest}
@@ -47,7 +47,8 @@ if it differs from the graph metric (\code{measure})}
 outcome measure(s)}
 
 \item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
-analyses)}
+analyses). For GLM, it is \code{'region'}; for NBS, it is
+\code{'Var1,Var2'}.}
 
 \item{alpha}{Numeric; the significance level. Default: 0.05}
 }
@@ -55,7 +56,10 @@ analyses)}
 \code{setup_glm} is used to setup the data/objects for any function that uses
 the main GLM functionality in \code{brainGraph}.
 
-Simple helper function to generate contrast names for GLM functions.
+Simple helper function to check the dimensions of contrasts, generate
+contrast names, and set column names for GLM functions. For F-contrasts, if a
+\code{matrix} is given, convert it to a \code{list} to simplify processing
+later.
 }
 \details{
 This function: removes unused levels from \code{covars} and \code{DT.y.m},

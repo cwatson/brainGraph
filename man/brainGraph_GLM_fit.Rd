@@ -17,8 +17,7 @@ brainGraph_GLM_fit_f(X, y, dfR, con.mat, rkC, CXtX)
 
 \item{XtX}{Numeric matrix}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
-only one contrast is desired, you can supply a vector}
+\item{con.mat}{A contrast matrix}
 
 \item{dfR}{Integer; residual degrees of freedom}
 
@@ -40,13 +39,13 @@ only one contrast is desired, you can supply a vector}
 \description{
 \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,
 uni-dimensional contrasts) and returns the contrasts of parameter estimates,
-standard errors, t-statistics, and p-values. If a contrast matrix is
+standard errors, t-statistics, and P-values. If a contrast matrix is
 supplied, it will return the above values for each row of the matrix.
 
-\code{brainGraph_GLM_fit_f} fits a linear model for f-contrasts (i.e.,
+\code{brainGraph_GLM_fit_f} fits a linear model for F contrasts (i.e.,
 multi-dimensional contrasts) and returns the \emph{extra sum of squares} due
 to the full model, the sum of squared errors of the full model, the
-f-statistic, and associated p-value.
+F-statistic, and associated P-value.
 }
 \details{
 For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and

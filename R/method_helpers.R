@@ -95,8 +95,8 @@ print_contrast_type_summary <- function(x) {
                 greater='C > 0',
                 less='C < 0')
   cat('Alternative hypothesis: ', alt, '\n')
-  cat('Contrast matrix: ', '\n')
-  print(x$con.mat)
+  cat('Contrasts: ', '\n')
+  print(x$contrasts)
 
   cat('\n')
   invisible(x)
@@ -115,12 +115,14 @@ print_subs_summary <- function(x) {
 # Print per-contrast statistics
 #-------------------------------------------------------------------------------
 print_contrast_stats_summary <- function(x) {
-  if (is.null(x$contrast)) {
-    contrast <- x$DT[, unique(contrast)]
-  } else {
-    contrast <- x$contrast
-  }
-  for (i in contrast) {
+  contrast <- NULL
+  printCon <- if (is.null(x$printCon)) x$DT[, unique(contrast)] else x$printCon
+#  if (is.null(x$printCon)) {
+#    printCon <- x$DT[, unique(contrast)]
+#  } else {
+#    printCon <- x$printCon
+#  }
+  for (i in printCon) {
     message('Contrast ', i, ': ', x$con.name[i])
     if (nrow(x$DT.sum[contrast == i]) == 0) {
       message('\tNo signficant results!\n')

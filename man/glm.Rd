@@ -7,8 +7,8 @@
 \alias{plot.bg_GLM}
 \title{Fit General Linear Models at each vertex of a graph}
 \usage{
-brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
-  outcome = NULL, X = NULL, con.name = NULL,
+brainGraph_GLM(g.list, covars, measure, contrasts, con.type = c("t",
+  "f"), outcome = NULL, X = NULL, con.name = NULL,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   level = c("vertex", "graph"), permute = FALSE,
   perm.method = c("freedmanLane", "terBraak", "smith"),
@@ -29,7 +29,7 @@ brainGraph_GLM(g.list, covars, measure, con.mat, con.type = c("t", "f"),
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
+\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
@@ -40,7 +40,7 @@ if it differs from the graph metric (\code{measure})}
 
 \item{X}{Numeric matrix, if you wish to supply your own design matrix}
 
-\item{con.name}{Character vector of the contrast name(s); if \code{con.mat}
+\item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
 has row names, those will be used for reporting results}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test.
@@ -72,13 +72,13 @@ results. Default: \code{FALSE}}
 
 \item{object, x}{A \code{bg_GLM} object}
 
-\item{p.sig}{Character string specifying which p-value to use for displaying
+\item{p.sig}{Character string specifying which P-value to use for displaying
 significant results (default: \code{p})}
 
 \item{contrast}{Integer specifying the contrast to plot/summarize; defaults
 to showing results for all contrasts}
 
-\item{digits}{Integer specifying the number of digits to display for p-values}
+\item{digits}{Integer specifying the number of digits to display for P-values}
 
 \item{print.head}{Logical indicating whether or not to print only the first
 and last 5 rows of the statistics tables (default: \code{TRUE})}
@@ -147,17 +147,19 @@ graph-level attribute. The covariates table must be supplied even if you
 provide your own design matrix \code{X}.
 }
 
-\section{Statistics}{
+\section{Contrasts and statistics}{
 
-Both t- and F-contrasts are allowed by supplying a \emph{matrix} to the
-argument \code{con.mat}. If you supply a multi-row matrix and you choose
-\code{con.type="t"}, then statistics will be calculated for each contrast
-individually. If you choose \code{con.type="f"}, in the return object's data
-table the calculated effect size is represented by the \code{ESS}
-(\dQuote{extra sum of squares}), the additional variance explained for by the
-model parameters of interest (as determined by the contrast matrix). The
-standard error for F-contrasts is the sum of squared errors of the \emph{full
-model}.
+Either t- or F-contrasts can be calculated (specified by \code{con.type}).
+Multiple t-contrasts can be specified by passing a multi-row \emph{matrix} to
+\code{contrasts}. Multiple F-contrasts can be specified by passing a
+\emph{list} of matrices; all matrices must have the same number of columns.
+All F-contrasts are necessarily \emph{two-sided}; t-contrasts can be any
+direction, but only one can be chosen per function call.
+If you choose \code{con.type="f"}, the calculated effect size is represented
+by the \code{ESS} (\dQuote{extra sum of squares}), the additional variance
+explained for by the model parameters of interest (as determined by the
+contrast matrix). The standard error for F-contrasts is the sum of squared
+errors of the \emph{full model}.
 }
 
 \section{Non-parametric permutation tests}{
@@ -176,7 +178,7 @@ conmat <- matrix(c(0, 0, 0, 1), nrow=1)
 rownames(conmat) <- 'Control > Patient'
 
 g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
-  measure='strength', con.mat=conmat, alt='greater', permute=TRUE, long=TRUE)
+  measure='strength', contrasts=conmat, alt='greater', permute=TRUE, long=TRUE)
 }
 \dontrun{
 ## Save objects and then to multipage PDF

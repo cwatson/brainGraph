@@ -9,9 +9,6 @@ partition(M, con.mat, part.method = c("beckmann", "guttman", "ridgway"))
 \arguments{
 \item{M}{Numeric matrix; the full design matrix}
 
-\item{con.mat}{Numeric matrix specifying the contrast(s) of interest; if
-only one contrast is desired, you can supply a vector}
-
 \item{part.method}{Character string; the method of partitioning the design
 matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 }

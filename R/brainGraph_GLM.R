@@ -23,16 +23,18 @@
 #' graph-level attribute. The covariates table must be supplied even if you
 #' provide your own design matrix \code{X}.
 #'
-#' @section Statistics:
-#' Both t- and F-contrasts are allowed by supplying a \emph{matrix} to the
-#' argument \code{con.mat}. If you supply a multi-row matrix and you choose
-#' \code{con.type="t"}, then statistics will be calculated for each contrast
-#' individually. If you choose \code{con.type="f"}, in the return object's data
-#' table the calculated effect size is represented by the \code{ESS}
-#' (\dQuote{extra sum of squares}), the additional variance explained for by the
-#' model parameters of interest (as determined by the contrast matrix). The
-#' standard error for F-contrasts is the sum of squared errors of the \emph{full
-#' model}.
+#' @section Contrasts and statistics:
+#' Either t- or F-contrasts can be calculated (specified by \code{con.type}).
+#' Multiple t-contrasts can be specified by passing a multi-row \emph{matrix} to
+#' \code{contrasts}. Multiple F-contrasts can be specified by passing a
+#' \emph{list} of matrices; all matrices must have the same number of columns.
+#' All F-contrasts are necessarily \emph{two-sided}; t-contrasts can be any
+#' direction, but only one can be chosen per function call.
+#' If you choose \code{con.type="f"}, the calculated effect size is represented
+#' by the \code{ESS} (\dQuote{extra sum of squares}), the additional variance
+#' explained for by the model parameters of interest (as determined by the
+#' contrast matrix). The standard error for F-contrasts is the sum of squared
+#' errors of the \emph{full model}.
 #'
 #' @section Non-parametric permutation tests:
 #' You can calculate permutations of the data to build a null distribution of
@@ -45,14 +47,14 @@
 #' @param g.list A \code{brainGraphList} object
 #' @param covars A \code{data.table} of covariates
 #' @param measure Character string of the graph measure of interest
-#' @param con.mat Numeric matrix specifying the contrast(s) of interest; if
+#' @param contrasts Numeric matrix specifying the contrast(s) of interest; if
 #'   only one contrast is desired, you can supply a vector
 #' @param con.type Character string; either \code{'t'} or \code{'f'} (for t or
 #'   F-statistics). Default: \code{'t'}
 #' @param outcome Character string specifying the name of the outcome variable,
 #'   if it differs from the graph metric (\code{measure})
 #' @param X Numeric matrix, if you wish to supply your own design matrix
-#' @param con.name Character vector of the contrast name(s); if \code{con.mat}
+#' @param con.name Character vector of the contrast name(s); if \code{contrasts}
 #'   has row names, those will be used for reporting results
 #' @param alternative Character string, whether to do a two- or one-sided test.
 #'   Default: \code{'two.sided'}
@@ -122,9 +124,9 @@
 #' rownames(conmat) <- 'Control > Patient'
 #'
 #' g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
-#'   measure='strength', con.mat=conmat, alt='greater', permute=TRUE, long=TRUE)
+#'   measure='strength', contrasts=conmat, alt='greater', permute=TRUE, long=TRUE)
 #' }
-brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'),
+brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', 'f'),
                            outcome=NULL, X=NULL, con.name=NULL,
                            alternative=c('two.sided', 'less', 'greater'),
                            alpha=0.05, level=c('vertex', 'graph'),
@@ -153,11 +155,15 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
   # Initial GLM setup
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
-  if (ctype == 'f') alt <- 'two.sided'
+  if (ctype == 'f') {
+    alt <- 'two.sided'
+  } else {
+    if (is.list(contrasts)) stop('t-contrasts must be in matrix/vector form.')
+  }
   covars <- copy(covars)
-  glmSetup <- setup_glm(covars, X, con.mat, ctype, con.name, measure, outcome, DT.y.m, level, ...)
+  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, level, ...)
   covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
-  con.mat <- glmSetup$con.mat; con.name <- glmSetup$con.name; nC <- glmSetup$nC
+  contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; nC <- glmSetup$nC
   DT.y.m <- glmSetup$DT.y.m; outcome <- glmSetup$outcome
   if (!is.null(outcome) && level == 'vertex') DT.X.m <- glmSetup$DT.X.m
   if (level == 'vertex') {
@@ -187,11 +193,11 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
     DT.lm <- setNames(vector('list', length(runX)), runX)
     for (k in runX) {
       DT.lm[[k]] <- glm_fit_helper(DT.y.m[region == k], X[, , k],
-                                   ctype, con.mat, alt, outcome, 'region', alpha)
+                                   ctype, contrasts, alt, outcome, 'region', alpha)
     }
     DT.lm <- rbindlist(DT.lm)
   } else {
-    DT.lm <- glm_fit_helper(DT.y.m, X, ctype, con.mat, alt, outcome, 'region', alpha)
+    DT.lm <- glm_fit_helper(DT.y.m, X, ctype, contrasts, alt, outcome, 'region', alpha)
   }
   DT.lm[, Outcome := outcome]
   DT.lm[, p.fdr :=  p.adjust(p, 'fdr'), by=contrast]
@@ -214,13 +220,13 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
       null.dist <- setNames(vector('list', length(runX)), runX)
       for (k in intersect(runX, runY)) {
         null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
-                                    nC, outcome, X[, , k], con.mat, alt)
+                                    nC, outcome, X[, , k], contrasts, alt)
       }
       null.dist <- rbindlist(null.dist, idcol='region')
       null.dist <- cbind(null.dist, data.table(perm=rep(seq_len(N), times=length(runX))))
       null.dist <- null.dist[, myMax(V1), by=list(perm, contrast)][, !'perm']
     } else {
-      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY], nC, outcome, X, con.mat, alt)
+      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY], nC, outcome, X, contrasts, alt)
     }
     mySort <- sortfun(alt)
     null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
@@ -235,7 +241,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 
   perm <- list(thresh=null.thresh)
   if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
-  out <- list(level=level, covars=covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, con.mat=con.mat,
+  out <- list(level=level, covars=covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
               con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=incomp,
               permute=permute, perm.method=perm.method, part.method=part.method, N=N, perm=perm)
   if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
@@ -265,7 +271,7 @@ brainGraph_GLM <- function(g.list, covars, measure, con.mat, con.type=c('t', 'f'
 #' @aliases setup_glm
 #' @rdname glm_helpers
 
-setup_glm <- function(covars, X, con.mat, con.type, con.name, measure, outcome, DT.y.m, level, ...) {
+setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, level, ...) {
   Study.ID <- region <- NULL
   covars <- droplevels(covars)
   if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
@@ -300,47 +306,72 @@ setup_glm <- function(covars, X, con.mat, con.type, con.name, measure, outcome, 
   } else {
     outcome <- measure
   }
-
-  # Get design matrix and contrast + column names
   if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
-  if (is.vector(con.mat)) con.mat <- t(con.mat)
-  stopifnot(ncol(X) == ncol(con.mat))
   rownames(X) <- covars$Study.ID
-  tmp <- contrast_names(con.mat, con.type, con.name)
-  con.mat <- tmp$con.mat; con.name <- tmp$con.name; nC <- tmp$nC
-  if (is.null(colnames(con.mat))) colnames(con.mat) <- colnames(X)
 
-  out <- list(covars=covars, incomp=incomp, X=X, con.mat=con.mat, con.name=con.name,
-              nC=nC, DT.y.m=DT.y.m, outcome=outcome)
+  tmp <- contrast_names(contrasts, con.type, con.name, X)
+  out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,
+              nC=tmp$nC, DT.y.m=DT.y.m, outcome=outcome)
   if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
   return(out)
 }
 
-#' Create contrast names for GLM analysis
+#' Set contrast and column names for GLM analysis
 #'
-#' Simple helper function to generate contrast names for GLM functions.
+#' Simple helper function to check the dimensions of contrasts, generate
+#' contrast names, and set column names for GLM functions. For F-contrasts, if a
+#' \code{matrix} is given, convert it to a \code{list} to simplify processing
+#' later.
 #' @keywords internal
 #' @rdname glm_helpers
 
-contrast_names <- function(con.mat, con.type, con.name) {
-  nC <- ifelse(con.type == 't', nrow(con.mat), 1)
-  if (is.null(con.name)) {
-    if (!is.null(rownames(con.mat))) {
-      con.name <- rownames(con.mat)
-      if (con.type == 'f') con.name <- rownames(con.mat)[1]
+contrast_names <- function(contrasts, con.type, con.name, X) {
+
+  if (is.list(contrasts)) {
+    stopifnot(all(vapply(contrasts, ncol, integer(1)) == ncol(X)))
+    nC <- length(contrasts)
+
+    if (is.null(con.name)) {
+      if (is.null(names(contrasts))) {
+        con.name <- names(contrasts) <- paste('Contrast', seq_len(nC))
+      } else {
+        con.name <- names(contrasts)
+      }
     } else {
-      con.name <- rownames(con.mat) <- paste('Contrast', seq_len(nC))
+      if (length(con.name) < nC) {
+        con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
+      }
+      names(contrasts) <- con.name
     }
+    for (i in seq_len(nC)) colnames(contrasts[[i]]) <- colnames(X)
+
+  # Contrast vector/matrix
   } else {
-    if (con.type == 't' & length(con.name) < nC) {
-      con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
-      rownames(con.mat) <- con.name
-    } else if (con.type == 'f') {
-      con.name <- con.name[1]
-      rownames(con.mat) <- c(con.name, rep('', nrow(con.mat) - 1))
+    if (is.vector(contrasts)) contrasts <- t(contrasts)
+    stopifnot(ncol(X) == ncol(contrasts))
+    nC <- ifelse(con.type == 't', nrow(contrasts), 1)
+
+    if (is.null(con.name)) {
+      if (!is.null(rownames(contrasts))) {
+        con.name <- rownames(contrasts)
+        if (con.type == 'f') con.name <- rownames(contrasts)[1]
+      } else {
+        con.name <- rownames(contrasts) <- paste('Contrast', seq_len(nC))
+      }
+    } else {
+      if (con.type == 't' & length(con.name) < nC) {
+        con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
+        rownames(contrasts) <- con.name
+      } else if (con.type == 'f') {
+        con.name <- con.name[1]
+        rownames(contrasts) <- c(con.name, rep('', nrow(contrasts) - 1))
+      }
     }
+    if (is.null(colnames(contrasts))) colnames(contrasts) <- colnames(X)
+    if (con.type == 'f') contrasts <- list(con.name=contrasts)
   }
-  return(list(con.mat=con.mat, con.name=con.name, nC=nC))
+
+  return(list(contrasts=contrasts, con.name=con.name, nC=nC))
 }
 
 ################################################################################
@@ -353,21 +384,26 @@ contrast_names <- function(con.mat, con.type, con.name) {
 #'   \code{region} (which is just \code{graph} if \code{level='graph'}), and the
 #'   outcome measure(s)
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
-#'   analyses)
+#'   analyses). For GLM, it is \code{'region'}; for NBS, it is
+#'   \code{'Var1,Var2'}.
 #' @inheritParams GLM
 #' @keywords internal
 #' @aliases glm_fit_helper
 #' @rdname glm_helpers
 
-glm_fit_helper <- function(DT, X, con.type, con.mat, alt, outcome, mykey, alpha=NULL) {
+glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alpha=NULL) {
   ESS <- numer <- stat <- se <- p <- contrast <- ci.low <- ci.high <- NULL
   dfR <- nrow(X) - ncol(X)
 
   XtX <- solve(crossprod(X))
   if (con.type == 'f') {
-    CXtX <- solve(con.mat %*% XtX %*% t(con.mat))
-    rkC <- qr(con.mat)$rank
-    DT.lm <- DT[, brainGraph_GLM_fit_f(X, get(outcome), dfR, con.mat, rkC, CXtX), by=mykey]
+    DT.lm <- vector('list', length(contrasts))
+    CXtX <- lapply(contrasts, function(x) solve(x %*% XtX %*% t(x)))
+    rkC <- unlist(lapply(contrasts, function(x) qr(x)$rank))
+    for (i in seq_along(contrasts)) {
+      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_f(X, get(outcome), dfR, contrasts[[i]], rkC[i], CXtX[[i]]), by=mykey]
+    }
+    DT.lm <- rbindlist(DT.lm, idcol='contrast')
     DT.lm[, ESS := numer * rkC]
     DT.lm[, stat := (numer / (se / dfR))]
     DT.lm[, numer := NULL]
@@ -378,9 +414,9 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, outcome, mykey, alpha=
                    less=function(stat, df) pt(stat, df),
                    greater=function(stat, df) pt(stat, df, lower.tail=FALSE))
 
-    DT.lm <- vector('list', nrow(con.mat))
+    DT.lm <- vector('list', nrow(contrasts))
     for (i in seq_along(DT.lm)) {
-      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_t(X, get(outcome), XtX, con.mat[i, , drop=FALSE]), by=mykey]
+      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_t(X, get(outcome), XtX, contrasts[i, , drop=FALSE]), by=mykey]
     }
     DT.lm <- rbindlist(DT.lm, idcol='contrast')
     DT.lm[, stat := gamma / se]
@@ -397,7 +433,7 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, outcome, mykey, alpha=
 #'
 #' \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,
 #' uni-dimensional contrasts) and returns the contrasts of parameter estimates,
-#' standard errors, t-statistics, and p-values. If a contrast matrix is
+#' standard errors, t-statistics, and P-values. If a contrast matrix is
 #' supplied, it will return the above values for each row of the matrix.
 #'
 #' For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and
@@ -405,6 +441,7 @@ glm_fit_helper <- function(DT, X, con.type, con.mat, alt, outcome, mykey, alpha=
 #'
 #' @param y Numeric vector; the outcome variable
 #' @param XtX Numeric matrix
+#' @param con.mat A contrast matrix
 #' @inheritParams GLM
 #' @importFrom RcppEigen fastLmPure
 #'
@@ -430,12 +467,12 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
   list(gamma=as.numeric(gamma), se=se)
 }
 
-#' Fit linear models for f contrasts
+#' Fit linear models for F contrasts
 #'
-#' \code{brainGraph_GLM_fit_f} fits a linear model for f-contrasts (i.e.,
+#' \code{brainGraph_GLM_fit_f} fits a linear model for F contrasts (i.e.,
 #' multi-dimensional contrasts) and returns the \emph{extra sum of squares} due
 #' to the full model, the sum of squared errors of the full model, the
-#' f-statistic, and associated p-value.
+#' F-statistic, and associated P-value.
 #'
 #' @param dfR Integer; residual degrees of freedom
 #' @param rkC Integer; rank of the contrast matrix
@@ -459,7 +496,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
   SSEF <- as.numeric(crossprod(est$residuals))
 
   numer <- as.numeric(t(gamma) %*% CXtX %*% gamma / rkC)
-  list(numer=numer, se=SSEF, contrast=1)
+  list(numer=numer, se=SSEF)
 }
 
 ################################################################################
@@ -475,11 +512,11 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #' You may also choose to subset by \emph{contrast}.
 #'
 #' @param object,x A \code{bg_GLM} object
-#' @param p.sig Character string specifying which p-value to use for displaying
+#' @param p.sig Character string specifying which P-value to use for displaying
 #'   significant results (default: \code{p})
 #' @param contrast Integer specifying the contrast to plot/summarize; defaults
 #'   to showing results for all contrasts
-#' @param digits Integer specifying the number of digits to display for p-values
+#' @param digits Integer specifying the number of digits to display for P-values
 #' @param print.head Logical indicating whether or not to print only the first
 #'   and last 5 rows of the statistics tables (default: \code{TRUE})
 #' @export
@@ -491,7 +528,7 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
   stopifnot(inherits(object, 'bg_GLM'))
   Outcome <- threshold <- NULL
   object$p.sig <- match.arg(p.sig)
-  object$contrast <- contrast
+  object$printCon <- contrast
   object$digits <- digits
   object$print.head <- print.head
   DT.sum <- object$DT[get(object$p.sig) < object$alpha]
@@ -530,7 +567,6 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
 #' @keywords internal
 
 print.summary.bg_GLM <- function(x, ...) {
-  Outcome <- threshold <- contrast <- NULL
   print_title_summary('brainGraph GLM results')
   cat('Level: ', x$level, '\n')
 
@@ -567,7 +603,8 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @export
 #' @importFrom RcppEigen fastLmPure
 #' @importFrom ggrepel geom_text_repel
-#' @importFrom gridExtra arrangeGrob grid.draw grid.newpage
+#' @importFrom gridExtra arrangeGrob
+#' @importFrom grid grid.draw grid.newpage
 #' @method plot bg_GLM
 #' @rdname glm
 #'
@@ -589,6 +626,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #' }
 
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
+  cl.h <- level <- ymax <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
 
   # Local function to plot for a single region

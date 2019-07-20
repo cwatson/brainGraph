@@ -65,12 +65,12 @@
 #' \dontrun{
 #' diffs.mtpc <- mtpc(g.list=g.norm, thresholds=thresholds, N=N,
 #'      covars=covars.dti, measure='E.nodal.wt', coding='effects',
-#'      con.mat=c(0, 0, 0, 0, -2), alt='greater',
+#'      contrasts=c(0, 0, 0, 0, -2), alt='greater',
 #'      binarize=c('Sex', 'Scanner'), con.name='Group 1 > Group 2')
 #' sig.regions <- diffs.mtpc$DT[A.mtpc > A.crit]
 #' }
 
-mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', 'f'),
+mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t', 'f'),
                  outcome=NULL, con.name=NULL, level=c('vertex', 'graph'),
                  clust.size=3L, perm.method=c('freedmanLane', 'terBraak', 'smith'),
                  part.method=c('beckmann', 'guttman', 'ridgway'), N=500L, perms=NULL,
@@ -86,7 +86,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
 
   if (is.null(res.glm)) {
     res.glm <- lapply(g.list, function(z)
-      brainGraph_GLM(z, covars, measure, con.mat, con.type, outcome, con.name=con.name, N=N,
+      brainGraph_GLM(z, covars, measure, contrasts, con.type, outcome, con.name=con.name, N=N,
                      level=level, permute=TRUE, perm.method=perm.method, part.method=part.method,
                      perms=perms, alpha=alpha, long=TRUE, ...))
   }
@@ -97,7 +97,7 @@ mtpc <- function(g.list, thresholds, covars, measure, con.mat, con.type=c('t', '
   mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
   con.type <- match.arg(con.type)
-  kNumContrasts <- ifelse(con.type == 't', nrow(res.glm[[1]]$con.mat), 1)
+  kNumContrasts <- if (con.type == 't') nrow(res.glm[[1]]$contrasts) else length(res.glm[[1]]$contrasts)
   null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
   Scrit <- Acrit <- rep(0, kNumContrasts)
   myMax <- maxfun(alt)
@@ -188,7 +188,7 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
 
 summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
   A.mtpc <- A.crit <- stat <- region <- S.mtpc <- NULL
-  object$contrast <- contrast
+  object$printCon <- contrast
   object$digits <- digits
   object$print.head <- print.head
 
