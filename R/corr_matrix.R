@@ -62,27 +62,26 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
   Group <- Study.ID <- NULL
-  what <- match.arg(what)
-  type <- match.arg(type)
-  kNumVertices <- ncol(resids$resids.all) - 2
-  groups <- resids$groups
-  kNumGroups <- length(groups)
+  N <- ncol(resids$resids.all) - 2
   regions <- names(resids$resids.all)[-c(1, 2)]
+
+  # Simple helper function to get the values to threshold by
+  get_thresholds <- function(mat, densities, emax) sort(mat[lower.tri(mat)])[emax - densities * emax]
 
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
     res.all <- as.matrix(resids$resids.all[, !c('Study.ID', 'Group')])
     corrs <- rcorr(res.all)
     r <- corrs$r
-    N <- ncol(r)
     emax <- N  * (N - 1) / 2
-    thresholds <- sort(r[lower.tri(r)])[emax - densities * emax]
-    r.thresh <- array(0, dim=c(dim(r), length(thresholds)),
-                      dimnames=list(rownames(r), colnames(r)))
+    thresholds <- get_thresholds(r, densities, emax)
+    r.thresh <- array(0, dim=c(N, N, length(thresholds)), dimnames=list(regions, regions))
     for (i in seq_along(thresholds)) r.thresh[, , i] <- ifelse(r > thresholds[i], 1, 0)
     return(list(list(R=r, r.thresh=r.thresh)))
   }
 
+  what <- match.arg(what)
+  type <- match.arg(type)
   if (what == 'resids') {
     res.all <- resids$resids.all[, !'Study.ID']
   } else if (what == 'raw') {
@@ -90,11 +89,16 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     setkey(res.all, Group, Study.ID)
     res.all <- res.all[, !'Study.ID']
   }
-  if (!is.null(exclude.reg)) res.all <- res.all[, -exclude.reg, with=FALSE]
+  if (!is.null(exclude.reg)) {
+    res.all <- res.all[, -exclude.reg, with=FALSE]
+    regions <- setdiff(regions, exclude.reg)
+    N <- N - length(exclude.reg)
+  }
 
   # Loop through the groups
-  r <- p <- array(0, dim=c(kNumVertices, kNumVertices, kNumGroups),
-                  dimnames=list(regions, regions, groups))
+  groups <- resids$groups
+  kNumGroups <- length(groups)
+  r <- p <- array(0, dim=c(N, N, kNumGroups), dimnames=list(regions, regions, groups))
   r.thresh <- setNames(vector('list', kNumGroups), groups)
   if (!is.null(thresholds)) {
     kNumThresh <- length(thresholds)
@@ -114,14 +118,18 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     # Calculate a threshold so that "density"% of possible connections are present
     if (hasArg('densities')) {
       tmp <- corrs$r
-      N <- ncol(tmp)
       emax <- N  * (N - 1) / 2
-      thresh.mat[, g] <- sort(tmp[lower.tri(tmp)])[emax - densities * emax]
+      if (any(densities == 1)) {
+        i <- which(densities == 1)
+        thresh.mat[i, g] <- min(tmp, na.rm=TRUE)
+        thresh.mat[-i, g] <- get_thresholds(tmp, densities[-i], emax)
+      } else {
+        thresh.mat[, g] <- get_thresholds(tmp, densities, emax)
+      }
     }
-    r.thresh[[g]] <- array(0, dim=c(dim(r)[1:2], kNumThresh),
-                           dimnames=list(rownames(r), colnames(r)))
+    r.thresh[[g]] <- array(0, dim=c(N, N, kNumThresh), dimnames=list(regions, regions))
     for (i in seq_along(thresh.mat[, g])) {
-      r.thresh[[g]][, , i] <- ifelse(r[, , g] > thresh.mat[, g][i], 1, 0)
+      r.thresh[[g]][, , i] <- ifelse(r[, , g] > thresh.mat[i, g], 1, 0)
     }
   }
   out <- list(R=r, P=p, r.thresh=r.thresh, thresholds=thresh.mat, what=what,
@@ -169,23 +177,47 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 
 #' Plot raw or thresholded correlation matrices
 #'
+#' The \code{plot} method will plot \dQuote{heat maps} of the correlation
+#' matrices.
+#'
+#' @section Plotting correlation matrices
+#' There are several ways to control the plot appearance. First, you may plot
+#' the \dQuote{raw} correlations, or only those of the thresholded (binarized)
+#' matrices. Second, you may order the vertices by a given vertex attribute; by
+#' default, they will be ordered by \emph{lobe}, but you may also choose to
+#' order by, e.g., \emph{network} (for the \code{dosenbach160} atlas) or by
+#' \emph{community membership}. In the latter case, you need to pass a
+#' \code{brainGraphList} object to the \code{graphs} argument; each graph in the
+#' object must have a vertex attribute specified in \code{order.by}. Finally,
+#' you can control the legend text with \code{grp.names}; e.g., this could be
+#' \code{grp.names='Community'}.
+#'
 #' @param x A \code{corr_mats} object
-#' @param type Character string indicating whether to plot raw or thresholded
+#' @param mat.type Character string indicating whether to plot raw or thresholded
 #'   (binarized) matrices. Default: \code{'raw'}
 #' @param thresh.num Integer specifying which threshold to plot (if
-#'   \code{type='thresholded'}). Default: \code{1L}
+#'   \code{mat.type='thresholded'}). Default: \code{1L}
 #' @param ordered Logical indicating whether to order the vertices by some
 #'   grouping. Default: \code{TRUE}
 #' @param order.by Character string indicating how to group vertices. Default:
 #'   \code{'lobe'} (i.e., group into lobes)
-#' @param graphs Integer vector specifying the ordering. Default: \code{NULL}
+#' @param graphs A \code{brainGraphList} object containing graphs with the
+#' vertex-level attribute of interest. Default: \code{NULL}
 #' @param grp.names Character vector specifying the names of each group of
 #'   vertices. Default: \code{NULL}
 #' @param legend.title Character string for the legend title. Default is to
 #'   leave blank
 #' @param ... Unused
+#' @export
+#' @method plot corr_mats
+#' @rdname correlation_matrices
+#' @examples
+#' \dontrun{
+#' corrs <- corr.matrix(myResids, densities)
+#' plot(corrs, order.by='comm', graphs=g.list, grp.names='Community')
+#' }
 
-plot.corr_mats <- function(x, type=c('thresholded', 'raw'), thresh.num=1L,
+plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
                            ordered=TRUE, order.by='lobe', graphs=NULL,
                            grp.names=NULL, legend.title='', ...) {
   Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.cell <- col.text <- NULL
@@ -201,7 +233,7 @@ plot.corr_mats <- function(x, type=c('thresholded', 'raw'), thresh.num=1L,
   }
 
   matplots <- vector('list', length(groups))
-  type <- match.arg(type)
+  type <- match.arg(mat.type)
   if (type == 'raw') {
     mats <- x$R
     for (g in seq_along(groups)) {
@@ -227,6 +259,8 @@ plot.corr_mats <- function(x, type=c('thresholded', 'raw'), thresh.num=1L,
     if (!order.by %in% names(get(x$atlas))) {
       if (is.null(graphs)) {
         stop("Invalid 'order.by' value. Please provide 'brainGraphList' or valid name.")
+      } else {
+        stopifnot(inherits(graphs, 'brainGraphList'))
       }
       order.vec <- sapply(graphs[[thresh.num]][], vertex_attr, order.by)
       if (is.null(grp.names)) {
