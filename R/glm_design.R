@@ -76,11 +76,11 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
     cols <- names(which(sapply(covars, is.character)))
     cols <- cols[!is.element(cols, 'Study.ID')]
     cols <- setdiff(cols, binarize)
-    for (z in cols) covars[, eval(z) := as.factor(get(z))]
+    covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
   }
   if (!is.null(binarize)) {
     stopifnot(all(binarize %in% names(covars)))
-    for (b in binarize) covars[, eval(b) := as.numeric(get(b)) - 1]
+    covars[, (binarize) := lapply(.SD, function(x) as.numeric(x) - 1), .SDcols=binarize]
   }
 
   center.how <- match.arg(center.how)
@@ -92,7 +92,6 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
     } else if (center.how == 'within-groups') {
       covars[, (nums) := lapply(.SD, function(x) x - mean(x)), .SDcols=nums, by=center.by]
     }
-    for (n in nums) covars[[n]] <- covars[[n]] - mean(covars[[n]])
   }
   if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=F]))
 
@@ -136,9 +135,9 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
 
 get_int <- function(X, coding, factors, int) {
   get_colnames <- function(string, X, factors) {
-    cnames <- colnames(X)[grep(string, colnames(X))]
+    cnames <- grep(string, colnames(X), value=TRUE)
     if ((!string %in% factors) && length(cnames) > 1) {
-      cnames <- colnames(X)[grep(paste0('^', string, '$'), colnames(X))]
+      cnames <- grep(paste0('^', string, '$'), colnames(X), value=TRUE)
     }
     if (any(grepl(':', cnames))) cnames <- cnames[-grep(':', cnames)]
     return(cnames)

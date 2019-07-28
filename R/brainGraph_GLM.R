@@ -162,21 +162,19 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   }
   covars <- copy(covars)
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, level, ...)
-  covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
-  contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; nC <- glmSetup$nC
+  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name
   DT.y.m <- glmSetup$DT.y.m; outcome <- glmSetup$outcome
-  if (!is.null(outcome) && level == 'vertex') DT.X.m <- glmSetup$DT.X.m
   if (level == 'vertex') {
     if (outcome == measure) {
-      y <- as.matrix(DT.y[!Study.ID %in% incomp, -1])
-      rownames(y) <- covars$Study.ID
+      y <- as.matrix(DT.y[!Study.ID %in% glmSetup$incomp, -1])
+      rownames(y) <- glmSetup$covars$Study.ID
     } else {
       y <- DT.y.m[region == levels(region)[1], get(outcome)]
-      names(y) <- covars$Study.ID
+      names(y) <- glmSetup$covars$Study.ID
     }
   } else if (level == 'graph') {
     y <- DT.y.m[, get(outcome)]
-    names(y) <- covars$Study.ID
+    names(y) <- glmSetup$covars$Study.ID
   }
 
   #-------------------------------------
@@ -220,13 +218,14 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
       null.dist <- setNames(vector('list', length(runX)), runX)
       for (k in intersect(runX, runY)) {
         null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
-                                    nC, outcome, X[, , k], contrasts, alt)
+                                    glmSetup$nC, outcome, X[, , k], contrasts, alt)
       }
       null.dist <- rbindlist(null.dist, idcol='region')
       null.dist <- cbind(null.dist, data.table(perm=rep(seq_len(N), times=length(runX))))
       null.dist <- null.dist[, myMax(V1), by=list(perm, contrast)][, !'perm']
     } else {
-      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY], nC, outcome, X, contrasts, alt)
+      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY],
+                             glmSetup$nC, outcome, X, contrasts, alt)
     }
     mySort <- sortfun(alt)
     null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
@@ -241,10 +240,10 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 
   perm <- list(thresh=null.thresh)
   if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
-  out <- list(level=level, covars=covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
-              con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=incomp,
+  out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
+              con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp,
               permute=permute, perm.method=perm.method, part.method=part.method, N=N, perm=perm)
-  if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
+  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
   out$atlas <- if (is.null(g.list[[1]]$atlas)) guess_atlas(g.list[[1]]) else g.list[[1]]$atlas
   class(out) <- c('bg_GLM', class(out))
   return(out)
@@ -312,7 +311,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
   tmp <- contrast_names(contrasts, con.type, con.name, X)
   out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,
               nC=tmp$nC, DT.y.m=DT.y.m, outcome=outcome)
-  if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
+  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- DT.X.m
   return(out)
 }
 
@@ -368,7 +367,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
       }
     }
     if (is.null(colnames(contrasts))) colnames(contrasts) <- colnames(X)
-    if (con.type == 'f') contrasts <- list(con.name=contrasts)
+    if (con.type == 'f') contrasts <- setNames(contrasts, con.name)
   }
 
   return(list(contrasts=contrasts, con.name=con.name, nC=nC))
@@ -523,7 +522,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
 #' @method summary bg_GLM
 #' @rdname glm
 
-summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NULL,
+summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NULL, alpha=object$alpha,
                            digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
   stopifnot(inherits(object, 'bg_GLM'))
   Outcome <- threshold <- NULL
@@ -531,8 +530,8 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
   object$printCon <- contrast
   object$digits <- digits
   object$print.head <- print.head
-  DT.sum <- object$DT[get(object$p.sig) < object$alpha]
-  DT.sum[, Outcome := NULL]
+  DT.sum <- object$DT[get(object$p.sig) < alpha]
+  if (object$outcome == object$measure) DT.sum[, Outcome := NULL]
   if ('threshold' %in% names(DT.sum)) DT.sum[, threshold := NULL]
 
   # Change column order and names for `DT.sum`

@@ -57,7 +57,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
                       mode='undirected', diag=FALSE)
     }
     res <- switch(measure,
-        mod=,mod.wt=vapply(g.boot, function(y) max(modularity(cluster_louvain(y))), numeric(1)),
+        mod=,mod.wt=vapply(g.boot, function(y) max(cluster_louvain(y)$modularity), numeric(1)),
         E.global=vapply(g.boot, efficiency, numeric(1), 'global'),
         E.global.wt=vapply(g.boot, function(g) efficiency(xfm.weights(g, xfm.type), 'global'), numeric(1)),
         Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
@@ -86,7 +86,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     cl <- makeCluster(ncpus, type='SOCK')
     clusterEvalQ(cl, library(brainGraph))
   } else {
-    my.parallel='multicore'
+    my.parallel <- 'multicore'
     ncpus <- detectCores()
     cl <- NULL
   }

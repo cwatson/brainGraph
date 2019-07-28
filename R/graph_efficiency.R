@@ -60,6 +60,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     eff <- rep(0, nrow(A))
     nodes <- which(rowSums((A > 0) + 0) > 1)
     X <- apply(A, 1, function(x) which(x > 0))
+    if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
 
     if (length(nodes) > 0) {
       if (isTRUE(use.parallel)) {

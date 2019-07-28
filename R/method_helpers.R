@@ -54,7 +54,7 @@ print_bg_summary <- function(object) {
   }
 
   df <- data.frame(
-          A=c('Softare versions:',
+          A=c('Software versions',
               '       R release:', '      brainGraph:', '          igraph:',
               'Date created:', 'Observed or random?', 'Brain atlas used:',
               'Imaging modality:', 'Edge weighting:', 'Clustering method:',
@@ -96,9 +96,17 @@ print_contrast_type_summary <- function(x) {
                 less='C < 0')
   cat('Alternative hypothesis: ', alt, '\n')
   cat('Contrasts: ', '\n')
-  print(x$contrasts)
 
-  cat('\n')
+  con <- x$contrasts
+  if (is.matrix(con)) con <- list(con)
+  for (i in seq_along(con)) {
+    con[[i]] <- as.character(MASS::fractions(con[[i]]))
+    con[[i]] <- sub('^0$', '.', con[[i]])
+    if (is.list(x$contrasts)) message(x$con.name[i])
+    print(format(con[[i]], justify='right'), quote=FALSE)
+    cat('\n')
+  }
+
   invisible(x)
 }
 
@@ -107,7 +115,8 @@ print_contrast_type_summary <- function(x) {
 print_subs_summary <- function(x) {
   n <- length(x$removed.subs)
   if (n > 0) {
-    cat(n, 'subjects removed due to incomplete data:\n ', paste(x$removed.subs, collapse=', '), '\n')
+    message(n, ' subjects removed due to incomplete data:')
+    cat('  ', paste(x$removed.subs, collapse=', '), '\n')
   }
   invisible(x)
 }
@@ -117,11 +126,6 @@ print_subs_summary <- function(x) {
 print_contrast_stats_summary <- function(x) {
   contrast <- NULL
   printCon <- if (is.null(x$printCon)) x$DT[, unique(contrast)] else x$printCon
-#  if (is.null(x$printCon)) {
-#    printCon <- x$DT[, unique(contrast)]
-#  } else {
-#    printCon <- x$printCon
-#  }
   for (i in printCon) {
     message('Contrast ', i, ': ', x$con.name[i])
     if (nrow(x$DT.sum[contrast == i]) == 0) {

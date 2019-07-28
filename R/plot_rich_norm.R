@@ -52,15 +52,15 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   rects <- data.table(density=subDT[, unique(get(facet.by))], xstart=0L, xend=0L,
                       Group=rep(subDT[, unique(Group)],
                                 each=length(densities)))
-  if (!is.null(g)) {
+  if (!is.null(g.list)) {
     # Check if components are 'brainGraphList' objects
     matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
     if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
-    densities.g <- round(vapply(g, function(x) graph_attr(x[1], 'density'), numeric(1)),  2)
+    densities.g <- round(vapply(g.list, function(x) graph_attr(x[1], 'density'), numeric(1)),  2)
     densities.g <- which(densities.g %in% round(densities, 2))
-    g <- lapply(g, `[`, densities.g)
-    k <- vapply(g, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(densities)))
+    g.list <- g.list[densities.g]
+    k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(densities)))
     max.k <- apply(as.matrix(k), 1, max)
 
     rects[, xstart := max.k]
