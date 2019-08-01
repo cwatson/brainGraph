@@ -140,12 +140,12 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   g.list <- g.list[]
 
   # Get the outcome variable(s) into a data.table
-  DT.y <- data.table(Study.ID=vapply(g.list, graph_attr, character(1), 'name'))
+  DT.y <- data.table(Study.ID=names(g.list))
   level <- match.arg(level)
   if (level == 'vertex') {
     y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
-    DT.y <- cbind(DT.y, y)
-    setnames(DT.y, 2:ncol(DT.y), V(g.list[[1]])$name)
+    colnames(y) <- V(g.list[[1]])$name
+    DT.y <- as.data.table(y, keep.rownames='Study.ID')
   } else if (level == 'graph') {
     DT.y[, graph := vapply(g.list, graph_attr, numeric(1), measure)]
   }
@@ -162,18 +162,12 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   }
   covars <- copy(covars)
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, level, ...)
-  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name
-  DT.y.m <- glmSetup$DT.y.m; outcome <- glmSetup$outcome
-  if (level == 'vertex') {
-    if (outcome == measure) {
-      y <- as.matrix(DT.y[!Study.ID %in% glmSetup$incomp, -1])
-      rownames(y) <- glmSetup$covars$Study.ID
-    } else {
-      y <- DT.y.m[region == levels(region)[1], get(outcome)]
-      names(y) <- glmSetup$covars$Study.ID
-    }
-  } else if (level == 'graph') {
-    y <- DT.y.m[, get(outcome)]
+  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.y.m <- glmSetup$DT.y.m
+  if (is.null(outcome)) outcome <- measure
+  if (level == 'vertex' & outcome == measure) {
+    y <- as.matrix(DT.y[!Study.ID %in% glmSetup$incomp], rownames='Study.ID')
+  } else {
+    y <- DT.y.m[region == levels(region)[1], get(outcome)]
     names(y) <- glmSetup$covars$Study.ID
   }
 
@@ -302,16 +296,14 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
       X <- abind::abind(X, along=3)
     }
     DT.y.m[, eval(measure) := NULL]
-  } else {
-    outcome <- measure
   }
   if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
   rownames(X) <- covars$Study.ID
 
   tmp <- contrast_names(contrasts, con.type, con.name, X)
   out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,
-              nC=tmp$nC, DT.y.m=DT.y.m, outcome=outcome)
-  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- DT.X.m
+              nC=tmp$nC, DT.y.m=DT.y.m)
+  if (!is.null(outcome) && level == 'vertex') out$DT.X.m <- DT.X.m
   return(out)
 }
 
