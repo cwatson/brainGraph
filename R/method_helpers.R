@@ -65,13 +65,27 @@ print_bg_summary <- function(object) {
   return(df)
 }
 
+# Print a character vector "x" as a data.frame with "nc" columns
+#-------------------------------------------------------------------------------
+print_text_vector <- function(x, nc) {
+  div <- length(x) %/% nc
+  splits <- split(x, ceiling(seq_along(x) / div))
+  lens <- lengths(splits)
+  nsplits <- length(splits)
+  splits[[nsplits]] <- c(splits[[nsplits]], rep('', div - lens[nsplits]))
+  attrs.df <- as.data.frame(splits, stringsAsFactors=FALSE)
+  dimnames(attrs.df)[[2]] <- rep('', nsplits)
+  return(attrs.df)
+}
+
 # Print a simple title
 #-------------------------------------------------------------------------------
 print_title_summary <- function(title) {
   title <- paste(title)
-  message('\n', rep('=', getOption('width') / 2))
+  width <- max(getOption('width') / 2, nchar(title))
+  message('\n', rep('=', width))
   message(title)
-  message(rep('=', getOption('width') / 2))
+  message(rep('=', width))
 }
 
 # Print info about the outcome and/or graph measure of interest
@@ -126,15 +140,21 @@ print_subs_summary <- function(x) {
 print_contrast_stats_summary <- function(x) {
   contrast <- NULL
   printCon <- if (is.null(x$printCon)) x$DT[, unique(contrast)] else x$printCon
+
+  DT <- x$DT.sum[, !c('Contrast', 'Outcome')]
+  oldnames <- grep('p-value', names(x$DT.sum), value=TRUE)
+  newname <- if (x$con.type == 'f') 'Pr(>F)' else 'Pr(>|t|)'
+  newnames <- sub('p-value', newname, oldnames)
+  setnames(DT, oldnames, newnames)
   for (i in printCon) {
     message('Contrast ', i, ': ', x$con.name[i])
-    if (nrow(x$DT.sum[contrast == i]) == 0) {
+    if (nrow(DT[contrast == i]) == 0) {
       message('\tNo signficant results!\n')
     } else {
       if (isTRUE(x$print.head)) {
-        print(x$DT.sum[contrast == i, !c('Contrast', 'contrast')], topn=5, nrows=10, digits=x$digits)
+        print(DT[contrast == i, !'contrast'], topn=5, nrows=10, digits=x$digits)
       } else {
-        print(x$DT.sum[contrast == i, !c('Contrast', 'contrast')], digits=x$digits)
+        print(DT[contrast == i, !'contrast'], digits=x$digits)
       }
       cat('\n')
     }

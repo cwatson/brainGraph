@@ -295,9 +295,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
   if (!is.brainGraph(object)) NextMethod(generic='summary', object=object)
 
   df <- print_bg_summary(object)
-  if (object$level %in% c('Group', 'contrast')) {
-    df <- df[-14, ]
-  }
+  if (object$level != 'subject') df <- df[-14, ]
 
   print.attrs <- match.arg(print.attrs)
   if (print.attrs == 'all') {
@@ -313,16 +311,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
                     graph=graph_attr_names(object),
                     vertex=vertex_attr_names(object),
                     edge=edge_attr_names(object))
-    len <- length(attrs)
-    if (len > 0) {
-      splits <- split(attrs, ceiling(seq_along(attrs) / (len %/% 3)))
-      lens <- lengths(splits)
-      nsplits <- length(splits)
-      splits[[nsplits]] <- c(splits[[nsplits]], rep('', (len %/% 3) - lens[nsplits]))
-      attrs.df <- as.data.frame(splits)
-      dimnames(attrs.df)[[2]] <- rep('', ncol(attrs.df))
-      attrs.l[[atype]] <- attrs.df
-    }
+    if (length(attrs) > 0) attrs.l[[atype]] <- print_text_vector(attrs, 3)
   }
   out <- list(object=object, df=df, attrs=attrs.l, print.attrs=print.attrs)
   class(out) <- c('summary.brainGraph', class(out))

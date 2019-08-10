@@ -435,17 +435,17 @@ print.brainGraphList <- function(x, ...) {
   cat('\n')
 
   # Print subject/group names
-  cat(paste(tools::toTitleCase(x$level), 'names:'), '\n')
+  message(paste(tools::toTitleCase(x$level), 'names:'))
   if (kNumGraphs < 10) {
     print(gnames)
   } else {
-    splits <- split(gnames, ceiling(seq_along(gnames) / (kNumGraphs %/% 4)))
-    lens <- lengths(splits)
-    nsplits <- length(splits)
-    splits[[nsplits]] <- c(splits[[nsplits]], rep('', (kNumGraphs %/% 4) - lens[nsplits]))
-    attrs.df <- as.data.frame(splits)
-    dimnames(attrs.df)[[2]] <- rep('', ncol(attrs.df))
-    print(attrs.df)
+    attrs.df <- print_text_vector(gnames, 6)
+    print(attrs.df, row.names=FALSE)
+    cat('\n')
+  }
+  if (x$level == 'subject' && 'Group' %in% graph_attr_names(x[1])) {
+    message('Group membership:')
+    print(table(sapply(x[], graph_attr, 'Group')))
   }
   invisible(x)
 }
