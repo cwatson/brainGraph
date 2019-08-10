@@ -76,7 +76,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
     cols <- names(which(sapply(covars, is.character)))
     cols <- cols[!is.element(cols, 'Study.ID')]
     cols <- setdiff(cols, binarize)
-    covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
+    if (length(cols) > 0) covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
   }
   if (!is.null(binarize)) {
     stopifnot(all(binarize %in% names(covars)))
