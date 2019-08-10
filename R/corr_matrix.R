@@ -65,9 +65,6 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   N <- ncol(resids$resids.all) - 2
   regions <- names(resids$resids.all)[-c(1, 2)]
 
-  # Simple helper function to get the values to threshold by
-  get_thresholds <- function(mat, densities, emax) sort(mat[lower.tri(mat)])[emax - densities * emax]
-
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
     res.all <- as.matrix(resids$resids.all[, !c('Study.ID', 'Group')])

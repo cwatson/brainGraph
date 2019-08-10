@@ -166,6 +166,23 @@ get_metadata <- function(object) {
   return(object)
 }
 
+#' Calculate the threshold values to result in a specific density
+#'
+#' Given a vector of densities, this function will return the numeric values
+#' that will result in graphs of the given densities. It is assumed that the
+#' density values are all between 0 and 1.
+#'
+#' @param mat Numeric matrix that will be thresholded
+#' @param densities Numeric vector of densities
+#' @param emax Integer; the maximum number of edges
+#' @param ... Arguments passed to \code{\link{sort}}
+#' @return Numeric vector of thresholds
+#' @keywords internal
+
+get_thresholds <- function(mat, densities, emax=nrow(mat) * (nrow(mat) - 1) / 2, ...) {
+  sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
+}
+
 #' Helper function to calculate a max or min
 #'
 #' @keywords internal
