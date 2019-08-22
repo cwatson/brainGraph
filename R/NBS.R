@@ -45,7 +45,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                 part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
-  skip <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
+  value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
   stopifnot(dim(A)[3] == nrow(covars))
   Nv <- nrow(A)
 
@@ -54,66 +54,43 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
-  covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
-  contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; nC <- glmSetup$nC
+  X <- glmSetup$X; incomp <- glmSetup$incomp; contrasts <- glmSetup$contrasts; nC <- glmSetup$nC
+  if (length(incomp) > 0) A <- A[, , -glmSetup$covars[, which(Study.ID %in% incomp)]]
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
-  if (length(incomp) > 0) A <- A[, , -covars[, which(Study.ID %in% incomp)]]
   A <- symmetrize_array(A, symm.by)
-  for (k in seq_len(dim(A)[3])) {
-    x <- A[, , k]
-    x[lower.tri(x)] <- 0
-    A[, , k] <- x
-  }
+  inds.low <- which(lower.tri(A[, , 1], diag=TRUE), arr.ind=TRUE)
+  for (k in seq_len(dim(A)[3])) A[cbind(inds.low, k)] <- 0
   A.m <- setDT(melt(A))
-  inds.upper <- as.data.table(which(upper.tri(A[, , 1]), arr.ind=TRUE))
-  setnames(inds.upper, c('Var1', 'Var2'))
-  setkey(inds.upper, Var1, Var2)
-  setkey(A.m, Var1, Var2)
-  A.m <- A.m[inds.upper]
   setkey(A.m, Var1, Var2, Var3)
   pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
   A.m.sub <- A.m[pos.vals]
 
-  # Do the model fitting/estimation
-  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, contrasts, alt, outcome='value', mykey='Var1,Var2')
+  # Do the model fitting/estimation and filter based on "p.init"
+  DT.lm <- glm_fit_helper(A.m.sub, X, ctype, contrasts, alt, 'value', 'Var1,Var2')
+  DT.lm <- DT.lm[p < p.init, list(contrast, Var1, Var2, stat, p)]
 
-  # Filter based on "p.init", and create stat and p-val matrices
-  DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
-  comps.obs <- vector('list', length=length(con.name))
+  # Create stat and p-val matrices, and get observed components
+  comps.obs <- comps.perm <- vector('list', nC)
   T.max <- p.mat <- array(0, dim=c(Nv, Nv, nC))
-  compfun <- switch(alt,
-                    two.sided=function(x) abs(x) > t(abs(x)),
-                    less=function(x) x < t(x),
-                    greater=function(x) x > t(x))
-  for (j in seq_len(nC)) {
-    T.mat <- matrix(0, Nv, Nv)
-    if (nrow(DT.lm[contrast == j]) == 0) {
-      warning(sprintf('No significant differences observed for contrast %i!', j))
-      comps.obs[[j]] <- data.table(csize=0)
-      skip <- c(skip, j)
-      next
-    }
-    T.mat[DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, stat]
+  nrows <- DT.lm[, .N, by=contrast]$N
+  skip <- which(nrows == 0L)
+  if (length(skip) > 0L) comps.obs[skip] <- data.table(csize=0)
+  for (j in setdiff(seq_len(nC), skip)) {
+    T.max[, , j][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, stat]
     p.mat[, , j][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
 
-    inds.tr <- which(compfun(T.mat), arr.ind=TRUE)
-    T.max[, , j] <- ifelse(compfun(T.mat), T.mat, t(T.mat))
-    for (i in seq_len(nrow(inds.tr))) {
-      p.mat[inds.tr[i, 2], inds.tr[i, 1], j] <- p.mat[inds.tr[i, 1], inds.tr[i, 2], j]
-    }
-
-    clusts <- components(graph_from_adjacency_matrix(T.max[, , j], diag=F, mode='undirected', weighted=TRUE))
+    clusts <- components(graph_from_adjacency_matrix(T.max[, , j], diag=FALSE, mode='undirected', weighted=TRUE))
     comps.obs[[j]] <- data.table(csize=sort(unique(clusts$csize), decreasing=TRUE))
   }
   comps.obs <- rbindlist(comps.obs, idcol='contrast')
 
   part.method <- match.arg(part.method)
   perm.method <- match.arg(perm.method)
-  out <- list(X=X, p.init=p.init, con.type=ctype, contrasts=contrasts, con.name=con.name,
-              alt=alt, N=N, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
-              perm.method=perm.method, part.method=part.method)
-  if (length(skip) == length(con.name)) {
+  out <- list(covars=glmSetup$covars, X=X, con.type=ctype, contrasts=contrasts, con.name=glmSetup$con.name,
+              alt=alt, p.init=p.init, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
+              N=N, perm.method=perm.method, part.method=part.method)
+  if (length(skip) == nC) {
     out <- c(out, list(components=list(observed=comps.obs, permuted=NULL)))
     class(out) <- c('NBS', class(out))
     return(out)
@@ -122,10 +99,40 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
   if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
+  null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, nC, skip,
+                         A.m.sub, outcome='value', X, mykey='Var1,Var2')
+  dfR <- nrow(X) - ncol(X)
+  eqn <- if (ctype == 't') 'gamma / se' else 'numer / (se / dfR)'
+  null.dist[, stat := eval(parse(text=eqn))]
+  if (ctype == 't') {
+    statfun <- switch(alt,
+                      two.sided=function(stat, df) abs(stat) > qt(p.init / 2, df, lower.tail=FALSE),
+                      less=function(stat, df) stat < qt(p.init, df),
+                      greater=function(stat, df) stat > qt(p.init, df, lower.tail=FALSE))
+    null.dist <- null.dist[statfun(stat, dfR), list(contrast, Var1, Var2, stat, perm)]
+  } else {
+    statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
+    rkC <- vapply(contrasts, function(x) qr(x)$rank, integer(1))
+    null.dist <- split(null.dist, by='contrast')
+    for (j in setdiff(seq_len(nC), skip)) {
+      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC[j], dfR), list(Var1, Var2, stat, perm)]
+    }
+    null.dist <- rbindlist(null.dist, idcol='contrast')
+  }
 
-  comps.perm <- randomise_nbs(perm.method, part.method, ctype, N, perms, A.m.sub, nC, skip, p.init, X, contrasts, alt, Nv)
+  # Get the maximum component for each contrast & permutation
+  for (j in setdiff(seq_len(nC), skip)) {
+    comps.perm[[j]] <- foreach(i=null.dist[contrast == j, unique(perm)], .combine='c') %dopar% {
+      T.mat.tmp <- matrix(0, Nv, Nv)
+      T.mat.tmp[null.dist[contrast == j & perm == i, cbind(Var1, Var2)]] <- null.dist[contrast == j & perm == i, stat]
+      max(components(graph_from_adjacency_matrix(T.mat.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
+    }
+    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
+    comps.perm[[j]] <- data.table(perm=comps.perm[[j]])
+  }
+  comps.perm <- rbindlist(comps.perm, idcol='contrast')
   kNumComps <- comps.obs[, .N, by=contrast]$N
-  for (j in seq_along(con.name)) {
+  for (j in seq_len(nC)) {
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
                                               csize,
                                               rep(list(comps.perm[contrast == j, perm]), kNumComps[j]))]

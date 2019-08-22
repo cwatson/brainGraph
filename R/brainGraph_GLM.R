@@ -2,8 +2,9 @@
 #'
 #' \code{brainGraph_GLM} specifies and fits a General Linear Model (GLM) at each
 #' vertex for a given vertex measure (e.g. \emph{degree}) or at the graph-level
-#' (e.g., \emph{global efficiency}). Given a contrast matrix and type (i.e., t-
-#' or F-contrast), it will calculate the associated statistic(s).
+#' (e.g., \emph{global efficiency}). Given a contrast matrix or list of
+#' contrast(s), and contrast type (for t- or F-contrast(s), respectively) it
+#' will calculate the associated statistic(s) for the given contrast(s).
 #'
 #' The \code{measure} argument will be the graph- or vertex-level measure of
 #' interest. Often, this will serve as the model's \emph{outcome} (or dependent,
@@ -12,7 +13,9 @@
 #' outcome; e.g., IQ, age, etc. Then you could test for a direct association
 #' between the network measure and outcome of interest, or test for another
 #' association while adjusting for the network metric. For these applications,
-#' you must provide the variable name via the \code{outcome} argument.
+#' you must provide the variable name via the \code{outcome} argument. This is
+#' analogous to \code{-evperdat} in FSL's PALM and to \code{--pvr} in
+#' FreeSurfer.
 #'
 #' @section Design matrix:
 #' The GLM's \emph{design matrix} will often be identical to the \emph{model
@@ -140,14 +143,14 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   g.list <- g.list[]
 
   # Get the outcome variable(s) into a data.table
-  DT.y <- data.table(Study.ID=vapply(g.list, graph_attr, character(1), 'name'))
   level <- match.arg(level)
   if (level == 'vertex') {
     y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
-    DT.y <- cbind(DT.y, y)
-    setnames(DT.y, 2:ncol(DT.y), V(g.list[[1]])$name)
+    colnames(y) <- V(g.list[[1]])$name
+    DT.y <- as.data.table(y, keep.rownames='Study.ID')
   } else if (level == 'graph') {
-    DT.y[, graph := vapply(g.list, graph_attr, numeric(1), measure)]
+    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1), measure), keep.rownames=TRUE)
+    setnames(DT.y, names(DT.y), c('Study.ID', 'graph'))
   }
   setkey(DT.y, Study.ID)
   DT.y.m <- melt(DT.y, id.vars='Study.ID', variable.name='region', value.name=measure)
@@ -155,26 +158,16 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   # Initial GLM setup
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
-  if (ctype == 'f') {
-    alt <- 'two.sided'
-  } else {
-    if (is.list(contrasts)) stop('t-contrasts must be in matrix/vector form.')
-  }
-  covars <- copy(covars)
+  if (ctype == 'f') alt <- 'two.sided'
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, level, ...)
-  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name
-  DT.y.m <- glmSetup$DT.y.m; outcome <- glmSetup$outcome
-  if (level == 'vertex') {
-    if (outcome == measure) {
-      y <- as.matrix(DT.y[!Study.ID %in% glmSetup$incomp, -1])
-      rownames(y) <- glmSetup$covars$Study.ID
-    } else {
-      y <- DT.y.m[region == levels(region)[1], get(outcome)]
-      names(y) <- glmSetup$covars$Study.ID
-    }
-  } else if (level == 'graph') {
-    y <- DT.y.m[, get(outcome)]
-    names(y) <- glmSetup$covars$Study.ID
+  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.y.m <- glmSetup$DT.y.m
+  if (is.null(outcome)) outcome <- measure
+  regions <- DT.y.m[, levels(region)]
+  y <- matrix(DT.y.m[region %in% regions, get(outcome)], ncol=length(regions),
+              dimnames=list(DT.y.m[, unique(Study.ID)], regions))
+  if (level != 'vertex' || outcome != measure) {
+    y <- y[, 1, drop=FALSE]
+    dimnames(y)[[2]] <- outcome
   }
 
   #-------------------------------------
@@ -202,49 +195,51 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   for (i in seq_along(con.name)) DT.lm[contrast == i, Contrast := con.name[i]]
   setkey(DT.lm, contrast, region)
 
+  out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
+              con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp, permute=permute)
+  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
+  out$atlas <- if (is.null(g.list[[1]]$atlas)) guess_atlas(g.list[[1]]) else g.list[[1]]$atlas
+  class(out) <- c('bg_GLM', class(out))
+  if (!isTRUE(permute)) return(out)
+
   #-------------------------------------
   # Permutation testing
   #-------------------------------------
   null.dist <- null.thresh <- NA
-  if (isTRUE(permute)) {
-    perm.method <- match.arg(perm.method)
-    part.method <- match.arg(part.method)
-    if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
+  perm.method <- match.arg(perm.method)
+  part.method <- match.arg(part.method)
+  if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-    runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
-    # Different design matrix for each region
-    if (length(dim(X)) == 3 && level == 'vertex') {
-      myMax <- maxfun(alt)
-      null.dist <- setNames(vector('list', length(runX)), runX)
-      for (k in intersect(runX, runY)) {
-        null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
-                                    glmSetup$nC, outcome, X[, , k], contrasts, alt)
-      }
-      null.dist <- rbindlist(null.dist, idcol='region')
-      null.dist <- cbind(null.dist, data.table(perm=rep(seq_len(N), times=length(runX))))
-      null.dist <- null.dist[, myMax(V1), by=list(perm, contrast)][, !'perm']
-    } else {
-      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY],
-                             glmSetup$nC, outcome, X, contrasts, alt)
+  myMax <- maxfun(alt)
+  eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
+  dfR <- nrow(X) - ncol(X)
+  runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
+  # Different design matrix for each region
+  if (length(dim(X)) == 3 && level == 'vertex') {
+    null.dist <- setNames(vector('list', length(runX)), runX)
+    for (k in intersect(runX, runY)) {
+      null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
+                                  DT.y.m[region == k], outcome, X[, , k], 'region')
     }
-    mySort <- sortfun(alt)
-    null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
-    compfun <- switch(alt,
-                      two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
-                      less=function(x, y) sum(x <= y, na.rm=TRUE),
-                      greater=function(x, y) sum(x >= y, na.rm=TRUE))
-    for (i in seq_along(con.name)) {
-      DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
-    }
+    null.dist <- rbindlist(null.dist)
+  } else {
+    null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
+                           DT.y.m[region %in% runY], outcome, X, 'region')
+  }
+  null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
+  mySort <- sortfun(alt)
+  null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+  compfun <- switch(alt,
+                    two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
+                    less=function(x, y) sum(x <= y, na.rm=TRUE),
+                    greater=function(x, y) sum(x >= y, na.rm=TRUE))
+  for (i in seq_along(con.name)) {
+    DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
   }
 
   perm <- list(thresh=null.thresh)
   if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
-  out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
-              con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp,
-              permute=permute, perm.method=perm.method, part.method=part.method, N=N, perm=perm)
-  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
-  out$atlas <- if (is.null(g.list[[1]]$atlas)) guess_atlas(g.list[[1]]) else g.list[[1]]$atlas
+  out <- c(out, list(perm.method=perm.method, part.method=part.method, N=N, perm=perm))
   class(out) <- c('bg_GLM', class(out))
   return(out)
 }
@@ -302,16 +297,14 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
       X <- abind::abind(X, along=3)
     }
     DT.y.m[, eval(measure) := NULL]
-  } else {
-    outcome <- measure
   }
   if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
   rownames(X) <- covars$Study.ID
 
   tmp <- contrast_names(contrasts, con.type, con.name, X)
   out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,
-              nC=tmp$nC, DT.y.m=DT.y.m, outcome=outcome)
-  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- DT.X.m
+              nC=tmp$nC, DT.y.m=DT.y.m)
+  if (!is.null(outcome)) if (level == 'vertex') out$DT.X.m <- DT.X.m
   return(out)
 }
 
@@ -325,50 +318,28 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
 #' @rdname glm_helpers
 
 contrast_names <- function(contrasts, con.type, con.name, X) {
-
-  if (is.list(contrasts)) {
-    stopifnot(all(vapply(contrasts, ncol, integer(1)) == ncol(X)))
-    nC <- length(contrasts)
-
-    if (is.null(con.name)) {
-      if (is.null(names(contrasts))) {
-        con.name <- names(contrasts) <- paste('Contrast', seq_len(nC))
-      } else {
-        con.name <- names(contrasts)
-      }
-    } else {
-      if (length(con.name) < nC) {
-        con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
-      }
-      names(contrasts) <- con.name
-    }
-    for (i in seq_len(nC)) colnames(contrasts[[i]]) <- colnames(X)
-
-  # Contrast vector/matrix
-  } else {
+  if (!is.list(contrasts)) {
     if (is.vector(contrasts)) contrasts <- t(contrasts)
-    stopifnot(ncol(X) == ncol(contrasts))
-    nC <- ifelse(con.type == 't', nrow(contrasts), 1)
-
-    if (is.null(con.name)) {
-      if (!is.null(rownames(contrasts))) {
-        con.name <- rownames(contrasts)
-        if (con.type == 'f') con.name <- rownames(contrasts)[1]
-      } else {
-        con.name <- rownames(contrasts) <- paste('Contrast', seq_len(nC))
-      }
-    } else {
-      if (con.type == 't' & length(con.name) < nC) {
-        con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
-        rownames(contrasts) <- con.name
-      } else if (con.type == 'f') {
-        con.name <- con.name[1]
-        rownames(contrasts) <- c(con.name, rep('', nrow(contrasts) - 1))
-      }
-    }
-    if (is.null(colnames(contrasts))) colnames(contrasts) <- colnames(X)
-    if (con.type == 'f') contrasts <- setNames(contrasts, con.name)
+    contrasts <- if (con.type == 't') matrix2list(contrasts) else list(contrasts)
+  } else {
+    stopifnot(con.type == 'f')
   }
+
+  stopifnot(all(vapply(contrasts, ncol, integer(1)) == ncol(X)))
+  nC <- length(contrasts)
+
+  if (is.null(con.name)) {
+    if (is.null(names(contrasts))) names(contrasts) <- paste('Contrast', seq_len(nC))
+    con.name <- names(contrasts)
+  } else {
+    if (length(con.name) < nC) {
+      con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
+    }
+    names(contrasts) <- con.name
+  }
+  for (i in seq_len(nC)) dimnames(contrasts[[i]])[[2]] <- dimnames(X)[[2]]
+
+  if (con.type == 't') contrasts <- abind::abind(contrasts, along=1)
 
   return(list(contrasts=contrasts, con.name=con.name, nC=nC))
 }
@@ -379,9 +350,8 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
 
 #' Helper function for GLM fitting
 #'
-#' @param DT A data.table with all the necessary data; namely, \code{Study.ID},
-#'   \code{region} (which is just \code{graph} if \code{level='graph'}), and the
-#'   outcome measure(s)
+#' @param DT A data.table with all the necessary data; namely \code{region}
+#'   (equals \code{graph} if \code{level='graph'}), and the outcome measure(s)
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
 #'   analyses). For GLM, it is \code{'region'}; for NBS, it is
 #'   \code{'Var1,Var2'}.
@@ -421,7 +391,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
     DT.lm[, stat := gamma / se]
     DT.lm[, p := pfun(stat, dfR)]
     if (!is.null(alpha)) {
-      DT.lm[, ci.low := gamma - qt(alpha / 2, dfR, lower.tail=F) * se]
+      DT.lm[, ci.low := gamma + qt(alpha / 2, dfR) * se]
       DT.lm[, ci.high := gamma + qt(1 - (alpha / 2), dfR) * se]
     }
   }
@@ -440,7 +410,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
 #'
 #' @param y Numeric vector; the outcome variable
 #' @param XtX Numeric matrix
-#' @param con.mat A contrast matrix
+#' @param contrast A numeric matrix (1 row) for a single contrast
 #' @inheritParams GLM
 #' @importFrom RcppEigen fastLmPure
 #'
@@ -455,13 +425,13 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
+brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
   est <- fastLmPure(X, y, method=2)
   b <- est$coefficients
-  gamma <- con.mat %*% b
+  gamma <- contrast %*% b
   sigma.squared <- est$s^2
   var.covar <- sigma.squared * XtX
-  se <- sqrt(diag(con.mat %*% tcrossprod(var.covar, con.mat)))
+  se <- sqrt(diag(contrast %*% tcrossprod(var.covar, contrast)))
 
   list(gamma=as.numeric(gamma), se=se)
 }
@@ -488,10 +458,10 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, con.mat) {
 #' @aliases brainGraph_GLM_fit_f
 #' @rdname brainGraph_GLM_fit
 
-brainGraph_GLM_fit_f <- function(X, y, dfR, con.mat, rkC, CXtX) {
+brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
   est <- fastLmPure(X, y, method=2)
   b <- as.matrix(est$coefficients)
-  gamma <- con.mat %*% b
+  gamma <- contrast %*% b
   SSEF <- as.numeric(crossprod(est$residuals))
 
   numer <- as.numeric(t(gamma) %*% CXtX %*% gamma / rkC)
@@ -603,7 +573,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @importFrom RcppEigen fastLmPure
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom gridExtra arrangeGrob
-#' @importFrom grid grid.draw grid.newpage
+#' @importFrom grid gpar grid.draw grid.newpage textGrob
 #' @method plot bg_GLM
 #' @rdname glm
 #'
@@ -636,7 +606,8 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     H <- X %*% solve(crossprod(X)) %*% t(X)
     dt.p1[, leverage := diag(H)]
     dt.p1[, resid.std := resid / (est$s * sqrt(1 - leverage))]
-    dt.p1[, cook := (resid.std^2 / ncol(X)) * (leverage / (1 - leverage))]
+    dt.p1[, leverage.tr := leverage / (1 - leverage)]
+    dt.p1[, cook := (resid.std^2 / ncol(X)) * leverage.tr]
     if (isTRUE(ids)) {
       dt.p1[, ind := rownames(X)]
     } else {
@@ -659,10 +630,8 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
 
     # 2. QQ-plot
-    dt.p2 <- copy(dt.p1)
-    setkey(dt.p2, resid.std)
-    dt.p2[, x := qnorm(ppoints(resid.std))]
-    diagPlots[[2]] <- ggplot(dt.p2, aes(x=x, y=resid.std)) +
+    dt.p1[order(resid.std), x := qnorm(ppoints(resid.std))]
+    diagPlots[[2]] <- ggplot(dt.p1, aes(x=x, y=resid.std)) +
       geom_text_repel(aes(x=x, y=resid.std, label=ind), size=3) +
       geom_line(aes(x=x, y=x), col='gray50', lty=3) +
       geom_point(aes(shape=mark)) +
@@ -718,7 +687,6 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
 
     # 6. Cook's dist vs leverage
-    dt.p1[, leverage.tr := leverage / (1 - leverage)]
     diagPlots[[6]] <- ggplot(dt.p1, aes(x=leverage.tr, y=cook)) +
       geom_point(aes(shape=mark)) +
       geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
@@ -731,7 +699,8 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
            x=expression(Leverage~h[ii]), y='Cook\'s distance')
 
-    top_title <- paste0('Outcome: ', outcome, '    Region: ', region)
+    top_title <- textGrob(paste0('Outcome: ', outcome, '    Region: ', region),
+                          gp=gpar(fontface='bold', cex=1.0))
     p.all <- arrangeGrob(grobs=diagPlots[which], nrow=prows, top=top_title, bottom=model_formula)
     return(p.all)
   }
@@ -759,7 +728,6 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     p.all <- plot_single(X, x$y, region='graph-level', x$outcome, model_formula)
     grid.newpage()
     grid.draw(p.all)
-    return(p.all)
   } else if (x$level == 'vertex') {
     if (is.null(region)) {
       region <- x$DT[, levels(region)]
@@ -779,6 +747,6 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
 
     # Remove any NULL elements
     p.all[sapply(p.all, is.null)] <- NULL
-    return(p.all)
   }
+  return(p.all)
 }
