@@ -166,6 +166,20 @@ get_metadata <- function(object) {
   return(object)
 }
 
+#' Convert a matrix to a list of rows
+#'
+#' Makes working with different contrast types (i.e., t or F) a little simpler.
+#' @param mat Numeric matrix in which each row is a single contrast vector
+#' @return A list with length equal to the number of rows of \code{C}
+#' @keywords internal
+
+matrix2list <- function(mat) {
+  l <- lapply(seq_len(nrow(mat)), function(i) mat[i, , drop=FALSE])
+  nam <- dimnames(mat)[[1]]
+  if (!is.null(nam)) names(l) <- nam
+  return(l)
+}
+
 #' Helper function to calculate a max or min
 #'
 #' @keywords internal

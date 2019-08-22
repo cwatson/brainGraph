@@ -23,7 +23,7 @@
 #'   \item{Z}{Numeric matrix for the nuisance covariates}
 #'   \item{eCm}{The \emph{effective contrast}, equivalent to the original, for
 #'     the partitioned model \code{[X, Z]} and considering all covariates}
-#'   \item{eCx}{Same as \code{eCx}, but considering only \code{X}}
+#'   \item{eCx}{Same as \code{eCm}, but considering only \code{X}}
 
 partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway')) {
   part.method <- match.arg(part.method)
@@ -97,12 +97,9 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
   Mp <- MtM <- Rz <- eC <- Xp <- Zp <- CMtM <- vector('list', length=nC)
   rkC <- rep(0L, nC)
 
+  if (con.type == 't') contrasts <- matrix2list(contrasts)
   for (j in seq_len(nC)) {
-    if (con.type == 'f') {
-      parts <- partition(X, contrasts[[j]], part.method)
-    } else {
-      parts <- partition(X, contrasts[j, , drop=FALSE], part.method)
-    }
+    parts <- partition(X, contrasts[[j]], part.method)
     Mp[[j]] <- with(parts, cbind(X, Z))
     MtM[[j]] <- solve(crossprod(Mp[[j]]))
 
@@ -139,18 +136,21 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #' @param DT \code{data.table} with outcome variables
 #' @param nC Integer; the number of contrasts
 #' @inheritParams GLM
+#' @return A \code{data.table} with \code{N} rows and columns specifying the
+#'   region, permutation number, effect size (either \code{gamma} or the
+#'   numerator for the \emph{F-statistic}), and standard error
 #' @keywords internal
 
-randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure, X, contrasts, alternative) {
+randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, outcome, X, contrasts) {
   i <- region <- numer <- se <- perm <- NULL
   randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
   if (ctype == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
-  myMax <- maxfun(alternative)
   null.dist <- vector('list', length=nC)
   perm.order <- rep(seq_len(N), each=DT[, length(unique(region))])
 
+  if (perm.method == 'smith') Mp <- lapply(seq_len(nC), function(x) Rz[[x]] %*% randMats$Xp[[x]])
   #-----------------------------------------------------------------------------
   # Loop through contrasts
   #-----------------------------------------------------------------------------
@@ -161,36 +161,33 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, measure
     if (ctype == 't') {
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
+          M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
-          DT[, brainGraph_GLM_fit_t(M, get(measure), MtM, eC[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_t(M, get(outcome), MtM, eC[[j]]), by=region]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), MtM[[j]], eC[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(outcome), MtM[[j]], eC[[j]]), by=region]
         }
       }
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][, myMax(gamma / se), by=perm][, !'perm']
 
     # F-contrasts
     #-------------------------------------------------------
     } else if (ctype == 'f') {
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
+          M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
           CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, get(measure), dfR, eC[[j]], rkC[j], CMtM), by=region]
+          DT[, brainGraph_GLM_fit_f(M, get(outcome), dfR, eC[[j]], rkC[j], CMtM), by=region]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(measure), dfR, eC[[j]], rkC[j], CMtM[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(outcome), dfR, eC[[j]], rkC[j], CMtM[[j]]), by=region]
         }
       }
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][, max(numer / (se / dfR), na.rm=TRUE), by=perm][, !'perm']
     }
+    null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
   }
   null.dist <- rbindlist(null.dist, idcol='contrast')
   return(null.dist)

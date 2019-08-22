@@ -54,11 +54,10 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
-  covars <- glmSetup$covars; X <- glmSetup$X; incomp <- glmSetup$incomp
-  contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; nC <- glmSetup$nC
+  X <- glmSetup$X; incomp <- glmSetup$incomp; contrasts <- glmSetup$contrasts; nC <- glmSetup$nC
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
-  if (length(incomp) > 0) A <- A[, , -covars[, which(Study.ID %in% incomp)]]
+  if (length(incomp) > 0) A <- A[, , -glmSetup$covars[, which(Study.ID %in% incomp)]]
   A <- symmetrize_array(A, symm.by)
   for (k in seq_len(dim(A)[3])) {
     x <- A[, , k]
@@ -80,7 +79,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   # Filter based on "p.init", and create stat and p-val matrices
   DT.lm <- DT.lm[p < p.init, list(Var1, Var2, stat, p, contrast)]
-  comps.obs <- vector('list', length=length(con.name))
+  comps.obs <- vector('list', nC)
   T.max <- p.mat <- array(0, dim=c(Nv, Nv, nC))
   compfun <- switch(alt,
                     two.sided=function(x) abs(x) > t(abs(x)),
@@ -110,10 +109,10 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   part.method <- match.arg(part.method)
   perm.method <- match.arg(perm.method)
-  out <- list(X=X, p.init=p.init, con.type=ctype, contrasts=contrasts, con.name=con.name,
+  out <- list(covars=glmSetup$covars, X=X, p.init=p.init, con.type=ctype, contrasts=contrasts, con.name=glmSetup$con.name,
               alt=alt, N=N, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
               perm.method=perm.method, part.method=part.method)
-  if (length(skip) == length(con.name)) {
+  if (length(skip) == nC) {
     out <- c(out, list(components=list(observed=comps.obs, permuted=NULL)))
     class(out) <- c('NBS', class(out))
     return(out)
@@ -125,7 +124,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   comps.perm <- randomise_nbs(perm.method, part.method, ctype, N, perms, A.m.sub, nC, skip, p.init, X, contrasts, alt, Nv)
   kNumComps <- comps.obs[, .N, by=contrast]$N
-  for (j in seq_along(con.name)) {
+  for (j in seq_len(nC)) {
     comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
                                               csize,
                                               rep(list(comps.perm[contrast == j, perm]), kNumComps[j]))]
