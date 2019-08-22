@@ -133,28 +133,41 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 
 #' Randomize and fit a model and find the maximum statistic
 #'
-#' @param DT \code{data.table} with outcome variables
 #' @param nC Integer; the number of contrasts
+#' @param skip Integer vector indicating which (if any) contrasts to skip (if
+#'   there were no significant differences anywhere)
+#' @param DT \code{data.table} with outcome variables
+#' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
+#'   analyses). For GLM, it is \code{'region'}; for NBS, it is
 #' @inheritParams GLM
 #' @return A \code{data.table} with \code{N} rows and columns specifying the
 #'   region, permutation number, effect size (either \code{gamma} or the
 #'   numerator for the \emph{F-statistic}), and standard error
 #' @keywords internal
 
-randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, outcome, X, contrasts) {
-  i <- region <- numer <- se <- perm <- NULL
+randomise <- function(perm.method, part.method, N, perms,
+                      contrasts, con.type, nC, skip, DT, outcome, X, mykey) {
+  i <- region <- numer <- se <- perm <- Var1 <- Var2 <- value <- stat <- NULL
   randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
   if (ctype == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
   null.dist <- vector('list', length=nC)
-  perm.order <- rep(seq_len(N), each=DT[, length(unique(region))])
+  if (grepl(',', mykey)) {
+    v <- DT[, eval(parse(text=paste0('interaction(', mykey, ')')))]
+    perm.order <- rep(seq_len(N), each=length(unique(v)))
+    mykey <- parse(text=paste0('list(', paste0(strsplit(mykey, ',')[[1]], collapse=','), ')'))
+  } else {
+    perm.order <- rep(seq_len(N), each=DT[, length(unique(get(mykey)))])
+  }
 
   if (perm.method == 'smith') Mp <- lapply(seq_len(nC), function(x) Rz[[x]] %*% randMats$Xp[[x]])
   #-----------------------------------------------------------------------------
   # Loop through contrasts
   #-----------------------------------------------------------------------------
-  for (j in seq_len(nC)) {
+  # Change name to avoid using "get", which is slow
+  setnames(DT, outcome, 'outcome')
+  for (j in setdiff(seq_len(nC), skip)) {
 
     # T-contrasts
     #-------------------------------------------------------
@@ -163,11 +176,11 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, outcome
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
-          DT[, brainGraph_GLM_fit_t(M, get(outcome), MtM, eC[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_t(M, outcome, MtM, eC[[j]]), by=eval(mykey)]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(outcome), MtM[[j]], eC[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% outcome, MtM[[j]], eC[[j]]), by=eval(mykey)]
         }
       }
 
@@ -179,11 +192,11 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, outcome
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
           CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, get(outcome), dfR, eC[[j]], rkC[j], CMtM), by=region]
+          DT[, brainGraph_GLM_fit_f(M, outcome, dfR, eC[[j]], rkC[j], CMtM), by=eval(mykey)]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% get(outcome), dfR, eC[[j]], rkC[j], CMtM[[j]]), by=region]
+          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% outcome, dfR, eC[[j]], rkC[j], CMtM[[j]]), by=eval(mykey)]
         }
       }
     }
@@ -191,89 +204,4 @@ randomise <- function(perm.method, part.method, ctype, N, perms, DT, nC, outcome
   }
   null.dist <- rbindlist(null.dist, idcol='contrast')
   return(null.dist)
-}
-
-#' Randomize and fit a model for NBS and return the maximum statistic
-#'
-#' @param skip Integer vector of the contrast(s) to skip
-#' @inheritParams NBS
-#' @rdname randomise
-#' @keywords internal
-
-randomise_nbs <- function(perm.method, part.method, ctype, N, perms, DT, nC, skip, p.init, X, contrasts, alternative, Nv) {
-  se <- perm <- Var1 <- Var2 <- i <- value <- stat <- numer <- NULL
-  randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
-  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
-
-  if (ctype == 't') {
-    statfun <- switch(alternative,
-                      two.sided=function(stat, df) abs(stat) > qt(p.init / 2, df, lower.tail=FALSE),
-                      less=function(stat, df) stat < qt(p.init, df),
-                      greater=function(stat, df) stat > qt(p.init, df, lower.tail=FALSE))
-  } else {
-    statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
-    CMtM <- randMats$CMtM; rkC <- randMats$rkC
-  }
-  maxfun.mat <- switch(alternative,
-                       two.sided=function(mat) ifelse(abs(mat) > t(abs(mat)), mat, t(mat)),
-                       less=function(mat) pmin(mat, t(mat)),
-                       greater=function(mat) pmax(mat, t(mat)))
-  null.dist <- comps.perm <- vector('list', length=nC)
-  perm.order <- rep(seq_len(N), each=DT[, length(unique(interaction(Var1, Var2)))])
-
-  #-----------------------------------------------------------------------------
-  # Loop through contrasts
-  #-----------------------------------------------------------------------------
-  for (j in seq_len(nC)) {
-    if (j %in% skip) next
-
-    # T-contrasts
-    #-------------------------------------------------------
-    if (ctype == 't') {
-      if (perm.method == 'smith') {
-        null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
-          MtM <- solve(crossprod(M))
-          DT[, brainGraph_GLM_fit_t(M, value, MtM, eC[[j]]), by=list(Var1, Var2)]
-        }
-      } else {
-        null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_t(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, MtM[[j]], eC[[j]]), by=list(Var1, Var2)]
-        }
-      }
-      null.dist[[j]][, stat := gamma / se]
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][statfun(stat, dfR), list(Var1, Var2, stat, perm)]
-
-    # F-contrasts
-    #-------------------------------------------------------
-    } else {
-      if (perm.method == 'smith') {
-        null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          M <- cbind(Rz[[j]][perms[i, ], ] %*% randMats$Xp[[j]], randMats$Zp[[j]])
-          MtM <- solve(crossprod(M))
-          CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, value, dfR, eC[[j]], rkC[j], CMtM), by=list(Var1, Var2)]
-        }
-      } else {
-        null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% value, dfR, eC[[j]], rkC[j], CMtM[[j]]), by=list(Var1, Var2)]
-        }
-      }
-      null.dist[[j]][, stat := numer / (se / dfR)]
-      null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
-      null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC[j], dfR), list(Var1, Var2, stat, perm)]
-    }
-
-    comps.perm[[j]] <- foreach(i=null.dist[[j]][, unique(perm)], .combine='c') %dopar% {
-      T.mat.tmp <- matrix(0, Nv, Nv)
-      T.mat.tmp[null.dist[[j]][perm == i, cbind(Var1, Var2)]] <- null.dist[[j]][perm == i, stat]
-      T.max.tmp <- maxfun.mat(T.mat.tmp)
-      max(components(graph_from_adjacency_matrix(T.max.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
-    }
-    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
-    comps.perm[[j]] <- data.table(perm=comps.perm[[j]])
-  }
-  comps.perm <- rbindlist(comps.perm, idcol='contrast')
-  return(comps.perm)
 }

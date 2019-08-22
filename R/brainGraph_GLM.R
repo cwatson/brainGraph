@@ -218,13 +218,13 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   if (length(dim(X)) == 3 && level == 'vertex') {
     null.dist <- setNames(vector('list', length(runX)), runX)
     for (k in intersect(runX, runY)) {
-      null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
-                                  glmSetup$nC, outcome, X[, , k], contrasts)
+      null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
+                                  DT.y.m[region == k], outcome, X[, , k], 'region')
     }
     null.dist <- rbindlist(null.dist)
   } else {
-    null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY],
-                           glmSetup$nC, outcome, X, contrasts)
+    null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
+                           DT.y.m[region %in% runY], outcome, X, 'region')
   }
   null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
   mySort <- sortfun(alt)
@@ -391,7 +391,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
     DT.lm[, stat := gamma / se]
     DT.lm[, p := pfun(stat, dfR)]
     if (!is.null(alpha)) {
-      DT.lm[, ci.low := gamma - qt(alpha / 2, dfR, lower.tail=F) * se]
+      DT.lm[, ci.low := gamma + qt(alpha / 2, dfR) * se]
       DT.lm[, ci.high := gamma + qt(1 - (alpha / 2), dfR) * se]
     }
   }
