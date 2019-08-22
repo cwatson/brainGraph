@@ -206,36 +206,36 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   # Permutation testing
   #-------------------------------------
   null.dist <- null.thresh <- NA
-    perm.method <- match.arg(perm.method)
-    part.method <- match.arg(part.method)
-    if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
+  perm.method <- match.arg(perm.method)
+  part.method <- match.arg(part.method)
+  if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
 
-    myMax <- maxfun(alt)
-    eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
-    dfR <- nrow(X) - ncol(X)
-    runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
-    # Different design matrix for each region
-    if (length(dim(X)) == 3 && level == 'vertex') {
-      null.dist <- setNames(vector('list', length(runX)), runX)
-      for (k in intersect(runX, runY)) {
-        null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
-                                    glmSetup$nC, outcome, X[, , k], contrasts)
-      }
-      null.dist <- rbindlist(null.dist)
-    } else {
-      null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY],
-                             glmSetup$nC, outcome, X, contrasts)
+  myMax <- maxfun(alt)
+  eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
+  dfR <- nrow(X) - ncol(X)
+  runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
+  # Different design matrix for each region
+  if (length(dim(X)) == 3 && level == 'vertex') {
+    null.dist <- setNames(vector('list', length(runX)), runX)
+    for (k in intersect(runX, runY)) {
+      null.dist[[k]] <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region == k],
+                                  glmSetup$nC, outcome, X[, , k], contrasts)
     }
-    null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
-    mySort <- sortfun(alt)
-    null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
-    compfun <- switch(alt,
-                      two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
-                      less=function(x, y) sum(x <= y, na.rm=TRUE),
-                      greater=function(x, y) sum(x >= y, na.rm=TRUE))
-    for (i in seq_along(con.name)) {
-      DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
-    }
+    null.dist <- rbindlist(null.dist)
+  } else {
+    null.dist <- randomise(perm.method, part.method, ctype, N, perms, DT.y.m[region %in% runY],
+                           glmSetup$nC, outcome, X, contrasts)
+  }
+  null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
+  mySort <- sortfun(alt)
+  null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+  compfun <- switch(alt,
+                    two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
+                    less=function(x, y) sum(x <= y, na.rm=TRUE),
+                    greater=function(x, y) sum(x >= y, na.rm=TRUE))
+  for (i in seq_along(con.name)) {
+    DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
+  }
 
   perm <- list(thresh=null.thresh)
   if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
