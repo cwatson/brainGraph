@@ -144,14 +144,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 
   # Get the outcome variable(s) into a data.table
   level <- match.arg(level)
-  if (level == 'vertex') {
-    y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
-    colnames(y) <- V(g.list[[1]])$name
-    DT.y <- as.data.table(y, keep.rownames='Study.ID')
-  } else if (level == 'graph') {
-    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1), measure), keep.rownames=TRUE)
-    setnames(DT.y, names(DT.y), c('Study.ID', 'graph'))
-  }
+  DT.y <- glm_data_table(g.list, level, measure)
   setkey(DT.y, Study.ID)
   DT.y.m <- melt(DT.y, id.vars='Study.ID', variable.name='region', value.name=measure)
 
@@ -198,7 +191,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
               con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp, permute=permute)
   if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
-  out$atlas <- if (is.null(g.list[[1]]$atlas)) guess_atlas(g.list[[1]]) else g.list[[1]]$atlas
+  out$atlas <- guess_atlas(g.list[[1]])
   class(out) <- c('bg_GLM', class(out))
   if (!isTRUE(permute)) return(out)
 
@@ -292,7 +285,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
       # Get all design matrices into a 3-D array
       X <- setNames(vector('list', DT.X.m[, nlevels(region)]), DT.X.m[, levels(region)])
       for (rgn in DT.X.m[, levels(region)]) {
-        X[[rgn]] <- brainGraph_GLM_design(DT.X.m[region == rgn, !'region', with=F], ...)
+        X[[rgn]] <- brainGraph_GLM_design(DT.X.m[region == rgn, !'region', with=FALSE], ...)
       }
       X <- abind::abind(X, along=3)
     }

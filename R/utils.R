@@ -131,13 +131,10 @@ cor.diff.test <- function(r1, r2, n1, n2,
   diff.z <- (z1 - z2) / SEdiff
 
   alt <- match.arg(alternative)
-  if (alt == 'less') {
-    p <- pnorm(diff.z)
-  } else if (alt == 'greater') {
-    p <- pnorm(diff.z, lower.tail=F)
-  } else if (alt == 'two.sided') {
-    p <- 2 * pnorm(abs(diff.z), lower.tail=F)
-  }
+  p <- switch(alt,
+              less=pnorm(diff.z),
+              greater=pnorm(diff.z, lower.tail=FALSE),
+              two.sided=2 * pnorm(abs(diff.z), lower.tail=FALSE))
 
   return(list(p=p, z=diff.z))
 }
@@ -181,6 +178,29 @@ get_metadata <- function(object) {
 
 get_thresholds <- function(mat, densities, emax=nrow(mat) * (nrow(mat) - 1) / 2, ...) {
   sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
+}
+
+#' Create a data.table with a single graph metric
+#'
+#' Used in \code{brainGraph_GLM} and \code{brainGraph_mediate} to create a
+#' \code{data.table} with the \code{Study.ID} and column(s) for the graph- or
+#' vertex-level metric of interest.
+#'
+#' @inheritParams GLM
+#' @return A \code{data.table} with one column containing the \code{Study.ID}
+#' and 1 or more columns with the graph- or vertex-level measure of interest.
+#' @keywords internal
+
+glm_data_table <- function(g.list, level, measure) {
+  if (level == 'vertex') {
+    y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
+    colnames(y) <- V(g.list[[1]])$name
+    DT.y <- as.data.table(y, keep.rownames='Study.ID')
+  } else if (level == 'graph') {
+    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1), measure), keep.rownames=TRUE)
+    setnames(DT.y, names(DT.y), c('Study.ID', 'graph'))
+  }
+  return(DT.y)
 }
 
 #' Convert a matrix to a list of rows
@@ -246,7 +266,7 @@ symm_mean <- function(A) {
 
 rotation <- function(x, theta) {
   R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)),
-              nrow=2, ncol=2, byrow=F)
+              nrow=2, ncol=2, byrow=FALSE)
   x.rot <- x %*% R
   return(x.rot)
 }
