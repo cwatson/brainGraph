@@ -58,18 +58,18 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       weighted <- NULL
     }
     eff <- rep(0, nrow(A))
-    nodes <- which(rowSums((A > 0) + 0) > 1)
+    verts <- which(rowSums((A > 0) + 0) > 1)
     X <- apply(A, 1, function(x) which(x > 0))
     if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
 
-    if (length(nodes) > 0) {
+    if (length(verts) > 0) {
       if (isTRUE(use.parallel)) {
-        eff[nodes] <- foreach (i=nodes, .combine='c') %dopar% {
+        eff[verts] <- foreach(i=verts, .combine='c') %dopar% {
           g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
           efficiency(g.sub, 'global', weights=weights)
         }
       } else {
-        for (i in nodes) {
+        for (i in verts) {
           g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
           eff[i] <- efficiency(g.sub, 'global', weights=weights)
         }
@@ -79,7 +79,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     D <- distances(g, weights=weights)
     Nv <- nrow(D)
     Dinv <- 1 / D
-    eff <- colSums(Dinv * is.finite(Dinv), na.rm=T) / (Nv - 1)
+    eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1)
     if (type == 'global') eff <- sum(eff) / length(eff)
   }
   return(eff)

@@ -132,7 +132,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
 
   x <- get_metadata(x)
   x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas
-  DT <- get(atlas)
+  DT <- get(x$atlas)
   if (!is_named(x)) {
     V(x)$name <- DT$name
   } else {
@@ -223,7 +223,6 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
   g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
   type <- match.arg(type)
   level <- match.arg(level)
-  atlas <- if (missing(atlas)) guess_atlas(x) else atlas
   g <- make_brainGraph(g, atlas, type, level, set.attrs, modality, weighting,
                        threshold, name, Group, A=x, ...)
   return(g)
@@ -298,13 +297,10 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
   if (object$level != 'subject') df <- df[-14, ]
 
   print.attrs <- match.arg(print.attrs)
-  if (print.attrs == 'all') {
-    attrtypes <- c('graph', 'vertex', 'edge')
-  } else if (print.attrs == 'none') {
-    attrtypes <- NULL
-  } else {
-    attrtypes <- print.attrs
-  }
+  attrtypes <- switch(print.attrs,
+                      all=c('graph', 'vertex', 'edge'),
+                      none=NULL,
+                      print.attrs)
   attrs.l <- sapply(attrtypes, function(x) NULL)
   for (atype in attrtypes) {
     attrs <- switch(atype,

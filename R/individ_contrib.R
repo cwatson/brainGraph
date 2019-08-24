@@ -46,7 +46,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   group.num <- as.integer(group.vec)
   group.vec <- as.character(group.vec)
   if (level == 'global') {
-    IC <- foreach (i=seq_len(nrow(resids$resids.all)), .combine='c') %dopar% {
+    IC <- foreach(i=seq_len(nrow(resids$resids.all)), .combine='c') %dopar% {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
 
@@ -57,7 +57,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 
     DT <- data.table(resids$resids.all[, list(Study.ID, Group)], IC=IC)
   } else if (level == 'regional') {
-    RC <- foreach (i=seq_len(nrow(resids$resids.all)), .combine='rbind') %dopar% {
+    RC <- foreach(i=seq_len(nrow(resids$resids.all)), .combine='rbind') %dopar% {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
       colSums(abs(corrs$R[, , group.num[i]] - new.corrs$R[, , 1]))

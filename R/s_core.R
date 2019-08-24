@@ -33,7 +33,7 @@ s_core <- function(g, W=NULL) {
   stopifnot(is_igraph(g))
   if (!is_weighted(g)) return(coreness(g))
 
-  if (is.null(W)) W <- as_adj(g, names=F, sparse=F, attr='weight')
+  if (is.null(W)) W <- as_adj(g, names=FALSE, sparse=FALSE, attr='weight')
   ct <- 1
   s.core <- vector('integer', length=nrow(W))
   repeat {

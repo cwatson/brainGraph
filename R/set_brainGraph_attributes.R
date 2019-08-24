@@ -160,7 +160,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
         Lpv.wt <- distances(g)
         Lpv.wt[is.infinite(Lpv.wt)] <- NA
         V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
-        g$Lp.wt <- mean(Lpv.wt[upper.tri(Lpv.wt)], na.rm=T)
+        g$Lp.wt <- mean(Lpv.wt[upper.tri(Lpv.wt)], na.rm=TRUE)
 
         # Convert back to connection strength
         g <- xfm.weights(g, xfm.type, invert=TRUE)

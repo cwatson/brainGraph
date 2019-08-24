@@ -36,15 +36,9 @@
 robustness <- function(g, type=c('vertex', 'edge'),
                        measure=c('btwn.cent', 'degree', 'random'), N=1e3) {
   stopifnot(is_igraph(g))
-  group <- NULL
-  if ('Group' %in% graph_attr_names(g)) group <- g$Group
   type <- match.arg(type)
   measure <- match.arg(measure)
-  if ('max.comp' %in% graph_attr_names(g)) {
-    max.comp.orig <- g$max.comp
-  } else {
-    max.comp.orig <- max(components(g)$csize)
-  }
+  orig_max <- if ('max.comp' %in% graph_attr_names(g)) g$max.comp else max(components(g)$csize)
   if (type == 'vertex') {
     n <- vcount(g)
     removed.pct <- seq(0, 1, length=n+1)
@@ -57,7 +51,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
         g.rand <- g
         ord <- V(g.rand)$name[index[i, ]]
-        tmp <- rep(max.comp.orig, n+1)
+        tmp <- rep(orig_max, n+1)
         for (j in seq_len(n - 1)) {
           g.rand <- delete_vertices(g.rand, ord[j])
           tmp[j+1] <- max(components(g.rand)$csize)
@@ -78,7 +72,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       }
       type <- 'Targeted vertex attack'
       ord <- V(g)$name[order(val, decreasing=TRUE)]
-      max.comp.removed <- rep(max.comp.orig, n+1)
+      max.comp.removed <- rep(orig_max, n+1)
       for (i in seq_len(n - 1)) {
         g <- delete_vertices(g, ord[i])
         max.comp.removed[i+1] <- max(components(g)$csize)
@@ -99,7 +93,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
         g.rand <- g
         ord <- index[i, ]
         el <- as_edgelist(g.rand)[ord, ]
-        tmp <- rep(max.comp.orig, m+1)
+        tmp <- rep(orig_max, m+1)
         for (j in seq_len(m - 1)) {
           g.rand <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
           tmp[j+1] <- max(components(g.rand)$csize)
@@ -112,7 +106,7 @@ robustness <- function(g, type=c('vertex', 'edge'),
       type <- 'Targeted edge attack'
       ord <- order(E(g)$btwn, decreasing=TRUE)
       el <- as_edgelist(g)[ord, ]
-      max.comp.removed <- rep(max.comp.orig, length=m+1)
+      max.comp.removed <- rep(orig_max, length=m+1)
       for (i in seq_len(m - 1)) {
         g <- graph_from_edgelist(el[-seq_len(i), , drop=FALSE], directed=FALSE)
         max.comp.removed[i+1] <- max(components(g)$csize)
@@ -120,9 +114,9 @@ robustness <- function(g, type=c('vertex', 'edge'),
     }
 
   }
-  comp.pct <- max.comp.removed / max.comp.orig
+  comp.pct <- max.comp.removed / orig_max
   comp.pct[length(comp.pct)] <- 0
   out <- data.table(type=type, measure=measure, comp.pct=comp.pct, removed.pct=removed.pct)
-  if (!is.null(group)) out$Group <- group
+  if ('name' %in% graph_attr_names(g)) out$Group <- g$name
   return(out)
 }

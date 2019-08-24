@@ -82,7 +82,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   }
   p <- p +
     geom_hline(yintercept=1, size=0.5, lty=2) +
-    geom_text(aes(y=yloc, col=Group, label=star), size=6, show.legend=F)
+    geom_text(aes(y=yloc, col=Group, label=star), size=6, show.legend=FALSE)
 
   if (isTRUE(smooth)) {
     p <- p + stat_smooth(aes(col=Group, group=Group))

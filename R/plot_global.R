@@ -54,11 +54,9 @@ plot_global <- function(tidy.dt, xvar=c('density', 'threshold'), vline=NULL,
   if (!is.null(level.names)) levels(subDT$variable) <- level.names
 
   xvar <- match.arg(xvar)
-  if (xvar == 'density') {
-    p <- ggplot(subDT, aes(x=density, y=value, col=Group))
-  } else if (xvar == 'threshold') {
-    p <- ggplot(subDT, aes(x=threshold, y=value, col=Group)) + scale_x_reverse()
-  }
+  p <- switch(xvar,
+              density=ggplot(subDT, aes(x=density, y=value, col=Group)),
+              threshold=ggplot(subDT, aes(x=threshold, y=value, col=Group)) + scale_x_reverse())
 
   if ('Study.ID' %in% names(subDT)) {
     p <- p + stat_smooth(method='gam', formula=y~s(x))

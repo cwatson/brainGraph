@@ -67,36 +67,24 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
     stopifnot(!is.null(custom.atlas), exists(custom.atlas))
     atlas <- parc <- custom.atlas
   } else {
-    if (atlas %in% c('dk', 'dk.scgm')) {
-      parc <- 'aparc'
-    } else if (atlas %in% c('dkt', 'dkt.scgm')) {
-      parc <- 'aparc.DKTatlas40'
-    } else if (atlas %in% c('destrieux', 'destrieux.scgm')) {
-      parc <- 'aparc.a2009s'
-    } else {
-      stop(paste0('Invalid atlas ', atlas, '. Choose from the following:\n',
-                  paste(data(package='brainGraph')$results[, 3], collapse='\n')))
-    }
+    parc <- switch(atlas,
+                   dk=,dk.scgm='aparc',
+                   dkt=,dkt.scgm='aparc.DKTatlas40',
+                   destrieux=,destrieux.scgm='aparc.a2009s',
+                   stop(paste0('Invalid atlas ', atlas, '. Choose from the following:\n',
+                               paste(data(package='brainGraph')$results[, 3], collapse='\n'))))
   }
 
   # Cortical measures, both hemispheres
-  lhfile <- paste0(datadir, '/', parc, '_lh_', modality, '.csv')
-  rhfile <- paste0(datadir, '/', parc, '_rh_', modality, '.csv')
-  stopifnot(file.exists(lhfile), file.exists(rhfile))
-  lh <- update_fs_names(lhfile, modality, parc, 'lh')
-  setkey(lh, Study.ID)
-  rh <- update_fs_names(rhfile, modality, parc, 'rh')
-  setkey(rh, Study.ID)
+  files <- file.path(datadir, paste0(parc, c('_lh_', '_rh_'), modality, '.csv'))
+  lh <- update_fs_names(files[1], modality, parc, 'lh', exclude.subs)
+  rh <- update_fs_names(files[2], modality, parc, 'rh', exclude.subs)
   lhrh <- merge(lh, rh)
-  if (!is.null(exclude.subs)) lhrh <- lhrh[!Study.ID %in% exclude.subs]
 
   # Subcortical measures
   if (grepl('scgm', atlas)) {
-    asegfile <- paste0(datadir, '/asegstats.csv')
-    stopifnot(file.exists(asegfile))
-    scgm <- update_fs_names(asegfile, 'aseg')
-    setkey(scgm, Study.ID)
-    if (!is.null(exclude.subs)) scgm <- scgm[!Study.ID %in% exclude.subs]
+    asegfile <- file.path(datadir, 'asegstats.csv')
+    scgm <- update_fs_names(asegfile, 'aseg', exclude.subs)
     missing <- union(setdiff(scgm$Study.ID, lhrh$Study.ID), setdiff(lhrh$Study.ID, scgm$Study.ID))
   }
 
@@ -110,14 +98,14 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
 #' \code{brainGraph} atlases.
 #' @keywords internal
 
-update_fs_names <- function(filename, modality, parcellation, hemi) {
+update_fs_names <- function(filename, modality, parcellation, hemi, exclude.subs) {
   Study.ID <- NULL
+  stopifnot(file.exists(filename))
   DT <- fread(filename, colClasses=list(character=1))
   names(DT)[1] <- 'Study.ID'
-  DT[, Study.ID := as.character(Study.ID)]
 
   if (modality == 'aseg') {
-    DT <- DT[, 1:15, with=F]
+    DT <- DT[, 1:15, with=FALSE]
     names(DT) <- gsub('Left-', 'l', names(DT))
     names(DT) <- gsub('Right-', 'r', names(DT))
     names(DT) <- gsub('Thalamus.Proper', 'THAL', names(DT))
@@ -154,5 +142,7 @@ update_fs_names <- function(filename, modality, parcellation, hemi) {
     }
   }
 
+  setkey(DT, Study.ID)
+  if (!is.null(exclude.subs)) DT <- DT[!Study.ID %in% exclude.subs]
   return(DT)
 }

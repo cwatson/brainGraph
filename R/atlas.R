@@ -15,22 +15,18 @@ guess_atlas <- function(x) {
   Nv <- sapply(bgAtlases, function(x) nrow(get(x)))
 
   # Currently works only for 'dt.vol' from `get.resid`
-  if (is.data.table(x)) {
-    n <- ncol(x)
-    if ('Study.ID' %in% names(x)) n <- n - 1
-  } else if (is_igraph(x)) {
-    n <- vcount(x)
-  } else if (is.matrix(x)) {
-    n <- nrow(x)
-  } else {
-    n <- x
-  }
+  n <- switch(class(x)[1],
+              data.frame=,data.table=ncol(x) - ('Study.ID' %in% names(x)),
+              igraph=vcount(x),
+              brainGraph=if (is.null(x$atlas)) vcount(x) else x$atlas,
+              matrix=,array=nrow(x),
+              x)
 
-  matched <- which(Nv == n)
-  if (length(matched > 0)) {
-    atlas <- names(matched)
+  if (is.character(n)) {
+    atlas <- n
   } else {
-    atlas <- NA_character_
+    matched <- which(Nv == n)
+    atlas <- if (length(matched > 0)) names(matched) else NA_character_
   }
   return(atlas)
 }
@@ -80,17 +76,11 @@ as_atlas <- function(object) {
     stop(paste('Atlas is invalid. Required columns are:\n', paste(atlas_cols, collapse=' ')))
   }
 
-  if (!is.factor(object$lobe)) {
-    warning('Coercing "lobe" column to factor')
-    object[, lobe := as.factor(lobe)]
-  }
-  if (!is.factor(object$hemi)) {
-    warning('Coercing "hemi" column to factor')
-    object[, hemi := as.factor(hemi)]
-  }
-  if (!is.character(object$name)) {
-    warning('Coercing "name" column to character')
-    object[, name := as.character(name)]
+  for (col in c('lobe', 'hemi', 'name')) {
+    if (!is.factor(object[[col]])) {
+      warning('Coercing "', col, '" column to factor')
+      object[, eval(col) := as.factor(get(col))]
+    }
   }
   other_names <- setdiff(atlas_cols, names(object))
   setcolorder(object, c(atlas_cols, other_names))

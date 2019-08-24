@@ -137,7 +137,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 #'   \item{p}{The number of parameters}
 
 get_lm_vars <- function(covars, exclude.cov, ...) {
-  X <- brainGraph_GLM_design(covars[, !exclude.cov, with=F], ...)
+  X <- brainGraph_GLM_design(covars[, !exclude.cov, with=FALSE], ...)
   H <- X %*% solve(crossprod(X)) %*% t(X)
   lev <- diag(H)
   n <- nrow(X)

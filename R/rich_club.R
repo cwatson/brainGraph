@@ -38,8 +38,8 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE) {
   if (Nk == 0) {
     return(list(phi=NaN, graph=make_empty_graph(), Nk=0, Ek=0))
   } else {
-    rich.club.nodes <- order(degs)[(Nv - Nk + 1):Nv]
-    rich.club.graph <- induced_subgraph(g, rich.club.nodes)
+    rich.club.verts <- order(degs)[(Nv - Nk + 1):Nv]
+    rich.club.graph <- induced_subgraph(g, rich.club.verts)
     Ek <- ecount(rich.club.graph)
 
     if (isTRUE(weighted)) {

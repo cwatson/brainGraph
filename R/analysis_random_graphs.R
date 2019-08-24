@@ -63,8 +63,7 @@ analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, save
     progbar <- txtProgressBar(min=0, max=kNumSubj[i], style=3)
     for (j in seq_along(g.list[[i]]$graphs)) {
       rand <- sim.rand.graph.par(g.list[[i]][j], level=level, N=N, atlas=g.list[[i]]$atlas, ...)
-      saveRDS(rand, file=paste0(savedir, '/',
-                                sprintf('rand%02i_sub%04i%s', i, j, '.rds')))
+      saveRDS(rand, file=file.path(savedir, sprintf('rand%02i_sub%04i%s', i, j, '.rds')))
       phi.norm[[i]][[j]] <- rich_club_norm(g.list[[i]][j], rand=rand)
       rm(list='rand')
       gc()
@@ -79,7 +78,7 @@ analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, save
     fnames <- list.files(savedir, sprintf('rand%02i.*', i), full.names=TRUE)
     rand.all <- lapply(fnames, readRDS)
     rand.all <- as_brainGraphList(rand.all, type='random', level=level)
-    saveRDS(rand.all, file=paste0(savedir, '/', sprintf('rand%02i%s', i, '_all.rds')))
+    saveRDS(rand.all, file=file.path(savedir, sprintf('rand%02i%s', i, '_all.rds')))
 
     small.dt[[i]] <- small.world(g.list[[i]], rand.all)
     rand.dt[[i]] <- get_rand_attrs(rand.all, level)

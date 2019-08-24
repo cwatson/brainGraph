@@ -101,7 +101,7 @@ vertex_attr_dt <- function(bg.list) {
   }
   setcolorder(dt.V,
               c('density', 'region', 'lobe', 'hemi',
-                names(dt.V[, !c('density', 'region', 'lobe', 'hemi'), with=F])))
+                names(dt.V[, !c('density', 'region', 'lobe', 'hemi'), with=FALSE])))
 
   return(dt.V)
 }

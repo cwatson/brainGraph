@@ -45,12 +45,10 @@ print_bg_summary <- function(object) {
     dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
     if (!is.null(object$name)) name <- object$name
     if (!is.null(object$Group)) Group <- object$Group
-    name_str <- 'Subject ID:'
-    if (object$level == 'group') {
-      name_str <- 'Group:'
-    } else if (object$level == 'contrast') {
-      name_str <- 'Contrast:'
-    }
+    name_str <- switch(object$level,
+                       group='Group:',
+                       contrast='Contrast:',
+                       'Subject ID:')
   }
 
   df <- data.frame(

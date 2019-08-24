@@ -135,7 +135,7 @@ make_graphs_perm <- function(densities, resids, inds, groups) {
                   corr.matrix(resids[which(groups[inds] == x)],
                               densities=densities, rand=TRUE))
   sapply(corrs, lapply, function(x)
-         apply(x$r.thresh, 3, graph_from_adjacency_matrix, mode='undirected', diag=F))
+         apply(x$r.thresh, 3, graph_from_adjacency_matrix, mode='undirected', diag=FALSE))
 }
 
 # Graph level
@@ -184,7 +184,7 @@ vertex_attr_perm <- function(measure, g, densities) {
     E.nodal=lapply(g, function(x) t(sapply(x, efficiency, 'nodal'))),
     ev.cent=lapply(g, function(x) t(sapply(x, function(y) centr_eigen(y)$vector))),
     knn=lapply(g, function(x) t(sapply(x, function(y) graph.knn(y)$knn))),
-    transitivity=lapply(g, function(x) t(sapply(x, transitivity,type='local', isolates='zero'))),
+    transitivity=lapply(g, function(x) t(sapply(x, transitivity, type='local', isolates='zero'))),
     lapply(g, function(x) t(sapply(x, function(y) centr_betw(y)$res))))
 }
 permute_vertex_foreach <- function(perms, densities, resids, groups, measure, diffFun) {
@@ -298,8 +298,8 @@ summary.brainGraph_permute <- function(object, measure=NULL,
       sum.dt[, perm.diff := permDT[, mean(get(measure)), by=list(densities, region)]$V1]
     }
   }
-  result.dt <- merge(permDT[, c('densities', 'region', measure), with=F],
-                     sum.dt[, c('densities', 'region', 'obs.diff'), with=F],
+  result.dt <- merge(permDT[, c('densities', 'region', measure), with=FALSE],
+                     sum.dt[, c('densities', 'region', 'obs.diff'), with=FALSE],
                      by=c('densities', 'region'))
 
   alt <- match.arg(alternative)
@@ -328,21 +328,12 @@ summary.brainGraph_permute <- function(object, measure=NULL,
   }
 
   meas.full <- switch(measure,
-                      mod='Modularity',
-                      E.global='Global efficiency',
-                      E.global.wt='Global efficiency (weighted)',
-                      Cp='Clustering coefficient',
-                      Lp='Characteristic path length',
-                      assort='Degree assortativity',
-                      assort.lobe='Lobe assortativity',
-                      asymm='Edge asymmetry',
-                      btwn.cent='Betweenness centrality',
-                      vulnerability='Vulnerability',
-                      degree='Degree',
-                      E.nodal='Nodal efficiency',
-                      ev.cent='Eigenvector centrality',
-                      knn='K-nearest neighbor degree',
-                      transitivity='Local transitivity')
+      degree='Degree', knn='K-nearest neighbor degree', mod='Modularity',
+      E.global='Global efficiency', E.global.wt='Global efficiency (weighted)',
+      E.nodal='Nodal efficiency', Cp='Clustering coefficient', Lp='Characteristic path length',
+      assort='Degree assortativity', assort.lobe='Lobe assortativity',
+      btwn.cent='Betweenness centrality', ev.cent='Eigenvector centrality',
+      asymm='Edge asymmetry', vulnerability='Vulnerability', transitivity='Local transitivity')
 
   p.sig <- match.arg(p.sig)
   perm.sum <- with(object, list(auc=auc, N=N, level=level, densities=densities,
@@ -362,14 +353,12 @@ print.summary.brainGraph_permute <- function(x, ...) {
   cat('Graph metric: ', x$meas.full, '\n')
   if (isTRUE(x$auc)) cat('Area-under-the-curve (AUC) calculated across', length(x$densities), 'densities:\n', x$densities, '\n')
 
-  alt <- switch(x$alt,
-                two.sided=with(x, sprintf('%s - %s != 0', groups[1], groups[2])),
-                greater=with(x, sprintf('%s - %s > 0', groups[1], groups[2])),
-                less=with(x, sprintf('%s - %s < 0', groups[1], groups[2])))
+  symb <- switch(x$alt, two.sided='!=', greater='>', less='<')
+  alt <- sprintf('%s - %s %s 0', x$groups[1], x$groups[2], symb)
   cat('Alternative hypothesis: ', alt, '\n')
   cat('Alpha: ', x$alpha, '\n\n')
   if (with(x, nrow(DT.sum[get(p.sig) < alpha])) == 0) {
-    cat ('No significant results!\n')
+    cat('No significant results!\n')
   } else {
     with(x, print(DT.sum[get(p.sig) < alpha]))
   }

@@ -93,7 +93,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
       covars[, (nums) := lapply(.SD, function(x) x - mean(x)), .SDcols=nums, by=center.by]
     }
   }
-  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=F]))
+  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=FALSE]))
 
   factors <- which(sapply(covars, class) == 'factor')
   coding <- match.arg(coding)

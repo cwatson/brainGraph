@@ -250,13 +250,10 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
   stopifnot(nrow(A) == ncol(A))
 
   symm.by <- match.arg(symm.by)
-  if (symm.by == 'avg') {
-    A <- symm_mean(A)
-  } else if (symm.by == 'max') {
-    A <- pmax(A, t(A))
-  } else if (symm.by == 'min') {
-    A <- pmin(A, t(A))
-  }
+  A <- switch(symm.by,
+              avg=symm_mean(A),
+              max=pmax(A, t(A)),
+              min=pmin(A, t(A)))
   return(A)
 }
 
