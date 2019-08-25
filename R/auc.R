@@ -21,6 +21,7 @@
 #' }
 
 make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
+  threshold <- i <- NULL
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")

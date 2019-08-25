@@ -59,6 +59,7 @@ guess_atlas <- function(x) {
 #' str(my_atlas)
 
 as_atlas <- function(object) {
+  index <- NULL
   # First, coerce to data.table
   if (!is.data.table(object)) {
     warning('Atlas is being coerced to "data.table"')

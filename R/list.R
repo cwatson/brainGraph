@@ -191,7 +191,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
                                        level='contrast', set.attrs=FALSE,
                                        modality=NULL, weighting=NULL,
                                        threshold=NULL, gnames=x$con.name, ...) {
-  contrast <- p <- p.fdr <- p.perm <- se <- stat <- region <- NULL
+  contrast <- p <- p.fdr <- p.perm <- se <- stat <- region <- ESS <- NULL
   if (x$level == 'graph') stop('Not valid for graph-level results.')
 
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting', 'threshold')

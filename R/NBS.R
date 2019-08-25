@@ -45,7 +45,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                 part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
-  value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
+  i <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
   stopifnot(dim(A)[3] == nrow(covars))
   Nv <- nrow(A)
 

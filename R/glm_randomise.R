@@ -148,9 +148,9 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 randomise <- function(perm.method, part.method, N, perms,
                       contrasts, con.type, nC, skip, DT, outcome, X, mykey) {
   i <- region <- numer <- se <- perm <- Var1 <- Var2 <- value <- stat <- NULL
-  randMats <- setup_randomise(perm.method, part.method, X, contrasts, ctype, nC)
+  randMats <- setup_randomise(perm.method, part.method, X, contrasts, con.type, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
-  if (ctype == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
+  if (con.type == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
   null.dist <- vector('list', length=nC)
   if (grepl(',', mykey)) {
@@ -171,7 +171,7 @@ randomise <- function(perm.method, part.method, N, perms,
 
     # T-contrasts
     #-------------------------------------------------------
-    if (ctype == 't') {
+    if (con.type == 't') {
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
@@ -186,7 +186,7 @@ randomise <- function(perm.method, part.method, N, perms,
 
     # F-contrasts
     #-------------------------------------------------------
-    } else if (ctype == 'f') {
+    } else if (con.type == 'f') {
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
