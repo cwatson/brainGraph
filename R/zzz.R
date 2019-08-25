@@ -24,15 +24,10 @@
 #'     \code{'session_id'}, recommended by BIDS. Default: \code{'Time'}
 #'   \item \code{bg.progress}: logical indicating whether to show progress bars
 #'     for functions that provide the option. Default: \code{TRUE}
-#'   \item \code{bg.color.palette}: character string specifying the color
-#'     palette to use for plots. This is only relevant if you are producing
-#'     graph plots with colors for vertices and/or edges. The only choices are
-#'     \code{'rgb'} (the default) and \code{'cmyk'} (which might be required by
-#'     a journal)
 #' }
 #' @docType package
 #' @name brainGraph
-#' @alias brainGraph-options
+#' @aliases brainGraph-options
 NULL
 
 #TODO: think of any more that would help ("datadir"/"studydir"? "atlas"?)
@@ -40,8 +35,7 @@ bg.options <- list(
   bg.subject_id='Study.ID',
   bg.group='Group',
   bg.session='Time',
-  bg.progress=TRUE,
-  bg.color.palette='rgb'  #TODO: think more about this; see if it's possible to allow only 'rgb'/'cmyk', and what to do from there
+  bg.progress=TRUE
 )
 
 .onLoad <- function(libname, pkgname) {
