@@ -18,10 +18,12 @@
 #'     alternative is \code{'group'}, recommended by BIDS. Default:
 #'     \code{'Group'}
 #'   \item \code{bg.session}: character string specifying the name your
-#'     project/study uses as a "time" identifier, in the case of longitudinal
-#'     studies. All imported data (e.g., covariates tables) \emph{MUST} have a
-#'     column matching this. One possible alternative is \code{'session_id'},
-#'     recommended by BIDS. Default: \code{'Time'}
+#'     project/study uses as a \dQuote{time} or session identifier, in the case
+#'     of longitudinal studies. All imported data (e.g., covariates tables)
+#'     \emph{MUST} have a column matching this. One possible alternative is
+#'     \code{'session_id'}, recommended by BIDS. Default: \code{'Time'}
+#'   \item \code{bg.progress}: logical indicating whether to show progress bars
+#'     for functions that provide the option. Default: \code{TRUE}
 #'   \item \code{bg.color.palette}: character string specifying the color
 #'     palette to use for plots. This is only relevant if you are producing
 #'     graph plots with colors for vertices and/or edges. The only choices are
@@ -29,7 +31,8 @@
 #'     a journal)
 #' }
 #' @docType package
-#' @name brainGraph-options
+#' @name brainGraph
+#' @alias brainGraph-options
 NULL
 
 #TODO: think of any more that would help ("datadir"/"studydir"? "atlas"?)
@@ -37,6 +40,7 @@ bg.options <- list(
   bg.subject_id='Study.ID',
   bg.group='Group',
   bg.session='Time',
+  bg.progress=TRUE,
   bg.color.palette='rgb'  #TODO: think more about this; see if it's possible to allow only 'rgb'/'cmyk', and what to do from there
 )
 
