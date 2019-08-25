@@ -212,7 +212,7 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   outliers.sub <- outliers[, .N, by=Study.ID]
   outliers.sub.vec <- structure(outliers.sub$N, names=as.character(outliers.sub$Study.ID))
 
-  out <- list(DT.sum=DT,
+  out <- list(regions=myregions, DT.sum=DT,
               outliers=list(DT=outliers, region=outliers.reg.vec, subject=outliers.sub.vec))
   class(out) <- c('summary.brainGraph_resids', class(out))
   return(out)
@@ -224,12 +224,19 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
 
 print.summary.brainGraph_resids <- function(x, ...) {
   print_title_summary('Structural covariance residuals')
-  cat('Number of outliers per region: (sorted in descending order)\n')
+  cat('\n')
+  width <- getOption('width')
+  dashes <- rep('-', width / 4)
+  message('# of outliers per region: (sorted in descending order)\n', dashes)
   print(sort(x$outliers$region, decreasing=TRUE))
+  cat('\n')
 
-  cat('\n\nNumber of times each subject was an outlier: (sorted in descending order)\n')
+  message('Number of times each subject was an outlier: (sorted in descending order)\n', dashes)
   print(sort(x$outliers$subject, decreasing=TRUE))
   cat('\n')
+
+  message('Outliers\n', dashes)
+  print(x$outliers$DT[order(resids)])
   invisible(x)
 }
 

@@ -236,6 +236,7 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
 #' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @inheritParams CreateGraphs
 #' @export
+#' @method make_brainGraph bg_mediate
 #'
 #' @return A \code{brainGraph_mediate} graph object with attributes:
 #'   \item{Graph}{\emph{mediator}, \emph{treat}, \emph{outcome}, \emph{nobs}}

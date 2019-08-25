@@ -170,6 +170,7 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
 #' @param atlas Character string specifying the brain atlas to use
 #' @inheritParams brainGraphList
 #' @export
+#' @method make_brainGraphList bg_GLM
 #'
 #' @return A list of \code{igraph} graph objects (length equal to the number of
 #'   contrasts) with additional attributes:
@@ -231,6 +232,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
 #' Create graph list for MTPC results
 #'
 #' @export
+#' @method make_brainGraphList mtpc
 #' @rdname make_brainGraphList.bg_GLM
 
 make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast',
@@ -273,6 +275,7 @@ make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast'
 #' @param x A \code{NBS} object
 #' @inheritParams brainGraphList
 #' @export
+#' @method make_brainGraphList NBS
 #'
 #' @return A list of \code{igraph} graph objects (length equal to the number of
 #'   contrasts) with additional attributes:
