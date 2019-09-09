@@ -167,7 +167,8 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   # Do the model fitting/estimation
   #-------------------------------------
   # Handle the case when there is a different design matrix for each region
-  if (length(dim(X)) == 3 && level == 'vertex') {
+  dimX <- dim(X)
+  if (length(dimX) == 3 && level == 'vertex') {
     # If any columns are all 0, do not fit a model for that region
     runX <- names(which(apply(X, 3, function(p) !any(apply(p, 2, function(n) all(n == 0))))))
     if (length(runX) == 0) {
@@ -201,14 +202,14 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   null.dist <- null.thresh <- NA
   perm.method <- match.arg(perm.method)
   part.method <- match.arg(part.method)
-  if (is.null(perms) || ncol(perms) != nrow(X)) perms <- shuffleSet(n=nrow(X), nset=N)
+  if (is.null(perms) || dim(perms)[2L] != dimX[1L]) perms <- shuffleSet(n=dimX[1L], nset=N)
 
   myMax <- maxfun(alt)
   eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
-  dfR <- nrow(X) - ncol(X)
+  dfR <- dimX[1L] - dimX[2L]
   runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
   # Different design matrix for each region
-  if (length(dim(X)) == 3 && level == 'vertex') {
+  if (length(dimX) == 3 && level == 'vertex') {
     null.dist <- setNames(vector('list', length(runX)), runX)
     for (k in intersect(runX, runY)) {
       null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
@@ -318,7 +319,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
     stopifnot(con.type == 'f')
   }
 
-  stopifnot(all(vapply(contrasts, ncol, integer(1)) == ncol(X)))
+  stopifnot(all(vapply(contrasts, ncol, integer(1)) == dim(X)[2L]))
   nC <- length(contrasts)
 
   if (is.null(con.name)) {
@@ -326,7 +327,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
     con.name <- names(contrasts)
   } else {
     if (length(con.name) < nC) {
-      con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(1:length(con.name))]))
+      con.name <- c(con.name, paste('Contrast', seq_len(nC)[-(seq_along(con.name))]))
     }
     names(contrasts) <- con.name
   }
@@ -355,12 +356,13 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
 
 glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alpha=NULL) {
   ESS <- numer <- stat <- se <- p <- contrast <- ci.low <- ci.high <- NULL
-  dfR <- nrow(X) - ncol(X)
+  dimX <- dim(X)
+  dfR <- dimX[1L] - dimX[2L]
 
   XtX <- solve(crossprod(X))
   if (con.type == 'f') {
     DT.lm <- vector('list', length(contrasts))
-    CXtX <- lapply(contrasts, function(x) solve(x %*% XtX %*% t(x)))
+    CXtX <- lapply(contrasts, function(x) solve(x %*% tcrossprod(XtX, x)))
     rkC <- unlist(lapply(contrasts, function(x) qr(x)$rank))
     for (i in seq_along(contrasts)) {
       DT.lm[[i]] <- DT[, brainGraph_GLM_fit_f(X, get(outcome), dfR, contrasts[[i]], rkC[i], CXtX[[i]]), by=mykey]
@@ -376,7 +378,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
                    less=function(stat, df) pt(stat, df),
                    greater=function(stat, df) pt(stat, df, lower.tail=FALSE))
 
-    DT.lm <- vector('list', nrow(contrasts))
+    DT.lm <- vector('list', dim(contrasts)[1L])
     for (i in seq_along(DT.lm)) {
       DT.lm[[i]] <- DT[, brainGraph_GLM_fit_t(X, get(outcome), XtX, contrasts[i, , drop=FALSE]), by=mykey]
     }
@@ -457,7 +459,7 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
   gamma <- contrast %*% b
   SSEF <- as.numeric(crossprod(est$residuals))
 
-  numer <- as.numeric(t(gamma) %*% CXtX %*% gamma / rkC)
+  numer <- as.numeric(crossprod(gamma, CXtX) %*% gamma / rkC)
   list(numer=numer, se=SSEF)
 }
 
@@ -591,18 +593,20 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   cl.h <- level <- ymax <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
 
+  mytheme <- theme(plot.title=element_text(hjust=0.5),
+                   legend.position='none',
+                   axis.text.y=element_text(hjust=0.5, angle=90))
   # Local function to plot for a single region
-  plot_single <- function(X, y, region, outcome, model_formula) {
+  plot_single <- function(X, y, region, outcome, diagH, model_formula) {
     leverage <- resid.std <- cook <- ind <- mark <- fit <- leverage.tr <- NULL
     est <- fastLmPure(X, y, method=2)
     dt.p1 <- data.table(fit=est$fitted.values, resid=est$residuals)
-    H <- X %*% solve(crossprod(X)) %*% t(X)
-    dt.p1[, leverage := diag(H)]
+    dt.p1[, leverage := diagH]
     dt.p1[, resid.std := resid / (est$s * sqrt(1 - leverage))]
     dt.p1[, leverage.tr := leverage / (1 - leverage)]
-    dt.p1[, cook := (resid.std^2 / ncol(X)) * leverage.tr]
+    dt.p1[, cook := (resid.std^2 / dimX[2L]) * leverage.tr]
     if (isTRUE(ids)) {
-      dt.p1[, ind := rownames(X)]
+      dt.p1[, ind := rnames]
     } else {
       dt.p1[, ind := as.character(.I)]
     }
@@ -617,10 +621,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       geom_text_repel(aes(x=fit, y=resid, label=ind), size=3) +
       stat_smooth(method='loess', se=FALSE, span=1, col='red') +
       geom_hline(yintercept=0, lty=3) +
-      theme(plot.title=element_text(hjust=0.5),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
+      mytheme + labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
 
     # 2. QQ-plot
     dt.p1[order(resid.std), x := qnorm(ppoints(resid.std))]
@@ -628,10 +629,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       geom_text_repel(aes(x=x, y=resid.std, label=ind), size=3) +
       geom_line(aes(x=x, y=x), col='gray50', lty=3) +
       geom_point(aes(shape=mark)) +
-      theme(plot.title=element_text(hjust=0.5),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title='Normal Q-Q', x='Theoretical Quantiles', y='Sample Quantiles')
+      mytheme + labs(title='Normal Q-Q', x='Theoretical Quantiles', y='Sample Quantiles')
 
     # 3. Scale-Location plot
     diagPlots[[3]] <- ggplot(dt.p1, aes(x=fit, y=sqrt(abs(resid.std)))) +
@@ -639,23 +637,16 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       geom_text_repel(aes(x=fit, y=sqrt(abs(resid.std)), label=ind), size=3) +
       stat_smooth(method='loess', se=FALSE, col='red') +
       ylim(c(0, NA)) +
-      theme(plot.title=element_text(hjust=0.5),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title='Scale-Location', x='Fitted values', y=expression(sqrt(Standardized~residuals)))
+      mytheme + labs(title='Scale-Location', x='Fitted values', y=expression(sqrt(Standardized~residuals)))
 
     # 4. Cook's distance
-    diagPlots[[4]] <- ggplot(dt.p1, aes(x=seq_len(nrow(X)), y=cook)) +
+    diagPlots[[4]] <- ggplot(dt.p1, aes(x=seq_len(dimX[1L]), y=cook)) +
       geom_bar(stat='identity', position='identity') +
       geom_text(aes(y=cook, label=ind), size=3, vjust='outward') +
-      theme(plot.title=element_text(hjust=0.5),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
+      mytheme + labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
 
     # 5. Residual vs Leverage plot
     r.hat <- dt.p1[, range(leverage, na.rm=TRUE)]
-    p <- qr(X)$rank
     hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1, length.out=101)
     dt.cook <- data.table(hh=rep(hh, 2), level=rep(c(0.5, 1.0), each=101))
     dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
@@ -674,21 +665,17 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2) +
       xlim(extendrange(c(0, xmax))) +
       ylim(dt.p1[, extendrange(range(resid.std), f=0.09)]) +
-      theme(plot.title=element_text(hjust=0.5),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
+      mytheme + labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
 
     # 6. Cook's dist vs leverage
+    mytheme$plot.title$size <- 9
     diagPlots[[6]] <- ggplot(dt.p1, aes(x=leverage.tr, y=cook)) +
       geom_point(aes(shape=mark)) +
       geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
       geom_abline(slope=seq(0, 3, 0.5), lty=2, col='gray50') +
       xlim(c(0, dt.p1[, max(leverage.tr)])) +
       ylim(c(0, dt.p1[, max(cook) * 1.025])) +
-      theme(plot.title=element_text(hjust=0.5, size=9),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
+      mytheme +
       labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
            x=expression(Leverage~h[ii]), y='Cook\'s distance')
 
@@ -699,6 +686,9 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   }
 
   X <- x$X
+  dimX <- dim(X)
+  p <- if (length(dimX) == 3L) qr(X[, , 1])$rank else qr(X)$rank
+  rnames <- dimnames(X)[[1L]]
 
   # Hack to print a model formula w/ newlines
   model_formula <- paste0('y ~ ', paste(colnames(X), collapse=' + '))
@@ -716,30 +706,34 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     model_formula <- substr(model_formula, 1, nchar(model_formula) - 4)
   }
 
-  prows <- ifelse(length(which) == 1, 1, 2)
+  prows <- if (length(which) == 1) 1 else 2
   if (x$level == 'graph') {
-    p.all <- plot_single(X, x$y, region='graph-level', x$outcome, model_formula)
+    H <- diag(X %*% tcrossprod(solve(crossprod(X)), X))
+    p.all <- plot_single(X, x$y, region='graph-level', x$outcome, H, model_formula)
     grid.newpage()
     grid.draw(p.all)
+
   } else if (x$level == 'vertex') {
-    if (is.null(region)) {
-      region <- x$DT[, levels(region)]
-    }
-    p.all <- sapply(region, function(x) NULL)
+    if (is.null(region)) region <- x$DT[, levels(region)]
+    p.all <- setNames(vector('list', length(region)), region)
     if (x$outcome == x$measure) {
-      for (z in region) {
-        if (all(x$y[, z] == 0)) next
-        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome, model_formula)
+      H <- diag(X %*% tcrossprod(solve(crossprod(X)), X))
+      runY <- which(colSums(x$y[, region]) != 0)
+      for (z in runY) {
+        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome, H, model_formula)
       }
     } else {
       if (all(x$y == 0)) return(NULL)
+      H <- array(apply(X, 3, function(z) z %*% tcrossprod(solve(crossprod(z)), z)),
+                 dim=c(dimX[1L], dimX[1L], dimX[3L]))
+      dimnames(H)[[3L]] <- dimnames(X)[[3L]]
       for (z in region) {
-        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome, model_formula)
+        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome, diag(H[, , z]), model_formula)
       }
     }
 
     # Remove any NULL elements
-    p.all[sapply(p.all, is.null)] <- NULL
+    p.all[vapply(p.all, is.null, logical(1))] <- NULL
   }
   return(p.all)
 }

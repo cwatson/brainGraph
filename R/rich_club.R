@@ -51,7 +51,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE, A=NULL) {
 
   if (isTRUE(weighted)) {
     Wr <- sum(E(g.rich)$weight)
-    weights <- sort(E(g)$weight, decreasing=TRUE)[1:Ek]
+    weights <- sort(E(g)$weight, decreasing=TRUE)[seq_len(Ek)]
     phi <- Wr / sum(weights)
   } else {
     phi <- graph.density(g.rich)
@@ -81,11 +81,12 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE, A=NULL) {
 rich_club_all <- function(g, weighted=FALSE, A=NULL) {
   stopifnot(is_igraph(g))
   k <- check_degree(g)
-  R <- lapply(1:max(k), function(x) rich_club_coeff(g, x, weighted, A=A))
+  deg_range <- seq_len(max(k))
+  R <- lapply(deg_range, function(x) rich_club_coeff(g, x, weighted, A=A))
   phi <- vapply(R, with, numeric(1), phi)
   Nk <- vapply(R, with, numeric(1), Nk)
   Ek <- vapply(R, with, numeric(1), Ek)
-  dt.rich <- data.table(k=1:max(k), phi=phi, Nk=Nk, Ek=Ek)
+  dt.rich <- data.table(k=deg_range, phi=phi, Nk=Nk, Ek=Ek)
   return(dt.rich)
 }
 

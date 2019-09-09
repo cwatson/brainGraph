@@ -23,6 +23,8 @@
 #' @return Data table with elements:
 #'   \item{type}{Character string describing the type of analysis performed}
 #'   \item{measure}{The input argument \code{measure}}
+#'   \item{comp.size}{The size of the largest component after edge/vertex
+#'     removal}
 #'   \item{comp.pct}{Numeric vector of the ratio of maximal component size after
 #'     each removal to the observed graph's maximal component size}
 #'   \item{removed.pct}{Numeric vector of the ratio of vertices/edges removed}
@@ -38,85 +40,68 @@ robustness <- function(g, type=c('vertex', 'edge'),
   stopifnot(is_igraph(g))
   type <- match.arg(type)
   measure <- match.arg(measure)
-  orig_max <- if ('max.comp' %in% graph_attr_names(g)) g$max.comp else max(components(g)$csize)
+  orig_max <- max(components(g)$csize)
+  n <- switch(type, vertex=vcount(g), edge=ecount(g))
+  removed.pct <- seq(0, 1, length=n+1)
+  if (measure == 'random') {
+    otype <- paste('Random', type, 'removal')
+    rand <- matrix(rep(seq_len(n), N), nrow=n, ncol=N)
+    index <- apply(rand, 2, sample)
+  } else {
+    otype <- paste('Targeted', type, 'attack')
+    max.comp.removed <- rep(orig_max, n)
+  }
   if (type == 'vertex') {
-    n <- vcount(g)
-    removed.pct <- seq(0, 1, length=n+1)
-
     if (measure == 'random') {
-      type <- 'Random vertex removal'
-      max.comp <- matrix(nrow=n+1, ncol=N)
-      rand <- matrix(rep(1:n, N), byrow=TRUE, nrow=N)
-      index <- t(apply(rand, 1, sample))
-      max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        g.rand <- g
-        ord <- V(g.rand)$name[index[i, ]]
-        tmp <- rep(orig_max, n+1)
+      max.comp <- foreach(i=seq_len(N), .combine='cbind') %dopar% {
+        ord <- V(g)$name[index[, i]]
+        tmp <- rep(orig_max, n)
         for (j in seq_len(n - 1)) {
-          g.rand <- delete_vertices(g.rand, ord[j])
-          tmp[j+1] <- max(components(g.rand)$csize)
+          g <- delete_vertices(g, ord[j])
+          tmp[j+1] <- max(components(g)$csize)
         }
         tmp
       }
-      max.comp.removed <- colMeans(max.comp)
+      max.comp.removed <- rowMeans(max.comp)
 
     } else {
-      if (measure == 'btwn.cent') {
-        if (measure %in% vertex_attr_names(g)) {
-          val <- vertex_attr(g, measure)
-        } else {
-          val <- centr_betw(g)$res
-        }
-      } else if (measure == 'degree') {
-        val <- check_degree(g)
-      }
-      type <- 'Targeted vertex attack'
+      val <- if (measure == 'btwn.cent') centr_betw(g)$res else check_degree(g)
       ord <- V(g)$name[order(val, decreasing=TRUE)]
-      max.comp.removed <- rep(orig_max, n+1)
-      for (i in seq_len(n - 1)) {
-        g <- delete_vertices(g, ord[i])
-        max.comp.removed[i+1] <- max(components(g)$csize)
+      for (j in seq_len(n - 1)) {
+        g <- delete_vertices(g, ord[j])
+        max.comp.removed[j+1] <- max(components(g)$csize)
       }
     }
 
   } else {
-    m <- ecount(g)
-    removed.pct <- seq(0, 1, length=m+1)
     if (measure == 'degree') {
       stop('For edge attacks, must choose "btwn.cent" or "random"!')
     } else if (measure == 'random') {
-      type <- 'Random edge removal'
-      max.comp <- matrix(nrow=m+1, ncol=N)
-      rand <- matrix(rep(1:m, N), byrow=TRUE, nrow=N)
-      index <- t(apply(rand, 1, sample))
-      max.comp <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-        g.rand <- g
-        ord <- index[i, ]
-        el <- as_edgelist(g.rand)[ord, ]
-        tmp <- rep(orig_max, m+1)
-        for (j in seq_len(m - 1)) {
+      max.comp <- foreach(i=seq_len(N), .combine='cbind') %dopar% {
+        el <- as_edgelist(g, names=FALSE)[index[, i], ]
+        tmp <- rep(orig_max, n)
+        for (j in seq_len(n - 1)) {
           g.rand <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
           tmp[j+1] <- max(components(g.rand)$csize)
         }
         tmp
       }
-      max.comp.removed <- colMeans(max.comp)
+      max.comp.removed <- rowMeans(max.comp)
 
     } else {
-      type <- 'Targeted edge attack'
       ord <- order(E(g)$btwn, decreasing=TRUE)
-      el <- as_edgelist(g)[ord, ]
-      max.comp.removed <- rep(orig_max, length=m+1)
-      for (i in seq_len(m - 1)) {
-        g <- graph_from_edgelist(el[-seq_len(i), , drop=FALSE], directed=FALSE)
-        max.comp.removed[i+1] <- max(components(g)$csize)
+      el <- as_edgelist(g, names=FALSE)[ord, ]
+      for (j in seq_len(n - 1)) {
+        g <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
+        max.comp.removed[j+1] <- max(components(g)$csize)
       }
     }
 
   }
+  max.comp.removed <- c(max.comp.removed, 0)
   comp.pct <- max.comp.removed / orig_max
-  comp.pct[length(comp.pct)] <- 0
-  out <- data.table(type=type, measure=measure, comp.pct=comp.pct, removed.pct=removed.pct)
+  out <- data.table(type=otype, measure=measure, comp.size=max.comp.removed,
+                    comp.pct=comp.pct, removed.pct=removed.pct)
   if ('name' %in% graph_attr_names(g)) out$Group <- g$name
   return(out)
 }

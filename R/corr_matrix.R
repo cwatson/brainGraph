@@ -62,7 +62,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
   Group <- Study.ID <- NULL
-  N <- ncol(resids$resids.all) - 2
+  N <- dim(resids$resids.all)[2L] - 2
   regions <- names(resids$resids.all)[-c(1, 2)]
 
   # Different behavior if called for permutation testing
@@ -82,7 +82,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   if (what == 'resids') {
     res.all <- resids$resids.all[, !'Study.ID']
   } else if (what == 'raw') {
-    res.all <- dcast(resids$all.dat.tidy, 'Study.ID + Group ~ region')
+    res.all <- dcast(resids$all.dat.long, 'Study.ID + Group ~ region')
     setkey(res.all, Group, Study.ID)
     res.all <- res.all[, !'Study.ID']
   }
@@ -156,7 +156,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     }
     if (!is.logical(g) && length(g) > kNumGroups) {
       warning('Indexing vector cannot have length greater than the number of groups.')
-      g <- g[1:kNumGroups]
+      g <- g[seq_len(kNumGroups)]
     }
     if (is.numeric(g) || is.logical(g)) g <- groups[g]
     if (is.character(g)) g <- which(groups %in% g)
@@ -165,7 +165,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     x$r.thresh <- x$r.thresh[g]
     x$thresholds <- x$thresholds[, g, drop=FALSE]
   }
-  if (missing(i)) i <- seq_len(nrow(x$thresholds))
+  if (missing(i)) i <- seq_len(dim(x$thresholds)[1L])
   for (g in names(x$r.thresh)) x$r.thresh[[g]] <- x$r.thresh[[g]][, , i, drop=FALSE]
   x$thresholds <- x$thresholds[i, , drop=FALSE]
   if ('densities' %in% names(x)) x$densities <- x$densities[i]
@@ -186,8 +186,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #' \emph{community membership}. In the latter case, you need to pass a
 #' \code{brainGraphList} object to the \code{graphs} argument; each graph in the
 #' object must have a vertex attribute specified in \code{order.by}. Finally,
-#' you can control the legend text with \code{grp.names}; e.g., this could be
-#' \code{grp.names='Community'}.
+#' you can control the legend text with \code{grp.names}.
 #'
 #' @param x A \code{corr_mats} object
 #' @param mat.type Character string indicating whether to plot raw or thresholded
@@ -216,36 +215,35 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 
 plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
                            ordered=TRUE, order.by='lobe', graphs=NULL,
-                           grp.names=NULL, legend.title='', ...) {
-  Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.cell <- col.text <- NULL
+                           grp.names=NULL, legend.title=NULL, ...) {
+  Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.text <- NULL
   groups <- names(x$r.thresh)
-  kNumVertices <- nrow(x$R)
+  kNumVertices <- dim(x$R)[1L]
   base_size <- if (kNumVertices > 90) 7.5 else 9
-  if (legend.title == '') {
-    if (grepl('lobe', order.by)) {
-      legend.title <- 'Lobe'
-    } else if (grepl('comm', order.by)) {
-      legend.title <- 'Community (#)'
-    }
+  if (is.null(legend.title) && isTRUE(ordered)) {
+    legend.title <- switch(order.by,
+      comp='Connected\nComponent', hemi='Hemisphere', comm=,comm.wt='Community (#)',
+      class='Tissue class', tools::toTitleCase(order.by))
   }
 
+  legend.pos <- if (type == 'raw' || isTRUE(ordered)) 'right' else 'none'
+  mytheme <- theme(legend.position=legend.pos,
+    axis.text.x=element_text(size=0.7*base_size, angle=45),
+    axis.text.y=element_text(size=0.7*base_size),
+    axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+    plot.title=element_text(hjust=0.5, face='bold'))
   matplots <- vector('list', length(groups))
   type <- match.arg(mat.type)
   if (type == 'raw') {
+    legend.title <- paste0('Corr. coeff.\n(', tools::toTitleCase(x$type), ')')
     mats <- x$R
     for (g in seq_along(groups)) {
       mats.m <- melt(mats[, , g])
       setDT(mats.m)
       matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=value)) +
         geom_tile() +
-        scale_fill_gradient2(low='white', high='red') +
-        theme(axis.ticks=element_blank(),
-              axis.text.x=element_text(size=0.7*base_size, angle=45),
-              axis.text.y=element_text(size=0.7*base_size),
-              axis.title.x=element_blank(), axis.title.y=element_blank(),
-              plot.title=element_text(hjust=0.5, face='bold')) +
-        labs(title=groups[g]) +
-        ylim(rev(levels(mats.m$Var2)))
+        scale_fill_gradient2(low='white', high='red') + mytheme +
+        labs(title=groups[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
     }
     return(matplots)
   } else {
@@ -254,62 +252,59 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
 
   if (isTRUE(ordered)) {
     if (!order.by %in% names(get(x$atlas))) {
-      if (is.null(graphs)) {
-        stop("Invalid 'order.by' value. Please provide 'brainGraphList' or valid name.")
+      if (inherits(graphs, 'brainGraphList')) {
+        g.list <- graphs[]
+      } else if (inherits(graphs[[thresh.num]], 'brainGraphList')) {
+        g.list <- graphs[[thresh.num]][]
       } else {
-        stopifnot(inherits(graphs, 'brainGraphList'))
+        stop('Please provide a (list of) "brainGraphList" object(s).')
       }
-      order.vec <- sapply(graphs[[thresh.num]][], vertex_attr, order.by)
-      if (is.null(grp.names)) {
-        grp.names <- paste('Grouping', sort(unique(order.vec[, 1])))
-      } else {
-        if (length(grp.names) == 1) grp.names <- paste(grp.names, sort(unique(order.vec[, 1])))
-      }
+      order.mat <- vapply(g.list, vertex_attr, numeric(kNumVertices), order.by)
+      if (is.null(grp.names)) grp.names <- ''
+      if (length(grp.names) == 1) grp.names <- paste(grp.names, seq_len(max(order.mat)))
     } else {
-      order.vec <- get(x$atlas)[, as.integer(get(order.by))]
-      order.vec <- sapply(groups, function(y) order.vec)
-      grp.names <- get(x$atlas)[, levels(get(order.by))]
+      tmp <- get(x$atlas)[, get(order.by)]
+      order.mat <- matrix(rep(as.integer(tmp), 2), ncol=2)
+      grp.names <- levels(tmp)
     }
 
+    kNumCols <- apply(order.mat, 2, max)
+    cols.new <- lapply(kNumCols, function(y) c(group.cols[seq_len(y)], 'gray50', 'white'))
+    if (order.by == 'comp') cols.new <- lapply(cols.new, function(y) setdiff(y, 'gray50'))
     grp.names <- c(grp.names, 'Inter', '')
-    new.order <- apply(order.vec, 2, function(y) order(y))
+    new.order <- apply(order.mat, 2, function(y) order(y))
 
-    rownames(order.vec) <- rownames(x$R)
   } else {
-    new.order <- order.vec <- sapply(groups, function(x) seq_len(kNumVertices))
-    rownames(order.vec) <- rownames(x$R)
+    new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2), ncol=2)
+    cols.new <- lapply(groups, function(y) c('white', 'gray50'))
   }
+  dimnames(order.mat) <- list(rownames(x$R), groups)
 
-  # Loop across groups
   for (g in seq_along(groups)) {
     mats.ord <- mats[new.order[, g], new.order[, g], g]
     mats.m <- melt(mats.ord)
     setDT(mats.m)
-    mats.m[, memb1 := grp.names[order.vec[as.character(Var1), g]]]
-    mats.m[, memb2 := grp.names[order.vec[as.character(Var2), g]]]
-    mats.m[, memb := ifelse(value == 1,
-                            ifelse(memb1 == memb2, memb1, 'Inter'),
-                            '')]
-    mats.m[, memb := factor(memb, levels=grp.names)]
-    mats.m[, memb1 := factor(memb1, levels=grp.names)]
+    if (isTRUE(ordered)) {
+      mats.m[, memb := '']
+      mats.m[, memb1 := grp.names[order.mat[as.character(Var1), g]]]
+      mats.m[, memb2 := grp.names[order.mat[as.character(Var2), g]]]
+      mats.m[value == 1, memb := ifelse(memb1 == memb2, memb1, 'Inter')]
+      mats.m[, memb := factor(memb, levels=grp.names)]
+      mats.m[, memb1 := factor(memb1, levels=grp.names)]
+      mats.m[, col.text := cols.new[[g]][as.integer(memb1)]]
+    } else {
+      mats.m[, memb := factor(value)]
+      mats.m[, col.text := 'black']
+    }
 
-    cols.new <- c(group.cols[seq_len(length(grp.names) - 2)], 'gray50', 'white')
-    mats.m[, col.cell := cols.new[as.integer(memb)]]
-    mats.m[, col.cell := factor(col.cell, levels=cols.new)]
-    mats.m[, col.text := group.cols[as.integer(factor(memb1))]]
-
+    mytheme$axis.text.x <- element_text(size=0.7*base_size, angle=45,
+                                        color=mats.m[seq_len(kNumVertices), col.text])
+    mytheme$axis.text.y <- element_text(size=0.7*base_size,
+                                        color=mats.m[rev(seq_len(kNumVertices)), col.text])
     matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=memb)) +
       geom_tile() +
-      scale_fill_manual(values=mats.m[, levels(col.cell)]) +
-      theme(axis.ticks=element_blank(),
-           axis.text.x=element_text(size=0.7*base_size, angle=45,
-                                    color=mats.m[1:kNumVertices, col.text]),
-           axis.text.y=element_text(size=0.7*base_size,
-                                    color=mats.m[rev(1:kNumVertices), col.text]),
-           axis.title.x=element_blank(), axis.title.y=element_blank(),
-           plot.title=element_text(hjust=0.5, face='bold')) +
-      labs(title=groups[g], fill=legend.title) +
-      ylim(rev(levels(mats.m$Var2)))
+      scale_fill_manual(values=cols.new[[g]]) + mytheme +
+      labs(title=groups[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
   }
   return(matplots)
 }

@@ -15,8 +15,8 @@
 #' function. You may display a progress bar by setting \code{.progress=TRUE}.
 #'
 #' This object can be considered comparable to a 4-D \emph{NIfTI} file,
-#' particularly that returned by FSL's \emph{TBSS} prestats step since that file
-#' contains the FA volumes for all study subjects.
+#' particularly that returned by FSL's \emph{TBSS} \dQuote{prestats} step since
+#' that file contains the FA volumes for all study subjects.
 #'
 #' @note If the input is a \code{corr_mats} object, and the extent of the 3-D
 #' array is greater than 1, then only the first will be converted to a graph.
@@ -25,10 +25,6 @@
 #'   single threshold) or a \code{corr_mats} object
 #' @param gnames Character vector of graph names (e.g., study IDs if
 #'   \code{level='subject'}). Default: \code{NULL}
-#' @param groups Character (or factor) vector of group names (default:
-#'   \code{NULL})
-#' @param .progress Logical indicating whether to print a progress bar. Default:
-#'   \code{TRUE}
 #' @param ... Other arguments passed to \code{\link{set_brainGraph_attr}}
 #' @inheritParams CreateGraphs
 #' @export
@@ -62,10 +58,14 @@
 make_brainGraphList <- function(x, atlas, type=c('observed', 'random'),
                                 level=c('subject', 'group', 'contrast'),
                                 set.attrs=TRUE, modality=NULL, weighting=NULL,
-                                threshold=NULL, gnames=NULL, groups=NULL, ...) {
+                                threshold=NULL, gnames=NULL, ...) {
   UseMethod('make_brainGraphList')
 }
 
+#' @param groups Character (or factor) vector of group names. Default:
+#'   \code{NULL})
+#' @param .progress Logical indicating whether to print a progress bar. Default:
+#'   \code{FALSE}
 #' @export
 #' @method make_brainGraphList array
 #' @rdname brainGraphList
@@ -76,10 +76,10 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
                                       weighting=NULL, threshold=NULL,
                                       gnames=NULL, groups=NULL,
                                       mode='undirected', weighted=NULL, diag=FALSE,
-                                      .progress=TRUE, ...) {
+                                      .progress=FALSE, ...) {
   i <- NULL
   level <- match.arg(level)
-  kNumGraphs <- dim(x)[3]
+  kNumGraphs <- dim(x)[3L]
   if (!is.null(gnames)) {
     stopifnot(length(gnames) == kNumGraphs)
     if (is.factor(gnames)) gnames <- as.character(gnames)
@@ -90,11 +90,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
     stopifnot(length(groups) == kNumGraphs)
     if (is.factor(groups)) groups <- as.character(groups)
   } else {
-    if (level == 'group') {
-      groups <- gnames
-    } else {
-      groups <- rep(1, kNumGraphs)
-    }
+    groups <- if (level == 'group') gnames else rep(1, kNumGraphs)
   }
 
   type <- match.arg(type)
@@ -125,10 +121,13 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
 
   env <- environment()
   counter <- 0
+  if (!is.null(threshold)) {
+    if (length(threshold) != kNumGraphs) threshold <- rep_len(threshold, kNumGraphs)
+  }
   g <- foreach(i=seq_len(kNumGraphs)) %dopar% {
-    res <- loopfun(x[, , i], atlas, type, level, set.attrs, modality, weighting, threshold,
-                   name=gnames[i], Group=groups[i], mode='undirected',
-                   diag=FALSE, weighted=TRUE, use.parallel=FALSE, ...)
+    res <- loopfun(x[, , i], atlas, type, level, set.attrs, modality, weighting, threshold[i],
+                   name=gnames[i], Group=groups[i], mode=mode,
+                   diag=diag, weighted=weighted, use.parallel=FALSE, ...)
   }
   if (isTRUE(.progress)) close(progbar)
 
@@ -145,10 +144,12 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
 make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
                                           level='group',
                                           set.attrs=TRUE, modality=NULL,
-                                          weighting=NULL, threshold=NULL,
+                                          weighting=NULL, threshold=x$densities,
                                           gnames=names(x$r.thresh), groups=gnames,
                                           mode='undirected', weighted=NULL,
-                                          diag=FALSE, .progress=TRUE, ...) {
+                                          diag=FALSE, .progress=FALSE, ...) {
+  dims <- vapply(x$r.thresh, dim, numeric(3L))[3L, ]
+  if (any(dims > 1L)) x <- x[1]
   A <- abind::abind(x$r.thresh)
   if (isTRUE(weighted)) A <- x$R * A
   out <- make_brainGraphList(A, atlas=atlas, type=type, level=level,
@@ -288,40 +289,40 @@ make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast'
 
 make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
                                     set.attrs=TRUE, modality=NULL, weighting=NULL,
-                                    threshold=NULL, gnames=x$con.name, groups=NULL,
+                                    threshold=NULL, gnames=x$con.name,
                                     mode='undirected', weighted=TRUE, diag=FALSE,
                                     ...) {
   contrast <- p.perm <- csize <- NULL
 
-  out <- make_brainGraphList(x$T.mat, atlas=atlas, type=type, level=level, set.attrs=set.attrs,
-                             modality=modality, weighting=weighting, threshold=threshold,
-                             mode=mode, weighted=weighted, diag=diag, gnames=gnames, ...)
+  bgList <- make_brainGraphList(x$T.mat, atlas, type, level, set.attrs=set.attrs,
+      modality=modality, weighting=weighting, threshold=threshold, mode=mode,
+      weighted=weighted, diag=diag, gnames=gnames, ...)
+  pList <- make_brainGraphList(x$p.mat, atlas, level=level, set.attrs=FALSE, weighted=TRUE, ...)
 
-  for (i in seq_along(out[])) {
-    class(out$graphs[[i]]) <- c('brainGraph_NBS', class(out$graphs[[i]]))
-    out$graphs[[i]]$con.type <- x$con.type
-    out$graphs[[i]]$alt <- x$alt
+  for (i in seq_along(bgList[])) {
+    class(bgList$graphs[[i]]) <- c('brainGraph_NBS', class(bgList[i]))
+    bgList$graphs[[i]]$con.type <- x$con.type
+    bgList$graphs[[i]]$alt <- x$alt
 
-    if (ecount(out$graphs[[i]]) > 0) {
-      E(out$graphs[[i]])$stat <- E(out$graphs[[i]])$weight
-      E(out$graphs[[i]])$p <- 1 - E(graph_from_adjacency_matrix(x$p.mat[, , i], diag=diag, mode=mode, weighted=TRUE))$weight
-      if (any(E(out$graphs[[i]])$weight < 0)) out$graphs[[i]] <- delete_edge_attr(out$graphs[[i]], 'weight')
+    if (ecount(bgList[i]) == 0) next
+    E(bgList$graphs[[i]])$stat <- E(bgList[i])$weight
+    E(bgList$graphs[[i]])$p <- 1 - E(pList[i])$weight
+    if (any(E(bgList[i])$weight < 0)) bgList$graphs[[i]] <- delete_edge_attr(bgList[i], 'weight')
 
-      clusts <- components(out$graphs[[i]])
-      comps <- sort(unique(clusts$csize), decreasing=TRUE)
-      memb <- clusts$membership
-      x.tab <- table(memb)
-      x.tab.st <- sort(x.tab, decreasing=TRUE)
-      V(out$graphs[[i]])$comp <- match(memb, order(x.tab, decreasing=TRUE))
-      V(out$graphs[[i]])$p.nbs <- 0
-      xdt <- copy(x$components$observed)
-      for (j in seq_along(comps)) {
-        inds <- which(xdt[contrast == i, csize[j]] == x.tab.st)
-        V(out$graphs[[i]])[V(out$graphs[[i]])$comp %in% inds]$p.nbs <- 1 - xdt[contrast == i, p.perm[j]]
-      }
+    clusts <- components(bgList[i])
+    comps <- sort(unique(clusts$csize), decreasing=TRUE)
+    memb <- clusts$membership
+    x.tab <- table(memb)
+    x.tab.st <- sort(x.tab, decreasing=TRUE)
+    V(bgList$graphs[[i]])$comp <- match(memb, order(x.tab, decreasing=TRUE))
+    V(bgList$graphs[[i]])$p.nbs <- 0
+    xdt <- copy(x$components$observed)
+    for (j in seq_along(comps)) {
+      inds <- which(xdt[contrast == i, csize[j]] == x.tab.st)
+      V(bgList$graphs[[i]])[V(bgList[i])$comp %in% inds]$p.nbs <- 1 - xdt[contrast == i, p.perm[j]]
     }
   }
-  return(out)
+  return(bgList)
 }
 
 ################################################################################
@@ -364,25 +365,26 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 #' # Return object for only 'Control' subjects
 #' my.bgl[, 'Control']
 #'
-#' # Return object for groups 1 and 3
-#' my.bgl[, c(1, 3)]
+#' # Return object with graphs from groups 1 and 3
+#' my.bgl[g=c(1, 3), drop=FALSE]
 #'
 #' # Subset the first 10 subjects of group 2
 #' my.bgl[1:10, 2]
 #'}
 
 `[.brainGraphList` <- function(x, i, g=NULL, drop=TRUE) {
+  stop_msg <- 'Logical indexing vector must be of the same length as the number of groups.'
+  warn_msg <- 'Indexing vector cannot have length greater than the number of groups.'
   # Subset groups; doesn't make sense for contrast lists
   if (!is.null(g) && x$level != 'contrast') {
+    if (is.factor(g)) g <- as.character(g)
     group.vec <- vapply(x$graphs, graph_attr, character(1), 'Group')
     groups <- unique(group.vec)
     kNumGroups <- length(groups)
-    if (is.logical(g) && length(g) != kNumGroups) {
-      stop('Logical indexing vector must be of the same length as the number of groups.')
-    }
+    if (is.logical(g) && length(g) != kNumGroups) stop(stop_msg)
     if (!is.logical(g) && length(g) > kNumGroups) {
-      warning('Indexing vector cannot have length greater than the number of groups.')
-      g <- g[1:kNumGroups]
+      warning(warn_msg)
+      g <- g[seq_len(kNumGroups)]
     }
     if (is.numeric(g) || is.logical(g)) g <- groups[g]
     if (is.character(g)) g <- which(group.vec %in% g)
@@ -390,36 +392,21 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
   }
 
   # Subset subjects
-  kNumSubjects <- length(x$graphs)
+  kNumSubs <- length(x$graphs)
   if (missing(i)) {
-    if (isTRUE(drop)) {
-      return(x$graphs)
-    } else {
-      i <- seq_len(kNumSubjects)
-    }
+    if (isTRUE(drop)) return(x$graphs)
+    i <- seq_len(kNumSubs)
   }
-  if (is.logical(i) && length(i) != kNumSubjects) {
-    stop('Logical indexing vector must be of the same length as the number of subjects.')
-  }
-  if (!is.logical(i) && length(i) > kNumSubjects) {
-    warning('Indexing vector cannot have length greater than the number of subjects..')
-    i <- i[1:kNumSubjects]
+  if (is.logical(i) && length(i) != kNumSubs) stop(sub('group', 'subject', stop_msg))
+  if (!is.logical(i) && length(i) > kNumSubs) {
+    warning(sub('group', 'subject', warn_msg))
+    i <- i[seq_len(kNumSubs)]
   }
 
-  if (is.character(i)) {
-    graphs <- names(x$graphs)
-    i <- which(graphs %in% i)
-  }
-  if (isTRUE(drop)) {
-    if (length(i) == 1) {
-      x$graphs <- x$graphs[[i]]
-    } else {
-      x$graphs <- x$graphs[i]
-    }
-    return(x$graphs)
-  } else {
-    return(x)
-  }
+  if (is.character(i)) i <- which(names(x$graphs) %in% i)
+  x$graphs <- if (length(i) == 1 && isTRUE(drop)) x$graphs[[i]] else x$graphs[i]
+  out <- if (isTRUE(drop)) x$graphs else x
+  return(out)
 }
 
 #' @method print brainGraphList
@@ -438,7 +425,8 @@ print.brainGraphList <- function(x, ...) {
   cat('\n')
 
   # Print subject/group names
-  message(paste(tools::toTitleCase(x$level), 'names:'))
+  msg <- switch(x$level, subject='IDs:', 'names:')
+  message(paste(tools::toTitleCase(x$level), msg))
   if (kNumGraphs < 10) {
     print(gnames)
   } else {
@@ -446,7 +434,7 @@ print.brainGraphList <- function(x, ...) {
     print(attrs.df, row.names=FALSE)
     cat('\n')
   }
-  if (x$level == 'subject' && 'Group' %in% graph_attr_names(x[1])) {
+  if (x$level == 'subject' && 'Group' %in% graph_attr_names(x$graphs[[1]])) {
     message('Group membership:')
     print(table(vapply(x[], graph_attr, character(1), 'Group')))
   }
@@ -473,10 +461,6 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
 
   type <- match.arg(type)
   level <- match.arg(level)
-  attrs <- c('atlas', 'modality', 'weighting', 'threshold', 'version', 'sys', 'date')
-  out <- setNames(vector('list', length=9), c('type', 'level', attrs))
-  out$type <- type
-  out$level <- level
   if (type == 'observed' || level == 'group') {
     stopifnot(all(vapply(g.list, inherits, logical(1), 'brainGraph')))
     g1 <- g.list[[1]]
@@ -487,8 +471,13 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
     ids <- vapply(g.list, function(x) graph_attr(x[[1]], 'name'), character(1))
   }
 
+  attrnames <- graph_attr_names(g1)
+  attrs <- c('atlas', 'modality', 'weighting', 'threshold', 'version', 'sys', 'date')
+  out <- setNames(vector('list', length=9), c('type', 'level', attrs))
+  out$type <- type
+  out$level <- level
   for (x in attrs) {
-    if (x %in% graph_attr_names(g1)) out[[x]] <- graph_attr(g1, x)
+    if (x %in% attrnames) out[[x]] <- graph_attr(g1, x)
   }
   out$graphs <- g.list
   names(out$graphs) <- ids
@@ -524,11 +513,8 @@ plot.brainGraphList <- function(x, filename.base, diffs=FALSE, ...) {
     if (isTRUE(diffs) && i > 1) {
       g.diff <- graph.difference(x$graphs[[i]], x$graphs[[i-1]])
       class(g.diff) <- c('brainGraph', class(g.diff))
-      if (hasArg('edge.color')) {
-        ecols <- list(...)$edge.color
-      } else {
-        ecols <- rep('deeppink', ecount(g.diff))
-      }
+      ecols <- rep('deeppink', ecount(g.diff))
+      if (hasArg('edge.color')) ecols <- list(...)$edge.color
       ewidth <- 5
       plot(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
            edge.width=ewidth, edge.color=ecols, mni=FALSE, subt=NULL)

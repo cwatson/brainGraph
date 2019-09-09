@@ -176,7 +176,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   }
   res_boot <- rbindlist(res_boot, idcol='region')
   res_obs <- res_boot[, .SD[.N], by=region]
-  res_p <- res_boot[, lapply(.SD, function(x) pval(x[1:N], x[N + 1])), by=region]
+  res_p <- res_boot[, lapply(.SD, function(x) pval(x[seq_len(N)], x[N + 1])), by=region]
   res_boot <- res_boot[, .SD[-.N], by=region]
 
   low <- (1 - conf.level) / 2
@@ -205,9 +205,9 @@ boot_mediate <- function(N, n, X.m, y.m, treat, cat.1, X.y,
   b <- tau <- d1 <- d0 <- z1 <- z0 <- n0 <- n1 <- d.avg <- z.avg <- n.avg <- NULL
 
   # Randomization/resampling matrix
-  A <- matrix(rep(1:n, N), byrow=TRUE, nrow=N)
+  A <- matrix(rep(seq_len(n), N), byrow=TRUE, nrow=N)
   index <- t(apply(A, 1, sample, replace=TRUE))
-  index <- rbind(index, 1:n)
+  index <- rbind(index, seq_len(n))
 
   # Loop through the resamples
   res <- foreach(b=seq_len(N + 1), .combine='rbind') %dopar% {
@@ -319,7 +319,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
   total <- sub('0.acme', '.tot', acme)
   # Different behavior if mediator-treatment interaction
   if (isTRUE(object$INT)) {
-    change1 <- sub('0', '1', change)[-(5:6), ]
+    change1 <- sub('0', '1', change)[-c(5, 6), ]
     change1 <- rbind(change1, sub('1', '.avg', change1))
     setnames(DT.all, change1[, 1], change1[, 2])
     change_ci1 <- sub('0', '1', change_ci)[-3, ]

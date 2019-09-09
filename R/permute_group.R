@@ -92,7 +92,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
   if (is.null(perms)) perms <- shuffleSet(n=dim(resids$resids.all)[1L], nset=N)
   dims <- dim(perms)
   N <- dims[1L]
-  perms <- rbind(perms, 1:dims[2L])  # last row is observed metrics
+  perms <- rbind(perms, seq_len(dims[2L]))  # last row is observed metrics
   groups <- as.numeric(resids$resids.all$Group)
 
   # Loop through the permutation matrix
@@ -108,7 +108,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
     regions <- names(resids$resids.all[, !c('Study.ID', 'Group')])
     nc <- dim(res.perm)[2L]
     if (isTRUE(auc)) {
-      setnames(res.perm, 1:nc, regions)
+      setnames(res.perm, seq_len(nc), regions)
     } else {
       setnames(res.perm, 2:nc, regions)
     }
@@ -116,7 +116,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
 
   if (!isTRUE(auc)) {
     setkey(res.perm, densities)
-    obs.ind <- (N + 1) * 1:length(densities)
+    obs.ind <- (N + 1) * seq_along(densities)
     obs.diff <- res.perm[obs.ind]
     res.perm <- res.perm[-obs.ind]
   } else {
@@ -230,7 +230,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
   perm.diff <- p <- N <- p.fdr <- region <- obs.diff <- NULL
 
   permDT <- copy(object$DT)
-  g <- with(object, make_graphs_perm(densities, resids, 1:dim(resids$resids.all)[1L],
+  g <- with(object, make_graphs_perm(densities, resids, seq_len(dim(resids$resids.all)[1L]),
                                      resids$resids.all[, as.numeric(Group)]))
   # OTHER
   #-------------------------------------
