@@ -35,9 +35,9 @@
 #'   \item{X}{The \emph{design matrix}}
 #'   \item{method}{The input argument \code{method}}
 #'   \item{use.mean}{The input argument \code{use.mean}}
-#'   \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
-#'     mean regional cortical thickness) and covariates, along with
-#'     \emph{resids} column added}
+#'   \item{all.dat.long}{A \code{data.table} in \dQuote{long} format of the
+#'     input structural data merged with the covariates, and a \emph{resids}
+#'     column added}
 #'   \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
 #'   \item{groups}{Group names}
 #' @name Residuals
@@ -83,7 +83,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       covars.lh <- split(covars.lh, by='Group')
       covars.rh <- split(covars.rh, by='Group')
       DT.m <- split(DT.m, by='Group')
-      X <- sapply(groups, function(x) NULL)
+      X <- setNames(vector('list', length(groups)), groups)
       for (g in groups) {
         lhvars <- get_lm_vars(covars.lh[[g]], exclude.cov, ...)
         rhvars <- get_lm_vars(covars.rh[[g]], exclude.cov, ...)
@@ -103,7 +103,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
     } else {
       covars <- split(covars, by='Group')
       DT.m <- split(DT.m, by='Group')
-      X <- sapply(groups, function(x) NULL)
+      X <- setNames(vector('list', length(groups)), groups)
       for (g in groups) {
         lmvars <- get_lm_vars(covars[[g]], exclude.cov, ...)
         DT.m[[g]][, resids := rstudent_mat(lmvars, value), by=region]
@@ -118,7 +118,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   resids.all <- dcast(DT.m, 'Study.ID + Group ~ region', value.var='resids')
   setkey(resids.all, Group, Study.ID)
 
-  out <- list(X=X, method=method, use.mean=use.mean, all.dat.tidy=DT.m,
+  out <- list(X=X, method=method, use.mean=use.mean, all.dat.long=DT.m,
               resids.all=resids.all, groups=groups, atlas=NULL)
   out$atlas <- if (is.null(atlas)) guess_atlas(dt.vol) else atlas
 
@@ -138,11 +138,10 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 
 get_lm_vars <- function(covars, exclude.cov, ...) {
   X <- brainGraph_GLM_design(covars[, !exclude.cov, with=FALSE], ...)
-  H <- X %*% solve(crossprod(X)) %*% t(X)
+  H <- X %*% tcrossprod(solve(crossprod(X)), X)
   lev <- diag(H)
-  n <- nrow(X)
-  p <- ncol(X)
-  return(list(X=X, lev=lev, n=n, p=p))
+  dims <- dim(X)
+  return(list(X=X, lev=lev, n=dims[1L], p=dims[2L]))
 }
 
 #' Calculate studentized residuals with matrix input
@@ -177,11 +176,11 @@ rstudent_mat <- function(lmvars, y) {
 `[.brainGraph_resids` <- function(x, i, g=NULL) {
   Group <- Study.ID <- NULL
   if (!is.null(g)) x$resids.all <- droplevels(x$resids.all[g])
-  if (missing(i)) i <- seq_len(nrow(x$resids.all))
+  if (missing(i)) i <- seq_len(dim(x$resids.all)[1L])
   x$resids.all <- x$resids.all[i]
   x$groups <- x$resids.all[, levels(factor(Group))]
   setkey(x$resids.all, Group, Study.ID)
-  x$all.dat.tidy <- x$all.dat.tidy[Study.ID %in% x$resids.all$Study.ID]
+  x$all.dat.long <- x$all.dat.long[Study.ID %in% x$resids.all$Study.ID]
   return(x)
 }
 
@@ -201,8 +200,8 @@ rstudent_mat <- function(lmvars, y) {
 summary.brainGraph_resids <- function(object, regions=NULL, ...) {
   region <- resids <- Study.ID <- NULL
   myregions <- regions
-  if (is.null(myregions)) myregions <- object$all.dat.tidy[, levels(region)]
-  DT <- droplevels(object$all.dat.tidy[region %in% myregions,
+  if (is.null(myregions)) myregions <- object$all.dat.long[, levels(region)]
+  DT <- droplevels(object$all.dat.long[region %in% myregions,
                    c('Study.ID', 'Group', 'region', 'resids')])
   setkey(DT, region, resids)
   outliers <- DT[, .SD[abs(resids) > abs(mean(resids) + 2*sd(resids))], by=region]
@@ -299,7 +298,7 @@ plot.brainGraph_resids <- function(x, regions=NULL, cols=FALSE, ...) {
     return(p)
   }
 
-  p.all <- sapply(regions, function(x) NULL)
+  p.all <- setNames(vector('list', length(regions)), regions)
   for (z in regions) {
     p.all[[z]] <- plot_single(DT[region == z], cols)
   }

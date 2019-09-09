@@ -52,14 +52,13 @@ analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, save
   kNumThresh <- length(g.list)
   kNumSubj <- vapply(g.list, function(x) length(x$graphs), integer(1))
   if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE)
-  prog_str <- 'Random graphs for threshold #'
 
   # Loop through all graphs, generate random graphs, calculate rich club coeff's
   phi.norm <- rand.dt <- small.dt <- vector('list', kNumThresh)
   for (i in seq_along(g.list)) {
     phi.norm[[i]] <- vector('list', kNumSubj[i])
 
-    print(paste0(prog_str, i, '; ', format(Sys.time(), '%H:%M:%S')))
+    print(paste0('Random graphs for threshold #', i, '; ', format(Sys.time(), '%H:%M:%S')))
     progbar <- txtProgressBar(min=0, max=kNumSubj[i], style=3)
     for (j in seq_along(g.list[[i]]$graphs)) {
       rand <- sim.rand.graph.par(g.list[[i]][j], level=level, N=N, atlas=g.list[[i]]$atlas, ...)

@@ -287,15 +287,16 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     stat <- S.crit <- threshold <- stat_ribbon <- nullthresh <- y <- A.mtpc <- A.crit <- NULL
 
     inds <- DT[, get_rle_inds(x$clust.size, x$alt, stat, S.crit, threshold)]
-    if (nrow(inds) == 0) {
+    n <- dim(inds)[1L]
+    if (n == 0) {
       DT[, stat_ribbon := NA]
     } else {
-      if (nrow(inds) == 1) {
+      if (n == 1) {
         all.inds <- c(apply(inds, 1, function(z) z[1]:z[2]))
-      } else if (nrow(inds) > 1) {
+      } else if (n > 1) {
         all.inds <- c(unlist(apply(inds, 1, function(z) z[1]:z[2])))
       } else {
-        all.inds <- 1:nrow(DT)
+        all.inds <- 1:dim(DT)[1L]
       }
       DT[-all.inds, stat_ribbon := NA]
     }
@@ -303,7 +304,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     lineplot <- ggplot(data=DT, mapping=aes(x=threshold)) +
       geom_line(aes(y=stat), col='red4', size=1.25, na.rm=TRUE) +
       geom_hline(aes(yintercept=nullthresh), lty=2)
-    if (nrow(inds) > 0) {
+    if (n > 0) {
       if (x$alt == 'less') {
         lineplot <- lineplot +
           geom_ribbon(aes(ymax=stat_ribbon, ymin=nullthresh), fill='red4', alpha=0.3)
@@ -315,7 +316,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     }
 
     if (isTRUE(all(diff(thresholds) < 0))) lineplot <- lineplot + scale_x_reverse()
-    p.region <- ifelse(x$level == 'graph', 'graph-level', DT[, as.character(unique(region))])
+    p.region <- if (x$level == 'graph') 'graph-level' else DT[, as.character(unique(region))]
     p.title <- paste0('Region: ', p.region)
     p.subtitle <- paste0('Outcome: ', x$outcome)
 
@@ -355,7 +356,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       }
     }
 
-    lineplots <- sapply(region, function(x) NULL)
+    lineplots <- setNames(vector('list', length(region)), region)
     for (z in region) {
       lineplots[[z]] <- plot_single(x, DT[region == z], nullcoords, show.null)
     }

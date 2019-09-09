@@ -12,14 +12,14 @@
 
 guess_atlas <- function(x) {
   bgAtlases <- data(package='brainGraph')$results[, 3]
-  Nv <- sapply(bgAtlases, function(x) nrow(get(x)))
+  Nv <- vapply(bgAtlases, function(x) dim(get(x))[1L], integer(1))
 
   # Currently works only for 'dt.vol' from `get.resid`
-  n <- switch(class(x)[1],
-              data.frame=,data.table=ncol(x) - ('Study.ID' %in% names(x)),
+  n <- switch(class(x)[1L],
+              data.frame=,data.table=dim(x)[2L] - ('Study.ID' %in% names(x)),
               igraph=vcount(x),
               brainGraph=if (is.null(x$atlas)) vcount(x) else x$atlas,
-              matrix=,array=nrow(x),
+              matrix=,array=dim(x)[1L],
               x)
 
   if (is.character(n)) {
@@ -124,10 +124,11 @@ create_atlas <- function(regions, coords, lobes, hemis) {
     warning('Converting coordinates to a 3-column matrix.')
     try(coords <- matrix(coords, ncol=3))
   }
-  if (ncol(coords) != 3) stop('Coordinates must be a matrix with 3 columns.')
+  dims <- dim(coords)
+  if (dims[2L] != 3) stop('Coordinates must be a matrix with 3 columns.')
 
   kNumRegions <- length(regions)
-  kNumCoords <- nrow(coords)
+  kNumCoords <- dims[1L]
   kNumLobes <- length(lobes)
   kNumHemis <- length(hemis)
   if (length(unique(c(kNumRegions, kNumCoords, kNumLobes, kNumHemis))) != 1) {
@@ -140,6 +141,6 @@ create_atlas <- function(regions, coords, lobes, hemis) {
                     z.mni=coords[, 3],
                     lobe=as.factor(lobes),
                     hemi=as.factor(hemis),
-                    index=seq_len(nrow(coords)))
+                    index=seq_len(kNumCoords))
   return(out)
 }

@@ -69,11 +69,11 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   Study.ID <- NULL
   covars <- copy(covars)
   covars[, Study.ID := as.character(Study.ID)]
-  X <- matrix(1, nrow=nrow(covars), ncol=1)
+  X <- matrix(1, nrow=dim(covars)[1L], ncol=1)
   colnames(X) <- 'Intercept'
 
   if (isTRUE(factorize)) {
-    cols <- names(which(sapply(covars, is.character)))
+    cols <- names(which(vapply(covars, is.character, logical(1))))
     cols <- cols[!is.element(cols, 'Study.ID')]
     cols <- setdiff(cols, binarize)
     if (length(cols) > 0) covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
@@ -84,7 +84,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   }
 
   center.how <- match.arg(center.how)
-  nums <- which(sapply(covars, is.numeric))
+  nums <- which(vapply(covars, is.numeric, logical(1)))
   if (isTRUE(mean.center)) {
     covars[, (nums) := lapply(.SD, as.numeric), .SDcols=nums]
     if (center.how == 'all') {
@@ -95,7 +95,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   }
   if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=FALSE]))
 
-  factors <- which(sapply(covars, class) == 'factor')
+  factors <- which(vapply(covars, class, character(1)) == 'factor')
   coding <- match.arg(coding)
   for (f in factors) {
     cov.name <- names(covars)[f]
@@ -108,17 +108,16 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
         X <- cbind(X, cov.vec.sub)
       }
       if (all(X[, 1] == 1)) X <- X[, -1]  # Remove intercept term
-      p <- ncol(X)
+      p <- dim(X)[2L]
       colnames(X)[(p - max(cov.vec) + 1):p] <- paste0(cov.name, cov.levels)
 
     } else {
-      code <- ifelse(coding == 'dummy', 0, -1)
       for (i in 2:max(cov.vec)) {
         cov.vec.sub <- ifelse(cov.vec == i, 1, 0)
-        cov.vec.sub <- ifelse(cov.vec == 1, code, cov.vec.sub)
+        if (coding == 'effects') cov.vec.sub[cov.vec == 1] <- -1
         X <- cbind(X, cov.vec.sub)
       }
-      p <- ncol(X)
+      p <- dim(X)[2L]
       colnames(X)[(p - (max(cov.vec) - 1) + 1):p] <- paste0(cov.name, cov.levels[-1])
     }
   }
@@ -143,25 +142,25 @@ get_int <- function(X, coding, factors, int) {
     return(cnames)
   }
 
-  p <- ncol(X)
+  p <- dim(X)[2L]
   intnames <- lapply(int, get_colnames, X, factors)
 
   if (length(int) == 3) {
     X <- cbind(X, X[, intnames[[1]]] * X[, intnames[[2]]] * X[, intnames[[3]]])
-    colnames(X)[(p + 1):ncol(X)] <- paste(intnames[[1]], intnames[[2]], intnames[[3]], sep=':')
+    colnames(X)[(p + 1):dim(X)[2L]] <- paste(intnames[[1]], intnames[[2]], intnames[[3]], sep=':')
   } else {
     if (int[1] %in% factors && int[2] %in% factors && coding == 'cell.means') {
       for (j in seq_along(intnames[[1]])) {
         X <- cbind(X, X[, intnames[[1]][j]] * X[, intnames[[2]]])
-        p2 <- ncol(X)
+        p2 <- dim(X)[2L]
         colnames(X)[(p + 1):p2] <- paste(intnames[[1]][j], intnames[[2]], sep=':')
-        p <- ncol(X)
+        p <- dim(X)[2L]
       }
       X <- X[, -which(colnames(X) %in% intnames[[1]])]
       X <- X[, -which(colnames(X) %in% intnames[[2]])]
     } else {  # One of the int. terms is numeric
       X <- cbind(X, X[, intnames[[1]]] * X[, intnames[[2]]])
-      p2 <- ncol(X)
+      p2 <- dim(X)[2L]
       colnames(X)[(p + 1):p2] <- paste(intnames[[1]], intnames[[2]], sep=':')
       if (coding == 'cell.means') {
         if (!int[1] %in% factors) {

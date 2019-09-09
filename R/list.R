@@ -448,7 +448,7 @@ print.brainGraphList <- function(x, ...) {
   }
   if (x$level == 'subject' && 'Group' %in% graph_attr_names(x[1])) {
     message('Group membership:')
-    print(table(sapply(x[], graph_attr, 'Group')))
+    print(table(vapply(x[], graph_attr, character(1), 'Group')))
   }
   invisible(x)
 }

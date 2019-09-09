@@ -42,17 +42,18 @@ write_brainnet <- function(g, vcolor='none', vsize='constant', edge.wt=NULL, fil
   atlas.dt <- get(g$atlas)
   coords <- round(atlas.dt[, cbind(x.mni, y.mni, z.mni)])
 
+  vnames <- vertex_attr_names(g)
   if (vcolor == 'none') {
     cols <- rep(1, vcount(g))
   } else {
-    stopifnot(vcolor %in% vertex_attr_names(g))
+    stopifnot(vcolor %in% vnames)
     cols <- as.numeric(factor(vertex_attr(g, vcolor)))
   }
 
   if (vsize == 'constant') {
     size <- 5
   } else {
-    stopifnot(vsize %in% vertex_attr_names(g))
+    stopifnot(vsize %in% vnames)
     size <- vertex_attr(g, vsize)
   }
 

@@ -207,12 +207,13 @@ sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
   e <- mean(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
   v <- var(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
   ebar <- mean(diag(A), na.rm=TRUE)
-  n <- nrow(A)
+  n <- dim(A)[1L]
 
   m <- max(2, floor((ebar^2 - e^2) / v))
   ehat <- sqrt(e / m)
   vhat <- sqrt(ehat^4 + v / m) - ehat^2
 
+  # Returns a "n X n" matrix
   hqs <- function(ehat, vhat, n, m) {
     u <- matrix(0, nrow=n, ncol=m)
     for (i in seq_len(m)) {
@@ -220,7 +221,7 @@ sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
     }
     Q <- qnorm(u)
     f <- ehat + sqrt(vhat)*Q
-    sig <- f %*% t(f)
+    sig <- tcrossprod(f)
     return(sig)
   }
 

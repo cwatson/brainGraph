@@ -35,7 +35,7 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
 
   kNumThresh <- length(g.list)
   if (!is.null(g.list[[1]]$threshold)) {
-    thresholds <- sapply(g.list, with, threshold)
+    thresholds <- vapply(g.list, with, numeric(1), threshold)
   } else {
     thresholds <- seq(from=0, to=1, length.out=kNumThresh)
   }

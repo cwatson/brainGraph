@@ -62,7 +62,8 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
         X <- mni152
       } else if (hemi == 'L') {
         tmp <- mni152@.Data
-        X <- nifti(tmp[rev(seq_len(nrow(tmp))), rev(seq_len(ncol(tmp))), ])
+        dims <- dim(tmp)
+        X <- nifti(tmp[rev(seq_len(dims[1L])), rev(seq_len(dims[2L])), ])
       }
       slice <- 30
       slicemax <- max(X[slice, , ])
@@ -278,7 +279,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
         cols <- group.cols[group.nums]
         cex <- vlabel.cex
       }
-      l.inset <- ifelse(plane == 'circular', c(-0.1, 0), c(-0.01, 0))
+      l.inset <- if (plane == 'circular') c(-0.1, 0) else c(-0.01, 0)
       legend('topleft',
              classnames,
              fill=cols,

@@ -450,12 +450,13 @@ plot_brainGraph_gui <- function() {
           if (vsize.measure == 'hub.score' && !is_directed(graphs[[1]])) vsize.measure <<- 'ev.cent'
           for (j in seq_len(kNumGroups)) {
             rangeX <- range(vertex_attr(graphs[[j]], vsize.measure), na.rm=TRUE)
+            vrange <- diff(rangeX)
             newMin <- rangeX[1]
             newMax <- rangeX[2]
-            newStep <- ifelse(diff(rangeX) > 10 & newMin >= 0, 1,
-                              ifelse(diff(rangeX) < 1, 0.01, 0.1))
-            newDigits <- ifelse(diff(rangeX) > 10 & newMin >= 0, 0,
-                                ifelse(diff(rangeX) < 1, 2, 1))
+            newStep <- ifelse(vrange > 10 && newMin >= 0, 1,
+                              ifelse(vrange < 1, 0.01, 0.1))
+            newDigits <- ifelse(vrange > 10 && newMin >= 0, 0,
+                                ifelse(vrange < 1, 2, 1))
             RGtk2::gtkSpinButtonSetDigits(Vsize[[5]][[j]], newDigits)
             RGtk2::gtkSpinButtonSetIncrements(Vsize[[5]][[j]], step=newStep, page=0)
             RGtk2::gtkSpinButtonSetRange(Vsize[[5]][[j]], min=newMin, max=newMax)
@@ -521,11 +522,12 @@ plot_brainGraph_gui <- function() {
       } else {
         for (j in seq_len(kNumGroups)) {
           rangeX <- range(edge_attr(graphs[[j]], ewidth.measure), na.rm=TRUE)
+          erange <- diff(rangeX)
           newMin <- rangeX[1]
           newMax <- rangeX[2]
-          newStep <- ifelse(diff(rangeX) > 1 & newMin >= 0, 1,
-                            ifelse(diff(rangeX) < 1, 0.01, 0.1))
-          newDigits <- ifelse(diff(rangeX) > 1 & newMin >= 0, 0, 2)
+          newStep <- ifelse(erange > 1 && newMin >= 0, 1,
+                            ifelse(erange < 1, 0.01, 0.1))
+          newDigits <- ifelse(erange > 1 && newMin >= 0, 0, 2)
           RGtk2::gtkSpinButtonSetDigits(Ewidth[[5]][[j]], newDigits)
           RGtk2::gtkSpinButtonSetIncrements(Ewidth[[5]][[j]], step=newStep, page=0)
           RGtk2::gtkSpinButtonSetRange(Ewidth[[5]][[j]], min=newMin, max=newMax)
@@ -578,7 +580,7 @@ plot_brainGraph_gui <- function() {
     res <- as.numeric(strsplit(display.size, 'x')[[1]])
   }
 
-  ydim <- ifelse(res[2] < 800, 0.8 * res[2], 700)
+  ydim <- if (res[2] < 800) 0.8 * res[2] else 700
   for (i in 1:2) {
     graphics[[i]] <- RGtk2::gtkDrawingArea()
     graphics[[i]]$setSizeRequest(res[1] / 3 - 10, ydim)

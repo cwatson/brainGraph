@@ -53,7 +53,8 @@ plot_brainGraph_multi <- function(g.list, groups=1, N=1, filename='tmp.png',
   stopifnot('Group' %in% graph_attr_names(g.list[[groups[1]]][[N]]))
 
   X <- mni152@.Data
-  L <- nifti(X[rev(seq_len(nrow(X))), rev(seq_len(ncol(X))), ])
+  dims <- dim(X)
+  L <- nifti(X[rev(seq_len(dims[1L])), rev(seq_len(dims[2L])), ])
   R <- aperm(X, c(2, 3, 1))
   L <- aperm(L, c(2, 3, 1))
 

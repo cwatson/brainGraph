@@ -154,7 +154,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   }
 
   X.m <- brainGraph_GLM_design(DT[, c(treat, covar.names), with=FALSE], ...)
-  n <- nrow(X.m)
+  n <- dim(X.m)[1L]
   y.y <- DT[, get(outcome)]
   treatstr <- paste0(treat, cat.1)
   if (isTRUE(int)) treatintstr <- paste0(treatstr, ':', mediator)

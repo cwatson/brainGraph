@@ -42,7 +42,6 @@ brainGraph_boot <- function(densities, resids, R=1e3,
                                       'strength', 'mod.wt', 'E.global.wt'),
                             conf=0.95, .progress=TRUE,
                             xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)')) {
-  Group <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'))
 
   # 'statistic' function for the bootstrapping process
@@ -63,7 +62,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
         Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
         Lp=vapply(g.boot, mean_distance, numeric(1)),
         assortativity=vapply(g.boot, assortativity_degree, numeric(1)),
-        strength=vapply(g.boot, function(y) mean(graph.strength(y)), numeric(1)))
+        strength=vapply(g.boot, function(y) mean(strength(y)), numeric(1)))
     return(res)
   }
 
@@ -95,7 +94,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
   xfm.type <- match.arg(xfm.type)
   env <- environment()
   groups <- resids$groups
-  my.boot <- sapply(groups, function(x) NULL)
+  my.boot <- setNames(vector('list', length(groups)), groups)
   for (g in groups) {
     counter <- 0
     res.dt <- resids$resids.all[g]
@@ -119,16 +118,18 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' @rdname Bootstrapping
 
 summary.brainGraph_boot <- function(object, ...) {
+  kNumDensities <- length(object$densities)
   # Get everything into a data.table
   boot.dt <- with(object,
-                  data.table(Group=rep(groups, each=length(densities)),
+                  data.table(Group=rep(groups, each=kNumDensities),
                              density=rep(densities, length(groups)),
-                             Observed=c(sapply(boot, with, t0)),
-                             se=c(sapply(boot, function(x) apply(x$t, 2, sd)))))
+                             Observed=c(vapply(boot, with, numeric(kNumDensities), t0)),
+                             se=c(vapply(boot, function(x) apply(x$t, 2, sd), numeric(kNumDensities)))))
   ci <- with(object,
              vapply(seq_along(densities), function(x)
-                    sapply(boot, function(y)
-                           boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3]),
+                    vapply(boot, function(y)
+                             boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3],
+                           numeric(2)),
                     numeric(2 * length(groups))))
   boot.dt$ci.low <- c(t(ci[2 * (seq_along(object$groups) - 1) + 1, ]))
   boot.dt$ci.high <- c(t(ci[2 * (seq_along(object$groups) - 1) + 2, ]))

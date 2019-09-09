@@ -46,8 +46,9 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
   i <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
-  stopifnot(dim(A)[3] == nrow(covars))
-  Nv <- nrow(A)
+  dimA <- dim(A)
+  stopifnot(dimA[3L] == dim(covars)[1L])
+  Nv <- dimA[1L]
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
@@ -60,7 +61,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
   A <- symmetrize_array(A, symm.by)
   inds.low <- which(lower.tri(A[, , 1], diag=TRUE), arr.ind=TRUE)
-  for (k in seq_len(dim(A)[3])) A[cbind(inds.low, k)] <- 0
+  for (k in seq_len(dimA[3L])) A[cbind(inds.low, k)] <- 0
   A.m <- setDT(melt(A))
   setkey(A.m, Var1, Var2, Var3)
   pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
@@ -98,10 +99,11 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
-  if (is.null(perms)) perms <- shuffleSet(n=nrow(X), nset=N)
+  dimX <- dim(X)
+  if (is.null(perms)) perms <- shuffleSet(n=dimX[1L], nset=N)
   null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, nC, skip,
                          A.m.sub, outcome='value', X, mykey='Var1,Var2')
-  dfR <- nrow(X) - ncol(X)
+  dfR <- dimX[1L] - dimX[2L]
   eqn <- if (ctype == 't') 'gamma / se' else 'numer / (se / dfR)'
   null.dist[, stat := eval(parse(text=eqn))]
   if (ctype == 't') {
@@ -217,7 +219,7 @@ print.summary.NBS <- function(x, ...) {
 
   for (i in contrast) {
     message(x$con.name[i])
-    if (nrow(xdt[contrast == i]) == 0) {
+    if (dim(xdt[contrast == i])[1L] == 0) {
       message('\tNo signficant results!\n')
     } else {
       printCoefmat(xdt[contrast == i, !'contrast'], tst.ind=2, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)

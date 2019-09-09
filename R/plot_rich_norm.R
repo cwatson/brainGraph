@@ -30,16 +30,13 @@
 
 plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
                            densities, alpha=0.05, fdr=TRUE, g.list=NULL, smooth=TRUE) {
-  p.fdr <- yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
+  yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
 
   facet.by <- match.arg(facet.by)
   subDT <- rich.dt[round(get(facet.by), 2) %in% round(densities, 2)]
-  if (isTRUE(fdr)) {
-    subDT[, star := ifelse(p.fdr < alpha, '*', '')]
-  } else {
-    subDT[, star := ifelse(p < alpha, '*', '')]
-  }
-  subDT[, yloc := min(norm, na.rm=TRUE) - 0.05 * diff(range(norm, na.rm=TRUE)), by=facet.by]
+  pvar <- if (isTRUE(fdr)) 'p.fdr' else 'p'
+  subDT[, star := ifelse(get(pvar) < alpha, '*', '')]
+  subDT[, yloc := extendrange(norm), by=facet.by]
   subDT[, Group := as.factor(Group)]
   groups <- subDT[, levels(Group)]
   if (length(groups) > 1) {
@@ -60,7 +57,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
     densities.g <- round(vapply(g.list, function(x) graph_attr(x[1], 'density'), numeric(1)),  2)
     densities.g <- which(densities.g %in% round(densities, 2))
     g.list <- g.list[densities.g]
-    k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(densities)))
+    k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(g.list)))
     max.k <- apply(as.matrix(k), 1, max)
 
     rects[, xstart := max.k]

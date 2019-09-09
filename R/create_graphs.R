@@ -74,10 +74,6 @@
 #'   (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}
 #' @param threshold Numeric indicating the threshold used when sparsifying the
 #'   connectivity matrix (if any). Default: \code{NULL}
-#' @param name Character string indicating subject ID or group/contrast name,
-#'   depending on the \code{level}. Default: \code{NULL}
-#' @param Group Character string indicating group membership. Default:
-#'   \code{NULL}
 #' @param ... Arguments passed to \code{\link{set_brainGraph_attr}}
 #' @export
 #'
@@ -113,13 +109,16 @@
 
 make_brainGraph <- function(x, atlas, type=c('observed', 'random'),
                             level=c('subject', 'group', 'contrast'), set.attrs=TRUE,
-                            modality=NULL, weighting=NULL, threshold=NULL,
-                            name=NULL, Group=NULL, ...) {
+                            modality=NULL, weighting=NULL, threshold=NULL, ...) {
   UseMethod('make_brainGraph')
 }
 
 #' Create a brainGraph object from an igraph graph
 #'
+#' @param name Character string indicating subject ID or group/contrast name,
+#'   depending on the \code{level}. Default: \code{NULL}
+#' @param Group Character string indicating group membership. Default:
+#'   \code{NULL}
 #' @export
 #' @method make_brainGraph igraph
 #' @rdname make_brainGraph
@@ -156,9 +155,8 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   x$level <- level
   x$type <- type
   attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
-  for (a in attrs) {
-    if (!is.null(get(a))) x <- set_graph_attr(x, a, get(a))
-  }
+  attrs <- names(which(vapply(attrs, function(x) !is.null(get(x)), logical(1))))
+  for (a in attrs) x <- set_graph_attr(x, a, get(a))
   if (level == 'group' && !is.null(Group)) x$name <- x$Group
 
   if (type == 'observed') {
@@ -169,7 +167,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
     V(x)$z <- V(x)$z.mni <- DT[vorder, z.mni]
     x <- set_graph_colors(x, 'color.lobe', DT[vorder, as.numeric(lobe)])
     if (x$atlas %in% c('destrieux', 'destrieux.scgm')) {
-      x <- set_graph_colors(x, 'color.class', V(x)$class)
+      x <- set_graph_colors(x, 'color.class', DT[vorder, as.numeric(class)])
     } else if (x$atlas == 'dosenbach160') {
       x <- set_graph_colors(x, 'color.network', DT[vorder, as.numeric(network)])
       l.cir <- c(l.cir, which(V(x)$hemi == 'B'))
@@ -302,7 +300,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
                       all=c('graph', 'vertex', 'edge'),
                       none=NULL,
                       print.attrs)
-  attrs.l <- sapply(attrtypes, function(x) NULL)
+  attrs.l <- setNames(vector('list', length(attrtypes)), attrtypes)
   for (atype in attrtypes) {
     attrs <- switch(atype,
                     graph=graph_attr_names(object),
@@ -360,7 +358,7 @@ make_empty_brainGraph <- function(atlas, type=c('observed', 'random'),
                                   level=c('subject', 'group', 'contrast'),
                                   modality=NULL, weighting=NULL, threshold=NULL,
                                   name=NULL, Group=NULL, ...) {
-  n <- nrow(get(atlas))
+  n <- dim(get(atlas))[1L]
   A <- matrix(0, nrow=n, ncol=n)
   type <- match.arg(type)
   level <- match.arg(level)
@@ -436,13 +434,13 @@ make_ego_brainGraph <- function(g, vs) {
 make_intersection_brainGraph <- function(..., subgraph) {
   g <- inds <- NULL
   graphs <- args_as_list(...)
-  stopifnot(all(sapply(graphs, inherits, 'brainGraph')))
+  stopifnot(all(vapply(graphs, inherits, logical(1), 'brainGraph')))
   Nv <- vcount(graphs[[1]])
 
   subs <- lapply(graphs, subset_graph, subgraph)
   graphs.sub <- lapply(subs, with, g)
   inds.sub <- lapply(subs, with, inds)
-  graphs.valid <- graphs.sub[which(sapply(graphs.sub, function(x) !is.null(x)))]
+  graphs.valid <- graphs.sub[which(vapply(graphs.sub, function(x) !is.null(x), logical(1)))]
 
   if (length(graphs.valid) == 0) {
     return(make_empty_brainGraph(graphs[[1]]$atlas))

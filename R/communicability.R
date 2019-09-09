@@ -52,8 +52,7 @@ communicability <- function(g, weights=NULL) {
 #' (e^{\mathbf{A} + \mathbf{E}(r)})_{pq}}{(e^{\mathbf{A}})_{pq}}}
 #' where \eqn{C = (n - 1)^2 - (n - 1)} is a normalization factor.
 #'
-#' @param g An \code{igraph} graph object
-#' @param A Numeric matrix, the graph's adjacency matrix (default: \code{NULL})
+#' @inheritParams efficiency
 #' @export
 #' @importFrom expm expm
 #'
@@ -70,7 +69,7 @@ centr_betw_comm <- function(g, A=NULL) {
   if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE)
 
   C <- expm(A)
-  N <- nrow(A)
+  N <- dim(A)[1L]
   n <- (N - 1)^2 - (N - 1)
   Wr <- rep(0, N)
   for (i in seq_len(N)) {

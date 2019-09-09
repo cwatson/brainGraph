@@ -16,8 +16,8 @@
 #' there are almost as many unique values as there are vertices, then several
 #' separate cores will have a single vertex. See the reference provided below.
 #'
-#' @param g The \code{igraph} graph object of interest
 #' @param W Numeric matrix of edge weights (default: \code{NULL})
+#' @inheritParams efficiency
 #' @export
 #'
 #' @return Integer vector of the vertices' \emph{s-core} membership
@@ -35,7 +35,7 @@ s_core <- function(g, W=NULL) {
 
   if (is.null(W)) W <- as_adj(g, names=FALSE, sparse=FALSE, attr='weight')
   ct <- 1
-  s.core <- vector('integer', length=nrow(W))
+  s.core <- vector('integer', length=dim(W)[1L])
   repeat {
     str.tmp <- colSums(W)
     s.thr <- min(str.tmp[which(str.tmp > 0)])

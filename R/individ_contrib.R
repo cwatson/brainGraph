@@ -45,8 +45,9 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   group.vec <- resids$resids.all$Group
   group.num <- as.integer(group.vec)
   group.vec <- as.character(group.vec)
+  n <- dim(resids$resids.all)[1L]
   if (level == 'global') {
-    IC <- foreach(i=seq_len(nrow(resids$resids.all)), .combine='c') %dopar% {
+    IC <- foreach(i=seq_len(n), .combine='c') %dopar% {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
 
@@ -57,7 +58,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 
     DT <- data.table(resids$resids.all[, list(Study.ID, Group)], IC=IC)
   } else if (level == 'regional') {
-    RC <- foreach(i=seq_len(nrow(resids$resids.all)), .combine='rbind') %dopar% {
+    RC <- foreach(i=seq_len(n), .combine='rbind') %dopar% {
       resids.excl <- resids[-i]
       new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
       colSums(abs(corrs$R[, , group.num[i]] - new.corrs$R[, , 1]))
@@ -114,7 +115,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
   control.inds <- resids$resids.all[, which(Group == control.str)]
   level <- match.arg(level)
   if (level == 'global') {
-    IC <- sapply(groups[-control.int], function(x) NULL)
+    IC <- setNames(vector('list', length(groups) - 1), groups[-control.int])
     for (j in patient.int) {
       pat.inds <- resids$resids.all[, which(Group == patient.str)]
       IC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='c') %dopar% {
@@ -134,7 +135,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
     setnames(DT, 'V2', 'IC')
 
   } else if (level == 'regional') {
-    RC <- sapply(groups[-control.int], function(x) NULL)
+    RC <- setNames(vector('list', length(groups) - 1), groups[-control.int])
     for (j in patient.int) {
       pat.inds <- resids$resids.all[, which(Group == patient.str)]
       RC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='rbind') %dopar% {
@@ -308,7 +309,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     }
 
   } else {
-    n <- nrow(DT)
+    n <- dim(DT)[1L]
     txtsize <- if (n > 50) 9 else 12
     if (isTRUE(ids)) {
       DT[, ind := Study.ID]

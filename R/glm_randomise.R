@@ -35,25 +35,27 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 
   } else if (part.method == 'beckmann') {
     Q <- solve(crossprod(M))
-    cdc <- solve(con.mat %*% Q %*% t(con.mat))
-    X <- M %*% Q %*% t(con.mat) %*% cdc
+    cdc <- solve(con.mat %*% tcrossprod(Q, con.mat))
+    X <- M %*% tcrossprod(Q, con.mat) %*% cdc
 
     Cu <- MASS::Null(t(con.mat))
-    Cv <- Cu - (t(con.mat) %*% cdc %*% con.mat %*% Q %*% Cu)
-    Z <- M %*% Q %*% Cv %*% solve(t(Cv) %*% Q %*% Cv)
-    eCm <- cbind(diag(ncol(X)), matrix(0, nrow=ncol(X), ncol=ncol(Z)))
+    Cv <- Cu - (crossprod(con.mat, cdc) %*% con.mat %*% Q %*% Cu)
+    Z <- M %*% Q %*% Cv %*% solve(crossprod(Cv, Q) %*% Cv)
+    px <- dim(X)[2L]
+    eCm <- cbind(diag(px), matrix(0, nrow=px, ncol=dim(Z)[2L]))
 
   } else if (part.method == 'ridgway') {
     rZ <- qr(M)$rank - qr(con.mat)$rank
     pinvC <- MASS::ginv(con.mat)
-    C0 <- diag(ncol(M)) - t(con.mat) %*% MASS::ginv(t(con.mat))
+    C0 <- diag(dim(M)[2L]) - t(con.mat) %*% MASS::ginv(t(con.mat))
     tmpX <- M %*% pinvC
     tmpZ <- svd(M %*% C0)$u
     Z <- tmpZ[, 1:rZ]
     X <- tmpX - Z %*% MASS::ginv(Z) %*% tmpX
-    eCm <- cbind(diag(ncol(X)), matrix(0, nrow=ncol(X), ncol=ncol(Z)))
+    px <- dim(X)[2L]
+    eCm <- cbind(diag(px), matrix(0, nrow=px, ncol=dim(Z)[2L]))
   }
-  eCx <- eCm[, 1:ncol(X), drop=FALSE]
+  eCx <- eCm[, 1:dim(X)[2L], drop=FALSE]
   return(list(X=X, Z=Z, eCm=eCm, eCx=eCx))
 }
 
@@ -93,7 +95,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'   \item{Zp}{(only for Smith method) List of matrices of nuisance covariates}
 
 setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC) {
-  n <- nrow(X)
+  n <- dim(X)[1L]
   Mp <- MtM <- Rz <- eC <- Xp <- Zp <- CMtM <- vector('list', length=nC)
   rkC <- rep(0L, nC)
 
@@ -105,25 +107,25 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 
     # The hat and residual-forming matrices are different for diff. methods
     if (perm.method == 'freedmanLane') {
-      Hz <- with(parts, Z %*% solve(crossprod(Z)) %*% t(Z))
+      Hz <- with(parts, Z %*% tcrossprod(solve(crossprod(Z)), Z))
 
     } else if (perm.method == 'terBraak') {
       # NOTE: this is really "Hm", and "Rz" is really "Rm"
-      Hz <- Mp[[j]] %*% MtM[[j]] %*% t(Mp[[j]])
+      Hz <- Mp[[j]] %*% tcrossprod(MtM[[j]], Mp[[j]])
 
     } else if (perm.method == 'smith') {
       Xp[[j]] <- parts$X; Zp[[j]] <- parts$Z
-      Hz <- Zp[[j]] %*% solve(crossprod(Zp[[j]])) %*% t(Zp[[j]])
+      Hz <- Zp[[j]] %*% tcrossprod(solve(crossprod(Zp[[j]])), Zp[[j]])
     }
 
     Rz[[j]] <- diag(n) - Hz
     eC[[j]] <- parts$eCm
     if (con.type == 'f') {
-      CMtM[[j]] <- solve(eC[[j]] %*% MtM[[j]] %*% t(eC[[j]]))
+      CMtM[[j]] <- solve(eC[[j]] %*% tcrossprod(MtM[[j]], eC[[j]]))
       rkC[j] <- qr(eC[[j]])$rank
     }
   }
-  dfR <- nrow(Mp[[1]]) - qr(Mp[[1]])$rank
+  dfR <- dim(Mp[[1]])[1L] - qr(Mp[[1]])$rank
 
   out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC, dfR=dfR)
   if (con.type == 'f') out <- c(out, list(CMtM=CMtM, rkC=rkC))
@@ -191,7 +193,7 @@ randomise <- function(perm.method, part.method, N, perms,
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
           MtM <- solve(crossprod(M))
-          CMtM <- solve(eC[[j]] %*% MtM %*% t(eC[[j]]))
+          CMtM <- solve(eC[[j]] %*% tcrossprod(MtM, eC[[j]]))
           DT[, brainGraph_GLM_fit_f(M, outcome, dfR, eC[[j]], rkC[j], CMtM), by=eval(mykey)]
         }
       } else {

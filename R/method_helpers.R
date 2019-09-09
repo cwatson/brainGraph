@@ -3,7 +3,7 @@
 print_bg_summary <- function(object) {
   name <- name_str <- dens.pct <- Group <- modality <- weighting <- thresh <- clustmethod <- 'N/A'
 
-  ver <- sapply(object$version, as.character)
+  ver <- vapply(object$version, as.character, character(1))
   date_created <- sub('T', ' ', object$date)
   type <- tools::toTitleCase(object$type)
   atlasfull <-
@@ -28,8 +28,15 @@ print_bg_summary <- function(object) {
                kendall='Kendall\'s rank correlation', partial='Partial correlation',
                object$weighting)
   }
-  if (is.brainGraph(object) && !is_weighted(object)) weighting <- 'Unweighted'
-  if (!is.null(object$threshold)) thresh <- prettyNum(object$threshold, ',')
+  thresh_str <- 'Threshold:'
+  if (!is.null(object$threshold)) {
+    thresh <- prettyNum(object$threshold, ',', digits=4L)
+    if (length(thresh) > 1L) {
+      thresh_str <- sub(':', 's:', thresh_str)
+      if (length(thresh) > 6L) thresh <- thresh[1:6]
+      thresh <- paste(thresh, collapse='; ')
+    }
+  }
   if (!is.null(object$clust.method)) {
     clustmethod <-
       switch(object$clust.method, edge_betweenness='Edge betweenness',
@@ -39,6 +46,11 @@ print_bg_summary <- function(object) {
              louvain='Louvain (multi-level modularity optimization)', optimal='Optimal',
              spinglass='Potts spin glass model', walktrap='Walktrap algorithm',
              object$clust.method)
+  }
+  if (is.brainGraph(object)) {
+    if (!is_weighted(object)) weighting <- 'Unweighted'
+  } else if (inherits(object, 'brainGraphList')) {
+    if (!is_weighted(object$graphs[[1]])) weighting <- 'Unweighted'
   }
   # Only for 'brainGraph' objects
   if (inherits(object, 'brainGraph')) {
@@ -56,7 +68,7 @@ print_bg_summary <- function(object) {
               '       R release:', '      brainGraph:', '          igraph:',
               'Date created:', 'Observed or random?', 'Brain atlas used:',
               'Imaging modality:', 'Edge weighting:', 'Clustering method:',
-              'Graph density:', 'Threshold:', name_str, 'Group:'),
+              'Graph density:', thresh_str, name_str, 'Group:'),
           B=c('', ver, date_created, type, atlasfull, modality, weighting,
               clustmethod, dens.pct, thresh, name, Group))
   dimnames(df)[[2]] <- rep('', 2)

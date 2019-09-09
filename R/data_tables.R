@@ -81,7 +81,7 @@ vertex_attr_dt <- function(bg.list) {
   }
 
   dt.V <- rbindlist(lapply(bg.list, as_data_frame, what='vertices'))
-  cols.char <- names(which(sapply(vertex_attr(bg.list[[1]]), is.character)))
+  cols.char <- names(which(vapply(vertex_attr(bg.list[[1]]), is.character, logical(1))))
   cols.rem <- setdiff(cols.char, c('name', 'lobe', 'hemi', 'class', 'network'))
   cols.rem <- c(cols.rem, 'x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni',
                 'lobe.hemi', 'circle.layout', 'circle.layout.comm')

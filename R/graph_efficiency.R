@@ -26,7 +26,7 @@
 #' @param use.parallel Logical indicating whether or not to use \code{foreach}
 #'   (default: \code{TRUE})
 #' @param A Numeric matrix; the (weighted or unweighted) adjacency matrix of the
-#'   input graph (default: \code{NULL})
+#'   input graph. Default: \code{NULL}
 #' @export
 #' @importFrom Matrix rowSums
 #'
@@ -50,14 +50,13 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
 
   type <- match.arg(type)
   if (type == 'local') {
+    e.attr <- weighted <- NULL
     if (is.null(weights)) {
-      if (is.null(A)) A <- as_adj(g, names=FALSE, attr='weight')
+      e.attr <- 'weight'
       weighted <- TRUE
-    } else {
-      A <- as_adj(g, names=FALSE, sparse=FALSE)
-      weighted <- NULL
     }
-    eff <- rep(0, nrow(A))
+    if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE, attr=e.attr)
+    eff <- rep(0, dim(A)[1L])
     verts <- which(rowSums((A > 0) + 0) > 1)
     X <- apply(A, 1, function(x) which(x > 0))
     if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
@@ -77,7 +76,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     }
   } else {
     D <- distances(g, weights=weights)
-    Nv <- nrow(D)
+    Nv <- dim(D)[1L]
     Dinv <- 1 / D
     eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1)
     if (type == 'global') eff <- sum(eff) / length(eff)
