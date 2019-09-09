@@ -37,6 +37,7 @@ edge_spatial_dist <- function(g) {
 #'
 #' @inheritParams edge_spatial_dist
 #' @export
+#' @importFrom Matrix colSums
 #'
 #' @return \code{vertex_spatial_dist} - a named numeric vector with length equal
 #'   to the number of vertices, consisting of the average distance (in
@@ -50,10 +51,9 @@ edge_spatial_dist <- function(g) {
 #'   \bold{23}, 127--138. \url{https://dx.doi.org/10.1093/cercor/bhr388}
 
 vertex_spatial_dist <- function(g) {
-  from <- to <- dist <- NULL
   stopifnot(is_igraph(g), 'dist' %in% edge_attr_names(g))
 
-  dt.e <- as.data.table(as_data_frame(g))
-  dists <- sapply(V(g)$name, function(x) dt.e[from == x | to == x, mean(dist)])
+  A <- as_adj(g, names=FALSE, attr='dist')
+  dists <- colSums(A) / colSums(A != 0)
   return(dists)
 }

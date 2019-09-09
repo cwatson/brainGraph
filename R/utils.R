@@ -50,11 +50,7 @@ check_weights <- function(g, weights) {
 #' @keywords internal
 
 check_degree <- function(g) {
-  if ('degree' %in% vertex_attr_names(g)) {
-    x <- V(g)$degree
-  } else {
-    x <- degree(g)
-  }
+  x <- if ('degree' %in% vertex_attr_names(g)) V(g)$degree else degree(g)
   return(x)
 }
 
@@ -65,11 +61,7 @@ check_degree <- function(g) {
 #' @keywords internal
 
 check_strength <- function(g) {
-  if ('strength' %in% vertex_attr_names(g)) {
-    x <- V(g)$strength
-  } else {
-    x <- strength(g)
-  }
+  x <- if ('strength' %in% vertex_attr_names(g)) V(g)$strength else strength(g)
   return(x)
 }
 
@@ -141,12 +133,13 @@ cor.diff.test <- function(r1, r2, n1, n2,
 
 #' Add metadata to a list-like object
 #'
-#' \code{get_metadata} adds metadata to a list-like object.
+#' Adds metadata to a list-like object.
 #'
-#' The information added are:
+#' If the object is a graph, graph-level attributes will be added. The
+#' elements added are:
 #' \itemize{
-#'   \item{version}{R, brainGraph, and igraph versions}
-#'   \item{sys}{System information}
+#'   \item{version}{A list with R, brainGraph, and igraph versions}
+#'   \item{sys}{Character vector of system information}
 #'   \item{date}{The date and time of creation}
 #' }
 #'
@@ -176,7 +169,7 @@ get_metadata <- function(object) {
 #' @return Numeric vector of thresholds
 #' @keywords internal
 
-get_thresholds <- function(mat, densities, emax=nrow(mat) * (nrow(mat) - 1) / 2, ...) {
+get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1) / 2, ...) {
   sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
 }
 
@@ -203,6 +196,16 @@ glm_data_table <- function(g.list, level, measure) {
   return(DT.y)
 }
 
+#' Check if a matrix is binary
+#'
+#' @return Logical of length 1
+#' @keywords internal
+
+is_binary <- function(mat) {
+  x <- identical(sum(abs(mat)) - sum(mat == 1), 0)
+  return(x)
+}
+
 #' Convert a matrix to a list of rows
 #'
 #' Makes working with different contrast types (i.e., t or F) a little simpler.
@@ -211,7 +214,7 @@ glm_data_table <- function(g.list, level, measure) {
 #' @keywords internal
 
 matrix2list <- function(mat) {
-  l <- lapply(seq_len(nrow(mat)), function(i) mat[i, , drop=FALSE])
+  l <- lapply(seq_len(dim(mat)[1L]), function(i) mat[i, , drop=FALSE])
   nam <- dimnames(mat)[[1]]
   if (!is.null(nam)) names(l) <- nam
   return(l)
@@ -288,18 +291,19 @@ subset_graph <- function(g, subgraph) {
   orig.class <- class(g)
   # Function for creating the condition string to later subset the graph
   get_cond_string <- function(orig) {
-    substrings <- strsplit(orig, split='\\s\\&\\s|\\s\\|\\s')[[1]]
+    spec <- '\\s\\&\\s|\\s\\|\\s'
+    substrings <- strsplit(orig, split=spec)[[1]]
     if (length(substrings) > 1) {  # Multiple conditions
-      if (!isTRUE(grepl('\\s\\&\\s|\\s\\|\\s', orig))) {
+      if (!isTRUE(grepl(spec, orig))) {
         stop('Logical operators must be surrounded by spaces!')
       }
-      nchars <- cumsum(sapply(substrings, nchar))
-      splits <- sapply(seq_along(substrings), function(x)
-                       substr(orig, start=nchars[x]+(3*x-1), stop=nchars[x]+(3*x-1)))
+      nchars <- cumsum(nchar(substrings))
+      endpts <- nchars + vapply(seq_along(nchars), function(x) (3L * x) - 1L, integer(1))
+      splits <- vapply(endpts, function(x) substr(orig, start=x, stop=x), character(1))
       substrings <- trimws(substrings) # Remove unnecessary whitespace
 
-      cond.string <- paste(sapply(seq_along(substrings), function(x)
-                                  paste0('V(g)$', substrings[x], splits[x])),
+      cond.string <- paste(vapply(seq_along(substrings), function(x)
+                                  paste0('V(g)$', substrings[x], splits[x]), character(1)),
                            collapse='')
     } else {
       cond.string <- paste0('V(g)$', substrings)
@@ -311,7 +315,7 @@ subset_graph <- function(g, subgraph) {
   if (isTRUE(grepl('\\(.*\\&.*\\)', subgraph)) || isTRUE(grepl('\\(.*\\|.*\\)', subgraph))) {
     subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
     subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
-    cond.strings <- sapply(subs, get_cond_string)
+    cond.strings <- vapply(subs, get_cond_string, character(1))
     cond.string <- paste0('(', cond.strings[1], ') & (', cond.strings[2], ')')
   } else {
     cond.string <- get_cond_string(subgraph)

@@ -9,7 +9,7 @@
 #' set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 #' \emph{NA} (for functions that have the argument \emph{na.rm}).
 #'
-#' @param g An \code{igraph} graph object
+#' @inheritParams efficiency
 #' @export
 #'
 #' @return A vector of the leverage centrality for all vertices.
@@ -20,19 +20,19 @@
 #' (2010) A new measure of centrality for brain networks. \emph{PLoS One},
 #' \bold{5(8)}, e12200. \url{https://dx.doi.org/10.1371/journal.pone.0012200}
 
-centr_lev <- function(g) {
+centr_lev <- function(g, A=NULL) {
   stopifnot(is_igraph(g))
 
-  A <- as_adj(g, sparse=FALSE, names=FALSE)
+  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   k <- colSums(A)
-  lev.cent <- rep(NA, nrow(A))
+  lev.cent <- rep(NA, dim(A)[1L])
   # This is a tiny bit slower for larger graphs
 #  for (i in which(k > 0)) {
 #    lev.cent[i] <- sum((k[i] - k[A[i, ] == 1]) / (k[i] + k[A[i, ] == 1])) / k[i]
 #  }
   dd <- lapply(seq_along(k), function(x) k[A[x, ] == 1])
-  lev.cent[which(k > 0)] <- sapply(which(k > 0), function(x) sum((k[x] - dd[[x]]) / (k[x] + dd[[x]])) / k[x])
+  lev.cent[which(k > 0)] <- vapply(which(k > 0), function(x) sum((k[x] - dd[[x]]) / (k[x] + dd[[x]])) / k[x], numeric(1))
 
-  lev.cent <- ifelse(is.nan(lev.cent), NA, lev.cent)
+  lev.cent[is.nan(lev.cent)] <- NA
   return(lev.cent)
 }

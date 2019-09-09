@@ -59,14 +59,17 @@ count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
   A <- as_adj(g, names=FALSE, sparse=FALSE)
   Nm <- length(group.names)
   mat <- matrix(0, Nm, Nm)
+  vattrs <- vertex_attr(g, group)
+  matches <- lapply(group.names, function(x) which(vattrs == x))
   for (i in seq_len(Nm)) {
-    for (j in seq_len(Nm)) {
-      mat[i, j] <- sum(A[which(vertex_attr(g, group) == group.names[i]), which(vertex_attr(g, group) == group.names[j])])
+    for (j in seq.int(i, Nm)) {
+      mat[i, j] <- sum(A[matches[[i]], matches[[j]]])
     }
   }
-  diag(mat) <- diag(mat) / 2
+  mat[lower.tri(mat)] <- t(mat)[lower.tri(mat)]
+  intra <- diag(mat) <- diag(mat) / 2
   rownames(mat) <- colnames(mat) <- group.names
-  DT <- data.table(group=group.names, intra=diag(mat), inter=rowSums(mat)-diag(mat))
+  DT <- data.table(group=group.names, intra=intra, inter=rowSums(mat)-intra)
   DT[, total := intra + inter]
   setnames(DT, 'group', group)
   return(list(mat=mat, DT=DT))

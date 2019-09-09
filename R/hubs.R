@@ -16,6 +16,8 @@
 #' higher are to be considered hubs, although that determination isn't made in
 #' this function.
 #'
+#' @param prop.keep Numeric (between 0 and 1) indicating the proportion of
+#'   vertices to consider as having a high score. Default: 0.2 (20\%)
 #' @inheritParams efficiency
 #' @inheritParams xfm.weights
 #' @export
@@ -28,29 +30,32 @@
 #'   of Neuroscience}, \bold{30(47)}, 15915--15926.
 #'   \url{https://dx.doi.org/10.1523/JNEUROSCI.2874-10.2010}
 
-hubness <- function(g, xfm.type=g$xfm.type, weights=NULL) {
-  stopifnot(is_igraph(g))
+hubness <- function(g, xfm.type=g$xfm.type, weights=NULL, prop.keep=0.2) {
+  stopifnot(is_igraph(g), prop.keep <= 1, prop.keep >= 0)
   Nv <- vcount(g)
-  cutoff <- round(0.2 * Nv)
+  cutoff <- round(prop.keep * Nv)
   weights <- check_weights(g, weights)
 
   S <- strength(g, weights=weights)
   Cp <- transitivity(g, type='weighted', isolates='zero', weights=weights)
   btwn <- centr_betw(g)$res
 
-  if (is_weighted(g)) g <- xfm.weights(g, xfm.type)
-  Lpv <- distances(g, weights=weights)
-  Lpv[is.infinite(Lpv)] <- NA
-  Lp <- rowMeans(Lpv, na.rm=TRUE)
+  vattr <- 'Lp'
+  if (is_weighted(g)) {
+    g <- xfm.weights(g, xfm.type)
+    vattr <- 'Lp.wt'
+  }
+  if (vattr %in% vertex_attr_names(g)) {
+    Lp <- vertex_attr(g, vattr)
+  } else {
+    Lpv <- distances(g, weights=weights)
+    Lpv[is.infinite(Lpv)] <- NA
+    Lp <- rowMeans(Lpv, na.rm=TRUE)
+  }
 
-  M <- matrix(c(S, btwn, Cp, Lp), nrow=Nv, ncol=4, byrow=FALSE)
+  M <- matrix(c(-S, -btwn, Cp, Lp), nrow=Nv, ncol=4)
   H <- matrix(0, nrow=Nv, ncol=4)
-  for (i in 1:2) {
-    H[order(M[, i], decreasing=TRUE)[1:cutoff], i] <- 1
-  }
-  for (i in 3:4) {
-    H[order(M[, i])[1:cutoff], i] <- 1
-  }
+  for (i in 1:4) H[order(M[, i])[1:cutoff], i] <- 1
   hubs <- rowSums(H)
   return(hubs)
 }

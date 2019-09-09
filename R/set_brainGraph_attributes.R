@@ -1,16 +1,25 @@
 #' Set graph, vertex, and edge attributes common in MRI analyses
 #'
-#' \code{set_brainGraph_attr} sets a number of graph, vertex, and edge
-#' attributes for a given graph object. Specifically, it calculates measures
-#' that are common in MRI analyses of brain networks.
+#' \code{set_brainGraph_attr} is a convenience function that sets a number of
+#' graph, vertex, and edge attributes for a given graph object. Specifically, it
+#' calculates measures that are common in MRI analyses of brain networks.
 #'
 #' Including \code{type='random'} in the function call will reduce the number of
-#' attributes calculated.
+#' attributes calculated. It will only add graph-level attributes for:
+#' clustering coefficient, characteristic path length, rich club coefficient,
+#' global efficiency, and modularity.
+#'
+#' @section Edge weights
+#' If there are any negative edge weights in the graph, several of the
+#' distance-based metrics will \emph{not} be calculated, because they can throw
+#' errors which is undesirable when processing a large dataset. The metrics are:
+#' local and nodal efficiency, diameter, characteristic path length, and
+#' hubness.
 #'
 #' @section Community detection:
 #' \code{clust.method} allows you to choose from any of the clustering
 #' (community detection) functions available in \code{igraph}. These functions
-#' all begin with \code{clust_}; the function argument should not include this
+#' begin with \code{clust_}; the function argument should not include this
 #' leading character string. There are a few possibilities, depending on the
 #' value and the type of input graph:
 #' \enumerate{
@@ -91,13 +100,6 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
   if (!is_igraph(g) && !is.brainGraph(g)) {
     stop('Input graph must have class either "brainGraph" or "igraph"')
   }
-  clust.funs <- grep('cluster_', ls('package:igraph'), value=TRUE)
-  clust.funs <- substr(clust.funs, 9, nchar(clust.funs))
-  if (!clust.method %in% clust.funs) {
-    stop('Invalid clustering method! You must choose from the following:\n',
-         paste(clust.funs, collapse='\n'))
-  }
-
   V(g)$degree <- degree(g)
   g$Cp <- transitivity(g, type='localaverage')
   g$Lp <- mean_distance(g)
@@ -105,11 +107,15 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
   g$E.global <- efficiency(g, 'global', weights=NA)
 
   # Handle different cases for different community detection methods
-  if (clust.method == 'spinglass' && !is_connected(g)) {
+  clust.funs <- ls('package:igraph', pattern='^cluster_')
+  clust.funs <- substr(clust.funs, 9, nchar(clust.funs))
+  if (!clust.method %in% clust.funs) {
+    stop('Invalid clustering method! You must choose from the following:\n',
+         paste(clust.funs, collapse='\n'))
+  } else if (clust.method == 'spinglass' && !is_connected(g)) {
     warning('Invalid clustering method for an unconnected graph; using "louvain".')
     clust.method <- 'louvain'
   }
-  g$clust.method <- clust.method
   if (clust.method %in% c('edge_betweenness', 'fast_greedy', 'walktrap')) {
     comm <- eval(parse(text=paste0('cluster_', clust.method, '(g, weights=NULL)')))
   } else if (clust.method == 'infomap') {
@@ -117,6 +123,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
   } else {
     comm <- eval(parse(text=paste0('cluster_', clust.method, '(g, weights=NA)')))
   }
+  g$clust.method <- clust.method
   g$mod <- max(comm$modularity)
 
   type <- match.arg(type)
@@ -131,7 +138,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     comps <- rev(table(clusts$csize))
     x <- clusts$membership
     V(g)$comp <- match(x, order(table(x), decreasing=TRUE))
-    if (length(unique(V(g)$comp)) < n) g <- set_graph_colors(g, 'color.comp', V(g)$comp)
+    if (length(unique(x)) < n) g <- set_graph_colors(g, 'color.comp', V(g)$comp)
     g$conn.comp <- data.frame(size=as.integer(names(comps)), number=as.integer(comps))
     g$max.comp <- g$conn.comp[1, 1]
     g$num.tri <- sum(count_triangles(g)) / 3
@@ -161,6 +168,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
         Lpv.wt[is.infinite(Lpv.wt)] <- NA
         V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
         g$Lp.wt <- mean(Lpv.wt[upper.tri(Lpv.wt)], na.rm=TRUE)
+        if (clust.method == 'edge_betweenness') comm.wt <- cluster_edge_betweenness(g)
 
         # Convert back to connection strength
         g <- xfm.weights(g, xfm.type, invert=TRUE)
@@ -169,25 +177,21 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       }
 
       g$clust.method.wt <- clust.method
-      if (clust.method == 'edge_betweenness') {
-        g <- xfm.weights(g, xfm.type)
-        comm.wt <- cluster_edge_betweenness(g)
-        g <- xfm.weights(g, xfm.type, invert=TRUE)
-      } else {
+      if (clust.method != 'edge_betweenness') {
         comm.wt <- eval(parse(text=paste0('cluster_', clust.method, '(g)')))
       }
-      V(g)$strength <- graph.strength(g)
+      V(g)$strength <- strength(g)
       g$strength <- mean(V(g)$strength)
-      V(g)$knn.wt <- graph.knn(g)$knn
+      V(g)$knn.wt <- knn(g)$knn
       V(g)$s.core <- s_core(g, A)
-      g$rich.wt <- rich_club_all(g, weighted=TRUE)
+      g$rich.wt <- rich_club_all(g, weighted=TRUE, A=A)
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
-      if (length(unique(V(g)$comm.wt)) < n) g <- set_graph_colors(g, 'color.comm.wt', V(g)$comm.wt)
-      V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt)
-      V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt)
-      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt)
+      if (length(unique(x)) < n) g <- set_graph_colors(g, 'color.comm.wt', V(g)$comm.wt)
+      V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt, A=A)
+      V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt, A=A)
+      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt, A=A)
       V(g)$transitivity.wt <- transitivity(g, type='weighted')
     }
 
@@ -202,12 +206,13 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
 
     # Attributes requiring an atlas
     #-----------------------------------------------------------------------------
+    if (!is.null(A) && !is_binary(A)) A[A != 0] <- 1
     if (!is.null(g$atlas)) {
       g$assort.lobe <- assortativity_nominal(g, as.integer(factor(V(g)$lobe)))
       g$assort.lobe.hemi <- assortativity_nominal(g, V(g)$lobe.hemi)
 
-      g$asymm <- edge_asymmetry(g)$asymm
-      V(g)$asymm <- edge_asymmetry(g, 'vertex')$asymm
+      g$asymm <- edge_asymmetry(g, A=A)$asymm
+      V(g)$asymm <- edge_asymmetry(g, 'vertex', A=A)$asymm
 
       E(g)$dist <- edge_spatial_dist(g)
       g$spatial.dist <- mean(E(g)$dist)
@@ -220,7 +225,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       }
     }
 
-    V(g)$knn <- graph.knn(g, weights=NA)$knn
+    V(g)$knn <- knn(g, weights=NA)$knn
 
     Lpv <- distances(g, weights=NA)
     Lpv[is.infinite(Lpv)] <- NA
@@ -231,7 +236,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     V(g)$hubs <- hubness(g, weights=NA)
     g$num.hubs <- sum(V(g)$hubs >= 2)
     V(g)$ev.cent <- centr_eigen(g)$vector
-    V(g)$lev.cent <- centr_lev(g)
+    V(g)$lev.cent <- centr_lev(g, A=A)
     V(g)$k.core <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
     V(g)$E.local <- efficiency(g, type='local', weights=NA, use.parallel=use.parallel, A=A)
@@ -244,11 +249,11 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     # Community stuff
     x <- comm$membership
     V(g)$comm <- match(x, order(table(x), decreasing=TRUE))
-    if (length(unique(V(g)$comm)) < n) g <- set_graph_colors(g, 'color.comm', V(g)$comm)
+    if (length(unique(x)) < n) g <- set_graph_colors(g, 'color.comm', V(g)$comm)
     V(g)$circle.layout.comm <- order(V(g)$comm, V(g)$degree)
-    V(g)$GC <- gateway_coeff(g, V(g)$comm)
-    V(g)$PC <- part_coeff(g, V(g)$comm)
-    V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm)
+    V(g)$GC <- gateway_coeff(g, V(g)$comm, A=A)
+    V(g)$PC <- part_coeff(g, V(g)$comm, A=A)
+    V(g)$z.score <- within_module_deg_z_score(g, V(g)$comm, A=A)
   }
 
   return(g)
@@ -272,11 +277,8 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
 delete_all_attr <- function(g, keep.names=FALSE) {
   for (att in graph_attr_names(g)) g <- delete_graph_attr(g, att)
   for (att in edge_attr_names(g)) g <- delete_edge_attr(g, att)
-  if (isTRUE(keep.names)) {
-    vattrs <- setdiff(vertex_attr_names(g), 'name')
-  } else {
-    vattrs <- vertex_attr_names(g)
-  }
+  vattrs <- vertex_attr_names(g)
+  if (isTRUE(keep.names)) vattrs <- setdiff(vattrs, 'name')
   for (att in vattrs) g <- delete_vertex_attr(g, att)
 
   return(g)
@@ -304,18 +306,21 @@ set_graph_colors <- function(g, name, memb) {
 
   # Vertex colors
   group.cols.memb <- rep('gray', length=max(memb))
-  group.cols.memb[big.groups] <- group.cols[big.groups]
+  if (length(big.groups) > 0L) group.cols.memb[big.groups] <- group.cols[big.groups]
   g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
 
   # Edge colors
   m <- ecount(g)
   if (m > 0) {
-    newcols <- rep('gray50', length=ecount(g))
-    tmp <- vector('list', length=max(big.groups))
-    for (i in big.groups) {
-      x <- which(memb == i)
-      tmp[[i]] <- as.vector(E(g)[x %--% x])
-      if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
+    newcols <- rep('gray50', m)
+    if (length(big.groups) > 0L) {
+      tmp <- vector('list', length=max(big.groups))
+      A <- as_adj(g, names=FALSE, sparse=FALSE, edges=TRUE)
+      for (i in big.groups) {
+        x <- which(memb == i)
+        tmp[[i]] <- unique(as.integer(A[x, x]))[-1]
+        if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
+      }
     }
 
     g <- set_edge_attr(g, name, value=newcols)

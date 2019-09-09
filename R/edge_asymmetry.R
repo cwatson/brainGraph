@@ -14,7 +14,7 @@
 #' The \code{level} argument specifies whether to calculate asymmetry for each
 #' vertex, or for the whole hemisphere.
 #'
-#' @param g An \code{igraph} graph object
+#' @inheritParams efficiency
 #' @param level Character string indicating whether to calculate asymmetry for
 #'   each region, or the hemisphere as a whole (default: \code{'hemi'})
 #' @export
@@ -25,23 +25,24 @@
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-edge_asymmetry <- function(g, level=c('hemi', 'vertex')) {
+edge_asymmetry <- function(g, level=c('hemi', 'vertex'), A=NULL) {
   stopifnot(is_igraph(g), 'hemi' %in% vertex_attr_names(g))
 
   level <- match.arg(level)
-  A <- as_adj(g, sparse=FALSE, names=FALSE)
+  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   L <- which(V(g)$hemi == 'L')
   R <- which(V(g)$hemi == 'R')
   if (level == 'hemi') {
     lh <- sum(A[L, L]) / 2
     rh <- sum(A[R, R]) / 2
-    asymm <- data.table(region='all', lh=lh, rh=rh)
+    regions <- 'all'
 
   } else if (level == 'vertex') {
     lh <- rowSums(A[, L, drop=FALSE])
     rh <- rowSums(A[, R, drop=FALSE])
-    asymm <- data.table(region=V(g)$name, lh=lh, rh=rh)
+    regions <- V(g)$name
   }
+  asymm <- data.table(region=regions, lh=lh, rh=rh)
   asymm[, asymm := 2 * (lh - rh) / (lh + rh)]
   return(asymm)
 }

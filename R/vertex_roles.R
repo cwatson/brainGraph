@@ -16,7 +16,7 @@
 #' for all nodes \eqn{j} in node \eqn{i}'s module, and
 #' \deqn{\bar{c_{iS}} = c_{iS} / max(c_n)}
 #'
-#' @param g An \code{igraph} graph object
+#' @inheritParams efficiency
 #' @param memb A numeric vector of membership indices of each vertex
 #' @param centr Character string; the type of centrality to use in calculating
 #'   GC (default: \code{btwn.cent})
@@ -35,7 +35,7 @@
 #'   \emph{Eur Phys J B}, \bold{87}, 161--170.
 #'   \url{https://dx.doi.org/10.1140/epjb/e2014-40800-7}
 
-gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
+gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A=NULL) {
   stopifnot(is_igraph(g))
   Ki <- check_degree(g)
   centr <- match.arg(centr)
@@ -52,13 +52,11 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
   }
   N <- max(memb)
   if (N == 1) return(rep(0, length(memb)))
-  Cn <- max(vapply(seq_len(N), function(x) sum(cent[which(memb == x)]), numeric(1)))
+  Cn <- max(vapply(seq_len(N), function(x) sum(cent[memb == x]), numeric(1)))
 
-  A <- as_adj(g, sparse=FALSE, names=FALSE)
+  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   Kis <- vapply(seq_len(N), function(x) colSums(A * (memb==x)), numeric(length(Ki)))
-  M <- which(tabulate(memb) > 1)
-  Kjs <- matrix(0, nrow=N, ncol=N)
-  Kjs[M, M] <- vapply(M, function(x) colSums(Kis[which(memb==x), M, drop=FALSE]), numeric(length(M)))
+  Kjs <- rowsum(Kis, memb)
   barKis <- Cis <- matrix(0, nrow=length(Ki), ncol=N)
 
   for (i in which(Ki > 0)) {
@@ -99,11 +97,11 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength')) {
 #'   Mechanics: Theory and Experiment}, \bold{02}, P02001.
 #'   \url{https://dx.doi.org/10.1088/1742-5468/2005/02/P02001}
 
-part_coeff <- function(g, memb) {
+part_coeff <- function(g, memb, A=NULL) {
   stopifnot(is_igraph(g))
   Ki <- check_degree(g)
   N <- max(memb)
-  A <- as_adj(g, sparse=FALSE, names=FALSE)
+  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   Kis <- vapply(seq_len(N), function(x) colSums(A * (memb == x)), numeric(length(Ki)))
   PC <- 1 - ((1 / Ki^2) * rowSums(Kis^2))
 
@@ -127,11 +125,11 @@ part_coeff <- function(g, memb) {
 #' @aliases within_module_deg_z_score
 #' @rdname vertex_roles
 
-within_module_deg_z_score <- function(g, memb) {
+within_module_deg_z_score <- function(g, memb, A=NULL) {
   stopifnot(is_igraph(g))
   N <- max(memb)
-  A <- as_adj(g, sparse=FALSE, names=FALSE)
-  z <- Ki <- rep(0, nrow(A))
+  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
+  z <- Ki <- rep(0, dim(A)[1L])
   Ksi <- sigKsi <- rep(0, N)
 
   for (S in seq_len(N)) {
@@ -141,6 +139,6 @@ within_module_deg_z_score <- function(g, memb) {
     sigKsi[S] <- sd(x)
   }
   z <- (Ki - Ksi[memb]) / sigKsi[memb]
-  z <- ifelse(!is.finite(z), 0, z)
+  z[is.infinite(z)] <- 0
   return(z)
 }
