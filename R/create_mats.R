@@ -1,11 +1,26 @@
 #' Create connection matrices for tractography or fMRI data
 #'
-#' \code{create_mats} will take a vector of filenames which contain connection
-#' matrices (e.g. the \emph{fdt_network_matrix} files from FSL or the
-#' \emph{ROICorrelation.txt} files from DPABI) and create arrays of this data.
+#' \code{create_mats} creates arrays from connection matrices (e.g.,
+#' \emph{fdt_network_matrix} from FSL or \emph{ROICorrelation.txt} from DPABI).
 #' You may choose to normalize these matrices by the \emph{waytotal} or
 #' \emph{region size} (tractography), or not at all.
 #'
+#' @section Connection matrix files
+#' The \code{A.files} argument is mandatory and may be specified in a few ways:
+#' \enumerate{
+#'   \item A character vector of the filenames (preferably with full path).
+#'   \item A single character string specifying the \emph{directory} in which
+#'     all connectivity matrices are located. This will load \emph{all} files in
+#'     the directory.
+#'   \item A \emph{named list} in which the names match the arguments to
+#'     \code{\link{list.files}}. This will load \emph{all} files in \code{path}
+#'     that match the \code{pattern} argument, if present, and will load
+#'     \emph{all} files in child directories if \code{recursive=TRUE}. See
+#'     examples below.
+#' }
+#' The same options apply to \code{div.files} as well.
+#'
+#' @section Thresholding methods
 #' The argument \code{threshold.by} has 4 options:
 #' \enumerate{
 #'   \item \code{consensus} Threshold based on the raw (normalized, if selected)
@@ -84,29 +99,35 @@
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 #' dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
 #'   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
+#'
+#' # Specify a directory and filename pattern
+#' conn_files <- list(path='~/data', pattern='.*fdt_network_matrix')
+#' dti.mats <- create_mats(conn_files, ...)
 #' }
 
 create_mats <- function(A.files, modality=c('dti', 'fmri'),
                         divisor=c('none', 'waytotal', 'size', 'rowSums'),
                         div.files=NULL,
                         threshold.by=c('consensus', 'density', 'mean', 'consistency', 'raw'),
-                        mat.thresh=0, sub.thresh=0.5, inds=list(1:length(A.files)),
+                        mat.thresh=0, sub.thresh=0.5, inds=list(seq_along(A.files)),
                         algo=c('probabilistic', 'deterministic'), P=5e3, ...) {
 
   # Argument checking
   #-----------------------------------------------------------------------------
-  kNumSubjs <- lengths(inds)
-  stopifnot(all(file.exists(A.files)),
-            sum(kNumSubjs) == length(A.files),
-            sub.thresh >= 0 && sub.thresh <= 1)
-  if (!is.null(div.files) && any(!file.exists(div.files))) {
-    stop("'div.files' are not all valid files! Please check your data.")
-  }
   A.bin <- A.bin.sums <- A.inds <- NULL
+  kNumSubjs <- lengths(inds)
+  nz <- sum(kNumSubjs)
+  if (is.list(A.files) || length(A.files) == 1) A.files <- dir2files(A.files)
+  stopifnot(all(file.exists(A.files)),
+            length(A.files) == nz,
+            sub.thresh >= 0 && sub.thresh <= 1)
+  if (!is.null(div.files)) {
+    if (is.list(div.files) || length(div.files == 1)) div.files <- dir2files(div.files)
+    stopifnot(length(div.files) == length(A.files))
+  }
 
   A <- read.array(A.files)
-  Nv <- nrow(A)
-  nz <- sum(kNumSubjs)
+  Nv <- dim(A)[1L]
   emax <- Nv * (Nv - 1) / 2
   A[is.nan(A)] <- 0
   A.norm <- A
@@ -126,10 +147,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   #-----------------------------------------------------------------------------
   threshold.by <- match.arg(threshold.by)
   if (threshold.by == 'raw') {
-    A.norm.sub <- vector('list', length(mat.thresh))
-    for (x in seq_along(mat.thresh)) {
-      A.norm.sub[[x]] <- array(apply(A.norm, 3, function(z) z * (z > mat.thresh[x])), dim=dim(A.norm))
-    }
+    A.norm.sub <- lapply(mat.thresh, function(x) A.norm * (A.norm > x))
 
   } else if (threshold.by %in% c('density', 'consistency')) {
     stopifnot(all(mat.thresh >= 0) && all(mat.thresh <= 1))
@@ -138,11 +156,10 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
     if (threshold.by == 'density') {
       Asym <- symmetrize_array(A.norm, ...)
       thrMat <- vapply(mat.thresh, function(x) apply(Asym, 3, get_thresholds, x, emax), numeric(nz))
+      Aperm <- aperm(Asym, c(3, 1, 2))
       for (x in seq_along(mat.thresh)) {
-        A.norm.sub[[x]] <- array(0, dim=dim(Asym))
-        for (k in seq_len(nz)) {
-          A.norm.sub[[x]][, , k] <- Asym[, , k] * (Asym[, , k] > thrMat[k, x])
-        }
+        A.norm.sub[[x]] <- Aperm * (Aperm > thrMat[, x])
+        A.norm.sub[[x]] <- aperm(A.norm.sub[[x]], c(2, 3, 1))
       }
     } else if (threshold.by == 'consistency') {
       all.cv <- apply(A.norm, 1:2, coeff_var)
@@ -150,7 +167,8 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       threshes <- get_thresholds(all.cv, mat.thresh, emax, decreasing=TRUE)
       A.inds <- lapply(threshes, function(x) ifelse(all.cv < x, 1L, 0L))
       for (z in seq_along(A.inds)) {
-        A.norm.sub[[z]] <- array(apply(A.norm, 3, `*`, (A.inds[[z]] == 1L)), dim=dim(A.norm))
+        tmp <- replicate(nz, A.inds[[z]])
+        A.norm.sub[[z]] <- A.norm * (tmp == 1L)
       }
     }
   } else {
@@ -169,31 +187,30 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       }
 
       # This is a list (# mat.thresh) of Nv x Nv x Ng arrays
+      A.inds <- vector('list', length(mat.thresh))
       if (sub.thresh == 0) {
         A.inds <- lapply(seq_along(mat.thresh), function(x)
-                         abind(lapply(seq_along(inds), function(z)
-                                      ifelse(A.bin.sums[[x]][, , z] > 0, 1L, 0L)),
-                               along=3))
+                         ifelse(A.bin.sums[[x]] > 0, 1L, 0L))
       } else {
-        A.inds <- lapply(seq_along(mat.thresh), function(x)
-                         abind(lapply(seq_along(inds), function(z)
-                                      ifelse(A.bin.sums[[x]][, , z] >= sub.thresh * kNumSubjs[z], 1L, 0L)),
-                               along=3))
+        thresh <- sub.thresh * kNumSubjs
+        for (x in seq_along(mat.thresh)) {
+          tmp <- aperm(A.bin.sums[[x]], c(3, 1, 2))
+          A.inds[[x]] <- array(0L, dim=dim(tmp))
+          A.inds[[x]][tmp >= thresh] <- 1L
+          A.inds[[x]] <- aperm(A.inds[[x]], c(2, 3, 1))
+        }
       }
 
       # Back to a list of arrays for all subjects
-      A.norm.sub <-
-        lapply(seq_along(mat.thresh), function(x)
-               abind(lapply(seq_along(inds), function(y)
-                            array(sapply(inds[[y]], function(z)
-                                         ifelse(A.inds[[x]][, , y] == 1, A.norm[, , z], 0)),
-                                  dim=dim(A.norm[, , inds[[y]]]))), along=3))
-
-      # Re-order A.norm.sub so that it matches the input files, A, A.norm, etc.
+      A.norm.sub <- vector('list', length(mat.thresh))
       for (x in seq_along(mat.thresh)) {
-        tmp <- array(0, dim=dim(A.norm.sub[[x]]))
-        tmp[, , unlist(inds)] <- A.norm.sub[[x]]
-        A.norm.sub[[x]] <- tmp
+        A.norm.sub[[x]] <- array(0, dim=dim(A.norm))
+        keep <- array(FALSE, dim=dim(A.norm))
+        for (y in seq_along(inds)) {
+          tmp <- A.inds[[x]][, , y] == 1L
+          keep[, , inds[[y]]] <- replicate(kNumSubjs[y], tmp)
+        }
+        A.norm.sub[[x]][keep] <- A.norm[keep]
       }
 
     } else if (threshold.by == 'mean') {
@@ -204,10 +221,9 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       all.sums <- rowSums((A.norm - all.means)^2, dims=2)
       all.sd <- sqrt(all.sums / (nz - 1))
       all.thresh <- all.mean + (2 * all.sd)
+      all.thresh <- replicate(nz, all.thresh)
 
-      A.norm.sub <-
-        lapply(mat.thresh, function(z)
-               array(apply(A.norm, 3, function(x) x * (all.thresh > z)), dim=dim(A.norm)))
+      A.norm.sub <- lapply(mat.thresh, function(x) A.norm * (all.thresh > x))
     }
   }
   if (threshold.by != 'density') {
@@ -247,7 +263,8 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
-  stopifnot(nrow(A) == ncol(A))
+  dims <- dim(A)
+  stopifnot(dims[1L] == dims[2L])
 
   symm.by <- match.arg(symm.by)
   A <- switch(symm.by,
@@ -286,7 +303,7 @@ normalize_mats <- function(A, divisor, div.files, P) {
 
   if (divisor == 'waytotal') {
     # Control for streamline count by waytotal
-    Nv <- nrow(A)
+    Nv <- dim(A)[1L]
     W <- array(apply(div, 3, function(x) x[, rep(1, Nv)]), dim=dim(A))
     A.norm <- A / W
 
@@ -303,10 +320,13 @@ normalize_mats <- function(A, divisor, div.files, P) {
 
 #' Threshold additional set of matrices
 #'
-#' \code{apply_thresholds} will threshold an additional set of matrices (e.g.,
+#' \code{apply_thresholds} thresholds an additional set of matrices (e.g.,
 #' FA-weighted matrices for DTI tractography) based on the matrices that have
 #' been returned from \code{\link{create_mats}}. This ensures that the same
 #' connections are present in both sets of matrices.
+#'
+#' The argument \code{W.files} accepts the same formats as \code{A.files}; see
+#' \code{\link{create_mats}} for details.
 #'
 #' @param sub.mats List (length equal to number of thresholds) of numeric arrays
 #'   (3-dim) for all subjects
@@ -314,8 +334,7 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #'   number of groups) of numeric matrices for group-level data
 #' @param W.files Character vector of the filenames of the files containing your
 #'   connectivity matrices
-#' @param inds List (length equal to number of groups) of integers; each list
-#'   element should be an integer vector of length equal to the group sizes
+#' @inheritParams create_mats
 #' @export
 #'
 #' @return List containing:
@@ -332,16 +351,43 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #' }
 
 apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
+  if (is.list(W.files) || length(W.files) == 1) W.files <- dir2files(W.files)
+  dimA <- dim(sub.mats[[1]])
+  nz <- dimA[3L]
+  stopifnot(length(W.files) == nz)
   W <- read.array(W.files)
-  W.norm.sub <- lapply(sub.mats, function(x)
-                       array(sapply(seq_len(dim(x)[3]), function(y)
-                                    ifelse(x[, , y] > 0, W[, , y], 0)),
-                             dim=dim(x)))
+  W.norm.sub <- W.norm.mean <- vector('list', length(sub.mats))
+  for (x in seq_along(sub.mats)) {
+    W.norm.sub[[x]] <- array(0, dim=dimA)
+    keep <- sub.mats[[x]] > 0
+    W.norm.sub[[x]][keep] <- W[keep]
+  }
+  ng <- dim(group.mats[[1]])[3L]
   W.norm.mean <- lapply(seq_along(group.mats), function(x)
-                        lapply(seq_len(dim(group.mats[[x]])[3]), function(y)
-                               ifelse(group.mats[[x]][, , y] > 0,
-                                      rowMeans(W.norm.sub[[x]][, , inds[[y]]], dims=2),
+                        lapply(seq_len(ng), function(g)
+                               ifelse(group.mats[[x]][, , g] > 0,
+                                      rowMeans(W.norm.sub[[x]][, , inds[[g]]], dims=2),
                                       0)))
   W.norm.mean <- lapply(W.norm.mean, function(x) abind(x, along=3))
   return(list(W=W, W.norm.sub=W.norm.sub, W.norm.mean=W.norm.mean))
+}
+
+#' Return a vector of filenames based on a directory name or options list
+#'
+#' @param x Either a character string specifying a directory or a list of
+#'   arguments to be passed to \code{\link{list.files}}
+#' @keywords internal
+
+dir2files <- function(x) {
+  fargs <- formals(list.files)
+  if (is.list(x)) {
+    if (is.null(attr(x, 'names'))) names(x) <- names(fargs)[seq_along(x)]
+    if (!hasName(x, 'full.names')) x <- c(x, full.names=TRUE)
+  } else {
+    x <- list(path=x, full.names=TRUE)
+  }
+  x <- c(x, fargs[setdiff(names(fargs), names(x))])
+  stopifnot(file_test('-d', x$path))
+  files <- do.call(list.files, x)
+  return(files)
 }
