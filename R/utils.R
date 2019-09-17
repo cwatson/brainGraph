@@ -26,9 +26,11 @@ args_as_list <- function(...) {
 #' \code{check_weights} is a helper function for dealing with edge weights that
 #' get passed to different \code{igraph} functions.
 #'
-#' If \code{weights=NULL} and the graph has a \code{'weight'} attribute, that
-#' will be returned. If \code{weights=NA}, then that is returned.
+#' @return \code{check_weights} - If \code{weights=NULL} and the graph has a
+#'   \code{'weight'} attribute, then \code{NULL} will be returned. If
+#'   \code{weights=NA}, then \code{NA} is returned.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_weights <- function(g, weights) {
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
@@ -45,9 +47,11 @@ check_weights <- function(g, weights) {
 
 #' Check for presence of a degree attribute
 #'
-#' Helper function to check if \code{degree} is a vertex attribute of the input
-#' graph. Returns a numeric vector of the degree values.
+#' \code{check_degree} is a helper function to check if \code{degree} is a
+#' vertex attribute of the input graph. Returns a numeric vector of the degree
+#' values.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_degree <- function(g) {
   x <- if ('degree' %in% vertex_attr_names(g)) V(g)$degree else degree(g)
@@ -56,9 +60,11 @@ check_degree <- function(g) {
 
 #' Check for presence of a strength attribute
 #'
-#' Helper function to check if \code{strength} is a vertex attribute of the
-#' input graph. Returns a numeric vector of the strength values.
+#' \code{check_strength} is a helper function to check if \code{strength} is a
+#' vertex attribute of the input graph. Returns a numeric vector of the strength
+#' values.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_strength <- function(g) {
   x <- if ('strength' %in% vertex_attr_names(g)) V(g)$strength else strength(g)
@@ -175,14 +181,17 @@ get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1
 
 #' Create a data.table with a single graph metric
 #'
-#' Used in \code{brainGraph_GLM} and \code{brainGraph_mediate} to create a
-#' \code{data.table} with the \code{Study.ID} and column(s) for the graph- or
-#' vertex-level metric of interest.
+#' \code{glm_data_table} is used in \code{brainGraph_GLM} and
+#' \code{brainGraph_mediate} to create a \code{data.table} with the
+#' \code{Study.ID} and column(s) for the graph- or vertex-level metric of
+#' interest.
 #'
 #' @inheritParams GLM
-#' @return A \code{data.table} with one column containing the \code{Study.ID}
-#' and 1 or more columns with the graph- or vertex-level measure of interest.
+#' @return \code{glm_data_table} - A \code{data.table} with one column
+#'   containing the \code{Study.ID} and 1 or more columns with the graph- or
+#'   vertex-level measure of interest.
 #' @keywords internal
+#' @rdname glm_helpers
 
 glm_data_table <- function(g.list, level, measure) {
   if (level == 'vertex') {
@@ -200,6 +209,7 @@ glm_data_table <- function(g.list, level, measure) {
 #'
 #' @return Logical of length 1
 #' @keywords internal
+#' @family Matrix functions
 
 is_binary <- function(mat) {
   x <- identical(sum(abs(mat)) - sum(mat == 1), 0)
@@ -223,6 +233,7 @@ matrix2list <- function(mat) {
 #' Helper function to calculate a max or min
 #'
 #' @keywords internal
+#' @rdname glm_helpers
 maxfun <- function(alternative) {
   fun <- switch(alternative,
                 two.sided=function(x) max(abs(x), na.rm=TRUE),
@@ -234,25 +245,13 @@ maxfun <- function(alternative) {
 #' Helper function to sort values
 #'
 #' @keywords internal
+#' @rdname glm_helpers
 sortfun <- function(alternative) {
   fun <- switch(alternative,
                 two.sided=function(x) sort(abs(x)),
                 less=function(x) sort(x, decreasing=TRUE),
                 greater=sort)
   return(fun)
-}
-
-#' Symmetrize a matrix with the mean of off-diagonal elements
-#'
-#' \code{symm_mean} returns a symmetric matrix in which the off-diagonal
-#' elements \eqn{A[i, j]} and \eqn{A[j, i]} are equal to the mean of the values
-#' in the input matrix.
-#' @param A Numeric matrix
-#' @keywords internal
-#' @return Numeric matrix
-
-symm_mean <- function(A) {
-  0.5 * (A + t(A))
 }
 
 #' Apply a rotation matrix to a set of points
@@ -273,6 +272,11 @@ rotation <- function(x, theta) {
   x.rot <- x %*% R
   return(x.rot)
 }
+
+#' Capitalize the first letter of a character string
+#' @keywords internal
+
+simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 
 #' Subset graphs based on a given logical condition
 #'
@@ -347,9 +351,11 @@ subset_graph <- function(g, subgraph) {
 #' @return A vector of the transformed input.
 
 vec.transform <- function(x, min.val=0, max.val=1) {
-  if (diff(range(x, na.rm=TRUE)) == 0) {
-    return(rep(max.val, length=length(x)))
+  diffrange <- diff(range(x, na.rm=TRUE))
+  if (diffrange == 0) {
+    out <- rep(max.val, length=length(x))
   } else {
-    return(((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diff(range(x, na.rm=TRUE))) + min.val)
+    out <- ((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diffrange) + min.val
   }
+  return(out)
 }

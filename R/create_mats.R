@@ -288,6 +288,18 @@ symmetrize_array <- function(A, ...) {
   return(array(apply(A, 3, symmetrize_mats, ...), dim=dim(A)))
 }
 
+#' Symmetrize a matrix with the mean of off-diagonal elements
+#'
+#' \code{symm_mean} returns a symmetric matrix in which the off-diagonal
+#' elements \eqn{A[i, j]} and \eqn{A[j, i]} are set to the mean of the values
+#' in the input matrix.
+#' @export
+#' @rdname symmetrize_mats
+
+symm_mean <- function(A) {
+  0.5 * (A + t(A))
+}
+
 read.array <- function(infiles, ncols=NULL) {
   Nv <- length(readLines(infiles[1]))
   if (is.null(ncols)) ncols <- Nv

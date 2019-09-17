@@ -60,7 +60,7 @@
 #'   \item{X.m, X.y}{Design matrices for the model with the mediator as the
 #'     outcome variable (\code{X.m}) and for the model with the mediator as an
 #'     additional predictor (\code{X.y})}
-#'   \item{y.m, y.y}{Outomce variables for the associated design matrices above.
+#'   \item{y.m, y.y}{Outcome variables for the associated design matrices above.
 #'     \code{y.m} will be a matrix of size \emph{# subj. X # regions}}
 #'   \item{res.obs}{A \code{data.table} of the observed values of the point
 #'     estimates.}
@@ -348,7 +348,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL
   width <- getOption('width')
-  print_title_summary(paste0(tools::toTitleCase(x$level), '-level mediation results'))
+  print_title_summary(paste0(simpleCap(x$level), '-level mediation results'))
   cat('# of observations: ', x$nobs, '\n')
 
   # Print a table of the model variables

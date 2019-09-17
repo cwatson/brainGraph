@@ -222,6 +222,7 @@ summary.brainGraph_resids <- function(object, regions=NULL, ...) {
 #' @keywords internal
 
 print.summary.brainGraph_resids <- function(x, ...) {
+  resids <- NULL
   print_title_summary('Structural covariance residuals')
   cat('\n')
   width <- getOption('width')

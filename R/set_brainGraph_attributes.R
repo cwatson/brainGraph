@@ -301,7 +301,13 @@ delete_all_attr <- function(g, keep.names=FALSE) {
 
 set_graph_colors <- function(g, name, memb) {
   stopifnot(length(memb) == vcount(g))
-  memb <- as.integer(factor(memb))
+  colname <- strsplit(name, '.', fixed=TRUE)[[1]][2]
+  if (colname %in% c('lobe', 'class', 'network')) {
+    atlas.dt <- get(g$atlas)
+    memb <- atlas.dt[name %in% V(g)$name, as.integer(get(colname))] # Preserve order
+  } else {
+    memb <- as.integer(factor(memb))
+  }
   big.groups <- which(table(memb) > 1)
 
   # Vertex colors

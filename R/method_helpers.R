@@ -5,7 +5,7 @@ print_bg_summary <- function(object) {
 
   ver <- vapply(object$version, as.character, character(1))
   date_created <- sub('T', ' ', object$date)
-  type <- tools::toTitleCase(object$type)
+  type <- simpleCap(object$type)
   atlasfull <-
     switch(object$atlas,
            aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',

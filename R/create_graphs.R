@@ -54,9 +54,8 @@
 #' @section Edge attributes:
 #' Edge-level attributes added are:
 #' \describe{
-#'   \item{color.lobe,color.class,color.network}{Correspond(s) to the vertex
-#'   attribute(s) of the same name. Inter-group edges will be colored
-#'   \emph{gray}}
+#'   \item{color.lobe,color.class,color.network}{Correspond to the vertex
+#'   attribute of the same name. Inter-group edges will be colored \emph{gray}}
 #' }
 #'
 #' @param x An \code{igraph} graph object or numeric matrix
@@ -326,7 +325,7 @@ print.summary.brainGraph <- function(x, ...) {
       if (is.null(x$attrs[[atype]])) {
         cat('No', tolower(atype), 'attributes!')
       } else {
-        title <- paste(tools::toTitleCase(atype), 'attributes')
+        title <- paste(simpleCap(atype), 'attributes')
         width <- getOption('width') - nchar(title) - 1
         message(title, paste(rep('-', width / 2), collapse=''))
         print(x$attrs[[atype]], right=FALSE, row.names=FALSE)

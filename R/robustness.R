@@ -37,6 +37,7 @@
 
 robustness <- function(g, type=c('vertex', 'edge'),
                        measure=c('btwn.cent', 'degree', 'random'), N=1e3) {
+  i <- NULL
   stopifnot(is_igraph(g))
   type <- match.arg(type)
   measure <- match.arg(measure)

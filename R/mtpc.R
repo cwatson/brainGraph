@@ -251,7 +251,6 @@ print.summary.mtpc <- function(x, ...) {
 #'   in the caption of the plot (default: \code{FALSE})
 #' @inheritParams plot.bg_GLM
 #' @export
-#' @importFrom tools toTitleCase
 #' @method plot mtpc
 #' @rdname mtpc
 #'

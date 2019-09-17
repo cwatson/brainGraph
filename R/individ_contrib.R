@@ -172,7 +172,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
 #' @rdname individ_contrib
 
 summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
-  avg <- RC <- Group <- stdev <- se <- IC <- NULL
+  avg <- diff_mean <- Group <- IC <- Max <- med <- Min <- RC <- se <- stdev <- NULL
   object$digits <- digits
   DT.sum <- copy(object$DT)
   if (object$level == 'regional') {
@@ -321,7 +321,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     DT[mark == 0, ind := '']
     DT[, mark := as.factor(mark)]
     # From "ggsci"; the "npg" palette
-    cols <- c('#E64B35', '#4DBBD5', '#00A087', '#3C5488', '#F3B7F',
+    cols <- c('#E64B35', '#4DBBD5', '#00A087', '#3C5488', '#F39B7F',
               '#8491B4', '#91D1C2', '#DC0000', '#7E6148', '#B09C85')
     p <- ggplot(DT, aes(x=Study.ID, y=IC, col=Group)) +
       geom_text_repel(aes(label=ind), size=3) +

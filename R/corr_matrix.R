@@ -223,7 +223,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
   if (is.null(legend.title) && isTRUE(ordered)) {
     legend.title <- switch(order.by,
       comp='Connected\nComponent', hemi='Hemisphere', comm=,comm.wt='Community (#)',
-      class='Tissue class', tools::toTitleCase(order.by))
+      class='Tissue class', simpleCap(order.by))
   }
 
   legend.pos <- if (type == 'raw' || isTRUE(ordered)) 'right' else 'none'
@@ -235,7 +235,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
   matplots <- vector('list', length(groups))
   type <- match.arg(mat.type)
   if (type == 'raw') {
-    legend.title <- paste0('Corr. coeff.\n(', tools::toTitleCase(x$type), ')')
+    legend.title <- paste0('Corr. coeff.\n(', simpleCap(x$type), ')')
     mats <- x$R
     for (g in seq_along(groups)) {
       mats.m <- melt(mats[, , g])

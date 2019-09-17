@@ -590,7 +590,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #' }
 
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
-  cl.h <- level <- ymax <- NULL
+  cl.h <- level <- resid <- ymax <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
 
   mytheme <- theme(plot.title=element_text(hjust=0.5),
