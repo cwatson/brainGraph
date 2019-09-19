@@ -7,31 +7,28 @@
 \alias{make_brainGraphList.corr_mats}
 \alias{Extract.brainGraphList}
 \alias{[.brainGraphList}
-\alias{print.brainGraphList}
 \alias{as_brainGraphList}
 \title{Create a list of brainGraph graphs}
 \usage{
 make_brainGraphList(x, atlas, type = c("observed", "random"),
   level = c("subject", "group", "contrast"), set.attrs = TRUE,
   modality = NULL, weighting = NULL, threshold = NULL,
-  gnames = NULL, groups = NULL, ...)
+  gnames = NULL, ...)
 
 \method{make_brainGraphList}{array}(x, atlas, type = c("observed",
   "random"), level = c("subject", "group", "contrast"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
   threshold = NULL, gnames = NULL, groups = NULL,
   mode = "undirected", weighted = NULL, diag = FALSE,
-  .progress = TRUE, ...)
+  .progress = FALSE, ...)
 
 \method{make_brainGraphList}{corr_mats}(x, atlas = x$atlas,
   type = "observed", level = "group", set.attrs = TRUE,
-  modality = NULL, weighting = NULL, threshold = NULL,
+  modality = NULL, weighting = NULL, threshold = x$densities,
   gnames = names(x$r.thresh), groups = gnames, mode = "undirected",
-  weighted = NULL, diag = FALSE, .progress = TRUE, ...)
+  weighted = NULL, diag = FALSE, .progress = FALSE, ...)
 
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
-
-\method{print}{brainGraphList}(x, ...)
 
 as_brainGraphList(g.list, type = c("observed", "random"),
   level = c("subject", "group", "contrast"))
@@ -64,10 +61,11 @@ connectivity matrix (if any). Default: \code{NULL}}
 \item{gnames}{Character vector of graph names (e.g., study IDs if
 \code{level='subject'}). Default: \code{NULL}}
 
-\item{groups}{Character (or factor) vector of group names (default:
-\code{NULL})}
-
 \item{...}{Other arguments passed to \code{\link{set_brainGraph_attr}}}
+
+\item{groups}{Character (or factor) vector of group names. If \code{level ==
+'group'}, then you do not need to include this argument (the group names
+will be the same as \code{gnames}). Default: \code{NULL})}
 
 \item{mode}{Character string defining how the matrix should be interpreted.
 Default: \code{'undirected'}}
@@ -78,7 +76,7 @@ Default: \code{'undirected'}}
 connectivity matrix. Default: \code{FALSE}}
 
 \item{.progress}{Logical indicating whether to print a progress bar. Default:
-\code{TRUE}}
+\code{FALSE}}
 
 \item{i}{Integer, character, or logical vector for subsetting by subject, or
 by group (if \code{x$level='group'})}
@@ -95,8 +93,8 @@ graphs; otherwise, subset the graphs and return the entire object}
 \code{make_brainGraphList} returns an object of class
   \code{brainGraphList} with elements:
   \item{threshold}{The specified threshold/density}
-  \item{version}{The version of \code{brainGraph} used when creating the
-    graphs}
+  \item{version}{The versions of \code{R}, \code{igraph}, and
+    \code{brainGraph} used when creating the graphs}
   \item{atlas}{The atlas common to all the graphs}
   \item{modality}{The imaging modality (if supplied)}
   \item{weighting}{A string indicating what edge weights represent (if
@@ -109,19 +107,17 @@ graphs; otherwise, subset the graphs and return the entire object}
 }
 \description{
 \code{make_brainGraphList} creates a \code{brainGraphList} object, a list
-containing a set of graphs for all subjects in a study at a specific
-threshold (or density), in addition to some graph-level attributes common to
-those graphs.
+containing a set of graphs for all subjects (or group-average graphs) in a
+study at a specific threshold (or density), in addition to some graph-level
+attributes common to those graphs.
 
 The \code{[} method will let you subset/slice the graphs for individual
 subjects and/or \emph{groups}.
 
-\code{as_brainGraphList} will coerce a list of graphs to a
-\code{brainGraphList} object. It is assumed that certain metadata attributes
--- threshold, package version, brain atlas, imaging modality, edge weighting,
-and whether these are random graphs -- are identical for all graphs in the
-list. For any that are not, the vector of values will be stored; this may be
-an issue for downstream analysis.
+\code{as_brainGraphList} coerces a list of graphs to a \code{brainGraphList}
+object. It is assumed that certain metadata attributes -- threshold, package
+version, atlas, imaging modality, edge weighting, and whether they are
+random graphs -- are identical for all graphs in the list.
 }
 \details{
 In addition to creating the initial \code{igraph} graphs from the
@@ -130,8 +126,17 @@ each graph if \code{set.attrs=TRUE}; other arguments will be passed to that
 function. You may display a progress bar by setting \code{.progress=TRUE}.
 
 This object can be considered comparable to a 4-D \emph{NIfTI} file,
-particularly that returned by FSL's \emph{TBSS} prestats step since that file
-contains the FA volumes for all study subjects.
+particularly that returned by FSL's \emph{TBSS} \dQuote{prestats} step since
+that file contains the FA volumes for all study subjects.
+
+To convert an object with 3 \dQuote{levels} (i.e., subject-level lists from
+an older \code{brainGraph} version), see the code in the Examples below.
+}
+\note{
+If the input is a \code{corr_mats} object, and the extent of the 3-D
+array is greater than 1, then only the first will be converted to a graph.
+}
+\section{Subsetting/extracting}{
 
 The first index is for subsetting the individual graphs. The second index is
 for subsetting by group membership and requires that the graphs have a
@@ -143,10 +148,7 @@ If the indexing vector(s) is (are) \code{character}, the vector(s) must
 contain one (or more) of the subject or group names. If \code{logical}, its
 length must equal the number of subjects or groups.
 }
-\note{
-If the input is a \code{corr_mats} object, and the extent of the 3-D
-array is greater than 1, then only the first will be converted to a graph.
-}
+
 \examples{
 \dontrun{
 # Create a list, one for each threshold
@@ -163,11 +165,20 @@ my.bgl[1:10]
 # Return object for only 'Control' subjects
 my.bgl[, 'Control']
 
-# Return object for groups 1 and 3
-my.bgl[, c(1, 3)]
+# Return object with graphs from groups 1 and 3
+my.bgl[g=c(1, 3), drop=FALSE]
 
 # Subset the first 10 subjects of group 2
 my.bgl[1:10, 2]
+}
+\dontrun{
+## Convert old version single-subject graph lists
+## g[[1]] is group 1, g[[1]][[1]] is threshold 1, g[[1]][[1]][[1]] is subj. 1
+kNumThresholds <- length(g[[1]])
+g.l <- vector('list', kNumThresholds)
+for (i in seq_len(kNumThresholds)) {
+  g.l[[i]] <- as_brainGraphList(do.call(Map, c(c, g))[[i]])
+}
 }
 }
 \seealso{

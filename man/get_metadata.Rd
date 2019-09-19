@@ -13,13 +13,14 @@ get_metadata(object)
 The same object with version, system, and date information added
 }
 \description{
-\code{get_metadata} adds metadata to a list-like object.
+Adds metadata to a list-like object.
 }
 \details{
-The information added are:
+If the object is a graph, graph-level attributes will be added. The
+elements added are:
 \itemize{
-  \item{version}{R, brainGraph, and igraph versions}
-  \item{sys}{System information}
+  \item{version}{A list with R, brainGraph, and igraph versions}
+  \item{sys}{Character vector of system information}
   \item{date}{The date and time of creation}
 }
 }

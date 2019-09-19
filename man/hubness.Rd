@@ -4,17 +4,20 @@
 \alias{hubness}
 \title{Calculate vertex hubness}
 \usage{
-hubness(g, xfm.type = g$xfm.type, weights = NULL)
+hubness(g, xfm.type = g$xfm.type, weights = NULL, prop.keep = 0.2)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{xfm.type}{Character string specifying how to transform the weights
-(default: \code{1/w})}
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
 \item{weights}{Numeric vector of edge weights; if \code{NULL} (the default),
 and if the graph has edge attribute \code{weight}, then that will be used.
 To avoid using weights, this should be \code{NA}.}
+
+\item{prop.keep}{Numeric (between 0 and 1) indicating the proportion of
+vertices to consider as having a high score. Default: 0.2 (20\%)}
 }
 \value{
 A numeric vector with the vertices' hubness score

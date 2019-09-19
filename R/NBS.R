@@ -156,7 +156,6 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 #' @param object A \code{NBS} object
 #' @inheritParams summary.bg_GLM
 #' @export
-#' @method summary NBS
 #' @rdname NBS
 
 summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), ...) {

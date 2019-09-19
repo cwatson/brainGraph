@@ -3,17 +3,20 @@
 \name{symmetrize_mats}
 \alias{symmetrize_mats}
 \alias{symmetrize_array}
+\alias{symm_mean}
 \title{Create a symmetric matrix}
 \usage{
 symmetrize_mats(A, symm.by = c("max", "min", "avg"))
 
 symmetrize_array(A, ...)
+
+symm_mean(A)
 }
 \arguments{
 \item{A}{Numeric matrix}
 
 \item{symm.by}{Character string; how to create symmetric off-diagonal
-elements (default: \code{max})}
+elements. Default: \code{max}}
 
 \item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
 }
@@ -22,19 +25,22 @@ Either a single symmetrized matrix, or an (3D) array
 }
 \description{
 \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
-off-diagonal elements values of either the \code{max}, \code{min}, or
-\code{average} of \eqn{\{A(i, j), A(j, i)\}}. The default is \code{max}
-because that is the default for
-\code{\link[igraph]{graph_from_adjacency_matrix}}.
+off-diagonal elements values of either the \code{max} (default), \code{min},
+or \code{average} of \eqn{\{A(i, j), A(j, i)\}}.
 
 \code{symmetrize_array} is a convenience function which applies
 \code{\link{symmetrize_mats}} along the 3rd dimension of an array.
+
+\code{symm_mean} returns a symmetric matrix in which the off-diagonal
+elements \eqn{A[i, j]} and \eqn{A[j, i]} are set to the mean of the values
+in the input matrix.
 }
 \seealso{
 \code{\link[igraph]{graph_from_adjacency_matrix}}
 
 Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}}, \code{\link{create_mats}}
+  \code{\link{cor.diff.test}}, \code{\link{create_mats}},
+  \code{\link{is_binary}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

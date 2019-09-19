@@ -5,18 +5,18 @@
 \title{Plot a graph with results from a mediation analysis}
 \usage{
 \method{plot}{brainGraph_mediate}(x, subgraph = "p.acme > 0.95",
-  main = sprintf("\\n\\n\\nEffect of \\"\%s\\" on\\n\\"\%s\\"\\nmediated by \\"\%s\\"",
-  x$treat, x$outcome, x$mediator), subt = NULL, cex.main = 1, ...)
+  main = sprintf("Effect of \\"\%s\\" on\\n\\"\%s\\"\\nmediated by \\"\%s\\"",
+  x$treat, x$outcome, x$mediator), subtitle = NULL, cex.main = 1, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph_mediate} graph object}
 
-\item{subgraph}{Character string specifying an equation for vertices to plot
-(default: \code{NULL})}
+\item{subgraph}{Character string specifying a logical condition for vertices
+to plot. Default: \code{NULL}}
 
-\item{main}{Character string; the main title (default: \code{NULL})}
+\item{main}{Character string; the main title. Default: \code{NULL}}
 
-\item{subt}{Character string; the subtitle (default: \code{default})}
+\item{subtitle}{Character string; the subtitle. Default: \code{'default'}}
 
 \item{cex.main}{Numeric indicating the scaling for plot title size (see
 \code{\link[graphics]{par}}.}

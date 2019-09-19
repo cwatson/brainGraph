@@ -8,8 +8,7 @@
 #' @export
 #' @return A \code{data.table}
 #'
-#' @name DataTables
-#' @aliases graph_attr_dt
+#' @name Graph Data Tables
 #' @rdname data_tables
 #'
 #' @seealso \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
@@ -57,7 +56,6 @@ graph_attr_dt <- function(bg.list) {
 #' @inheritParams graph_attr_dt
 #' @export
 #'
-#' @aliases vertex_attr_dt
 #' @rdname data_tables
 #'
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
@@ -72,8 +70,8 @@ vertex_attr_dt <- function(bg.list) {
   lobe <- name <- Group <- network <- NULL
   if (inherits(bg.list, 'brainGraphList')) {
     level <- bg.list$level
-    bg.list <- bg.list$graphs
     atlas <- bg.list$atlas
+    bg.list <- bg.list$graphs
   } else {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
     atlas <- bg.list[[1]]$atlas

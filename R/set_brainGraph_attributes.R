@@ -9,30 +9,12 @@
 #' clustering coefficient, characteristic path length, rich club coefficient,
 #' global efficiency, and modularity.
 #'
-#' @section Edge weights
+#' @section Negative edge weights:
 #' If there are any negative edge weights in the graph, several of the
 #' distance-based metrics will \emph{not} be calculated, because they can throw
 #' errors which is undesirable when processing a large dataset. The metrics are:
 #' local and nodal efficiency, diameter, characteristic path length, and
 #' hubness.
-#'
-#' @section Community detection:
-#' \code{clust.method} allows you to choose from any of the clustering
-#' (community detection) functions available in \code{igraph}. These functions
-#' begin with \code{clust_}; the function argument should not include this
-#' leading character string. There are a few possibilities, depending on the
-#' value and the type of input graph:
-#' \enumerate{
-#'   \item By default, \code{louvain} is used, calling
-#'     \code{\link[igraph]{cluster_louvain}}
-#'   \item Uses \code{spinglass} if there are any negative edges and/or the
-#'     selected method is \code{spinglass}
-#'   \item Uses \code{walktrap} if there are any negative edge weights and any
-#'     other method (besided \code{spinglass}) is selected
-#'   \item Automatically transforms the edge weights if \code{edge_betweenness}
-#'     is selected and the graph is weighted, because the algorithm considers
-#'     edges as \emph{distances}
-#' }
 #'
 #' @section Transforming edge weights:
 #' For distance-based measures, it is important to transform the edge weights so
@@ -56,6 +38,24 @@
 #'
 #' To transform the weights back to original values, specify \code{invert=TRUE}.
 #'
+#' @section Community detection:
+#' \code{clust.method} allows you to choose from any of the clustering
+#' (community detection) functions available in \code{igraph}. These functions
+#' begin with \code{cluster_}; the function argument should not include this
+#' leading character string. There are a few possibilities, depending on the
+#' value and the type of input graph:
+#' \enumerate{
+#'   \item By default, \code{louvain} is used, calling
+#'     \code{\link[igraph]{cluster_louvain}}
+#'   \item Uses \code{spinglass} if there are any negative edges and/or the
+#'     selected method is \code{spinglass}
+#'   \item Uses \code{walktrap} if there are any negative edge weights and any
+#'     other method (besided \code{spinglass}) is selected
+#'   \item Automatically transforms the edge weights if \code{edge_betweenness}
+#'     is selected and the graph is weighted, because the algorithm considers
+#'     edges as \emph{distances}
+#' }
+#'
 #' @param g A graph object
 #' @param use.parallel Logical indicating whether to use \emph{foreach}.
 #'   Default: \code{TRUE}
@@ -63,7 +63,7 @@
 #'   for faster calculation of local efficiency. Default: \code{NULL}
 #' @param clust.method Character string indicating which method to use for
 #'   community detection. Default: \code{'louvain'}
-#' @inheritParams CreateGraphs
+#' @inheritParams Creating_Graphs
 #' @export
 #'
 #' @return A graph object with the following attributes:
@@ -336,10 +336,10 @@ set_graph_colors <- function(g, name, memb) {
 
 #' Transform edge weights
 #'
-#' @param xfm.type Character string specifying how to transform the weights
-#'   (default: \code{1/w})
-#' @param invert Logical indicating whether or not to invert the transformation
-#'   (default: \code{FALSE})
+#' @param xfm.type Character string specifying how to transform the weights.
+#'   Default: \code{1/w}
+#' @param invert Logical indicating whether or not to invert the transformation.
+#'   Default: \code{FALSE}
 #' @export
 #' @return \code{xfm.weights} returns the same graph object, with transformed
 #'   edge weights plus a graph attribute (\code{xfm.type}) recording the method

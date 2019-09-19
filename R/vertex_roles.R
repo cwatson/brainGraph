@@ -21,12 +21,10 @@
 #' @param centr Character string; the type of centrality to use in calculating
 #'   GC (default: \code{btwn.cent})
 #' @export
-#'
 #' @return A vector of the participation coefficients, within-module degree
 #'   z-scores, or gateway coefficients for each vertex of the graph.
 #'
-#' @name VertexRoles
-#' @aliases gateway_coeff
+#' @name Vertex Roles
 #' @rdname vertex_roles
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -88,8 +86,6 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A
 #' equally connected to all other modules.
 #'
 #' @export
-#'
-#' @aliases part_coeff
 #' @rdname vertex_roles
 #'
 #' @references Guimera, R. and Amaral, L.A.N. (2005) Cartography of complex
@@ -121,8 +117,6 @@ part_coeff <- function(g, memb, A=NULL) {
 #' is the standard deviation.
 #'
 #' @export
-#'
-#' @aliases within_module_deg_z_score
 #' @rdname vertex_roles
 
 within_module_deg_z_score <- function(g, memb, A=NULL) {

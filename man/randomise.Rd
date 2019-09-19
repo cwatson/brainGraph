@@ -3,16 +3,12 @@
 \name{setup_randomise}
 \alias{setup_randomise}
 \alias{randomise}
-\alias{randomise_nbs}
 \title{Helper function to setup for randomise}
 \usage{
 setup_randomise(perm.method, part.method, X, contrasts, con.type, nC)
 
-randomise(perm.method, part.method, ctype, N, perms, DT, nC, measure, X,
-  contrasts, alternative)
-
-randomise_nbs(perm.method, part.method, ctype, N, perms, DT, nC, skip,
-  p.init, X, contrasts, alternative, Nv)
+randomise(perm.method, part.method, N, perms, contrasts, con.type, nC,
+  skip, DT, outcome, X, mykey)
 }
 \arguments{
 \item{perm.method}{Character string indicating the permutation method.
@@ -36,16 +32,16 @@ F-statistics). Default: \code{'t'}}
 \item{perms}{Matrix of permutations, if you would like to provide your own.
 Default: \code{NULL}}
 
+\item{skip}{Integer vector indicating which (if any) contrasts to skip (if
+there were no significant differences anywhere)}
+
 \item{DT}{\code{data.table} with outcome variables}
 
-\item{measure}{Character string of the graph measure of interest}
+\item{outcome}{Character string specifying the name of the outcome variable,
+if it differs from the graph metric (\code{measure})}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test.
-Default: \code{'two.sided'}}
-
-\item{skip}{Integer vector of the contrast(s) to skip}
-
-\item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
+\item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
+analyses). For GLM, it is \code{'region'}; for NBS, it is}
 }
 \value{
 A list containing:
@@ -60,9 +56,28 @@ A list containing:
   \item{rkC}{(only for F-contrasts) Rank of the effective contrast matrix.}
   \item{Xp}{(only for Smith method) List of matrices of covariates of interest}
   \item{Zp}{(only for Smith method) List of matrices of nuisance covariates}
+
+A \code{data.table} with \code{N} rows and columns specifying the
+  region, permutation number, effect size (either \code{gamma} or the
+  numerator for the \emph{F-statistic}), and standard error
 }
 \description{
 \code{setup_randomise} is used to setup the data/objects for any function
 that does permutations for GLM-based analysis.
+}
+\details{
+The tasks performed by this function are:
+\enumerate{
+  \item Separate the design matrix into the independent variables of interest
+    and nuisance variables (which is contrast-dependent) using
+    \code{\link{partition}}.
+  \item Calculate the new contrast(s) based on this new design matrix (also
+    through \code{\link{partition}}
+  \item Calculate the inverse of the cross produce of the full model
+  \item Calculate the \dQuote{hat} and residual-forming matrices due to nuisance
+    alone
+  \item For F contrasts, return an inverse of the cross product between the
+    contrast and the inverted design matrix, and the contrast's rank
+}
 }
 \keyword{internal}

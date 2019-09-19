@@ -9,7 +9,8 @@ centr_betw_comm(g, A = NULL)
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{A}{Numeric matrix, the graph's adjacency matrix (default: \code{NULL})}
+\item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
+\code{NULL}}
 }
 \value{
 A numeric vector of the centrality for each vertex

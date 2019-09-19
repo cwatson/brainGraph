@@ -94,7 +94,6 @@
 #'
 #' @name GLM
 #' @rdname glm
-#' @aliases brainGraph_GLM
 #' @family GLM functions
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -255,8 +254,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 #'   \code{Study.ID}
 #' @inheritParams GLM
 #' @keywords internal
-#' @name GLMhelpers
-#' @aliases setup_glm
+#' @name GLM helpers
 #' @rdname glm_helpers
 
 setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, level, ...) {
@@ -351,7 +349,6 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
 #'   \code{'Var1,Var2'}.
 #' @inheritParams GLM
 #' @keywords internal
-#' @aliases glm_fit_helper
 #' @rdname glm_helpers
 
 glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alpha=NULL) {
@@ -393,7 +390,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
   return(DT.lm)
 }
 
-#' Fit linear models for t contrasts
+#' Fit linear models for t and F contrasts
 #'
 #' \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,
 #' uni-dimensional contrasts) and returns the contrasts of parameter estimates,
@@ -409,9 +406,8 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
 #' @inheritParams GLM
 #' @importFrom RcppEigen fastLmPure
 #'
-#' @name GLMfit
-#' @aliases brainGraph_GLM_fit_t
-#' @rdname brainGraph_GLM_fit
+#' @name GLM fits
+#' @rdname glm_fit
 #'
 #' @return \code{brainGraph_GLM_fit_t} - A list containing:
 #'   \item{gamma}{The contrast of parameter estimates}
@@ -449,9 +445,7 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
 #'   \item{se}{The sum of squared errors of the full model}
 #'   \item{contrast}{The contrast number; defaults to \code{1}}
 #'
-#' @name GLMfit
-#' @aliases brainGraph_GLM_fit_f
-#' @rdname brainGraph_GLM_fit
+#' @rdname glm_fit
 
 brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
   est <- fastLmPure(X, y, method=2)
@@ -484,7 +478,6 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
 #' @param print.head Logical indicating whether or not to print only the first
 #'   and last 5 rows of the statistics tables (default: \code{TRUE})
 #' @export
-#' @method summary bg_GLM
 #' @rdname glm
 
 summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NULL, alpha=object$alpha,
@@ -569,7 +562,6 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom gridExtra arrangeGrob
 #' @importFrom grid gpar grid.draw grid.newpage textGrob
-#' @method plot bg_GLM
 #' @rdname glm
 #'
 #' @return The \code{plot} method returns a \emph{list} of

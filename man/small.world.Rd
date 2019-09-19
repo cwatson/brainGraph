@@ -24,8 +24,8 @@ A \code{data.table} with the following components:
 }
 \description{
 \code{small.world} calculates the normalizaed characteristic path length and
-clustering coefficient based on observed and random graphs. These are used to
-calculate the small-world coefficient \eqn{\sigma}.
+clustering coefficient based on observed and random graphs, used to calculate
+the small-world coefficient \eqn{\sigma}.
 }
 \references{
 Watts, D.J. and Strogatz S.H. (1998) Collective dynamics of

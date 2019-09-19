@@ -23,14 +23,12 @@
 #'
 #' @family Structural covariance network functions
 #' @name IndividualContributions
-#' @aliases loo
 #' @rdname individ_contrib
 #' @examples
 #' \dontrun{
 #' IC <- loo(resids.all, corrs)
 #' RC <- loo(resids.all, corrs, level='regional')
 #' }
-#' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Saggar, M. and Hosseini, S.M.H. and Buno, J.L. and Quintin, E.
 #'   and Raman, M.M. and Kesler, S.R. and Reiss, A.L. (2015) Estimating
@@ -87,7 +85,6 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' @export
 #' @importFrom ade4 mantel.rtest
 #'
-#' @aliases aop
 #' @rdname individ_contrib
 #' @examples
 #' \dontrun{
@@ -167,8 +164,8 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
 #' @param region Character vector specifying which regions' IC's to print. Only
 #'   relevant if \code{method='Leave one out'}
 #' @param ... Unused
+#' @inheritParams summary.bg_GLM
 #' @export
-#' @method summary IC
 #' @rdname individ_contrib
 
 summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
@@ -268,7 +265,6 @@ print.summary.IC <- function(x, ...) {
 #'   Otherwise plots the integer index
 #' @export
 #' @importFrom ggrepel geom_text_repel
-#' @method plot IC
 #' @rdname individ_contrib
 
 plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ids=TRUE, ...) {

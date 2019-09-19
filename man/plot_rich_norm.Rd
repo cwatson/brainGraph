@@ -42,7 +42,7 @@ plot_rich_norm(rich.dt, facet.by='density', densities[N:(N+1)], g=g)
 }
 }
 \seealso{
-Other Rich-club functions: \code{\link{RichClub}},
+Other Rich-club functions: \code{\link{Rich Club}},
   \code{\link{rich_club_attrs}}
 }
 \author{

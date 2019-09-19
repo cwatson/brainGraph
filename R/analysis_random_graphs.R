@@ -21,7 +21,7 @@
 #'   should equal the number of thresholds/densities in the study
 #' @param savedir Character string specifying the directory in which to save the
 #'   generated graphs. Default: current working directory
-#' @inheritParams CreateGraphs
+#' @inheritParams Creating_Graphs
 #' @export
 #'
 #' @return \code{analysis_random_graphs} returns a \emph{list} containing:
@@ -31,7 +31,7 @@
 #' \item{rand}{A data table with some global graph measures for all random
 #'   graphs generated}
 #'
-#' @name RandomGraphs
+#' @name Random Graphs
 #' @rdname random_graphs
 #' @family Random graph functions
 #' @seealso \code{\link{small.world}}

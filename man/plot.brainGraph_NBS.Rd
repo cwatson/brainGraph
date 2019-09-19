@@ -7,8 +7,7 @@
 \method{plot}{brainGraph_NBS}(x, alpha = 0.05,
   subgraph = paste("p.nbs >", 1 - alpha), vertex.label = NA,
   vertex.color = "color.comp", edge.color = "color.comp",
-  subt = NULL, main = paste0("\\n\\nNBS: ", x$name), cex.main = 2,
-  ...)
+  subtitle = NULL, main = paste0("NBS: ", x$name), cex.main = 2, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph_NBS} graph object}
@@ -30,9 +29,9 @@ connected component)}
 the edges by (default: \code{color.comp}, which groups edges by connected
 component)}
 
-\item{subt}{Character string; the subtitle (default: \code{default})}
+\item{subtitle}{Character string; the subtitle. Default: \code{'default'}}
 
-\item{main}{Character string; the main title (default: \code{NULL})}
+\item{main}{Character string; the main title. Default: \code{NULL}}
 
 \item{cex.main}{Numeric; the scaling factor for text size; see
 \code{\link[graphics]{par}} (default: 2)}

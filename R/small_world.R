@@ -1,8 +1,8 @@
 #' Calculate graph small-worldness
 #'
 #' \code{small.world} calculates the normalizaed characteristic path length and
-#' clustering coefficient based on observed and random graphs. These are used to
-#' calculate the small-world coefficient \eqn{\sigma}.
+#' clustering coefficient based on observed and random graphs, used to calculate
+#' the small-world coefficient \eqn{\sigma}.
 #'
 #' @param g.list A \code{brainGraphList} object or list of graphs
 #' @param rand List of (lists of) equivalent random graphs (output from

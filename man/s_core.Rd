@@ -7,7 +7,7 @@
 s_core(g, W = NULL)
 }
 \arguments{
-\item{g}{The \code{igraph} graph object of interest}
+\item{g}{An \code{igraph} graph object}
 
 \item{W}{Numeric matrix of edge weights (default: \code{NULL})}
 }

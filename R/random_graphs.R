@@ -22,16 +22,13 @@
 #'   lower number may result in clustering that is further away from the
 #'   observed graph's. Default: 100
 #' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @inheritParams CreateGraphs
+#' @inheritParams Creating_Graphs
 #' @export
 #'
 #' @return \code{sim.rand.graph.par} - a \emph{list} of \emph{N} random graphs
 #'   with some additional vertex and graph attributes
 #'
-#' @name RandomGraphs
-#' @aliases sim.rand.graph.par
 #' @rdname random_graphs
-#'
 #' @seealso \code{\link[igraph]{rewire}, \link[igraph]{sample_degseq},
 #'   \link[igraph]{keeping_degseq}}
 #' @examples
@@ -82,9 +79,7 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
 #' @export
 #' @return \code{sim.rand.graph.clust} - A single \code{igraph} graph object
 #'
-#' @aliases sim.rand.graph.clust
 #' @rdname random_graphs
-#'
 #' @seealso \code{\link[igraph]{transitivity}}
 #' @references Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
 #'   biological network structure with clustered random networks. \emph{BMC
@@ -190,11 +185,10 @@ choose.edges <- function(A, degs.large) {
 #' @param r.thresh Numeric value for the correlation threshold, if
 #'   \code{weighted=FALSE}.
 #' @export
-#' @inheritParams CreateGraphs
+#' @inheritParams Creating_Graphs
 #' @return \code{sim.rand.graph.hqs} - A list of random graphs from the null
 #'   covariance matrices
 #'
-#' @aliases sim.rand.graph.hqs
 #' @rdname random_graphs
 #' @references Hirschberger M., Qi Y., Steuer R.E. (2007) Randomly generating
 #'   portfolio-selection covariance matrices with specified distributional

@@ -58,7 +58,8 @@
 #'   attribute of the same name. Inter-group edges will be colored \emph{gray}}
 #' }
 #'
-#' @param x An \code{igraph} graph object or numeric matrix
+#' @param x An \code{igraph} graph object, numeric matrix, or \code{bg_mediate}
+#'   object
 #' @param atlas Character string specifying the brain atlas
 #' @param type Character string indicating the type of graphs. Default:
 #'   \code{observed}
@@ -77,31 +78,23 @@
 #' @export
 #'
 #' @return A \code{brainGraph} graph object with additional attributes:
-#'   \item{version}{(graph) The current versions of R, \code{brainGraph}, and
-#'     \code{igraph}}
-#'   \item{date}{(graph)}
-#'   \item{atlas}{(graph)}
-#'   \item{type}{(graph)}
-#'   \item{modality}{(graph)}
-#'   \item{weighting}{(graph)}
-#'   \item{threshold}{(graph)}
-#'   \item{name}{(graph) The subject ID, group name, or contrast name (depending
-#'     on the value of \code{level})}
-#'   \item{Group}{(graph) only if \code{group} is specified}
-#'   \item{lobe}{(vertex) Character vector of lobe names}
-#'   \item{hemi}{(vertex) Character vector of hemispheres (\code{'L'},
-#'     \code{'R'}, or \code{'B'})}
-#'   \item{lobe.hemi}{(vertex) Integer vector indicating the lobe and
-#'     hemisphere}
-#'   \item{class}{(vertex) Character vector of class names (if applicable)}
-#'   \item{network}{(vertex) Character vector of network names (if
-#'     applicable)}
-#'   \item{x, y, z, x.mni, y.mni, z.mni}{(vertex) Spatial coordinates}
-#'   \item{color.lobe}{(vertex and edge) Colors based on \emph{lobe}}
-#'   \item{color.class,color.network}{(vertex and edge) If applicable}
-#'   \item{circle.layout}{(vertex) Integer vector for ordering the vertices for
-#'     plots with circular layout}
-#' @name CreateGraphs
+#'   \item{Graph-level}{\code{version} (the current versions of R,
+#'     \emph{brainGraph}, and \emph{igraph}); \code{date}; \code{atlas};
+#'     \code{type}; \code{modality}; \code{weighting}; \code{threshold};
+#'     \code{name} (the subject ID, group name, or contrast name depending on
+#'     the value of \code{level}); \code{Group} (only if \code{group} is
+#'     specified)}
+#'   \item{Vertex-level}{\code{lobe} (character vector of lobe names);
+#'     \code{hemi} (character vector of hemispheres: \code{'L'}, \code{'R'}, or
+#'     \code{'B'}); \code{lobe.hemi} (integer vector indicating the lobe and
+#'     hemisphere); \code{class} (character vector of class names, if
+#'     applicable); \code{network} (character vector of network names, if
+#'     applicable); spatial coordinates \code{x, y, z} and \code{x.mni, y.mni,
+#'     z.mni}; \code{color.lobe} (vertex and edge: colors based on \emph{lobe});
+#'     \code{color.class,color.network} (vertex and edge: only if applicable);
+#'     and \code{circle.layout} (integer vector for ordering the vertices for
+#'     plots with circular layout)}
+#' @name Creating_Graphs
 #' @rdname make_brainGraph
 #' @family Graph creation functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -119,7 +112,6 @@ make_brainGraph <- function(x, atlas, type=c('observed', 'random'),
 #' @param Group Character string indicating group membership. Default:
 #'   \code{NULL}
 #' @export
-#' @method make_brainGraph igraph
 #' @rdname make_brainGraph
 
 make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
@@ -203,7 +195,6 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
 #' @param diag Logical indicating whether to include the diagonal of the
 #'   connectivity matrix. Default: \code{FALSE}
 #' @export
-#' @method make_brainGraph matrix
 #'
 #' @rdname make_brainGraph
 #' @examples
@@ -227,19 +218,16 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
 
 #' Create a graph with mediation-specific attributes
 #'
-#' This function only creates a graph for \emph{vertex}-level analyses.
+#' \code{make_brainGraph.bg_mediate} creates a graph only for
+#' \emph{vertex}-level analyses.
 #'
-#' @param x A \code{bg_mediate} object
-#' @param ... Other arguments passed to \code{\link{make_brainGraph}}
-#' @inheritParams CreateGraphs
 #' @export
-#' @method make_brainGraph bg_mediate
-#'
-#' @return A \code{brainGraph_mediate} graph object with attributes:
+#' @rdname make_brainGraph
+#' @return The method for \code{bg_mediate} returns a \code{brainGraph_mediate}
+#'   object, which has extra attributes:
 #'   \item{Graph}{\emph{mediator}, \emph{treat}, \emph{outcome}, \emph{nobs}}
 #'   \item{Vertex}{\emph{b?.acme, p?.acme}, \emph{b?.ade, p?.ade},
 #'     \emph{b?.prop, p?.prop}, \emph{b.tot, p.tot}}
-#' @family Graph creation functions
 
 make_brainGraph.bg_mediate <- function(x, atlas=x$atlas, type='observed',
                                        level='contrast', set.attrs=FALSE,
@@ -285,7 +273,6 @@ is.brainGraph <- function(x) inherits(x, 'brainGraph')
 #' @param print.attrs Character string indicating whether or not to list the
 #'   object's attributes (default: \code{all})
 #' @export
-#' @method summary brainGraph
 #' @rdname make_brainGraph
 
 summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', 'edge', 'none'), ...) {

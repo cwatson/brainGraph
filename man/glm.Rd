@@ -16,8 +16,8 @@ brainGraph_GLM(g.list, covars, measure, contrasts, con.type = c("t",
   perms = NULL, long = FALSE, ...)
 
 \method{summary}{bg_GLM}(object, p.sig = c("p", "p.fdr", "p.perm"),
-  contrast = NULL, digits = max(3L, getOption("digits") - 2L),
-  print.head = TRUE, ...)
+  contrast = NULL, alpha = object$alpha, digits = max(3L,
+  getOption("digits") - 2L), print.head = TRUE, ...)
 
 \method{plot}{bg_GLM}(x, region = NULL, which = c(1L:3L, 5L),
   ids = TRUE, ...)
@@ -112,8 +112,9 @@ The \code{plot} method returns a \emph{list} of
 \description{
 \code{brainGraph_GLM} specifies and fits a General Linear Model (GLM) at each
 vertex for a given vertex measure (e.g. \emph{degree}) or at the graph-level
-(e.g., \emph{global efficiency}). Given a contrast matrix and type (i.e., t-
-or F-contrast), it will calculate the associated statistic(s).
+(e.g., \emph{global efficiency}). Given a contrast matrix or list of
+contrast(s), and contrast type (for t- or F-contrast(s), respectively) it
+will calculate the associated statistic(s) for the given contrast(s).
 
 The \code{summary} method prints the results, only for which
 \eqn{p < \alpha}, where \code{alpha} comes from the \code{bg_GLM} object.
@@ -134,7 +135,9 @@ GLMs. In other cases, you may wish to choose some other variable as the
 outcome; e.g., IQ, age, etc. Then you could test for a direct association
 between the network measure and outcome of interest, or test for another
 association while adjusting for the network metric. For these applications,
-you must provide the variable name via the \code{outcome} argument.
+you must provide the variable name via the \code{outcome} argument. This is
+analogous to \code{-evperdat} in FSL's PALM and to \code{--pvr} in
+FreeSurfer.
 }
 \section{Design matrix}{
 
@@ -225,12 +228,11 @@ Winkler, A.M. and Ridgway, G.R. and Webster, M.A. and Smith, S.M.
 \seealso{
 \code{\link[stats]{plot.lm}}
 
-Other GLM functions: \code{\link{GLMdesign}},
-  \code{\link{GLMfit}}, \code{\link{mtpc}}
+Other GLM functions: \code{\link{GLM design}},
+  \code{\link{GLM fits}}, \code{\link{mtpc}}
 
 Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
+  \code{\link{Mediation}}, \code{\link{NBS}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{

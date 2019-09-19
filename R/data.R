@@ -1,26 +1,42 @@
-#' Coordinates for data from the AAL-based atlases
+#' Coordinates for data from brain atlases
 #'
-#' Datasets containing spatial coordinates for the original AAL atlases and the
-#' newer AAL2 atlases, along with indices for the major lobes and hemispheres of
-#' the brain.
+#' Datasets containing spatial coordinates for: the original AAL atlases, the
+#' newer AAL2 atlases, Freesurfer atlases, Brainsuite, Craddock200,
+#' Dosenbach160, Harvard-Oxford, and LONI probabilistic brain atlas. In addition
+#' to coordinates, there are indices for the major lobes and hemispheres of the
+#' brain, the \emph{class} variable (for Destrieux atlases), and functional
+#' networks (for Dosenbach).
 #'
-#' @format A data frame with 90 or 116 (for the original AAL atlases), or 94 or
-#' 120 (for the newer AAL2 atlases) observations on the following 7 variables:
+#' @format A data frame with 90 or 116 (for the original AAL atlases), 94 or 120
+#' (for the newer AAL2 atlases), 148 or 162 (for Destrieux), 68 or 82 (for DK),
+#' 62 or 76 (for DKT), 74 (Brainsuite), 200 (Craddock), 160 (Dosenbach), 112
+#' (Harvard-Oxford), or 40 (LONI) observations on (some of) the following 10
+#' variables:
 #' \describe{
 #'   \item{\code{name}}{a character vector of region names}
 #'   \item{\code{x.mni}}{a numeric vector of x-coordinates (in MNI space)}
 #'   \item{\code{y.mni}}{a numeric vector of y-coordinates (in MNI space)}
 #'   \item{\code{z.mni}}{a numeric vector of z-coordinates (in MNI space)}
-#'   \item{\code{lobe}}{a factor with levels \code{Frontal} \code{Parietal}
-#'     \code{Temporal} \code{Occipital} \code{Insula} \code{Limbic} \code{SCGM}
-#'     and \code{Cerebellum} (for \code{aal116} and \code{aal2.120})}
-#'   \item{\code{hemi}}{a factor with levels \code{L} \code{R}}
+#'   \item{\code{lobe}}{a factor with some of levels \code{Frontal}
+#'     \code{Parietal} \code{Temporal} \code{Occipital} \code{Insula}
+#'     \code{Limbic} \code{Cingulate} \code{SCGM} \code{Cerebellum} (for
+#'     \code{aal116} and \code{aal2.120}) and \code{Brainstem} (for
+#'     \code{craddock200})}
+#'   \item{\code{hemi}}{a factor with levels \code{L} \code{R} and \code{B} (for
+#'     \code{dosenbach160})}
 #'   \item{\code{index}}{a numeric vector}
+#'   \item{\code{name.full}}{a character vector of full region names, for the DK
+#'     and DKT atlases}
+#'   \item{\code{class}}{a factor with levels \code{G} \code{G_and_S} \code{S},
+#'     for the Destrieux atlases}
+#'   \item{\code{network}}{(dosenbach160) a factor with levels \code{default}
+#'     \code{fronto-parietal} \code{cingulo-opercular} \code{sensorimotor}
+#'     \code{cerebellum} \code{occipital}}
 #' }
 #'
-#' @name AAL
+#' @name Brain Atlases
 #' @aliases aal116
-#' @rdname aal
+#' @rdname brain_atlases
 #' @references Tzourio-Mazoyer, N. and Landeau, B. and Papathanassiou, D. and
 #'   Crivello, F. and Etard, O. and Delcroix, N. and Mazoyer, B. and Joliot, M.
 #'   (2002) Automated anatomical labeling of activations in SPM using a
@@ -34,44 +50,21 @@
 "aal116"
 
 #' @aliases aal90
-#' @rdname aal
+#' @rdname brain_atlases
 "aal90"
 
 #' @aliases aal2.120
-#' @rdname aal
+#' @rdname brain_atlases
 "aal2.120"
 
 #' @aliases aal2.94
-#' @rdname aal
+#' @rdname brain_atlases
 "aal2.94"
 
 #' Coordinates for data from Freesurfer atlases
 #'
-#' Datasets containing spatial coordinates for the Freesurfer atlases:
-#' Destrieux, Desikan-Killiany (DK), and Desikan-Killiany-Tourville (DKT). The
-#' datasets also contain indices for the major lobes and hemispheres of the
-#' brain, in addition to the \emph{class} variable for Destrieux atlases.
-#'
-#' @format A data frame with 148 or 162 (for Destrieux), 68 or 82 (for DK), or
-#' 62 or 76 (for DKT) observations on the following 8 variables:
-#' \describe{
-#'   \item{\code{name}}{a character vector of region names}
-#'   \item{\code{x.mni}}{a numeric vector of x-coordinates (in MNI space)}
-#'   \item{\code{y.mni}}{a numeric vector of y-coordinates (in MNI space)}
-#'   \item{\code{z.mni}}{a numeric vector of z-coordinates (in MNI space)}
-#'   \item{\code{lobe}}{a factor with levels \code{Frontal}, \code{Parietal},
-#'     \code{Temporal}, \code{Occipital}, \code{Insula}, \code{Limbic}, and
-#'     \code{SCGM} (for atlases ending in \code{.scgm})}
-#'   \item{\code{hemi}}{a factor with levels \code{L} \code{R}}
-#'   \item{\code{index}}{a numeric vector}
-#'   \item{\code{name.full}}{a character vector of full region names, for the DK
-#'     and DKT atlases}
-#'   \item{\code{class}}{a factor with levels \code{G} \code{G_and_S} \code{S}}
-#' }
-#'
-#' @name FreesurferAtlases
 #' @aliases destrieux destrieux.scgm dk dk.scgm dkt dkt.scgm
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 #' @references Destrieux, C. and Fischl, B. and Dale, A. and Halgren E. (2010)
 #'   Automatic parcellation of human cortical gyri and sulci using standard
 #'   anatomic nomenclature. \emph{NeuroImage}, \bold{53(1)}, 1--15.
@@ -85,17 +78,70 @@
 #'   6. \url{https://dx.doi.org/10.3389/fnins.2012.00171}
 "destrieux"
 
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 "destrieux.scgm"
 
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 "dk"
 
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 "dk.scgm"
 
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 "dkt"
 
-#' @rdname freesurfer_atlases
+#' @rdname brain_atlases
 "dkt.scgm"
+
+#' Coordinates for data from the Brainsuite atlas
+#'
+#' @aliases brainsuite
+#' @rdname brain_atlases
+#' @references Shattuck, D.W. and Leahy, R.M. (2002) BrainSuite: an automated
+#'   cortical surface identification tool. \emph{Medical Image Analysis},
+#'   \bold{8(2)}, 129--142.
+#' @references Pantazis, D. and Joshi, A.A. and Jintao, J. and Shattuck, D.W.
+#'   and Bernstein, L.E. and Damasio, H. and Leahy, R.M. (2009) Comparison of
+#'   landmark-based and automatic methods for cortical surface registration.
+#'   \emph{NeuroImage}, \bold{49(3)}, 2479--2493.
+"brainsuite"
+
+#' Coordinates for data from the Craddock200 atlas
+#'
+#' @aliases craddock200
+#' @rdname brain_atlases
+#' @references Craddock, R.C. and James, G.A. and Holtzheimer, P.E. and Hu, X.P.
+#'   and Mayberg, H.S. (2012) A whole brain fMRI atlas generated via spatially
+#'   constrained spectral clustering. \emph{Human Brain Mapping}, \bold{33},
+#'   1914--1928. \url{https://dx.doi.org/10.1002/hbm.21333}
+"craddock200"
+
+#' Coordinates for data from the Dosenbach160 atlas
+#'
+#' @aliases dosenbach160
+#' @rdname brain_atlases
+#' @references Dosenbach, N.U. and Nardos, B. and Cohen, A.L. and Fair, D.A. and
+#'   Power, J.D. and Church, J.A. and Nelson, S.M. and Wig, G.S. and Vogel, A.C.
+#'   and Lessov-Schlaggar, C.N. and Barnes, K.A. (2010) Prediction of individual
+#'   brain maturity using fMRI. \emph{Science}, \bold{329(5997)}, 1358--1361.
+"dosenbach160"
+
+#' Coordinates for data from the Harvard-Oxford atlas
+#'
+#' @aliases hoa112
+#' @rdname brain_atlases
+#' @references Makris, N. and Goldstein, J.M. and Kennedy, D. et al. (2006)
+#'   Decreased volume of left and total anterior insular lobule in
+#'   schizophrenia. \emph{Schizophr Res}, \bold{83(2-3)}, 155--171.
+"hoa112"
+
+#' Coordinates for data from the LONI probabilistic brain atlas
+#'
+#' @aliases lpba40
+#' @rdname brain_atlases
+#' @references Shattuck, D.W. and Mirza, M. and Adisetiyo, V. and Hojatkashani,
+#'   C. and Salamon, G. and Narr, K.L. and Poldrack, R.A. and Bilder, R.M. and
+#'   Toga, A.W. (2008) Construction of a 3D probabilistic atlas of human
+#'   cortical structures. \emph{NeuroImage}, \bold{39(3)}, 1064--1080.
+#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2007.09.031}
+"lpba40"

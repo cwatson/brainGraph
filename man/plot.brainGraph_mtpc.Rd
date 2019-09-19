@@ -5,18 +5,18 @@
 \title{Plot a graph with results from MTPC}
 \usage{
 \method{plot}{brainGraph_mtpc}(x, subgraph = "sig == 1",
-  main = paste0("\\n\\n", x$outcome, ": ", x$name), subt = NULL,
+  main = paste0(x$outcome, ": ", x$name), subtitle = NULL,
   cex.main = 2, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph_mtpc} graph object}
 
-\item{subgraph}{Character string specifying an equation for vertices to plot
-(default: \code{NULL})}
+\item{subgraph}{Character string specifying a logical condition for vertices
+to plot. Default: \code{NULL}}
 
-\item{main}{Character string; the main title (default: \code{NULL})}
+\item{main}{Character string; the main title. Default: \code{NULL}}
 
-\item{subt}{Character string; the subtitle (default: \code{default})}
+\item{subtitle}{Character string; the subtitle. Default: \code{'default'}}
 
 \item{cex.main}{Numeric indicating the scaling for plot title size (see
 \code{\link[graphics]{par}}.}

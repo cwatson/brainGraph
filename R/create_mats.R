@@ -5,7 +5,7 @@
 #' You may choose to normalize these matrices by the \emph{waytotal} or
 #' \emph{region size} (tractography), or not at all.
 #'
-#' @section Connection matrix files
+#' @section Connection matrix files:
 #' The \code{A.files} argument is mandatory and may be specified in a few ways:
 #' \enumerate{
 #'   \item A character vector of the filenames (preferably with full path).
@@ -20,7 +20,7 @@
 #' }
 #' The same options apply to \code{div.files} as well.
 #'
-#' @section Thresholding methods
+#' @section Thresholding methods:
 #' The argument \code{threshold.by} has 4 options:
 #' \enumerate{
 #'   \item \code{consensus} Threshold based on the raw (normalized, if selected)
@@ -247,14 +247,12 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 #' Create a symmetric matrix
 #'
 #' \code{symmetrize_mats} will symmetrize a numeric matrix by assigning the
-#' off-diagonal elements values of either the \code{max}, \code{min}, or
-#' \code{average} of \eqn{\{A(i, j), A(j, i)\}}. The default is \code{max}
-#' because that is the default for
-#' \code{\link[igraph]{graph_from_adjacency_matrix}}.
+#' off-diagonal elements values of either the \code{max} (default), \code{min},
+#' or \code{average} of \eqn{\{A(i, j), A(j, i)\}}.
 #'
 #' @param A Numeric matrix
 #' @param symm.by Character string; how to create symmetric off-diagonal
-#'   elements (default: \code{max})
+#'   elements. Default: \code{max}
 #' @export
 #' @return Either a single symmetrized matrix, or an (3D) array
 #'
@@ -344,7 +342,7 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #'   (3-dim) for all subjects
 #' @param group.mats List (equal to number of thresholds) of lists (equal to
 #'   number of groups) of numeric matrices for group-level data
-#' @param W.files Character vector of the filenames of the files containing your
+#' @param W.files Character vector of the filenames of the files with
 #'   connectivity matrices
 #' @inheritParams create_mats
 #' @export

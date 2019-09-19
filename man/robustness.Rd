@@ -23,6 +23,8 @@ Default: \code{1e3}}
 Data table with elements:
   \item{type}{Character string describing the type of analysis performed}
   \item{measure}{The input argument \code{measure}}
+  \item{comp.size}{The size of the largest component after edge/vertex
+    removal}
   \item{comp.pct}{Numeric vector of the ratio of maximal component size after
     each removal to the observed graph's maximal component size}
   \item{removed.pct}{Numeric vector of the ratio of vertices/edges removed}

@@ -56,8 +56,7 @@
 #'
 #' @return A numeric matrix
 #'
-#' @name GLMdesign
-#' @aliases brainGraph_GLM_design
+#' @name GLM design
 #' @rdname glm_design
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}

@@ -183,7 +183,6 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
 #' @param object,x A \code{mtpc} object
 #' @inheritParams summary.bg_GLM
 #' @export
-#' @method summary mtpc
 #' @rdname mtpc
 
 summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
@@ -251,7 +250,6 @@ print.summary.mtpc <- function(x, ...) {
 #'   in the caption of the plot (default: \code{FALSE})
 #' @inheritParams plot.bg_GLM
 #' @export
-#' @method plot mtpc
 #' @rdname mtpc
 #'
 #' @return The \code{plot} method returns a \emph{list} of

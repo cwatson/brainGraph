@@ -88,8 +88,7 @@
 #'   \item{sims}{Integer; the number of bootstrap replications.}
 #'   \item{covar.names}{The pre-treatment covariate names.}
 #'
-#' @name MediationAnalysis
-#' @aliases brainGraph_mediate
+#' @name Mediation
 #' @rdname mediation
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -288,7 +287,6 @@ BC.CI <- function(theta, low, high) {
 #' @param region Character string specifying which region's results to
 #'   summarize; only relevant if \code{level='vertex'} (default: \code{NULL})
 #' @export
-#' @method summary bg_mediate
 #' @rdname mediation
 
 summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {

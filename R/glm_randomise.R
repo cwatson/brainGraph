@@ -76,6 +76,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'     alone
 #'   \item For F contrasts, return an inverse of the cross product between the
 #'     contrast and the inverted design matrix, and the contrast's rank
+#' }
 #'
 #' @inheritParams GLM
 #' @inheritParams randomise

@@ -19,14 +19,14 @@
 #'
 #' @param g An \code{igraph} graph object
 #' @param type Character string; either \code{local}, \code{nodal}, or
-#'   \code{global} (default: \code{local})
+#'   \code{global}. Default: \code{local}
 #' @param weights Numeric vector of edge weights; if \code{NULL} (the default),
 #'   and if the graph has edge attribute \code{weight}, then that will be used.
 #'   To avoid using weights, this should be \code{NA}.
-#' @param use.parallel Logical indicating whether or not to use \code{foreach}
-#'   (default: \code{TRUE})
-#' @param A Numeric matrix; the (weighted or unweighted) adjacency matrix of the
-#'   input graph. Default: \code{NULL}
+#' @param use.parallel Logical indicating whether or not to use \code{foreach}.
+#'   Default: \code{TRUE}
+#' @param A Numeric matrix; the adjacency matrix of the input graph. Default:
+#'   \code{NULL}
 #' @export
 #' @importFrom Matrix rowSums
 #'

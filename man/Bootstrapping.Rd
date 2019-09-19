@@ -26,14 +26,14 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
 
 \item{measure}{Character string of the measure to test. Default: \code{mod}}
 
-\item{conf}{Numeric; the confidence level for calculating confidence
-intervals. Default: \code{0.95}}
+\item{conf}{Numeric; the level for calculating confidence intervals. Default:
+\code{0.95}}
 
 \item{.progress}{Logical indicating whether or not to show a progress bar.
 Default: \code{TRUE}}
 
-\item{xfm.type}{Character string specifying how to transform the weights
-(default: \code{1/w})}
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
 \item{object, x}{A \code{brainGraph_boot} object}
 
@@ -53,11 +53,11 @@ Default: \code{TRUE}}
 }
 \description{
 Perform bootstrapping to obtain groupwise standard error estimates of a
-global graph measure (e.g. \emph{modularity}).
+global graph measure.
 
 The \code{plot} method returns two \code{ggplot} objects: one with shaded
 regions based on the standard error, and the other based on confidence
-intervals (calculated using the normal approximation.
+intervals (calculated using the normal approximation).
 }
 \details{
 The confidence intervals are calculated using the \emph{normal approximation}
@@ -76,8 +76,7 @@ boot.E.global <- brainGraph_boot(densities, resids.all, 1e3, 'E.global')
 \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
 
 Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
+  \code{\link{Mediation}}, \code{\link{NBS}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{IndividualContributions}},

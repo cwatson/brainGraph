@@ -5,8 +5,8 @@
 \title{Plot a graph with results from brainGraph_GLM}
 \usage{
 \method{plot}{brainGraph_GLM}(x, p.sig = c("p", "p.fdr", "p.perm"),
-  subgraph = NULL, main = paste0("\\n\\n", x$outcome, ": ", x$name),
-  subt = NULL, cex.main = 2, ...)
+  subgraph = NULL, main = paste0(x$outcome, ": ", x$name),
+  subtitle = NULL, cex.main = 2, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph_GLM} graph object}
@@ -14,12 +14,12 @@
 \item{p.sig}{Character string indicating which p-value to use for determining
 significance (default: \code{p})}
 
-\item{subgraph}{Character string specifying an equation for vertices to plot
-(default: \code{NULL})}
+\item{subgraph}{Character string specifying a logical condition for vertices
+to plot. Default: \code{NULL}}
 
-\item{main}{Character string; the main title (default: \code{NULL})}
+\item{main}{Character string; the main title. Default: \code{NULL}}
 
-\item{subt}{Character string; the subtitle (default: \code{default})}
+\item{subtitle}{Character string; the subtitle. Default: \code{'default'}}
 
 \item{cex.main}{Numeric indicating the scaling for plot title size (see
 \code{\link[graphics]{par}}.}

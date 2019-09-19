@@ -4,13 +4,16 @@
 \alias{edge_asymmetry}
 \title{Calculate an asymmetry index based on edge counts}
 \usage{
-edge_asymmetry(g, level = c("hemi", "vertex"))
+edge_asymmetry(g, level = c("hemi", "vertex"), A = NULL)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
 \item{level}{Character string indicating whether to calculate asymmetry for
 each region, or the hemisphere as a whole (default: \code{'hemi'})}
+
+\item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
+\code{NULL}}
 }
 \value{
 A data table with edge counts for both hemispheres and the asymmetry

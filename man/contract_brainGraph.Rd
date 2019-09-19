@@ -4,23 +4,28 @@
 \alias{contract_brainGraph}
 \title{Contract graph vertices based on brain lobe and hemisphere}
 \usage{
-contract_brainGraph(g)
+contract_brainGraph(g, vgroup = "lobe.hemi")
 }
 \arguments{
-\item{g}{An \code{igraph} graph object}
+\item{g}{A \code{brainGraph} graph object}
+
+\item{vgroup}{Character string; the name of the vertex attribute to use when
+contracting the graph. Default: \code{'lobe.hemi'}}
 }
 \value{
-A new \code{igraph} graph object
+A new \code{brainGraph} graph object with vertex-level attributes
+  representing the mean spatial coordinates, and vertex- and edge-level
+  attributes of color names
 }
 \description{
-Create a new graph after merging multiple vertices based on brain \emph{lobe}
-and \emph{hemisphere} membership.
+Create a new graph after merging vertices within specified groups.
+By default, groups are brain \emph{lobe} and \emph{hemisphere} membership.
 }
 \details{
-The vertex size of the resultant graph is equal to the number of vertices in
-each lobe (in the input graph). The x- and y- coordinates of the new vertices
-are equal to the mean coordinates of the lobe vertices of the original graph.
-The new edge weight is equal to the number of inter-lobular connections of
+The \code{size} vertex-level attribute of the resultant graph is equal to the
+number of vertices in each group. The x-, y-, and z-coordinates of the new
+graph are equal to the mean coordinates of the vertices per group.
+The new edge weights are equal to the number of inter-group connections of
 the original graph.
 }
 \seealso{

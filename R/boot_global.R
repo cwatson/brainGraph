@@ -1,7 +1,7 @@
 #' Bootstrapping for global graph measures
 #'
 #' Perform bootstrapping to obtain groupwise standard error estimates of a
-#' global graph measure (e.g. \emph{modularity}).
+#' global graph measure.
 #'
 #' The confidence intervals are calculated using the \emph{normal approximation}
 #' at the \eqn{100 \times conf}\% level (by default, 95\%).
@@ -15,8 +15,8 @@
 #'   \code{\link{get.resid}})
 #' @param R Integer; the number of bootstrap replicates. Default: \code{1e3}
 #' @param measure Character string of the measure to test. Default: \code{mod}
-#' @param conf Numeric; the confidence level for calculating confidence
-#'   intervals. Default: \code{0.95}
+#' @param conf Numeric; the level for calculating confidence intervals. Default:
+#'   \code{0.95}
 #' @param .progress Logical indicating whether or not to show a progress bar.
 #'   Default: \code{TRUE}
 #' @inheritParams xfm.weights
@@ -114,7 +114,6 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' @param object,x A \code{brainGraph_boot} object
 #' @importFrom boot boot.ci
 #' @export
-#' @method summary brainGraph_boot
 #' @rdname Bootstrapping
 
 summary.brainGraph_boot <- function(object, ...) {
@@ -165,13 +164,12 @@ print.summary.brainGraph_boot <- function(x, ...) {
 #'
 #' The \code{plot} method returns two \code{ggplot} objects: one with shaded
 #' regions based on the standard error, and the other based on confidence
-#' intervals (calculated using the normal approximation.
+#' intervals (calculated using the normal approximation).
 #'
 #' @param ... Unused
 #' @param alpha A numeric indicating the opacity for
 #'   \code{\link[ggplot2]{geom_ribbon}}
 #' @export
-#' @method plot brainGraph_boot
 #' @rdname Bootstrapping
 #'
 #' @return \code{plot} -- \emph{list} with the following elements:

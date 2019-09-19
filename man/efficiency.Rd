@@ -11,17 +11,17 @@ efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
 \item{g}{An \code{igraph} graph object}
 
 \item{type}{Character string; either \code{local}, \code{nodal}, or
-\code{global} (default: \code{local})}
+\code{global}. Default: \code{local}}
 
 \item{weights}{Numeric vector of edge weights; if \code{NULL} (the default),
 and if the graph has edge attribute \code{weight}, then that will be used.
 To avoid using weights, this should be \code{NA}.}
 
-\item{use.parallel}{Logical indicating whether or not to use \code{foreach}
-(default: \code{TRUE})}
+\item{use.parallel}{Logical indicating whether or not to use \code{foreach}.
+Default: \code{TRUE}}
 
-\item{A}{Numeric matrix; the (weighted or unweighted) adjacency matrix of the
-input graph (default: \code{NULL})}
+\item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
+\code{NULL}}
 }
 \value{
 A numeric vector of the efficiencies for each vertex of the graph

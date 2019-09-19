@@ -1,20 +1,19 @@
 #' Guess the atlas based on the data
 #'
-#' If \code{atlas} is not explicitly provided, \code{guess_atlas} will try to
-#' determine which atlas is being used based on the data, particularly the
-#' number of vertices/regions.
+#' \code{guess_atlas} tries to determine which atlas is being used based on the
+#' data; i.e., the number of vertices/regions.
 #'
-#' @param x An object to test
+#' @param x,object An object to test or convert to an atlas table
 #' @export
-#' @return Character string; either the matched atlas or \code{NA}
-#' @name AtlasHelpers
-#' @rdname atlas
+#' @return \code{guess_atlas} - Character string; either the matched atlas or
+#'   \code{NA}
+#' @name Atlas Helpers
+#' @rdname atlas_helpers
 
 guess_atlas <- function(x) {
   bgAtlases <- data(package='brainGraph')$results[, 3]
   Nv <- vapply(bgAtlases, function(x) dim(get(x))[1L], integer(1))
 
-  # Currently works only for 'dt.vol' from `get.resid`
   n <- switch(class(x)[1L],
               data.frame=,data.table=dim(x)[2L] - ('Study.ID' %in% names(x)),
               igraph=vcount(x),
@@ -33,10 +32,10 @@ guess_atlas <- function(x) {
 
 #' Check if an object is a valid atlas, and convert if it isn't
 #'
-#' \code{as_atlas} will convert an object to a \code{data.table} that is
-#' compatible with \code{brainGraph}.
+#' \code{as_atlas} and \code{create_atlas} converts an object to or creates a
+#' \code{data.table} that is compatible with \code{brainGraph}.
 #'
-#' There are several things this function tries to do to make it work without
+#' There are several things \code{as_atlas} tries to do to make it work without
 #' error:
 #' \itemize{
 #'   \item Coerce the object to \code{data.table}
@@ -45,11 +44,10 @@ guess_atlas <- function(x) {
 #'     \code{.mni} at the end
 #' }
 #'
-#' @param object An object to test
 #' @export
-#' @return If possible, it returns a \code{data.table} that conforms to other
-#'   atlases in the package. Otherwise, exits with an error.
-#' @rdname atlas
+#' @return \code{as_atlas} and \code{create_atlas} return a \code{data.table}
+#'   that conforms to other atlases in the package, or exits with an error.
+#' @rdname atlas_helpers
 #' @examples
 #' my_atlas <- data.frame(name=paste('Region', 1:10), x.mni=rnorm(10),
 #'   y.mni=rnorm(10), z.mni=rnorm(10),
@@ -90,10 +88,6 @@ as_atlas <- function(object) {
 
 #' Create an atlas compatible with brainGraph
 #'
-#' \code{create_atlas} will create a \code{data.table} object that is compatible
-#' with \code{brainGraph}. Required pieces of information are: region names,
-#' spatial coordinates, and lobe and hemisphere membership
-#'
 #' @param regions Character vector of region names
 #' @param coords Numeric matrix of spatial coordinates; must have 3 columns
 #' @param lobes Character or factor vector of lobe membership
@@ -101,8 +95,7 @@ as_atlas <- function(object) {
 #'   should probably not be more than 3 unique elements (for left, right, and
 #'   bi-hemispheric regions)
 #' @export
-#' @return A \code{data.table} that is compatible with \code{brainGraph} atlases
-#' @rdname atlas
+#' @rdname atlas_helpers
 #' @examples
 #' regions <- paste('Region', 1:10)
 #' xyz <- matrix(rnorm(30), nrow=10, ncol=3)

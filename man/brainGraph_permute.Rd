@@ -108,9 +108,8 @@ out <- brainGraph_permute(densities, m, perms=myPerms,
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{mtpc}}
+  \code{\link{GLM}}, \code{\link{Mediation}},
+  \code{\link{NBS}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{IndividualContributions}},

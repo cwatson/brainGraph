@@ -4,10 +4,13 @@
 \alias{centr_lev}
 \title{Calculate a vertex's leverage centrality}
 \usage{
-centr_lev(g)
+centr_lev(g, A = NULL)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
+
+\item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
+\code{NULL}}
 }
 \value{
 A vector of the leverage centrality for all vertices.

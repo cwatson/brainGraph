@@ -221,7 +221,6 @@ permute_other_foreach <- function(perms, densities, resids, groups, .function) {
 #' @param ... Unused
 #' @inheritParams GLM
 #' @export
-#' @method summary brainGraph_permute
 #' @rdname brainGraph_permute
 
 summary.brainGraph_permute <- function(object, measure=NULL,
@@ -373,7 +372,6 @@ print.summary.brainGraph_permute <- function(x, ...) {
 #' @param ptitle Character string specifying a title for the plot (default:
 #'   \code{NULL})
 #' @export
-#' @method plot brainGraph_permute
 #' @return The \code{plot} method returns a \emph{list} of \code{ggplot} objects
 #' @rdname brainGraph_permute
 

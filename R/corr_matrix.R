@@ -31,10 +31,8 @@
 #' @importFrom Hmisc rcorr
 #'
 #' @return A \code{corr_mats} object containing the following components:
-#'   \item{R}{Numeric array of correlation coefficients. The length of the 3rd
-#'     dimension equals the number of groups}
-#'   \item{P}{Numeric array of p-values. The length of the 3rd dimension equals
-#'     the number of groups}
+#'   \item{R,P}{Numeric arrays of correlation coefficients and P-values. The
+#'     length of the 3rd dimension equals the number of groups}
 #'   \item{r.thresh}{A list of 3-d binary arrays indicating correlations that
 #'     are above a certain threshold. The length of the list equals the number
 #'     of groups, and the length of the 3rd dimension equals the number of
@@ -142,7 +140,6 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #' @param i Integer for subsetting by density/threshold
 #' @param g Integer, character, or logical for subsetting by group
 #' @export
-#' @method [ corr_mats
 #'
 #' @name Extract.corr_mats
 #' @rdname correlation_matrices
@@ -177,7 +174,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #' The \code{plot} method will plot \dQuote{heat maps} of the correlation
 #' matrices.
 #'
-#' @section Plotting correlation matrices
+#' @section Plotting correlation matrices:
 #' There are several ways to control the plot appearance. First, you may plot
 #' the \dQuote{raw} correlations, or only those of the thresholded (binarized)
 #' matrices. Second, you may order the vertices by a given vertex attribute; by
@@ -188,7 +185,6 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #' object must have a vertex attribute specified in \code{order.by}. Finally,
 #' you can control the legend text with \code{grp.names}.
 #'
-#' @param x A \code{corr_mats} object
 #' @param mat.type Character string indicating whether to plot raw or thresholded
 #'   (binarized) matrices. Default: \code{'raw'}
 #' @param thresh.num Integer specifying which threshold to plot (if
@@ -196,7 +192,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #' @param ordered Logical indicating whether to order the vertices by some
 #'   grouping. Default: \code{TRUE}
 #' @param order.by Character string indicating how to group vertices. Default:
-#'   \code{'lobe'} (i.e., group into lobes)
+#'   \code{'lobe'}
 #' @param graphs A \code{brainGraphList} object containing graphs with the
 #' vertex-level attribute of interest. Default: \code{NULL}
 #' @param grp.names Character vector specifying the names of each group of
@@ -205,7 +201,6 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 #'   leave blank
 #' @param ... Unused
 #' @export
-#' @method plot corr_mats
 #' @rdname correlation_matrices
 #' @examples
 #' \dontrun{

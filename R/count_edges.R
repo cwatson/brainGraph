@@ -3,14 +3,12 @@
 #' \code{count_homologous} counts the number of edges between homologous regions
 #' in a brain graph (e.g. between L and R superior frontal).
 #'
-#' @param g An \code{brainGraph} graph object
+#' @param g A \code{brainGraph} graph object
 #' @export
-#'
 #' @return \code{count_homologous} - a named vector of the edge ID's connecting
 #'   homologous regions
 #'
-#' @name CountEdges
-#' @aliases count_homologous
+#' @name Count Edges
 #' @rdname count_edges
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -39,11 +37,9 @@ count_homologous <- function(g) {
 #' @param group Character string specifying which grouping to calculate edge
 #'   counts for. Default: \code{'lobe'}
 #' @export
-#'
 #' @return \code{count_inter} - a \code{data.table} of total, intra-, and
 #'   inter-group edge counts
 #'
-#' @aliases count_inter
 #' @rdname count_edges
 #' @examples
 #' \dontrun{

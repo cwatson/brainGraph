@@ -18,7 +18,7 @@ A list containing:
   \item{Z}{Numeric matrix for the nuisance covariates}
   \item{eCm}{The \emph{effective contrast}, equivalent to the original, for
     the partitioned model \code{[X, Z]} and considering all covariates}
-  \item{eCx}{Same as \code{eCx}, but considering only \code{X}}
+  \item{eCx}{Same as \code{eCm}, but considering only \code{X}}
 }
 \description{
 Consider the matrix formulation of the \emph{general linear model}:

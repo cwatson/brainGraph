@@ -14,8 +14,7 @@
 #'   edge count of the input graph, consisting of the Euclidean distance (in
 #'   \emph{mm}) of each edge
 #'
-#' @name GraphDistances
-#' @aliases edge_spatial_dist
+#' @name Graph Distances
 #' @rdname spatial_dist
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -43,7 +42,6 @@ edge_spatial_dist <- function(g) {
 #'   to the number of vertices, consisting of the average distance (in
 #'   \emph{mm}) for each vertex
 #'
-#' @aliases vertex_spatial_dist
 #' @rdname spatial_dist
 #' @references Alexander-Bloch, A.F. and Vertes, P.E. and Stidd, R. et al.
 #'   (2013) The anatomical distance of functional connections predicts brain

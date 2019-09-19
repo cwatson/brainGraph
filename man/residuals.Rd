@@ -42,12 +42,13 @@ value (e.g. mean LH/RH cortical thickness). Default: \code{FALSE}}
 
 \item{i}{Numeric vector of the indices}
 
-\item{g}{Character string indicating the group (default: \code{NULL})}
+\item{g}{Character string indicating the group. Default: \code{NULL}}
 
 \item{regions}{Character vector of region(s) to focus on; default behavior is
 to show summary for all regions}
 
-\item{cols}{Logical indicating whether to color by group (default: FALSE)}
+\item{cols}{Logical indicating whether to color by group. Default:
+\code{FALSE}}
 }
 \value{
 \code{get.resid} - an object of class \code{brainGraph_resids} with
@@ -55,9 +56,9 @@ to show summary for all regions}
   \item{X}{The \emph{design matrix}}
   \item{method}{The input argument \code{method}}
   \item{use.mean}{The input argument \code{use.mean}}
-  \item{all.dat.tidy}{The tidied \code{data.table} of volumetric data (e.g.,
-    mean regional cortical thickness) and covariates, along with
-    \emph{resids} column added}
+  \item{all.dat.long}{A \code{data.table} in \dQuote{long} format of the
+    input structural data merged with the covariates, and a \emph{resids}
+    column added}
   \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
   \item{groups}{Group names}
 
@@ -73,7 +74,7 @@ The \code{plot} method returns a \emph{list} of
 \code{covars} (e.g. age, sex, etc.), and calculates the
 \emph{externally Studentized} (or \emph{leave-one-out}) residuals.
 
-The \code{[} method will let you reorder or subset residuals based on a given
+The \code{[} method reorders or subsets residuals based on a given
 numeric vector. However, this is used in bootstrap and permutation analysis
 and should generally not be called directly by the user.
 
@@ -107,9 +108,7 @@ ggsave('residuals.pdf', ml)
 }
 }
 \seealso{
-\code{\link{rstudent}}
-
-\code{\link[stats]{qqnorm}}
+\code{\link[stats]{rstudent}}, \code{\link[stats]{qqnorm}}
 
 Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{IndividualContributions}},

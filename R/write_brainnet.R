@@ -1,16 +1,14 @@
 #' Write files to be used for visualization with BrainNet Viewer
 #'
 #' Write the \code{.node} and \code{.edge} files necessary for visualization
-#' with the BrainNet Viewer software (see Reference below).
+#' with the BrainNet Viewer software.
 #'
 #' @details For the \code{.node} file, there are 6 columns:
 #' \itemize{
-#' \item \emph{Column 1}: x-coordinates
-#' \item \emph{Column 2}: y-coordinates
-#' \item \emph{Column 3}: z-coordinates
-#' \item \emph{Column 4}: Vertex color
-#' \item \emph{Column 5}: Vertex size
-#' \item \emph{Column 6}: Vertex label
+#'   \item \emph{Columns 1-3}: Vertex x-, y-, and z-coordinates
+#'   \item \emph{Column 4}: Vertex color
+#'   \item \emph{Column 5}: Vertex size
+#'   \item \emph{Column 6}: Vertex label
 #' }
 #' The \code{.edge} file is the graph's associated adjacency matrix; a weighted
 #' adjacency matrix can be returned by using the \code{edge.wt} argument.

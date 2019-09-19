@@ -12,10 +12,11 @@ loo(resids, corrs, level = c("global", "regional"))
 
 aop(resids, corrs, level = c("global", "regional"), control.value = 1L)
 
-\method{summary}{IC}(object, region = NULL, ...)
+\method{summary}{IC}(object, region = NULL, digits = max(3L,
+  getOption("digits") - 2L), ...)
 
 \method{plot}{IC}(x, plot.type = c("mean", "smooth", "boxplot"),
-  region = NULL, ...)
+  region = NULL, ids = TRUE, ...)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -32,13 +33,18 @@ contributions (either \code{global} or \code{regional})}
 
 \item{object, x}{A \code{IC} object}
 
-\item{region}{Character vector of regions to plot; default is to plot for all
-regions}
+\item{region}{Character vector specifying which regions' IC's to print. Only
+relevant if \code{method='Leave one out'}}
+
+\item{digits}{Integer specifying the number of digits to display for P-values}
 
 \item{...}{Unused}
 
 \item{plot.type}{Character string indicating the type of plot; the default is
 to plot the mean (along with standard errors)}
+
+\item{ids}{Logical indicating whether to plot Study ID's for outliers.
+Otherwise plots the integer index}
 }
 \value{
 A \code{data.table} with columns for
@@ -93,14 +99,8 @@ Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{brainGraph_permute}},
   \code{\link{corr.matrix}}, \code{\link{import_scn}},
   \code{\link{plot_volumetric}}
-
-Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{MediationAnalysis}},
-  \code{\link{NBS}}, \code{\link{brainGraph_permute}},
-  \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Group analysis functions}
 \concept{Structural covariance network functions}

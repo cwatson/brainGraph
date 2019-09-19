@@ -42,7 +42,7 @@
 #'   \item{groups}{Group names}
 #' @name Residuals
 #' @rdname residuals
-#' @seealso \code{\link{rstudent}}
+#' @seealso \code{\link[stats]{rstudent}}, \code{\link[stats]{qqnorm}}
 #' @family Structural covariance network functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -160,15 +160,14 @@ rstudent_mat <- function(lmvars, y) {
 
 #' Indexing for structural covariance residuals
 #'
-#' The \code{[} method will let you reorder or subset residuals based on a given
+#' The \code{[} method reorders or subsets residuals based on a given
 #' numeric vector. However, this is used in bootstrap and permutation analysis
 #' and should generally not be called directly by the user.
 #'
 #' @param x,object A \code{brainGraph_resids} object
 #' @param i Numeric vector of the indices
-#' @param g Character string indicating the group (default: \code{NULL})
+#' @param g Character string indicating the group. Default: \code{NULL}
 #' @export
-#' @method [ brainGraph_resids
 #'
 #' @name Extract.brainGraph_resids
 #' @rdname residuals
@@ -192,7 +191,6 @@ rstudent_mat <- function(lmvars, y) {
 #' @param regions Character vector of region(s) to focus on; default behavior is
 #'   to show summary for all regions
 #' @export
-#' @method summary brainGraph_resids
 #' @return \code{\link{summary.brainGraph_resids}} returns a list with two
 #'   data tables, one of the residuals, and one of only the outlier regions
 #' @rdname residuals
@@ -246,16 +244,15 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' region in a structural covariance analysis. It shows a \emph{qqplot} of the
 #' studentized residuals, as output from \code{\link{get.resid}}.
 #'
-#' @param cols Logical indicating whether to color by group (default: FALSE)
+#' @param cols Logical indicating whether to color by group. Default:
+#'   \code{FALSE}
 #' @export
-#' @method plot brainGraph_resids
 #' @importFrom ggrepel geom_text_repel
 #'
 #' @return The \code{plot} method returns a \emph{list} of
 #'   \code{\link[ggplot2]{ggplot}} objects
 #'
 #' @rdname residuals
-#' @seealso \code{\link[stats]{qqnorm}}
 #' @examples
 #' \dontrun{
 #' myresids <- get.resids(lhrh, covars)

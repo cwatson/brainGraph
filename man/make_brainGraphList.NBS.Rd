@@ -7,8 +7,7 @@
 \method{make_brainGraphList}{NBS}(x, atlas, type = "observed",
   level = "contrast", set.attrs = TRUE, modality = NULL,
   weighting = NULL, threshold = NULL, gnames = x$con.name,
-  groups = NULL, mode = "undirected", weighted = TRUE,
-  diag = FALSE, ...)
+  mode = "undirected", weighted = TRUE, diag = FALSE, ...)
 }
 \arguments{
 \item{x}{A \code{NBS} object}
@@ -37,9 +36,6 @@ connectivity matrix (if any). Default: \code{NULL}}
 \item{gnames}{Character vector of graph names (e.g., study IDs if
 \code{level='subject'}). Default: \code{NULL}}
 
-\item{groups}{Character (or factor) vector of group names (default:
-\code{NULL})}
-
 \item{mode}{Character string defining how the matrix should be interpreted.
 Default: \code{'undirected'}}
 
@@ -51,8 +47,8 @@ connectivity matrix. Default: \code{FALSE}}
 \item{...}{Other arguments passed to \code{\link{set_brainGraph_attr}}}
 }
 \value{
-A list of \code{igraph} graph objects (length equal to the number of
-  contrasts) with additional attributes:
+A \code{brainGraphList} object, with a graph object for each contrast
+  with additional attributes:
   \item{Graph}{\emph{name} (contrast name)}
   \item{Vertex}{\emph{comp} (integer vector indicating connected component
     membership), \emph{p.nbs} (P-value for each component)}

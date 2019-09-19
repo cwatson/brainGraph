@@ -9,9 +9,6 @@ coeff_var(x)
 \arguments{
 \item{x}{Numeric vector}
 }
-\value{
-A numeric value
-}
 \description{
 Calculates the \emph{coefficient of variation}, defined as
 \deqn{CV(x) = \frac{sd(x)}{mean(x)}}

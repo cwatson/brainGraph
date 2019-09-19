@@ -4,20 +4,18 @@
 #' the rich-club coefficient, \eqn{\phi}, and the subgraph of rich club
 #' vertices.
 #'
-#' @param k Integer; the minimum degree for including a vertex (default: 1)
+#' @param k Integer; the minimum degree for including a vertex. Default: 1
 #' @param weighted Logical indicating whether or not edge weights should be
-#'   used (default: \code{FALSE})
+#'   used. Default: \code{FALSE}
 #' @inheritParams efficiency
 #' @export
 #'
 #' @return \code{\link{rich_club_coeff}} - a list with components:
 #'   \item{phi}{The rich club coefficient, \eqn{\phi}.}
 #'   \item{graph}{A subgraph containing only the rich club vertices.}
-#'   \item{Nk}{The number of vertices in the rich club graph.}
-#'   \item{Ek}{The number of edges in the rich club graph.}
+#'   \item{Nk,Ek}{The number of vertices/edges in the rich club graph.}
 #'
-#' @name RichClub
-#' @aliases rich_club_coeff
+#' @name Rich Club
 #' @rdname rich_club
 #' @family Rich-club functions
 #'
@@ -70,12 +68,9 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE, A=NULL) {
 #' @return \code{\link{rich_club_all}} - a \code{data.table} with components:
 #'   \item{k}{A vector of all vertex degrees present in the original graph}
 #'   \item{phi}{The rich-club coefficient}
-#'   \item{Nk}{The number of vertices in the rich club for each successive
-#'     \emph{k}}
-#'   \item{Ek}{The number of edges in the rich club for each successive
-#'     \emph{k}}
+#'   \item{Nk,Ek}{The number of vertices/edges in the rich club for each
+#'     successive \emph{k}}
 #'
-#' @aliases rich_club_all
 #' @rdname rich_club
 
 rich_club_all <- function(g, weighted=FALSE, A=NULL) {
@@ -98,11 +93,11 @@ rich_club_all <- function(g, weighted=FALSE, A=NULL) {
 #' coefficient divided by the mean across the random graphs.
 #'
 #' If random graphs have already been generated, you can supply a list as an
-#' argument (since graph generation is time consuming).
+#' argument.
 #'
-#' @param N Integer; the number of random graphs to generate (default: 100)
+#' @param N Integer; the number of random graphs to generate. Default: 100
 #' @param rand A list of \code{igraph} graph objects, if random graphs have
-#'   already been generated (default: \code{NULL})
+#'   already been generated. Default: \code{NULL}
 #' @param ... Other parameters (passed to \code{\link{sim.rand.graph.par}})
 #' @export
 #'
@@ -111,15 +106,11 @@ rich_club_all <- function(g, weighted=FALSE, A=NULL) {
 #'   \item{rand}{Rich-club coefficients for the random graphs}
 #'   \item{orig}{Rich-club coefficients for the original graph.}
 #'   \item{norm}{Normalized rich-club coefficients.}
-#'   \item{p}{The P-values based on the distribution of rich-club coefficients
-#'     from the random graphs.}
+#'   \item{p}{P-values based on the distribution of \code{rand}}
 #'   \item{p.fdr}{The FDR-adjusted P-values}
 #'   \item{density}{The observed graph's density}
-#'   \item{threshold}{}
-#'   \item{Group}{}
-#'   \item{name}{}
+#'   \item{threshold,Group,name}{}
 #'
-#' @aliases rich_club_norm
 #' @rdname rich_club
 #' @family Random graph functions
 #'
@@ -162,10 +153,10 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
 
 #' Assign graph attributes based on rich-club analysis
 #'
-#' This function will assign vertex- and edge-level attributes based on the
-#' results of a \emph{rich-club} analysis, based on a range of vertex degrees in
-#' which the rich-club coefficient was determined to be significantly greater
-#' than that of a set of random graphs (see \code{\link{rich_club_norm}}).
+#' Assigns vertex- and edge-level attributes based on the results of a
+#' \emph{rich-club} analysis, based on a range of vertex degrees in which the
+#' rich-club coefficient was determined to be significantly greater than that of
+#' a set of random graphs (see \code{\link{rich_club_norm}}).
 #'
 #' Vertices which are in the rich club will be assigned an attribute
 #' \code{rich}, taking on a binary value. Their colors (attribute
@@ -176,17 +167,17 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
 #' Edge attribute \code{type.rich} takes on three values: \emph{rich-club} (if
 #' it connects two rich-club vertices), \emph{feeder} (if it connects a rich- to
 #' a non-rich-club vertex), and \emph{local} (if it connects two non-rich-club
-#' vertices). They will also be given a \code{color.rich} attribute (either
-#' \emph{red}, \emph{orange}, or \emph{green}). Edge sizes (\code{size.rich})
-#' will be largest for \emph{rich-club} connections, then smaller for
-#' \emph{feeder}, and smallest for \emph{local}.
+#' vertices). The \code{color.rich} attribute is \emph{red}, \emph{orange}, or
+#' \emph{green}. Edge sizes (\code{size.rich}) will be largest for
+#' \emph{rich-club} connections, then smaller for \emph{feeder}, and smallest
+#' for \emph{local}.
 #'
 #' @param g An \code{igraph} graph object
 #' @param deg.range Numeric vector of the range of degrees indicating
 #'   inclusion in the rich-club; if the default \emph{NULL}, it will be from 1
 #'   to the maximum degree in the graph
 #' @param adj.vsize Logical indicating whether to adjust vertex size
-#'   proportional to degree (default: FALSE)
+#'   proportional to degree. Default: \code{FALSE}
 #' @export
 #'
 #' @return An \code{igraph} graph object with additional attributes:
@@ -251,7 +242,6 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
 #'   \item{core.size}{The size of the core relative to the graph size.}
 #'   \item{weighted}{Whether or not weights were used}
 #'
-#' @aliases rich_core
 #' @rdname rich_club
 #'
 #' @references Ma, A and Mondragon, R.J. (2015) Rich-cores in networks.

@@ -45,7 +45,7 @@ matrix into covariates of interest and nuisance. Default: \code{beckmann}}
 Default: \code{NULL}}
 
 \item{symm.by}{Character string; how to create symmetric off-diagonal
-elements (default: \code{max})}
+elements. Default: \code{max}}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test.
 Default: \code{'two.sided'}}
@@ -99,8 +99,7 @@ Zalesky, A. and Fornito,  A. and Bullmore, E.T. (2010)
 \code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
 
 Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}},
+  \code{\link{GLM}}, \code{\link{Mediation}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 }
 \author{

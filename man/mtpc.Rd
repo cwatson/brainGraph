@@ -167,12 +167,11 @@ Drakesmith, M. and Caeyenberghs, K. and Dutt, A. and Lewis, G. and
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{brainGraph_permute}}
+  \code{\link{GLM}}, \code{\link{Mediation}},
+  \code{\link{NBS}}, \code{\link{brainGraph_permute}}
 
-Other GLM functions: \code{\link{GLMdesign}},
-  \code{\link{GLMfit}}, \code{\link{GLM}}
+Other GLM functions: \code{\link{GLM design}},
+  \code{\link{GLM fits}}, \code{\link{GLM}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

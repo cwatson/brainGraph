@@ -26,14 +26,14 @@ Default: \code{TRUE}}
 \item{A}{Numeric matrix; the (weighted) adjacency matrix, which can be used
 for faster calculation of local efficiency. Default: \code{NULL}}
 
-\item{xfm.type}{Character string specifying how to transform the weights
-(default: \code{1/w})}
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
 \item{clust.method}{Character string indicating which method to use for
 community detection. Default: \code{'louvain'}}
 
-\item{invert}{Logical indicating whether or not to invert the transformation
-(default: \code{FALSE})}
+\item{invert}{Logical indicating whether or not to invert the transformation.
+Default: \code{FALSE}}
 }
 \value{
 A graph object with the following attributes:
@@ -55,32 +55,23 @@ A graph object with the following attributes:
   of transformation
 }
 \description{
-\code{set_brainGraph_attr} sets a number of graph, vertex, and edge
-attributes for a given graph object. Specifically, it calculates measures
-that are common in MRI analyses of brain networks.
+\code{set_brainGraph_attr} is a convenience function that sets a number of
+graph, vertex, and edge attributes for a given graph object. Specifically, it
+calculates measures that are common in MRI analyses of brain networks.
 }
 \details{
 Including \code{type='random'} in the function call will reduce the number of
-attributes calculated.
+attributes calculated. It will only add graph-level attributes for:
+clustering coefficient, characteristic path length, rich club coefficient,
+global efficiency, and modularity.
 }
-\section{Community detection}{
+\section{Negative edge weights}{
 
-\code{clust.method} allows you to choose from any of the clustering
-(community detection) functions available in \code{igraph}. These functions
-all begin with \code{clust_}; the function argument should not include this
-leading character string. There are a few possibilities, depending on the
-value and the type of input graph:
-\enumerate{
-  \item By default, \code{louvain} is used, calling
-    \code{\link[igraph]{cluster_louvain}}
-  \item Uses \code{spinglass} if there are any negative edges and/or the
-    selected method is \code{spinglass}
-  \item Uses \code{walktrap} if there are any negative edge weights and any
-    other method (besided \code{spinglass}) is selected
-  \item Automatically transforms the edge weights if \code{edge_betweenness}
-    is selected and the graph is weighted, because the algorithm considers
-    edges as \emph{distances}
-}
+If there are any negative edge weights in the graph, several of the
+distance-based metrics will \emph{not} be calculated, because they can throw
+errors which is undesirable when processing a large dataset. The metrics are:
+local and nodal efficiency, diameter, characteristic path length, and
+hubness.
 }
 
 \section{Transforming edge weights}{
@@ -105,6 +96,26 @@ probably most common.
 }
 
 To transform the weights back to original values, specify \code{invert=TRUE}.
+}
+
+\section{Community detection}{
+
+\code{clust.method} allows you to choose from any of the clustering
+(community detection) functions available in \code{igraph}. These functions
+begin with \code{cluster_}; the function argument should not include this
+leading character string. There are a few possibilities, depending on the
+value and the type of input graph:
+\enumerate{
+  \item By default, \code{louvain} is used, calling
+    \code{\link[igraph]{cluster_louvain}}
+  \item Uses \code{spinglass} if there are any negative edges and/or the
+    selected method is \code{spinglass}
+  \item Uses \code{walktrap} if there are any negative edge weights and any
+    other method (besided \code{spinglass}) is selected
+  \item Automatically transforms the edge weights if \code{edge_betweenness}
+    is selected and the graph is weighted, because the algorithm considers
+    edges as \emph{distances}
+}
 }
 
 \seealso{

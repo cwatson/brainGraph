@@ -78,8 +78,6 @@ check_strength <- function(g) {
 #'
 #' @param x Numeric vector
 #' @export
-#'
-#' @return A numeric value
 
 coeff_var <- function(x) {
   N <- length(x)
@@ -94,38 +92,34 @@ coeff_var <- function(x) {
 #' with the difference between correlation coefficients. This function was
 #' adapted from \url{http://stackoverflow.com/a/14519007/3357706}.
 #'
-#' @param r1 Numeric (vector or matrix) of correlation coefficients, group 1
-#' @param r2 Numeric (vector or matrix) of correlation coefficients, group 2
-#' @param n1 Integer; number of observations, group 1
-#' @param n2 Integer; number of observations, group 2
-#' @param alternative Character string specifying the alternative hypothesis
-#'   test to use; one of: 'two.sided' (default), 'less', 'greater'
+#' @param r1,r2 Numeric (vector or matrix) of correlation coefficients for both
+#'   groups
+#' @param n Integer vector; number of observations for both groups
+#' @inheritParams GLM
 #' @export
 #'
-#' @return A list containing:
-#' \item{p}{The p-values}
-#' \item{z}{The z-score for the difference in correlation coefficients}
+#' @return A list with elements \code{p} and \code{z}, the p-values
+#'   and z-scores for the difference in correlations.
 #'
 #' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' kNumSubjs <- summary(covars$Group)
-#' corr.diffs <- cor.diff.test(corrs[[1]][[1]]$R, corrs[[2]][[1]]$R,
-#'                             kNumSubjs[1], kNumSubjs[2], alternative='two.sided')
+#' corr.diffs <- cor.diff.test(corrs$R[, , 1], corrs$R[, , 2], kNumSubjs)
 #' edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
 #'                        mapply('[[',
 #'                               dimnames(corr.diffs$p),
 #'                               arrayInd(x, dim(corr.diffs$p)))
 #'                               ))
 #' }
-cor.diff.test <- function(r1, r2, n1, n2,
-                          alternative = c('two.sided', 'less', 'greater')) {
+cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater')) {
+  stopifnot(length(n) == 2L)
 
   z1 <- 0.5 * log((1 + r1) / (1 - r1))
   z2 <- 0.5 * log((1 + r2) / (1 - r2))
 
-  SEdiff <- sqrt((1 / (n1 - 3)) + (1 / (n2 - 3)))
+  SEdiff <- sqrt((1 / (n[1L] - 3)) + (1 / (n[2L] - 3)))
   diff.z <- (z1 - z2) / SEdiff
 
   alt <- match.arg(alternative)
