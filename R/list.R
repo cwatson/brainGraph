@@ -5,9 +5,9 @@
 #' Create a list of brainGraph graphs
 #'
 #' \code{make_brainGraphList} creates a \code{brainGraphList} object, a list
-#' containing a set of graphs for all subjects in a study at a specific
-#' threshold (or density), in addition to some graph-level attributes common to
-#' those graphs.
+#' containing a set of graphs for all subjects (or group-average graphs) in a
+#' study at a specific threshold (or density), in addition to some graph-level
+#' attributes common to those graphs.
 #'
 #' In addition to creating the initial \code{igraph} graphs from the
 #' connectivity matrices, \code{\link{set_brainGraph_attr}} will be called on
@@ -26,14 +26,14 @@
 #' @param gnames Character vector of graph names (e.g., study IDs if
 #'   \code{level='subject'}). Default: \code{NULL}
 #' @param ... Other arguments passed to \code{\link{set_brainGraph_attr}}
-#' @inheritParams CreateGraphs
+#' @inheritParams Creating_Graphs
 #' @export
 #'
 #' @return \code{make_brainGraphList} returns an object of class
 #'   \code{brainGraphList} with elements:
 #'   \item{threshold}{The specified threshold/density}
-#'   \item{version}{The version of \code{brainGraph} used when creating the
-#'     graphs}
+#'   \item{version}{The versions of \code{R}, \code{igraph}, and
+#'     \code{brainGraph} used when creating the graphs}
 #'   \item{atlas}{The atlas common to all the graphs}
 #'   \item{modality}{The imaging modality (if supplied)}
 #'   \item{weighting}{A string indicating what edge weights represent (if
@@ -62,12 +62,12 @@ make_brainGraphList <- function(x, atlas, type=c('observed', 'random'),
   UseMethod('make_brainGraphList')
 }
 
-#' @param groups Character (or factor) vector of group names. Default:
-#'   \code{NULL})
+#' @param groups Character (or factor) vector of group names. If \code{level ==
+#'   'group'}, then you do not need to include this argument (the group names
+#'   will be the same as \code{gnames}). Default: \code{NULL})
 #' @param .progress Logical indicating whether to print a progress bar. Default:
 #'   \code{FALSE}
 #' @export
-#' @method make_brainGraphList array
 #' @rdname brainGraphList
 
 make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
@@ -80,18 +80,14 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   i <- NULL
   level <- match.arg(level)
   kNumGraphs <- dim(x)[3L]
-  if (!is.null(gnames)) {
-    stopifnot(length(gnames) == kNumGraphs)
-    if (is.factor(gnames)) gnames <- as.character(gnames)
-  } else {
-    gnames <- seq_len(kNumGraphs)
-  }
-  if (!is.null(groups)) {
-    stopifnot(length(groups) == kNumGraphs)
-    if (is.factor(groups)) groups <- as.character(groups)
-  } else {
+  if (is.null(gnames)) gnames <- seq_len(kNumGraphs)
+  stopifnot(length(gnames) == kNumGraphs)
+  gnames <- as.character(gnames)
+  if (is.null(groups)) {
     groups <- if (level == 'group') gnames else rep(1, kNumGraphs)
   }
+  stopifnot(length(groups) == kNumGraphs)
+  groups <- as.character(groups)
 
   type <- match.arg(type)
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting', 'threshold')
@@ -100,6 +96,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
     if (!is.null(get(a))) out[[a]] <- get(a)
   }
   out <- get_metadata(out)
+  if (!is.null(threshold)) threshold <- rep_len(threshold, kNumGraphs)
 
   # Show a progress bar so you aren't left in the dark
   #---------------------------------------------------------
@@ -121,9 +118,6 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
 
   env <- environment()
   counter <- 0
-  if (!is.null(threshold)) {
-    if (length(threshold) != kNumGraphs) threshold <- rep_len(threshold, kNumGraphs)
-  }
   g <- foreach(i=seq_len(kNumGraphs)) %dopar% {
     res <- loopfun(x[, , i], atlas, type, level, set.attrs, modality, weighting, threshold[i],
                    name=gnames[i], Group=groups[i], mode=mode,
@@ -138,7 +132,6 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
 }
 
 #' @export
-#' @method make_brainGraphList corr_mats
 #' @rdname brainGraphList
 
 make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
@@ -161,20 +154,20 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
 
 #' Create a graph list with GLM-specific attributes
 #'
-#' Create a \code{brainGraphList} with attributes specific to the results of
-#' \code{\link{brainGraph_GLM}} or \code{\link{mtpc}}. The \code{graphs} element
-#' of the returned object will contain one graph for each contrast.
+#' These methods create a \code{brainGraphList} with attributes specific to the
+#' results of \code{\link{brainGraph_GLM}}, \code{\link{mtpc}}, or
+#' \code{\link{NBS}}. The \code{graphs} element of the returned object will
+#' contain one graph for each contrast.
 #'
-#' @note Only valid for \emph{vertex}-level analyses.
+#' @note Only valid for \emph{vertex}-level and \emph{NBS} analyses.
 #'
-#' @param x A \code{bg_GLM} or \code{mtpc} object
+#' @param x A \code{bg_GLM}, \code{mtpc}, or \code{NBS} object
 #' @param atlas Character string specifying the brain atlas to use
 #' @inheritParams brainGraphList
 #' @export
-#' @method make_brainGraphList bg_GLM
 #'
-#' @return A list of \code{igraph} graph objects (length equal to the number of
-#'   contrasts) with additional attributes:
+#' @return A \code{brainGraphList} object, with a graph object for each contrast
+#'   with additional attributes:
 #'   \item{Graph}{\emph{name} (contrast name), \emph{outcome} (the outcome
 #'     variable), \emph{alpha} (the significance level); for MTPC:
 #'     \emph{tau.mtpc}, \emph{S.mtpc}, \emph{S.crit}, \emph{A.crit}}
@@ -185,9 +178,10 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
 #'     the extra sum of squares for F-contrasts); \emph{se} (the
 #'     standard error of \emph{gamma}); \emph{A.mtpc}, \emph{sig} (binary
 #'     indicating whether \code{A.mtpc > A.crit}) (for MTPC)}
-#' @rdname make_brainGraphList.bg_GLM
+#' @name Creating_Graphs_GLM
+#' @rdname glm_brainGraphList
 #' @family Graph creation functions
-#' @seealso \code{\link{brainGraph_GLM}, \link{mtpc}}
+#' @seealso \code{\link{brainGraph_GLM}, \link{mtpc}, \link{NBS}}
 
 make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
                                        level='contrast', set.attrs=FALSE,
@@ -233,8 +227,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
 #' Create graph list for MTPC results
 #'
 #' @export
-#' @method make_brainGraphList mtpc
-#' @rdname make_brainGraphList.bg_GLM
+#' @rdname glm_brainGraphList
 
 make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast',
                                      set.attrs=FALSE, modality=NULL, weighting=NULL,
@@ -273,19 +266,14 @@ make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast'
 
 #' Create a graph list for NBS results
 #'
-#' @param x A \code{NBS} object
-#' @inheritParams brainGraphList
 #' @export
-#' @method make_brainGraphList NBS
-#'
-#' @return A list of \code{igraph} graph objects (length equal to the number of
-#'   contrasts) with additional attributes:
-#'   \item{Graph}{\emph{name} (contrast name)}
+#' @return \code{make_brainGraphList.NBS} returns graphs with additional
+#'   attributes:
 #'   \item{Vertex}{\emph{comp} (integer vector indicating connected component
 #'     membership), \emph{p.nbs} (P-value for each component)}
 #'   \item{Edge}{\emph{stat} (the test statistic for each connection), \emph{p}
 #'     (the P-value)}
-#' @family Graph creation functions
+#' @rdname glm_brainGraphList
 
 make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
                                     set.attrs=TRUE, modality=NULL, weighting=NULL,
@@ -334,6 +322,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 #' The \code{[} method will let you subset/slice the graphs for individual
 #' subjects and/or \emph{groups}.
 #'
+#' @section Subsetting/extracting:
 #' The first index is for subsetting the individual graphs. The second index is
 #' for subsetting by group membership and requires that the graphs have a
 #' \code{Group} graph attribute. When both are included, the first index cannot
@@ -351,7 +340,6 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 #' @param drop If \code{TRUE} (the default), then return only the list of
 #'   graphs; otherwise, subset the graphs and return the entire object
 #' @export
-#' @method [ brainGraphList
 #'
 #' @return \code{[} -- A \code{brainGraphList} object (if \code{drop=FALSE}) or
 #'   a list of graphs
@@ -409,10 +397,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
   return(out)
 }
 
-#' @method print brainGraphList
 #' @export
-#' @rdname brainGraphList
-
 print.brainGraphList <- function(x, ...) {
   kNumGraphs <- length(x$graphs)
   gnames <- names(x$graphs)
@@ -426,7 +411,7 @@ print.brainGraphList <- function(x, ...) {
 
   # Print subject/group names
   msg <- switch(x$level, subject='IDs:', 'names:')
-  message(paste(tools::toTitleCase(x$level), msg))
+  message(paste(simpleCap(x$level), msg))
   if (kNumGraphs < 10) {
     print(gnames)
   } else {
@@ -443,17 +428,28 @@ print.brainGraphList <- function(x, ...) {
 
 #' Coerce list of graphs to a brainGraphList object
 #'
-#' \code{as_brainGraphList} will coerce a list of graphs to a
-#' \code{brainGraphList} object. It is assumed that certain metadata attributes
-#' -- threshold, package version, brain atlas, imaging modality, edge weighting,
-#' and whether these are random graphs -- are identical for all graphs in the
-#' list. For any that are not, the vector of values will be stored; this may be
-#' an issue for downstream analysis.
+#' \code{as_brainGraphList} coerces a list of graphs to a \code{brainGraphList}
+#' object. It is assumed that certain metadata attributes -- threshold, package
+#' version, atlas, imaging modality, edge weighting, and whether they are
+#' random graphs -- are identical for all graphs in the list.
+#'
+#' To convert an object with 3 \dQuote{levels} (i.e., subject-level lists from
+#' an older \code{brainGraph} version), see the code in the Examples below.
 #'
 #' @param g.list List of graph objects
 #' @export
 #'
 #' @rdname brainGraphList
+#' @examples
+#' \dontrun{
+#' ## Convert old version single-subject graph lists
+#' ## g[[1]] is group 1, g[[1]][[1]] is threshold 1, g[[1]][[1]][[1]] is subj. 1
+#' kNumThresholds <- length(g[[1]])
+#' g.l <- vector('list', kNumThresholds)
+#' for (i in seq_len(kNumThresholds)) {
+#'   g.l[[i]] <- as_brainGraphList(do.call(Map, c(c, g))[[i]])
+#' }
+#' }
 
 as_brainGraphList <- function(g.list, type=c('observed', 'random'),
                               level=c('subject', 'group', 'contrast')) {
@@ -479,6 +475,8 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
   for (x in attrs) {
     if (x %in% attrnames) out[[x]] <- graph_attr(g1, x)
   }
+  if (length(out$version < 3)) out$version <- list(r='', bg=out$version, ig='')
+  for (x in c('sys', 'date')) if (is.null(out[[x]])) out[[x]] <- ''
   out$graphs <- g.list
   names(out$graphs) <- ids
   class(out) <- c('brainGraphList', 'list')
@@ -499,25 +497,28 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
 #' @param diffs Logical, indicating whether edge differences should be
 #'   highlighted. Default: \code{FALSE}
 #' @param ... Other parameters (passed to \code{\link{plot.brainGraph}})
+#' @inheritParams plot.brainGraph
 #' @export
-#' @method plot brainGraphList
+#' @importFrom methods hasArg
+#' @importFrom grDevices dev.off pdf
 #'
 #' @family Plotting functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-plot.brainGraphList <- function(x, filename.base, diffs=FALSE, ...) {
+plot.brainGraphList <- function(x, plane, hemi, filename.base, diffs=FALSE, ...) {
   pdf(file=sprintf('%s.pdf', filename.base), onefile=TRUE)
 
-  for (i in seq_along(x$graphs)) {
-    plot(x$graphs[[i]], main=x$graphs[[i]]$name, ...)
-    if (isTRUE(diffs) && i > 1) {
+  kNumGraphs <- length(x$graphs)
+  plot(x[1], plane=plane, hemi=hemi, main=x[1]$name, ...)
+  for (i in seq.int(2, kNumGraphs)) {
+    plot(x[i], plane=plane, hemi=hemi, main=x[i]$name, ...)
+    if (isTRUE(diffs)) {
       g.diff <- graph.difference(x$graphs[[i]], x$graphs[[i-1]])
       class(g.diff) <- c('brainGraph', class(g.diff))
       ecols <- rep('deeppink', ecount(g.diff))
       if (hasArg('edge.color')) ecols <- list(...)$edge.color
-      ewidth <- 5
       plot(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
-           edge.width=ewidth, edge.color=ecols, mni=FALSE, subt=NULL)
+           edge.width=5, edge.color=ecols, mni=FALSE, subtitle=NULL)
     }
   }
   dev.off()

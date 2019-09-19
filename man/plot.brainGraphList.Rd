@@ -4,10 +4,17 @@
 \alias{plot.brainGraphList}
 \title{Plot a brainGraphList and write to PDF}
 \usage{
-\method{plot}{brainGraphList}(x, filename.base, diffs = FALSE, ...)
+\method{plot}{brainGraphList}(x, plane, hemi, filename.base,
+  diffs = FALSE, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraphList} object}
+
+\item{plane}{Character string indicating which orientation to plot.
+Default: \code{'axial'}}
+
+\item{hemi}{Character string indicating which hemisphere to plot. Default:
+\code{'both'}}
 
 \item{filename.base}{Character string specifying the base of the filename}
 
@@ -26,10 +33,7 @@ elements; in this case, new/different edges are colored pink. This is useful
 mostly for a list of group-level graphs.
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
-  \code{\link{plot.brainGraph_NBS}},
-  \code{\link{plot.brainGraph_mediate}},
-  \code{\link{plot.brainGraph_mtpc}},
+Other Plotting functions: \code{\link{Plotting GLM graphs}},
   \code{\link{plot.brainGraph}},
   \code{\link{plot_brainGraph_gui}},
   \code{\link{plot_brainGraph_multi}}

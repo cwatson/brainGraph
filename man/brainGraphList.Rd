@@ -182,10 +182,8 @@ for (i in seq_len(kNumThresholds)) {
 }
 }
 \seealso{
-Other Graph creation functions: \code{\link{CreateGraphs}},
-  \code{\link{make_brainGraph.bg_mediate}},
-  \code{\link{make_brainGraphList.NBS}},
-  \code{\link{make_brainGraphList.bg_GLM}},
+Other Graph creation functions: \code{\link{Creating_Graphs_GLM}},
+  \code{\link{Creating_Graphs}},
   \code{\link{make_ego_brainGraph}}
 }
 \author{
