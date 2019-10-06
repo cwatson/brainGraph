@@ -272,6 +272,33 @@ rotation <- function(x, theta) {
 
 simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 
+#' Add newlines to a character string for printing
+#'
+#' The \code{delim} argument determines \emph{where} to insert the separator,
+#' which by default is a newline character.
+#'
+#' @param x A character string with length 1
+#' @param max.len Integer; the max length of one line. Default: 80
+#' @param delim Character specifying where to end a line if it is longer than
+#'   \code{max.len}. Default: \code{'+'}
+#' @param sep Character specifying what to split by. Default: \code{'\n'} (a
+#'   newline character)
+#' @keywords internal
+
+split_string <- function(x, max_len=80L, delim='+', sep='\n') {
+  str_len <- nchar(x)
+  if (str_len > max_len) {
+    nlines <- (str_len %/% max_len) + (str_len %% max_len > 0)
+    pluses <- gregexpr('\\+', x)[[1]]
+    endpts <- rep(str_len, nlines)
+    for (i in seq_len(nlines - 1L)) endpts[i] <- max(pluses[pluses < 80*i])
+    startpts <- c(1L, endpts[-nlines] + 1L)
+    lines <- paste(Map(function(a, b) substr(x, a, b), startpts, endpts), '\n')
+    x <- trimws(paste(lines, collapse=''), 'right')
+  }
+  return(x)
+}
+
 #' Subset graphs based on a given logical condition
 #'
 #' \code{subset_graph} will subset a given graph based on the given logical

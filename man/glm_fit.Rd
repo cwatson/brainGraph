@@ -4,7 +4,7 @@
 \alias{GLM fits}
 \alias{brainGraph_GLM_fit_t}
 \alias{brainGraph_GLM_fit_f}
-\title{Fit linear models for t contrasts}
+\title{Fit linear models for t and F contrasts}
 \usage{
 brainGraph_GLM_fit_t(X, y, XtX, contrast)
 
