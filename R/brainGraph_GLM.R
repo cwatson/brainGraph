@@ -81,8 +81,14 @@
 #'
 #' @return An object of class \code{bg_GLM} containing some input-specific
 #'   variables, in addition to:
-#'   \item{X}{A numeric matrix; a copy of the \emph{design matrix}}
-#'   \item{y}{A numeric vector or matrix of the outcome variable}
+#'   \item{X}{A named numeric matrix or a 3D array of the design matrix.
+#'     Rownames are Study IDs, column names are predictor variables, and
+#'     dimnames along the 3rd dimension are region names (if applicable). This
+#'     is a 3D array only if \code{outcome != measure} and \code{level ==
+#'     'vertex'}.}
+#'   \item{y}{A named numeric matrix of the outcome variable. Rownames are Study
+#'     IDs and column names are regions. There will be multiple columns only if
+#'     \code{outcome == measure} and \code{level == 'vertex'}.}
 #'   \item{DT}{A data table with an entry for each vertex (region) containing
 #'     statistics of interest}
 #'   \item{removed.subs}{A character vector of Study.ID's removed due to
@@ -461,6 +467,16 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
 # S3 METHODS FOR "bg_GLM"
 ################################################################################
 
+#' @method print bg_GLM
+#' @keywords internal
+
+print.bg_GLM <- function(x, ...) {
+  cat('\nA bg_GLM object at the', x$level, 'level with model:\n\n', formula(x))
+  cat('\n\n')
+  print_contrast_type_summary(x)
+  invisible(x)
+}
+
 #' Print a summary from brainGraph_GLM analysis
 #'
 #' The \code{summary} method prints the results, only for which
@@ -582,94 +598,98 @@ print.summary.bg_GLM <- function(x, ...) {
 #' }
 
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
-  cl.h <- level <- resid <- ymax <- NULL
+  cl.h <- ind <- level <- mark <- resid <- ymax <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
+  if (!is.numeric(which) || any(which < 1) || any(which > 6)) stop("'which' must be in 1:6")
+  show <- rep(FALSE, 6)
+  show[which] <- TRUE
+  prows <- 1L + (length(which) > 1L)
 
+  model_formula <- split_string(formula(x))
   mytheme <- theme(plot.title=element_text(hjust=0.5),
                    legend.position='none',
                    axis.text.y=element_text(hjust=0.5, angle=90))
+
   # Local function to plot for a single region
-  plot_single <- function(X, y, region, outcome, diagH, model_formula) {
+  plot_single <- function(dat, region) {
     leverage <- resid.std <- cook <- ind <- mark <- fit <- leverage.tr <- NULL
-    est <- fastLmPure(X, y, method=2)
-    dt.p1 <- data.table(fit=est$fitted.values, resid=est$residuals)
-    dt.p1[, leverage := diagH]
-    dt.p1[, resid.std := resid / (est$s * sqrt(1 - leverage))]
-    dt.p1[, leverage.tr := leverage / (1 - leverage)]
-    dt.p1[, cook := (resid.std^2 / dimX[2L]) * leverage.tr]
-    if (isTRUE(ids)) {
-      dt.p1[, ind := rnames]
-    } else {
-      dt.p1[, ind := as.character(.I)]
-    }
-    dt.p1[, mark := ifelse(abs(resid) < mean(resid) + 2 * sd(resid), 0, 1)]
-    dt.p1[mark == 0, ind := '']
-    dt.p1[, mark := as.factor(mark)]
 
     diagPlots <- vector('list', length=6)
     # 1. Resids vs fitted
-    diagPlots[[1]] <- ggplot(dt.p1, aes(x=fit, y=resid)) +
-      geom_point(aes(shape=mark)) +
-      geom_text_repel(aes(x=fit, y=resid, label=ind), size=3) +
-      stat_smooth(method='loess', se=FALSE, span=1, col='red') +
-      geom_hline(yintercept=0, lty=3) +
-      mytheme + labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
+    if (show[1L]) {
+      diagPlots[[1L]] <- ggplot(dat, aes(x=fit, y=resid)) +
+        geom_point(aes(shape=mark)) +
+        geom_text_repel(aes(x=fit, y=resid, label=ind), size=3) +
+        stat_smooth(method='loess', se=FALSE, span=1, col='red') +
+        geom_hline(yintercept=0, lty=3) +
+        mytheme + labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
+    }
 
     # 2. QQ-plot
-    dt.p1[order(resid.std), x := qnorm(ppoints(resid.std))]
-    diagPlots[[2]] <- ggplot(dt.p1, aes(x=x, y=resid.std)) +
-      geom_text_repel(aes(x=x, y=resid.std, label=ind), size=3) +
-      geom_line(aes(x=x, y=x), col='gray50', lty=3) +
-      geom_point(aes(shape=mark)) +
-      mytheme + labs(title='Normal Q-Q', x='Theoretical Quantiles', y='Sample Quantiles')
+    if (show[2L]) {
+      dat[order(resid.std), x := qnorm(ppoints(resid.std))]
+      diagPlots[[2L]] <- ggplot(dat, aes(x=x, y=resid.std)) +
+        geom_text_repel(aes(x=x, y=resid.std, label=ind), size=3) +
+        geom_line(aes(x=x, y=x), col='gray50', lty=3) +
+        geom_point(aes(shape=mark)) +
+        mytheme + labs(title='Normal Q-Q', x='Theoretical Quantiles', y='Sample Quantiles')
+    }
 
     # 3. Scale-Location plot
-    diagPlots[[3]] <- ggplot(dt.p1, aes(x=fit, y=sqrt(abs(resid.std)))) +
-      geom_point(aes(shape=mark)) +
-      geom_text_repel(aes(x=fit, y=sqrt(abs(resid.std)), label=ind), size=3) +
-      stat_smooth(method='loess', se=FALSE, col='red') +
-      ylim(c(0, NA)) +
-      mytheme + labs(title='Scale-Location', x='Fitted values', y=expression(sqrt(Standardized~residuals)))
+    if (show[3L]) {
+      diagPlots[[3L]] <- ggplot(dat, aes(x=fit, y=sqrt(abs(resid.std)))) +
+        geom_point(aes(shape=mark)) +
+        geom_text_repel(aes(x=fit, y=sqrt(abs(resid.std)), label=ind), size=3) +
+        stat_smooth(method='loess', se=FALSE, col='red') +
+        ylim(c(0, NA)) +
+        mytheme + labs(title='Scale-Location', x='Fitted values', y=expression(sqrt(Standardized~residuals)))
+    }
 
     # 4. Cook's distance
-    diagPlots[[4]] <- ggplot(dt.p1, aes(x=seq_len(dimX[1L]), y=cook)) +
-      geom_bar(stat='identity', position='identity') +
-      geom_text(aes(y=cook, label=ind), size=3, vjust='outward') +
-      mytheme + labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
+    if (show[4L]) {
+      diagPlots[[4L]] <- ggplot(dat, aes(x=seq_len(dimX[1L]), y=cook)) +
+        geom_bar(stat='identity', position='identity') +
+        geom_text(aes(y=cook, label=ind), size=3, vjust='outward') +
+        mytheme + labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
+    }
 
     # 5. Residual vs Leverage plot
-    r.hat <- dt.p1[, range(leverage, na.rm=TRUE)]
-    hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1, length.out=101)
-    dt.cook <- data.table(hh=rep(hh, 2), level=rep(c(0.5, 1.0), each=101))
-    dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
-    xmax <- dt.p1[, round(max(leverage), 2)]
-    dt.cook[, ymax := .SD[which(xmax == round(hh, 2)), cl.h], by=level]
+    if (show[5L]) {
+      r.hat <- dat[, range(leverage, na.rm=TRUE)]
+      hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1, length.out=101)
+      dt.cook <- data.table(hh=rep(hh, 2), level=rep(c(0.5, 1.0), each=101))
+      dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
+      xmax <- dat[, round(max(leverage), 2)]
+      dt.cook[, ymax := .SD[which(xmax == round(hh, 2)), cl.h], by=level]
 
-    diagPlots[[5]] <- ggplot(dt.p1, aes(x=leverage, y=resid.std)) +
-      geom_point(aes(shape=mark)) +
-      geom_text_repel(aes(x=leverage, y=resid.std, label=ind), size=3) +
-      stat_smooth(method='loess', se=FALSE, col='red') +
-      geom_vline(xintercept=0, lty=3, col='gray50') +
-      geom_hline(yintercept=0, lty=3, col='gray50') +
-      geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2) +
-      geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2) +
-      geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2) +
-      geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2) +
-      xlim(extendrange(c(0, xmax))) +
-      ylim(dt.p1[, extendrange(range(resid.std), f=0.09)]) +
-      mytheme + labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
+      diagPlots[[5L]] <- ggplot(dat, aes(x=leverage, y=resid.std)) +
+        geom_point(aes(shape=mark)) +
+        geom_text_repel(aes(x=leverage, y=resid.std, label=ind), size=3) +
+        stat_smooth(method='loess', se=FALSE, col='red') +
+        geom_vline(xintercept=0, lty=3, col='gray50') +
+        geom_hline(yintercept=0, lty=3, col='gray50') +
+        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2) +
+        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2) +
+        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2) +
+        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2) +
+        xlim(extendrange(c(0, xmax))) +
+        ylim(dat[, extendrange(range(resid.std), f=0.09)]) +
+        mytheme + labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
+    }
 
     # 6. Cook's dist vs leverage
-    mytheme$plot.title$size <- 9
-    diagPlots[[6]] <- ggplot(dt.p1, aes(x=leverage.tr, y=cook)) +
-      geom_point(aes(shape=mark)) +
-      geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
-      geom_abline(slope=seq(0, 3, 0.5), lty=2, col='gray50') +
-      xlim(c(0, dt.p1[, max(leverage.tr)])) +
-      ylim(c(0, dt.p1[, max(cook) * 1.025])) +
-      mytheme +
-      labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
-           x=expression(Leverage~h[ii]), y='Cook\'s distance')
+    if (show[6L]) {
+      mytheme$plot.title$size <- 9
+      diagPlots[[6L]] <- ggplot(dat, aes(x=leverage.tr, y=cook)) +
+        geom_point(aes(shape=mark)) +
+        geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
+        geom_abline(slope=seq(0, 3, 0.5), lty=2, col='gray50') +
+        xlim(c(0, dat[, max(leverage.tr)])) +
+        ylim(c(0, dat[, max(cook) * 1.025])) +
+        mytheme +
+        labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
+             x=expression(Leverage~h[ii]), y='Cook\'s distance')
+    }
 
     top_title <- textGrob(paste0('Outcome: ', outcome, '    Region: ', region),
                           gp=gpar(fontface='bold', cex=1.0))
@@ -677,54 +697,39 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     return(p.all)
   }
 
-  X <- x$X
-  dimX <- dim(X)
-  p <- if (length(dimX) == 3L) qr(X[, , 1])$rank else qr(X)$rank
-  rnames <- dimnames(X)[[1L]]
+  dimX <- dim(x$X)
+  p <- if (length(dimX) == 3L) qr(x$X[, , 1])$rank else qr(x$X)$rank
+  rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(dimX[1L]))
+  outcome <- x$outcome
 
-  # Hack to print a model formula w/ newlines
-  model_formula <- paste0('y ~ ', paste(colnames(X), collapse=' + '))
-  form_len <- nchar(model_formula)
-  if (form_len > 80) {
-    lenmult <- (form_len %/% 80) + (form_len %% 80 > 0)
-    pluses <- gregexpr('\\+', model_formula)[[1]]
-    endind <- rep(0, lenmult)
-    for (i in seq_len(lenmult)) {
-      endind[i] <- max(base::which(pluses < 80*i))
-    }
-    endpts <- pluses[endind]
-    startpts <- c(5, endpts[-lenmult] + 1)
-    model_formula <- paste('y ~', paste(paste(Map(function(a, b) substr(model_formula, a, b), startpts, endpts), '\n'), collapse=''))
-    model_formula <- substr(model_formula, 1, nchar(model_formula) - 4)
+  # Get all GLM diagnostics
+  fits <- fitted(x)
+  resids <- residuals(x)
+  hat <- hatvalues(x)
+  hat.tr <- hat / (1 - hat)
+  resid.std <- rstandard(x)
+  cook <- cooks.distance(x)
+  regions <- region.names(x)
+  DT <- setNames(vector('list', length(regions)), regions)
+  for (i in regions) {
+    DT[[i]] <- data.table(fit=fits[, i], resid=resids[, i], leverage=hat[, i],
+                          resid.std=resid.std[, i], cook=cook[, i], leverage.tr=hat.tr[, i])
+    DT[[i]][, ind := rnames]
+    DT[[i]][, mark := ifelse(abs(resid) < mean(resid) + 2 * sd(resid), 0, 1)]
+    DT[[i]][mark == 0, ind := '']
+    DT[[i]][, mark := as.factor(mark)]
   }
-
-  prows <- if (length(which) == 1) 1 else 2
   if (x$level == 'graph') {
-    H <- diag(X %*% tcrossprod(solve(crossprod(X)), X))
-    p.all <- plot_single(X, x$y, region='graph-level', x$outcome, H, model_formula)
+    p.all <- plot_single(DT[['graph']], region='graph-level')
     grid.newpage()
     grid.draw(p.all)
 
   } else if (x$level == 'vertex') {
-    if (is.null(region)) region <- x$DT[, levels(region)]
+    if (all(x$y == 0)) return(NULL)
+    if (is.null(region)) region <- regions
     p.all <- setNames(vector('list', length(region)), region)
-    if (x$outcome == x$measure) {
-      H <- diag(X %*% tcrossprod(solve(crossprod(X)), X))
-      runY <- which(colSums(x$y[, region]) != 0)
-      for (z in runY) {
-        p.all[[z]] <- plot_single(X, x$y[, z], z, x$outcome, H, model_formula)
-      }
-    } else {
-      if (all(x$y == 0)) return(NULL)
-      H <- array(apply(X, 3, function(z) z %*% tcrossprod(solve(crossprod(z)), z)),
-                 dim=c(dimX[1L], dimX[1L], dimX[3L]))
-      dimnames(H)[[3L]] <- dimnames(X)[[3L]]
-      for (z in region) {
-        p.all[[z]] <- plot_single(X[, , z], x$y, z, x$outcome, diag(H[, , z]), model_formula)
-      }
-    }
-
-    # Remove any NULL elements
+    runY <- if (outcome == x$measure) names(which(colSums(x$y[, region, drop=FALSE]) != 0)) else region
+    for (z in runY) p.all[[z]] <- plot_single(DT[[z]], z)
     p.all[vapply(p.all, is.null, logical(1))] <- NULL
   }
   return(p.all)
