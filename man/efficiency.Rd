@@ -5,7 +5,7 @@
 \title{Calculate graph global, local, or nodal efficiency}
 \usage{
 efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
-  use.parallel = TRUE, A = NULL)
+  use.parallel = TRUE, A = NULL, D = NULL)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -22,6 +22,8 @@ Default: \code{TRUE}}
 
 \item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
 \code{NULL}}
+
+\item{D}{Numeric matrix; the graph's \dQuote{distance matrix}}
 }
 \value{
 A numeric vector of the efficiencies for each vertex of the graph

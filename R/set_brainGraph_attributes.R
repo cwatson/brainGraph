@@ -147,7 +147,13 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     g$assort <- assortativity_degree(g)
 
     if (is_weighted(g)) {
-      xfm.type <- match.arg(xfm.type)
+      V(g)$strength <- strength(g)
+      g$strength <- mean(V(g)$strength)
+      V(g)$knn.wt <- knn(g)$knn
+      V(g)$s.core <- s_core(g, A)
+      g$rich.wt <- rich_club_all(g, weighted=TRUE, A=A)
+      V(g)$transitivity.wt <- transitivity(g, type='weighted')
+
       # Avoid errors when there are negative weights
       if (any(E(g)$weight < 0)) {
         if (!clust.method %in% c('spinglass', 'walktrap')) {
@@ -157,17 +163,17 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
         warning('Negative weights present. Skipping distance-based functions.')
       } else {
         # Need to convert weights for distance measures
+        xfm.type <- match.arg(xfm.type)
         g <- xfm.weights(g, xfm.type)
-        V(g)$E.local.wt <- efficiency(g, type='local',
-                                      use.parallel=use.parallel, A=A)
+        Adist <- as_adj(g, names=FALSE, sparse=FALSE, attr='weight')
+        D <- distances(g)
+        V(g)$E.local.wt <- efficiency(g, 'local', use.parallel=use.parallel, A=Adist)
         g$E.local.wt <- mean(V(g)$E.local.wt)
-        V(g)$E.nodal.wt <- efficiency(g, 'nodal')
+        V(g)$E.nodal.wt <- efficiency(g, 'nodal', D=D)
         g$E.global.wt <- mean(V(g)$E.nodal.wt)
         g$diameter.wt <- diameter(g)
-        Lpv.wt <- distances(g)
-        Lpv.wt[is.infinite(Lpv.wt)] <- NA
-        V(g)$Lp.wt <- rowMeans(Lpv.wt, na.rm=TRUE)
-        g$Lp.wt <- mean(Lpv.wt[upper.tri(Lpv.wt)], na.rm=TRUE)
+        V(g)$Lp.wt <- mean_distance_wt(g, 'vertex', D=D)
+        g$Lp.wt <- mean_distance_wt(g, 'graph', D=D)
         if (clust.method == 'edge_betweenness') comm.wt <- cluster_edge_betweenness(g)
 
         # Convert back to connection strength
@@ -180,11 +186,6 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       if (clust.method != 'edge_betweenness') {
         comm.wt <- eval(parse(text=paste0('cluster_', clust.method, '(g)')))
       }
-      V(g)$strength <- strength(g)
-      g$strength <- mean(V(g)$strength)
-      V(g)$knn.wt <- knn(g)$knn
-      V(g)$s.core <- s_core(g, A)
-      g$rich.wt <- rich_club_all(g, weighted=TRUE, A=A)
       g$mod.wt <- max(comm.wt$modularity)
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
@@ -192,7 +193,6 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt, A=A)
       V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt, A=A)
       V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt, A=A)
-      V(g)$transitivity.wt <- transitivity(g, type='weighted')
     }
 
     if (is_directed(g)) {
@@ -225,11 +225,9 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       }
     }
 
+    D <- distances(g, weights=NA)
     V(g)$knn <- knn(g, weights=NA)$knn
-
-    Lpv <- distances(g, weights=NA)
-    Lpv[is.infinite(Lpv)] <- NA
-    V(g)$Lp <- rowMeans(Lpv, na.rm=TRUE)
+    V(g)$Lp <- mean_distance_wt(g, weights=NA, D=D)
 
     E(g)$btwn <- edge.betweenness(g)
     V(g)$btwn.cent <- centr_betw(g)$res
@@ -240,7 +238,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     V(g)$k.core <- coreness(g)
     V(g)$transitivity <- transitivity(g, type='local', isolates='zero')
     V(g)$E.local <- efficiency(g, type='local', weights=NA, use.parallel=use.parallel, A=A)
-    V(g)$E.nodal <- efficiency(g, type='nodal', weights=NA)
+    V(g)$E.nodal <- efficiency(g, type='nodal', weights=NA, D=D)
     g$E.local <- mean(V(g)$E.local)
     V(g)$vulnerability <- vulnerability(g, use.parallel=use.parallel)
     g$vulnerability <- max(V(g)$vulnerability)

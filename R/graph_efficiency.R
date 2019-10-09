@@ -27,6 +27,7 @@
 #'   Default: \code{TRUE}
 #' @param A Numeric matrix; the adjacency matrix of the input graph. Default:
 #'   \code{NULL}
+#' @param D Numeric matrix; the graph's \dQuote{distance matrix}
 #' @export
 #' @importFrom Matrix rowSums
 #'
@@ -43,7 +44,7 @@
 #'   \url{https://dx.doi.org/10.1140/epjb/e2003-00095-5}
 
 efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
-                       use.parallel=TRUE, A=NULL) {
+                       use.parallel=TRUE, A=NULL, D=NULL) {
   stopifnot(is_igraph(g))
   i <- NULL
   weights <- check_weights(g, weights)
@@ -75,7 +76,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       }
     }
   } else {
-    D <- distances(g, weights=weights)
+    if (is.null(D)) D <- distances(g, weights=weights)
     Nv <- dim(D)[1L]
     Dinv <- 1 / D
     eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1)

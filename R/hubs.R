@@ -48,9 +48,7 @@ hubness <- function(g, xfm.type=g$xfm.type, weights=NULL, prop.keep=0.2) {
   if (vattr %in% vertex_attr_names(g)) {
     Lp <- vertex_attr(g, vattr)
   } else {
-    Lpv <- distances(g, weights=weights)
-    Lpv[is.infinite(Lpv)] <- NA
-    Lp <- rowMeans(Lpv, na.rm=TRUE)
+    Lp <- mean_distance_wt(g, 'vertex', weights=weights)
   }
 
   M <- matrix(c(-S, -btwn, Cp, Lp), nrow=Nv, ncol=4)
