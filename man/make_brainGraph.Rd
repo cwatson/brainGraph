@@ -18,13 +18,13 @@ make_brainGraph(x, atlas, type = c("observed", "random"),
 \method{make_brainGraph}{igraph}(x, atlas, type = c("observed",
   "random"), level = c("subject", "group", "contrast"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
-  threshold = NULL, name = NULL, Group = NULL, ...)
+  threshold = NULL, name = NULL, Group = NULL, subnet = NULL, ...)
 
 \method{make_brainGraph}{matrix}(x, atlas, type = c("observed",
   "random"), level = c("subject", "group", "contrast"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
-  threshold = NULL, name = NULL, Group = NULL, mode = "undirected",
-  weighted = NULL, diag = FALSE, ...)
+  threshold = NULL, name = NULL, Group = NULL, subnet = NULL,
+  mode = "undirected", weighted = NULL, diag = FALSE, ...)
 
 \method{make_brainGraph}{bg_mediate}(x, atlas = x$atlas,
   type = "observed", level = "contrast", set.attrs = FALSE,
@@ -72,6 +72,10 @@ depending on the \code{level}. Default: \code{NULL}}
 
 \item{Group}{Character string indicating group membership. Default:
 \code{NULL}}
+
+\item{subnet}{Integer or character vector indicating the vertices to keep, if
+you are interested in working with a subset of an atlas. By default, all
+vertices are used.}
 
 \item{mode}{Character string defining how the matrix should be interpreted.
 Default: \code{'undirected'}}

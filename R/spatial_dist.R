@@ -19,7 +19,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 edge_spatial_dist <- function(g) {
-  stopifnot(is.brainGraph(g))
+  stopifnot(is_igraph(g), 'atlas' %in% graph_attr_names(g))
 
   name <- x.mni <- y.mni <- z.mni <- NULL
   coords <- get(g$atlas)[, list(name, x.mni, y.mni, z.mni)]

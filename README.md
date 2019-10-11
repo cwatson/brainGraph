@@ -1,9 +1,12 @@
 # brainGraph
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![Linux Build Status](https://travis-ci.org/cwatson/brainGraph.svg)](https://travis-ci.org/cwatson/brainGraph)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-ago/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
+[![Dependencies](https://tinyverse.netlify.com/badge/brainGraph)](https://cran.r-project.org/package=brainGraph)
 [![GPL License](https://img.shields.io/cran/l/brainGraph.svg)](https://opensource.org/licenses/GPL-3.0/)
 [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/grand-total/brainGraph)](http://cran.rstudio.com/web/packages/brainGraph/index.html)
+[![HitCount](http://hits.dwyl.io/cwatson/brainGraph.svg)](http://hits.dwyl.io/cwatson/brainGraph)
 
 `brainGraph` ([RRID: SCR_017260](https://scicrunch.org/resolver/SCR_017260)) is an
 [R package](https://cran.r-project.org/web/packages/brainGraph/index.html) for performing graph theory
@@ -128,12 +131,18 @@ if (OS == 'windows') {
   library(doSNOW)
   num.cores <- as.numeric(Sys.getenv('NUMBER_OF_PROCESSORS'))
   cl <- makeCluster(num.cores, type='SOCK')
-  clusterExport(cl, 'sim.rand.graph.par')   # Or whatever function you will use
+  clusterExport(cl, 'sim.rand.graph.par')   # Or whatever functions you will use
   registerDoSNOW(cl)
 } else {
   library(doMC)
-  num.cores <- detectCores()
-  registerDoMC(num.cores)
+  registerDoMC(detectCores() - 1L)  # Keep 1 core free
+}
+```
+
+For example, I source the following simple script before I do any parallel processing with `brainGraph`:
+``` r
+pacman::p_load(brainGraph, doMC)
+registerDoMC(detectCores())
 ```
 
 ## GUI

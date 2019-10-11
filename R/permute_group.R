@@ -40,6 +40,7 @@
 #'   \emph{graph-level} measure (since multiple are calculated at once).
 #' @param .function A custom function you can pass if \code{level='other'}
 #' @export
+#' @importFrom permute shuffleSet
 #'
 #' @return An object of class \code{brainGraph_permute} with input arguments in
 #'   addition to:

@@ -74,7 +74,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
                                       level=c('subject', 'group', 'contrast'),
                                       set.attrs=TRUE, modality=NULL,
                                       weighting=NULL, threshold=NULL,
-                                      gnames=NULL, groups=NULL,
+                                      gnames=NULL, groups=NULL, subnet=NULL,
                                       mode='undirected', weighted=NULL, diag=FALSE,
                                       .progress=FALSE, ...) {
   i <- NULL
@@ -120,7 +120,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   counter <- 0
   g <- foreach(i=seq_len(kNumGraphs)) %dopar% {
     res <- loopfun(x[, , i], atlas, type, level, set.attrs, modality, weighting, threshold[i],
-                   name=gnames[i], Group=groups[i], mode=mode,
+                   name=gnames[i], Group=groups[i], subnet=subnet, mode=mode,
                    diag=diag, weighted=weighted, use.parallel=FALSE, ...)
   }
   if (isTRUE(.progress)) close(progbar)

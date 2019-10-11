@@ -18,7 +18,7 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
 \method{make_brainGraphList}{array}(x, atlas, type = c("observed",
   "random"), level = c("subject", "group", "contrast"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
-  threshold = NULL, gnames = NULL, groups = NULL,
+  threshold = NULL, gnames = NULL, groups = NULL, subnet = NULL,
   mode = "undirected", weighted = NULL, diag = FALSE,
   .progress = FALSE, ...)
 
@@ -66,6 +66,10 @@ connectivity matrix (if any). Default: \code{NULL}}
 \item{groups}{Character (or factor) vector of group names. If \code{level ==
 'group'}, then you do not need to include this argument (the group names
 will be the same as \code{gnames}). Default: \code{NULL})}
+
+\item{subnet}{Integer or character vector indicating the vertices to keep, if
+you are interested in working with a subset of an atlas. By default, all
+vertices are used.}
 
 \item{mode}{Character string defining how the matrix should be interpreted.
 Default: \code{'undirected'}}

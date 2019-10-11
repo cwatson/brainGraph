@@ -36,6 +36,7 @@
 #'   \code{\link{brainGraph_GLM_design}}
 #' @inheritParams GLM
 #' @export
+#' @importFrom permute shuffleSet
 #'
 #' @return An object of class \code{mtpc} with some input arguments plus the
 #'   following elements:

@@ -111,18 +111,26 @@ make_brainGraph <- function(x, atlas, type=c('observed', 'random'),
 #'   depending on the \code{level}. Default: \code{NULL}
 #' @param Group Character string indicating group membership. Default:
 #'   \code{NULL}
+#' @param subnet Integer or character vector indicating the vertices to keep, if
+#'   you are interested in working with a subset of an atlas. By default, all
+#'   vertices are used.
 #' @export
 #' @rdname make_brainGraph
 
 make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
                                    level=c('subject', 'group', 'contrast'),
                                    set.attrs=TRUE, modality=NULL, weighting=NULL,
-                                   threshold=NULL, name=NULL, Group=NULL, ...) {
+                                   threshold=NULL, name=NULL, Group=NULL, subnet=NULL, ...) {
   lobe <- hemi <- index <- class <- network <- x.mni <- y.mni <- z.mni <- NULL
 
   x <- get_metadata(x)
   x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas
   DT <- get(x$atlas)
+  if (!is.null(subnet)) {
+    if (is.character(subnet)) subnet <- DT[name %in% subnet, which=TRUE]
+    DT <- DT[subnet]
+    x <- induced_subgraph(x, subnet)
+  }
   if (!is_named(x)) {
     V(x)$name <- DT$name
   } else {
@@ -206,13 +214,20 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
 make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
                                    level=c('subject', 'group', 'contrast'),
                                    set.attrs=TRUE, modality=NULL, weighting=NULL,
-                                   threshold=NULL, name=NULL, Group=NULL,
+                                   threshold=NULL, name=NULL, Group=NULL, subnet=NULL,
                                    mode='undirected', weighted=NULL, diag=FALSE, ...) {
   g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
   type <- match.arg(type)
   level <- match.arg(level)
+  if (!is.null(subnet)) {
+    if (is.character(subnet)) {
+      DT <- get(atlas)
+      subnet <- DT[name %in% subnet, which=TRUE]
+    }
+    x <- x[subnet, subnet, drop=FALSE]
+  }
   g <- make_brainGraph(g, atlas, type, level, set.attrs, modality, weighting,
-                       threshold, name, Group, A=x, ...)
+                       threshold, name, Group, subnet, A=x, ...)
   return(g)
 }
 
@@ -235,7 +250,7 @@ make_brainGraph.bg_mediate <- function(x, atlas=x$atlas, type='observed',
                                        threshold=NULL, ...) {
   stopifnot(inherits(x, 'bg_mediate'), x$level == 'vertex')
   med.sum <- summary(x)$DT
-  g.med <- make_empty_brainGraph(atlas, ...)
+  g.med <- make_empty_brainGraph(atlas, type, level, modality, weighting, threshold, ...)
   for (a in c('mediator', 'treat', 'outcome', 'nobs')) {
     g.med <- set_graph_attr(g.med, a, x[[a]])
   }
