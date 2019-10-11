@@ -24,18 +24,24 @@
 #'     \code{'session_id'}, recommended by BIDS. Default: \code{'Time'}
 #'   \item \code{bg.progress}: logical indicating whether to show progress bars
 #'     for functions that provide the option. Default: \code{TRUE}
+#'   \item \code{bg.ncpus}: integer indicating the number of cores to use for
+#'     parallel operations. Only used if you have not already registered a
+#'     parallel backend (see Chapter 5 of the User Guide or
+#'     \url{https://github.com/cwatson/brainGraph/README.md} for examples).
+#'     Default: \code{2L}
 #' }
 #' @docType package
 #' @name brainGraph
 #' @aliases brainGraph-options
 NULL
 
-#TODO: think of any more that would help ("datadir"/"studydir"? "atlas"?)
+# Default values for options
 bg.options <- list(
   bg.subject_id='Study.ID',
   bg.group='Group',
   bg.session='Time',
-  bg.progress=TRUE
+  bg.progress=TRUE,
+  bg.ncpus=2L
 )
 
 .onLoad <- function(libname, pkgname) {
