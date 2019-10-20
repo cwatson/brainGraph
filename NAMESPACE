@@ -167,10 +167,15 @@ importFrom(ade4,mantel.rtest)
 importFrom(boot,boot,boot.ci)
 importFrom(expm,expm)
 importFrom(ggrepel,geom_text_repel)
+<<<<<<< HEAD
 importFrom(grid,gpar,grid.draw,grid.newpage,textGrob)
 importFrom(gridExtra,arrangeGrob)
 importFrom(methods,hasArg)
 importFrom(parallel, clusterEvalQ, detectCores, makeCluster)
+=======
+importFrom(gridExtra,arrangeGrob,grid.arrange)
+importFrom(oro.nifti,image,nifti)
+>>>>>>> master
 importFrom(permute,shuffleSet)
 importFrom(scales,fullseq)
 import(igraph)

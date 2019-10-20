@@ -379,6 +379,7 @@ print.summary.bg_mediate <- function(x, ...) {
 
   if (isTRUE(x$mediate)) {
     if (!requireNamespace('mediation', quietly=TRUE)) {
+<<<<<<< HEAD
       warning('You need to install "mediation" for their "summary" output.')
       return(invisible(x))
     } else {
@@ -387,6 +388,14 @@ print.summary.bg_mediate <- function(x, ...) {
     region <- if (is.null(x$region)) x$DT.sum[, levels(region)[1]] else x$region
     message('Mediation summary for: ', region, '\n', rep('-', width / 4))
     print(summary(bg_to_mediate(x, region)))
+=======
+      warning("You need to install the 'mediation' package.")
+    } else {
+      requireNamespace('mediation')
+      message('Mediation summary for: ', x$region, '\n', rep('-', 30))
+      print(summary(bg_to_mediate(x, region=x$region)))
+    }
+>>>>>>> master
   } else {
     if (is.null(x$region)) {
       regions <- x$DT.sum[, levels(region)]
