@@ -417,8 +417,13 @@ print.summary.bg_mediate <- function(x, ...) {
   }
 
   if (isTRUE(x$mediate)) {
-    message('Mediation summary for: ', x$region, '\n', rep('-', 30))
-    print(summary(bg_to_mediate(x, region=x$region)))
+    if (!requireNamespace('mediation', quietly=TRUE)) {
+      warning("You need to install the 'mediation' package.")
+    } else {
+      requireNamespace('mediation')
+      message('Mediation summary for: ', x$region, '\n', rep('-', 30))
+      print(summary(bg_to_mediate(x, region=x$region)))
+    }
   } else {
     if (is.null(x$region)) {
       regions <- x$DT.sum[, levels(region)]

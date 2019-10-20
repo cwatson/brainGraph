@@ -1,3 +1,12 @@
+# brainGraph 2.7.2
+
+2019-10-20
+
+## Bug fix
+* The `mediation` package no longer exports `summary.mediate`, so it has to be removed from `brainGraph`
+    * Move `mediation` to *Suggests*, as well
+
+
 # brainGraph 2.7.1
 
 2019-06-29

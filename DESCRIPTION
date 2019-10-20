@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 2.7.1
-Date: 2019-06-29
+Version: 2.7.2
+Date: 2019-10-20
 Title: Graph Theory Analysis of Brain MRI Data
 Authors@R: person(given="Christopher G.", family="Watson",
                   email="cgwatson@bu.edu", role=c("aut", "cre"),
@@ -32,7 +32,6 @@ Imports:
     Hmisc,
     MASS,
     Matrix,
-    mediation,
     methods,
     oro.nifti,
     permute,
@@ -41,6 +40,7 @@ Imports:
     scales
 Suggests:
     RGtk2,
-    cairoDevice
+    cairoDevice,
+    mediation
 License: GPL-3
 RoxygenNote: 6.1.0
