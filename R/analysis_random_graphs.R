@@ -103,7 +103,7 @@ get_rand_attrs <- function(bg.list, level) {
   threshold <- NULL
   rand <- bg.list$graphs
 
-  groups <- vapply(rand, function(x) graph_attr(x[[1]], 'Group'), character(1))
+  grps <- groups(bg.list)
   N <- lengths(rand)
 
   mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'mod'))
@@ -113,9 +113,9 @@ get_rand_attrs <- function(bg.list, level) {
 
   if (level == 'subject') {
     ids <- names(rand)
-    DT <- data.table(Study.ID=rep(ids, times=N), Group=rep(groups, times=N))
+    DT <- data.table(Study.ID=rep(ids, times=N), Group=rep(grps, times=N))
   } else if (level == 'group') {
-    DT <- data.table(Group=rep(groups, times=N))
+    DT <- data.table(Group=rep(grps, times=N))
   }
   DT <- cbind(DT, data.table(mod=mod, Cp=Cp, Lp=Lp, E.global=E.global))
   if ('density' %in% graph_attr_names(rand[[1]][[1]])) {

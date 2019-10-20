@@ -40,30 +40,24 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   Group <- Study.ID <- i <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
   level <- match.arg(level)
-  group.vec <- resids$resids.all$Group
-  group.num <- as.integer(group.vec)
-  group.vec <- as.character(group.vec)
-  n <- dim(resids$resids.all)[1L]
+  group.vec <- groups(resids)
+  n <- nobs(resids)
   if (level == 'global') {
-    IC <- foreach(i=seq_len(n), .combine='c') %dopar% {
-      resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
-
-      1 - mantel.rtest(as.dist(corrs$R[, , group.num[i]]),
-                       as.dist(new.corrs$R[, , 1]),
-                       nrepet=1e3)$obs
-    }
-
-    DT <- data.table(resids$resids.all[, list(Study.ID, Group)], IC=IC)
+    combFun <- c
+    diffFun <- function(a, b) 1 - mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
-    RC <- foreach(i=seq_len(n), .combine='rbind') %dopar% {
-      resids.excl <- resids[-i]
-      new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
-      colSums(abs(corrs$R[, , group.num[i]] - new.corrs$R[, , 1]))
-    }
-    RC.dt <- cbind(resids$resids.all[, list(Study.ID, Group)], RC)
-    DT <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
-                 variable.name='region', value.name='RC')
+    combFun <- rbind
+    diffFun <- function(a, b) colSums(abs(a - b))
+  }
+  IC <- foreach(i=seq_len(n), .combine=combFun) %dopar% {
+    resids.excl <- resids[-i]
+    new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
+    diffFun(corrs$R[, , group.vec[i]], new.corrs$R[, , 1L])
+  }
+
+  DT <- cbind(resids$resids.all[, list(Study.ID, Group)], IC)
+  if (level == 'regional') {
+    DT <- melt(DT, id.vars=c('Study.ID', 'Group'), variable.name='region', value.name='RC')
   }
   out <- list(method='Leave one out', level=level, DT=DT)
   class(out) <- c('IC', class(out))
@@ -93,62 +87,44 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' }
 
 aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) {
-  Group <- Study.ID <- i <- NULL
+  Group <- i <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
 
-  corr.mat <- corrs[, control.value]$R[, , 1]
-  groups <- resids$groups
-  kNumSubj <- resids$resids.all[, tabulate(Group)]
-  if (is.numeric(control.value)) {
-    control.int <- control.value
-    control.str <- groups[control.int]
-  } else {
-    control.int <- which(groups %in% control.value)
-    control.str <- control.value
-  }
-  patient.str <- groups[-control.int]
-  patient.int <- seq_along(groups)[-control.int]
+  corr.mat <- corrs[, control.value]$R[, , 1L]
+  grps <- groups(resids)
+  kNumSubj <- table(grps)
+  grps <- unique(grps)
+  if (is.numeric(control.value)) control.value <- grps[control.value]
+  patient.str <- setdiff(grps, control.value)
 
-  control.inds <- resids$resids.all[, which(Group == control.str)]
+  control.inds <- resids$resids.all[Group == control.value, which=TRUE]
   level <- match.arg(level)
   if (level == 'global') {
-    IC <- setNames(vector('list', length(groups) - 1), groups[-control.int])
-    for (j in patient.int) {
-      pat.inds <- resids$resids.all[, which(Group == patient.str)]
-      IC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='c') %dopar% {
-        resids.aop <- resids[c(control.inds, pat.inds[i])]
-        resids.aop$resids.all[, Group := control.str]
-        resids.aop$resids.all <- droplevels(resids.aop$resids.all)
-        resids.aop$groups <- resids.aop$resids.all[, factor(levels(Group))]
-        setkey(resids.aop$resids.all, Group)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1]
-        1 - mantel.rtest(as.dist(corr.mat),
-                         as.dist(new.corr),
-                         nrepet=1e3)$obs
-      }
-      IC[[groups[j]]] <- cbind(resids$resids.all[groups[j], c('Study.ID', 'Group')], IC[[groups[j]]])
-    }
-    DT <- rbindlist(IC)
-    setnames(DT, 'V2', 'IC')
-
+    combFun <- c
+    diffFun <- function(a, b) 1 - mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
-    RC <- setNames(vector('list', length(groups) - 1), groups[-control.int])
-    for (j in patient.int) {
-      pat.inds <- resids$resids.all[, which(Group == patient.str)]
-      RC[[groups[j]]] <- foreach(i=seq_len(kNumSubj[j]), .combine='rbind') %dopar% {
-        resids.aop <- resids[c(control.inds, pat.inds[i])]
-        resids.aop$resids.all[, Group := control.str]
-        resids.aop$resids.all <- droplevels(resids.aop$resids.all)
-        resids.aop$groups <- resids.aop$resids.all[, factor(levels(Group))]
-        setkey(resids.aop$resids.all, Group)
-        new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1]
-        data.table(t(colSums(abs(corr.mat - new.corr))))
-      }
-      RC[[groups[j]]] <- cbind(resids$resids.all[groups[j], c('Study.ID', 'Group')], RC[[groups[j]]])
+    combFun <- rbind
+    diffFun <- function(a, b) data.table(t(colSums(abs(a - b))))
+  }
+  IC <- setNames(vector('list', length(patient.str)), patient.str)
+  for (j in patient.str) {
+    pat.inds <- resids$resids.all[Group == j, which=TRUE]
+    IC[[j]] <- foreach(i=seq_len(kNumSubj[j]), .combine=combFun) %dopar% {
+      resids.aop <- resids[c(control.inds, pat.inds[i])]
+      resids.aop$resids.all[, Group := control.value]
+      resids.aop$resids.all <- droplevels(resids.aop$resids.all)
+      resids.aop$Group <- resids.aop$resids.all[, factor(levels(Group))]
+      setkey(resids.aop$resids.all, Group)
+      new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1L]
+      diffFun(corr.mat, new.corr)
     }
-    RC.dt <- rbindlist(RC)
-    DT <- melt(RC.dt, id.vars=c('Study.ID', 'Group'),
-                variable.name='region', value.name='RC')
+    IC[[j]] <- cbind(resids$resids.all[j, c('Study.ID', 'Group')], IC[[j]])
+  }
+  DT <- rbindlist(IC)
+  if (level == 'global') {
+    setnames(DT, 'V2', 'IC')
+  } else if (level == 'regional') {
+    DT <- melt(DT, id.vars=c('Study.ID', 'Group'), variable.name='region', value.name='RC')
   }
   out <- list(method='Add one patient', level=level, DT=DT)
   class(out) <- c('IC', class(out))
@@ -173,7 +149,7 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
   object$digits <- digits
   DT.sum <- copy(object$DT)
   if (object$level == 'regional') {
-    regions <- if (is.null(region)) DT.sum[, levels(region)] else region
+    regions <- if (is.null(region)) region.names(DT.sum) else region
     object$regions <- regions
     DT.sum <- droplevels(DT.sum[region %in% regions])
     DT.sum[, Min := min(RC), by=list(Group, region)]
@@ -186,7 +162,7 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
     outliers.reg <- outliers[, .N, by=region]
     outliers.reg.vec <- with(outliers.reg, structure(N, names=as.character(region)))
     object$outliers <- list(DT=outliers, region=outliers.reg.vec)
-  } else {
+  } else if (object$level == 'global') {
     DT.sum[, avg := mean(IC), by=Group]
     outliers <- DT.sum[, .SD[IC > avg + 2 * sd(IC)], by=Group]
     outliers[, diff_mean := IC - avg]
@@ -198,9 +174,9 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
 
   # Calculate some group descriptive statistics
   if (object$level == 'global') {
-    groups <- object$DT.sum[, levels(Group)]
-    sums <- setNames(vector('list', length(groups)), groups)
-    for (g in groups) {
+    grps <- object$DT.sum[, levels(Group)]
+    sums <- setNames(vector('list', length(grps)), grps)
+    for (g in grps) {
       sums[[g]] <- object$DT.sum[Group == g, quantile(IC, c(0, .1, .25, .5, .75, .9, 1))]
       sums[[g]] <- append(sums[[g]], object$DT.sum[Group == g, mean(IC)], after=4)
       names(sums[[g]]) <- c('Min.', '10%', '1st Qu.', 'Median', 'Mean', '3rd Qu.', '90%', 'Max.')
@@ -271,7 +247,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
   RC <- Group <- avg <- se <- ind <- mark <- IC <- Study.ID <- NULL
   DT <- summary(x)$DT.sum
   kNumGroups <- DT[, nlevels(Group)]
-  groups <- DT[, levels(Group)]
+  grps <- DT[, levels(Group)]
   leg.pos <- if (kNumGroups == 1) 'none' else 'bottom'
   if (x$level == 'regional') {
     xlabel <- 'Region'
@@ -283,7 +259,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
   ptitle <- paste0(ylabel, 's, ', tolower(x$method), ' method')
 
   if (x$level == 'regional') {
-    regions <- if (is.null(region)) DT[, levels(region)] else region
+    regions <- if (is.null(region)) region.names(DT) else region
     txtsize <- if (length(regions) > 50) 6 else 9
 
     plot.type <- match.arg(plot.type)
@@ -322,9 +298,9 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     p <- ggplot(DT, aes(x=Study.ID, y=IC, col=Group)) +
       geom_text_repel(aes(label=ind), size=3) +
       geom_point(aes(shape=mark, size=mark)) +
-      scale_color_manual(name='Group', labels=groups, values=cols[1:kNumGroups]) +
-      scale_shape_manual(name='Group', labels=groups, values=c(20, 17)) +
-      scale_size_manual(name='Group', labels=groups, values=c(2, 3))
+      scale_color_manual(name='Group', labels=grps, values=cols[1:kNumGroups]) +
+      scale_shape_manual(name='Group', labels=grps, values=c(20, 17)) +
+      scale_size_manual(name='Group', labels=grps, values=c(2, 3))
   }
   p <- p +
     labs(x=xlabel, y=ylabel, title=ptitle) +

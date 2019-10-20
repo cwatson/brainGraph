@@ -60,8 +60,8 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
   Group <- Study.ID <- NULL
-  N <- dim(resids$resids.all)[2L] - 2
-  regions <- names(resids$resids.all)[-c(1, 2)]
+  N <- nregions(resids)
+  regions <- region.names(resids)
 
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
@@ -80,7 +80,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   if (what == 'resids') {
     res.all <- resids$resids.all[, !'Study.ID']
   } else if (what == 'raw') {
-    res.all <- dcast(resids$all.dat.long, 'Study.ID + Group ~ region')
+    res.all <- dcast(resids$all.dat.long, 'Study.ID + Group ~ Region')
     setkey(res.all, Group, Study.ID)
     res.all <- res.all[, !'Study.ID']
   }
@@ -91,21 +91,21 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   }
 
   # Loop through the groups
-  groups <- resids$groups
-  kNumGroups <- length(groups)
-  r <- p <- array(0, dim=c(N, N, kNumGroups), dimnames=list(regions, regions, groups))
-  r.thresh <- setNames(vector('list', kNumGroups), groups)
+  grps <- unique(groups(resids))
+  kNumGroups <- length(grps)
+  r <- p <- array(0, dim=c(N, N, kNumGroups), dimnames=list(regions, regions, grps))
+  r.thresh <- setNames(vector('list', kNumGroups), grps)
   if (!is.null(thresholds)) {
     kNumThresh <- length(thresholds)
     thresh.mat <- matrix(rep(thresholds, kNumGroups),
                          nrow=kNumThresh, ncol=kNumGroups,
-                         dimnames=list(NULL, groups))
+                         dimnames=list(NULL, grps))
   } else {
     kNumThresh <- length(densities)
     thresh.mat <- matrix(0, nrow=kNumThresh, ncol=kNumGroups,
-                         dimnames=list(NULL, groups))
+                         dimnames=list(NULL, grps))
   }
-  for (g in groups) {
+  for (g in grps) {
     corrs <- rcorr(as.matrix(res.all[g, !'Group']), type=type)
     r[, , g] <- corrs$r
     p[, , g] <- corrs$P
@@ -146,8 +146,8 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 
 `[.corr_mats` <- function(x, i, g=NULL) {
   if (!is.null(g)) {
-    groups <- names(x$r.thresh)
-    kNumGroups <- length(groups)
+    grps <- groups(x)
+    kNumGroups <- length(grps)
     if (is.logical(g) && length(g) != kNumGroups) {
       stop('Logical indexing vector must be of the same length as the number of groups.')
     }
@@ -155,15 +155,15 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
       warning('Indexing vector cannot have length greater than the number of groups.')
       g <- g[seq_len(kNumGroups)]
     }
-    if (is.numeric(g) || is.logical(g)) g <- groups[g]
-    if (is.character(g)) g <- which(groups %in% g)
+    if (is.numeric(g) || is.logical(g)) g <- grps[g]
+    if (is.character(g)) g <- which(grps %in% g)
     x$R <- x$R[, , g, drop=FALSE]
     x$P <- x$P[, , g, drop=FALSE]
     x$r.thresh <- x$r.thresh[g]
     x$thresholds <- x$thresholds[, g, drop=FALSE]
   }
   if (missing(i)) i <- seq_len(dim(x$thresholds)[1L])
-  for (g in names(x$r.thresh)) x$r.thresh[[g]] <- x$r.thresh[[g]][, , i, drop=FALSE]
+  for (g in groups(x)) x$r.thresh[[g]] <- x$r.thresh[[g]][, , i, drop=FALSE]
   x$thresholds <- x$thresholds[i, , drop=FALSE]
   if ('densities' %in% names(x)) x$densities <- x$densities[i]
   return(x)
@@ -212,8 +212,8 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
                            ordered=TRUE, order.by='lobe', graphs=NULL,
                            grp.names=NULL, legend.title=NULL, ...) {
   Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.text <- NULL
-  groups <- names(x$r.thresh)
-  kNumVertices <- dim(x$R)[1L]
+  grps <- groups(x)
+  kNumVertices <- nregions(x)
   base_size <- if (kNumVertices > 90) 7.5 else 9
   if (is.null(legend.title) && isTRUE(ordered)) {
     legend.title <- switch(order.by,
@@ -221,24 +221,24 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
       class='Tissue class', simpleCap(order.by))
   }
 
+  type <- match.arg(mat.type)
   legend.pos <- if (type == 'raw' || isTRUE(ordered)) 'right' else 'none'
   mytheme <- theme(legend.position=legend.pos,
     axis.text.x=element_text(size=0.7*base_size, angle=45),
     axis.text.y=element_text(size=0.7*base_size),
     axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
     plot.title=element_text(hjust=0.5, face='bold'))
-  matplots <- vector('list', length(groups))
-  type <- match.arg(mat.type)
+  matplots <- vector('list', length(grps))
   if (type == 'raw') {
     legend.title <- paste0('Corr. coeff.\n(', simpleCap(x$type), ')')
     mats <- x$R
-    for (g in seq_along(groups)) {
+    for (g in seq_along(grps)) {
       mats.m <- melt(mats[, , g])
       setDT(mats.m)
       matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=value)) +
         geom_tile() +
         scale_fill_gradient2(low='white', high='red') + mytheme +
-        labs(title=groups[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+        labs(title=grps[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
     }
     return(matplots)
   } else {
@@ -271,11 +271,11 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
 
   } else {
     new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2), ncol=2)
-    cols.new <- lapply(groups, function(y) c('white', 'gray50'))
+    cols.new <- lapply(grps, function(y) c('white', 'gray50'))
   }
-  dimnames(order.mat) <- list(rownames(x$R), groups)
+  dimnames(order.mat) <- list(rownames(x$R), grps)
 
-  for (g in seq_along(groups)) {
+  for (g in seq_along(grps)) {
     mats.ord <- mats[new.order[, g], new.order[, g], g]
     mats.m <- melt(mats.ord)
     setDT(mats.m)
@@ -299,7 +299,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=memb)) +
       geom_tile() +
       scale_fill_manual(values=cols.new[[g]]) + mytheme +
-      labs(title=groups[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+      labs(title=grps[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
   }
   return(matplots)
 }

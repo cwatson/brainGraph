@@ -22,7 +22,6 @@ graph_attr_dt <- function(bg.list) {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
   }
   N <- length(bg.list)
-  Group <- NULL
   inds <- which(vapply(graph_attr(bg.list[[1]]), is.numeric, logical(1)))
   g.attrs <- graph_attr_names(bg.list[[1]])
   g.attr.num <- names(inds)
@@ -67,7 +66,7 @@ graph_attr_dt <- function(bg.list) {
 #' }
 
 vertex_attr_dt <- function(bg.list) {
-  lobe <- name <- Group <- network <- NULL
+  name <- NULL
   if (inherits(bg.list, 'brainGraphList')) {
     level <- bg.list$level
     atlas <- bg.list$atlas
@@ -87,10 +86,11 @@ vertex_attr_dt <- function(bg.list) {
   setnames(dt.V, 'name', 'region')
 
   # Add some important graph attributes, as well
+  Nv <- vcount(bg.list[[1]])
   g.attrs <- graph_attr_names(bg.list[[1]])
   g.attrs.char <- c('name', 'atlas', 'modality', 'weighting', 'Group', 'density', 'threshold')
   for (x in g.attrs.char) {
-    if (x %in% g.attrs) dt.V[, eval(x) := sapply(bg.list, graph_attr, x)]
+    if (x %in% g.attrs) dt.V[, eval(x) := rep(sapply(bg.list, graph_attr, x), each=Nv)]
   }
   if (level == 'subject') {
     setnames(dt.V, 'name', 'Study.ID')

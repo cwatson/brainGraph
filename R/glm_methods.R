@@ -1,7 +1,8 @@
 #' Subset observations of a bg_GLM object
 #'
-#' Select observations (i.e., rows of \code{X} and \code{y}) and independent
-#' variables (i.e., columns of \code{X}) from a \code{bg_GLM} object.
+#' The \code{[} method allows you to select observations (i.e., rows of \code{X}
+#' and \code{y}) and independent variables (i.e., columns of \code{X}) from a
+#' \code{bg_GLM} object.
 #'
 #' @note The \code{[} method is used when calculating \emph{studentized
 #' residuals} and other \dQuote{leave-one-out} diagnostics, and typically should
@@ -127,17 +128,6 @@ variable.names.bg_GLM <- function(object, ...) {
   dimnames(object$X)[[2L]]
 }
 
-#' Extract region names from brainGraph objects
-#'
-#' \code{region.names} is a generic method for extracting the region names.
-#'
-#' @export
-#' @rdname glm_info
-
-region.names <- function(object) {
-  UseMethod('region.names')
-}
-
 #' @export
 #' @method region.names bg_GLM
 #' @rdname glm_info
@@ -145,4 +135,12 @@ region.names <- function(object) {
 region.names.bg_GLM <- function(object) {
   region <- NULL
   object$DT[, levels(region)]
+}
+
+#' @export
+#' @rdname glm_info
+
+nregions.bg_GLM <- function(object) {
+  region <- NULL
+  object$DT[, nlevels(region)]
 }

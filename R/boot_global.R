@@ -93,9 +93,9 @@ brainGraph_boot <- function(densities, resids, R=1e3,
   measure <- match.arg(measure)
   xfm.type <- match.arg(xfm.type)
   env <- environment()
-  groups <- resids$groups
-  my.boot <- setNames(vector('list', length(groups)), groups)
-  for (g in groups) {
+  grps <- unique(groups(resids))
+  my.boot <- setNames(vector('list', length(grps)), grps)
+  for (g in grps) {
     counter <- 0
     res.dt <- resids$resids.all[g]
     if (isTRUE(.progress)) progbar <- txtProgressBar(min=0, max=R, style=3)
@@ -104,7 +104,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     if (isTRUE(.progress)) close(progbar)
   }
 
-  out <- list(measure=measure, densities=densities, groups=groups, conf=conf, boot=my.boot)
+  out <- list(measure=measure, densities=densities, Group=grps, conf=conf, boot=my.boot)
   class(out) <- c('brainGraph_boot', class(out))
   return(out)
 }
@@ -120,8 +120,8 @@ summary.brainGraph_boot <- function(object, ...) {
   kNumDensities <- length(object$densities)
   # Get everything into a data.table
   boot.dt <- with(object,
-                  data.table(Group=rep(groups, each=kNumDensities),
-                             density=rep(densities, length(groups)),
+                  data.table(Group=rep(Group, each=kNumDensities),
+                             density=rep(densities, length(Group)),
                              Observed=c(vapply(boot, with, numeric(kNumDensities), t0)),
                              se=c(vapply(boot, function(x) apply(x$t, 2, sd), numeric(kNumDensities)))))
   ci <- with(object,
@@ -129,19 +129,17 @@ summary.brainGraph_boot <- function(object, ...) {
                     vapply(boot, function(y)
                              boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3],
                            numeric(2)),
-                    numeric(2 * length(groups))))
-  boot.dt$ci.low <- c(t(ci[2 * (seq_along(object$groups) - 1) + 1, ]))
-  boot.dt$ci.high <- c(t(ci[2 * (seq_along(object$groups) - 1) + 2, ]))
+                    numeric(2 * length(Group))))
+  boot.dt$ci.low <- c(t(ci[2 * (seq_along(object$Group) - 1) + 1, ]))
+  boot.dt$ci.high <- c(t(ci[2 * (seq_along(object$Group) - 1) + 2, ]))
 
   meas.full <- switch(object$measure,
-                      mod='Modularity',
-                      E.global='Global efficiency',
-                      E.global.wt='Global efficiency (weighted)',
+                      mod='Modularity', mod.wt='Modularity (weighted)',
+                      E.global='Global efficiency', E.global.wt='Global efficiency (weighted)',
                       Cp='Clustering coefficient',
                       Lp='Average shortest path length',
                       assortativity='Degree assortativity',
-                      strength='Average strength',
-                      mod.wt='Modularity (weighted)')
+                      strength='Average strength')
   boot.sum <- list(meas.full=meas.full, DT.sum=boot.dt, conf=object$conf, R=object$boot[[1]]$R)
   class(boot.sum) <- c('summary.brainGraph_boot', class(boot.sum))
   boot.sum

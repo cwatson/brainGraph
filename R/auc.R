@@ -27,11 +27,9 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
   # Get the meta variables first
-  atlas <- g.list[[1]]$atlas
-  type <- g.list[[1]]$type
-  level <- g.list[[1]]$level
-  modality <- g.list[[1]]$modality
-  weighting <- g.list[[1]]$weighting
+  attrs <- c('atlas', 'type', 'level', 'modality', 'weighting')
+  out <- setNames(vector('list', length(attrs)), attrs)
+  for (a in attrs) out[[a]] <- g.list[[1]][[a]]
 
   kNumThresh <- length(g.list)
   if (!is.null(g.list[[1]]$threshold)) {
@@ -42,10 +40,12 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   subjects <- names(g.list[[1]]$graphs)
   kNumSubjs <- length(subjects)
+  grps <- groups(g.list[[1]])
   g.auc <- foreach(i=seq_along(subjects)) %dopar% {
     g.subj <- lapply(g.list, `[`, i)
-    g.tmp <- make_empty_brainGraph(atlas, type=type, level=level, modality=modality, weighting=weighting,
-                                   name=subjects[i], Group=g.list[[1]][i]$Group)
+    g.tmp <- with(out,
+        make_empty_brainGraph(atlas, type=type, level=level, modality=modality,
+                              weighting=weighting, name=subjects[i], Group=grps[i]))
     if (!is.null(g.attr)) {
       for (k in seq_along(g.attr)) {
         y <- sapply(g.subj, graph_attr, g.attr[k])
@@ -59,11 +59,6 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
       }
     }
     g.tmp
-  }
-  attrs <- c('atlas', 'type', 'level', 'modality', 'weighting')
-  out <- setNames(vector('list', length(attrs)), attrs)
-  for (a in attrs) {
-    if (!is.null(get(a))) out[[a]] <- get(a)
   }
   out <- get_metadata(out)
   out$graphs <- g.auc

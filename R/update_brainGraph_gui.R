@@ -57,26 +57,26 @@ update_brainGraph_gui <- function(plotDev, g, g2, plotFunc, vsize.measure, ewidt
   #=======================================================
   plotHemi <- switch(hemi$getActive() + 1, 'both', 'L', 'R', 'both', 'both', 'both', 'both', 'both', 'both')
   if (hemi$getActive() > 2) {
-    groups <- switch(hemi$getActive() - 2,
-                     seq_len(Nv),
-                     seq_len(Nv),
-                     seq_len(max(V(g)$comm)),
-                     seq_len(max(V(g)$comm)),
-                     sort(unique(V(g)$lobe)),
-                     sort(unique(V(g)$lobe)))
+    vgroups <- switch(hemi$getActive() - 2,
+                      seq_len(Nv),
+                      seq_len(Nv),
+                      seq_len(max(V(g)$comm)),
+                      seq_len(max(V(g)$comm)),
+                      sort(unique(V(g)$lobe)),
+                      sort(unique(V(g)$lobe)))
     eids <- switch(hemi$getActive() - 2,
                    E(g)[which(V(g)$hemi == 'L') %--% which(V(g)$hemi == 'R')],
                    count_homologous(g),
-                   unique(unlist(sapply(groups, function(x)
+                   unique(unlist(sapply(vgroups, function(x)
                                         as.numeric(E(g)[which(V(g)$comm == x) %--%
-                                                   which(V(g)$comm %in% groups[-x])])))),
-                   unique(unlist(sapply(groups, function(x)
+                                                   which(V(g)$comm %in% vgroups[-x])])))),
+                   unique(unlist(sapply(vgroups, function(x)
                                         as.numeric(E(g)[which(V(g)$comm == x) %--%
                                                    which(V(g)$comm == x)])))),
-                   unique(unlist(sapply(groups, function(x)
+                   unique(unlist(sapply(vgroups, function(x)
                                         as.numeric(E(g)[which(V(g)$lobe == x) %--%
                                                    which(V(g)$lobe != x)])))),
-                   unique(unlist(sapply(groups, function(x)
+                   unique(unlist(sapply(vgroups, function(x)
                                         as.numeric(E(g)[which(V(g)$lobe == x) %--%
                                                    which(V(g)$lobe == x)])))))
     sg.hemi <- subgraph.edges(g, eids)

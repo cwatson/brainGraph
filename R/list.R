@@ -62,7 +62,7 @@ make_brainGraphList <- function(x, atlas, type=c('observed', 'random'),
   UseMethod('make_brainGraphList')
 }
 
-#' @param groups Character (or factor) vector of group names. If \code{level ==
+#' @param grpNames Character (or factor) vector of group names. If \code{level ==
 #'   'group'}, then you do not need to include this argument (the group names
 #'   will be the same as \code{gnames}). Default: \code{NULL})
 #' @param .progress Logical indicating whether to print a progress bar. Default:
@@ -74,7 +74,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
                                       level=c('subject', 'group', 'contrast'),
                                       set.attrs=TRUE, modality=NULL,
                                       weighting=NULL, threshold=NULL,
-                                      gnames=NULL, groups=NULL, subnet=NULL,
+                                      gnames=NULL, grpNames=NULL, subnet=NULL,
                                       mode='undirected', weighted=NULL, diag=FALSE,
                                       .progress=FALSE, ...) {
   i <- NULL
@@ -83,11 +83,11 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   if (is.null(gnames)) gnames <- seq_len(kNumGraphs)
   stopifnot(length(gnames) == kNumGraphs)
   gnames <- as.character(gnames)
-  if (is.null(groups)) {
-    groups <- if (level == 'group') gnames else rep(1, kNumGraphs)
+  if (is.null(grpNames)) {
+    grpNames <- if (level == 'group') gnames else rep(1, kNumGraphs)
   }
-  stopifnot(length(groups) == kNumGraphs)
-  groups <- as.character(groups)
+  stopifnot(length(grpNames) == kNumGraphs)
+  grpNames <- as.character(grpNames)
 
   type <- match.arg(type)
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting', 'threshold')
@@ -120,7 +120,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   counter <- 0
   g <- foreach(i=seq_len(kNumGraphs)) %dopar% {
     res <- loopfun(x[, , i], atlas, type, level, set.attrs, modality, weighting, threshold[i],
-                   name=gnames[i], Group=groups[i], subnet=subnet, mode=mode,
+                   name=gnames[i], Group=grpNames[i], subnet=subnet, mode=mode,
                    diag=diag, weighted=weighted, use.parallel=FALSE, ...)
   }
   if (isTRUE(.progress)) close(progbar)
@@ -138,7 +138,7 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
                                           level='group',
                                           set.attrs=TRUE, modality=NULL,
                                           weighting=NULL, threshold=x$densities,
-                                          gnames=names(x$r.thresh), groups=gnames,
+                                          gnames=names(x$r.thresh), grpNames=gnames,
                                           mode='undirected', weighted=NULL,
                                           diag=FALSE, .progress=FALSE, ...) {
   dims <- vapply(x$r.thresh, dim, numeric(3L))[3L, ]
@@ -148,7 +148,7 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
   out <- make_brainGraphList(A, atlas=atlas, type=type, level=level,
                              set.attrs=set.attrs, modality=modality, weighting=weighting,
                              threshold=threshold, mode=mode, weighted=weighted, diag=diag,
-                             gnames=gnames, groups=groups, .progress=.progress, ...)
+                             gnames=gnames, grpNames=grpNames, .progress=.progress, ...)
   return(out)
 }
 
@@ -366,15 +366,15 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
   # Subset groups; doesn't make sense for contrast lists
   if (!is.null(g) && x$level != 'contrast') {
     if (is.factor(g)) g <- as.character(g)
-    group.vec <- vapply(x$graphs, graph_attr, character(1), 'Group')
-    groups <- unique(group.vec)
-    kNumGroups <- length(groups)
+    group.vec <- groups(x)
+    grpNames <- unique(group.vec)
+    kNumGroups <- length(grpNames)
     if (is.logical(g) && length(g) != kNumGroups) stop(stop_msg)
     if (!is.logical(g) && length(g) > kNumGroups) {
       warning(warn_msg)
       g <- g[seq_len(kNumGroups)]
     }
-    if (is.numeric(g) || is.logical(g)) g <- groups[g]
+    if (is.numeric(g) || is.logical(g)) g <- grpNames[g]
     if (is.character(g)) g <- which(group.vec %in% g)
     x$graphs <- x$graphs[g]
   }
@@ -421,7 +421,7 @@ print.brainGraphList <- function(x, ...) {
   }
   if (x$level == 'subject' && 'Group' %in% graph_attr_names(x$graphs[[1]])) {
     message('Group membership:')
-    print(table(vapply(x[], graph_attr, character(1), 'Group')))
+    print(table(groups(x)))
   }
   invisible(x)
 }

@@ -340,7 +340,7 @@ cooks.distance.bg_GLM <- function(model, ...) {
 
 dffits.bg_GLM <- function(model) {
   res <- residuals(model)
-  kNumRegions <- dim(res)[2L]
+  kNumRegions <- nregions(model)
   hat <- hatvalues(model)
   sig <- vapply(seq_len(dim(model$X)[1L]), function(i) sigma(model[-i]), numeric(kNumRegions))
   if (kNumRegions > 1L) sig <- t(sig)
