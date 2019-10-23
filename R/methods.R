@@ -4,7 +4,9 @@
 #' the object.
 #'
 #' @param x,object An object
+#' @param ... Unused
 #' @export
+#' @name Methods
 #' @rdname methods
 
 groups.brainGraphList <- function(x) {
@@ -22,27 +24,32 @@ groups.brainGraphList <- function(x) {
   return(out)
 }
 
+#' @export
 #' @rdname methods
 groups.brainGraph_resids <- function(x) {
   Group <- Study.ID <- NULL
   structure(x$resids.all[, as.character(Group)], names=x$resids.all[, Study.ID])
 }
 
+#' @export
 #' @rdname methods
 groups.corr_mats <- function(x) {
   names(x$r.thresh)
 }
 
+#' @export
 #' @rdname methods
 nobs.brainGraphList <- function(object, ...) {
   length(object$graphs)
 }
 
+#' @export
 #' @rdname methods
 nobs.brainGraph_resids <- function(object, ...) {
   dim(object$resids.all)[1L]
 }
 
+#' @export
 #' @method case.names brainGraph_resids
 #' @rdname methods
 case.names.brainGraph_resids <- function(object, ...) {
@@ -65,16 +72,19 @@ region.names <- function(object) {
   UseMethod('region.names')
 }
 
+#' @export
 #' @method region.names data.table
 #' @rdname methods
 region.names.data.table <- function(object) {
-  object[, levels(region)]
+  colname <- if ('Region' %in% names(object)) 'Region' else 'region'
+  object[, levels(get(colname))]
 }
 
 #' @export
 #' @method region.names brainGraph_resids
 #' @rdname residuals
 region.names.brainGraph_resids <- function(object) {
+  Region <- NULL
   object$all.dat.long[, levels(Region)]
 }
 
@@ -97,11 +107,14 @@ nregions <- function(object) {
   UseMethod('nregions')
 }
 
+#' @export
 #' @rdname residuals
 nregions.brainGraph_resids <- function(object) {
+  Region <- NULL
   object$all.dat.long[, nlevels(Region)]
 }
 
+#' @export
 #' @rdname correlation_matrices
 nregions.corr_mats <- function(object) {
   dim(object$R)[1L]

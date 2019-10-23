@@ -146,8 +146,9 @@ The \code{plot} method plots the GLM diagnostics (similar to that of
 specified by the \code{which} argument; the behavior is the same as in
 \code{\link[stats]{plot.lm}}. Please see the help for that function.
 
-Select observations (i.e., rows of \code{X} and \code{y}) and independent
-variables (i.e., columns of \code{X}) from a \code{bg_GLM} object.
+The \code{[} method allows you to select observations (i.e., rows of \code{X}
+and \code{y}) and independent variables (i.e., columns of \code{X}) from a
+\code{bg_GLM} object.
 }
 \details{
 The \code{measure} argument will be the graph- or vertex-level measure of

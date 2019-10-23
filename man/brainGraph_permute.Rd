@@ -68,7 +68,7 @@ An object of class \code{brainGraph_permute} with input arguments in
   addition to:
   \item{DT}{A data table with permutation statistics}
   \item{obs.diff}{A data table of the observed group differences}
-  \item{groups}{Group names}
+  \item{Group}{Group names}
 
 The \code{plot} method returns a \emph{list} of \code{ggplot} objects
 }

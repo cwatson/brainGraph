@@ -35,8 +35,8 @@ brainGraph uses the following \code{\link{options}} to configure behavior:
   \item \code{bg.ncpus}: integer indicating the number of cores to use for
     parallel operations. Only used if you have not already registered a
     parallel backend (see Chapter 5 of the User Guide or
-    \url{https://github.com/cwatson/brainGraph/README.md} for examples).
-    Default: \code{2L}
+    \url{https://github.com/cwatson/brainGraph/blob/master/README.md} for
+    examples). Default: \code{2L}
 }
 }
 

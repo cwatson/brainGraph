@@ -18,14 +18,14 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
 \method{make_brainGraphList}{array}(x, atlas, type = c("observed",
   "random"), level = c("subject", "group", "contrast"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
-  threshold = NULL, gnames = NULL, groups = NULL, subnet = NULL,
+  threshold = NULL, gnames = NULL, grpNames = NULL, subnet = NULL,
   mode = "undirected", weighted = NULL, diag = FALSE,
   .progress = FALSE, ...)
 
 \method{make_brainGraphList}{corr_mats}(x, atlas = x$atlas,
   type = "observed", level = "group", set.attrs = TRUE,
   modality = NULL, weighting = NULL, threshold = x$densities,
-  gnames = names(x$r.thresh), groups = gnames, mode = "undirected",
+  gnames = names(x$r.thresh), grpNames = gnames, mode = "undirected",
   weighted = NULL, diag = FALSE, .progress = FALSE, ...)
 
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
@@ -63,7 +63,7 @@ connectivity matrix (if any). Default: \code{NULL}}
 
 \item{...}{Other arguments passed to \code{\link{set_brainGraph_attr}}}
 
-\item{groups}{Character (or factor) vector of group names. If \code{level ==
+\item{grpNames}{Character (or factor) vector of group names. If \code{level ==
 'group'}, then you do not need to include this argument (the group names
 will be the same as \code{gnames}). Default: \code{NULL})}
 

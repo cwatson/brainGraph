@@ -8,8 +8,8 @@
 \alias{labels.bg_GLM}
 \alias{case.names.bg_GLM}
 \alias{variable.names.bg_GLM}
-\alias{region.names}
 \alias{region.names.bg_GLM}
+\alias{nregions.bg_GLM}
 \title{Extract basic information from a bg_GLM object}
 \usage{
 \method{nobs}{bg_GLM}(object, ...)
@@ -24,9 +24,9 @@
 
 \method{variable.names}{bg_GLM}(object, ...)
 
-region.names(object)
-
 \method{region.names}{bg_GLM}(object)
+
+\method{nregions}{bg_GLM}(object)
 }
 \arguments{
 \item{...}{Unused}
@@ -44,8 +44,6 @@ These functions return the \code{terms}, \emph{term labels}, \emph{model
 formula}, \dQuote{case names}, \dQuote{variable names}, \emph{region names},
 and number of observations for a \code{bg_GLM} object. The term labels are
 used for ANOVA tables.
-
-\code{region.names} is a generic method for extracting the region names.
 }
 \note{
 \code{terms} has only been tested for 2-way interactions. If your model

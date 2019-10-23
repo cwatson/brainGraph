@@ -48,7 +48,7 @@
 
 get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
                       use.mean=FALSE, exclude.cov=NULL, atlas=NULL, ...) {
-  region <- resids <- Group <- Study.ID <- value <- NULL
+  Region <- resids <- Group <- Study.ID <- value <- NULL
 
   stopifnot('Group' %in% names(covars))
   if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
@@ -264,7 +264,7 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' }
 
 plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
-  ind <- mark <- Study.ID <- resids <- NULL
+  Region <- Group <- ind <- mark <- Study.ID <- resids <- NULL
   DT <- summary(x, region=region)$DT.sum
   regions <- DT[, levels(Region)]
   setkey(DT, Group, Study.ID)
@@ -279,7 +279,7 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
 
   # Local function to plot for a single region
   plot_single <- function(DT.resids, cols) {
-    Group <- resids <- NULL
+    Region <- Group <- resids <- NULL
     p <- ggplot(DT.resids, aes(x=x, y=resids, col=Group)) +
       geom_text_repel(aes(label=ind), size=3) +
       geom_point(aes(shape=mark, size=mark)) +

@@ -136,7 +136,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 
 #' Subset correlation matrix objects
 #'
-#' @param x A \code{corr_mats} object
+#' @param x,object A \code{corr_mats} object
 #' @param i Integer for subsetting by density/threshold
 #' @param g Integer, character, or logical for subsetting by group
 #' @export
