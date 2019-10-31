@@ -47,11 +47,15 @@
 #'   (default: \code{TRUE})
 #' @param int Logical indicating whether or not to include an interaction of the
 #'   mediator and treatment (default: \code{FALSE})
+#' @param .progress Logical indicating whether to print a progress bar. Default:
+#'   \code{getOption('bg.progress')}
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #'   (e.g., \code{binarize}) (unused in the \code{summary} method)
 #' @inheritParams GLM
 #' @export
 #' @importFrom RcppEigen fastLmPure
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return An object of class \code{bg_mediate} with elements:
 #'   \item{level}{Either \code{graph} or \code{vertex}.}
@@ -124,21 +128,22 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
                                outcome, covar.names, level=c('graph', 'vertex'),
                                boot=TRUE, boot.ci.type=c('perc', 'bca'), N=1e3,
                                conf.level=0.95, control.value=0, treat.value=1,
-                               long=TRUE, int=FALSE, ...) {
-  Study.ID <- region <- treatintstr <- NULL
+                               long=TRUE, int=FALSE, .progress=getOption('bg.progress'), ...) {
+  region <- treatintstr <- NULL
   if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
 
+  sID <- getOption('bg.subject_id')
   stopifnot(all(c(treat, outcome, covar.names) %in% names(covars)))
-  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
-  covars <- droplevels(covars[, c('Study.ID', treat, covar.names, outcome), with=FALSE])
-  incomp <- covars[!complete.cases(covars), Study.ID]
-  covars <- covars[!Study.ID %in% incomp]
-  setkey(covars, Study.ID)
+  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  covars <- droplevels(covars[, c(sID, treat, covar.names, outcome), with=FALSE])
+  incomp <- covars[!complete.cases(covars), get(sID)]
+  covars <- covars[!get(sID) %in% incomp]
+  setkeyv(covars, sID)
 
   level <- match.arg(level)
   dt.graph <- glm_data_table(g.list, level, mediator)
-  dt.graph <- dt.graph[!Study.ID %in% incomp]
+  dt.graph <- dt.graph[!get(sID) %in% incomp]
   DT <- merge(covars, dt.graph, on=key(covars))
   DT[, eval(treat) := as.factor(get(treat))]
   DT.m <- melt(DT, id.vars=names(covars), variable.name='region', value.name=mediator)
@@ -148,8 +153,8 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
     cat.0 <- control.value
     cat.1 <- treat.value
   } else {
-    cat.0 <- t.levels[1]
-    cat.1 <- t.levels[2]
+    cat.0 <- t.levels[1L]
+    cat.1 <- t.levels[2L]
   }
 
   X.m <- brainGraph_GLM_design(DT[, c(treat, covar.names), with=FALSE], ...)
@@ -161,8 +166,14 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   # Different across regions
   regions <- DT.m[, levels(region)]
   X.y <- res_boot <- setNames(vector('list', length(regions)), regions)
-  y.m <- matrix(0, n, length(regions), dimnames=list(DT.m[region == regions[1], Study.ID], regions))
+  y.m <- matrix(0, n, length(regions), dimnames=list(DT.m[region == regions[1L], get(sID)], regions))
   cols <- c(mediator, treat, covar.names)
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
+  if (level == 'graph') .progress <- FALSE
+  if (isTRUE(.progress)) progbar <- txtProgressBar(min=0L, max=length(regions), style=3)
   for (i in regions) {
     y.m[, i] <- DT.m[region == i, get(mediator)]
     if (isTRUE(int)) {
@@ -172,10 +183,12 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
     }
     res_boot[[i]] <- boot_mediate(N, n, X.m, y.m[, i], treat, cat.1, X.y[[i]],
                                   y.y, mediator, treatstr, int, treatintstr)
+    if (isTRUE(.progress)) setTxtProgressBar(progbar, getTxtProgressBar(progbar) + 1L)
   }
+  if (isTRUE(.progress)) close(progbar)
   res_boot <- rbindlist(res_boot, idcol='region')
   res_obs <- res_boot[, .SD[.N], by=region]
-  res_p <- res_boot[, lapply(.SD, function(x) pval(x[seq_len(N)], x[N + 1])), by=region]
+  res_p <- res_boot[, lapply(.SD, function(x) pval(x[seq_len(N)], x[N + 1L])), by=region]
   res_boot <- res_boot[, .SD[-.N], by=region]
 
   low <- (1 - conf.level) / 2
@@ -194,7 +207,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
               treat=treat, mediator=mediator, outcome=outcome, covariates=NULL, INT=int,
               conf.level=conf.level, control.value=cat.0, treat.value=cat.1,
               nobs=n, sims=N, covar.names=covar.names)
-  out$atlas <- guess_atlas(g.list[[1]])
+  out$atlas <- guess_atlas(g.list[[1L]])
   class(out) <- c('bg_mediate', class(out))
   return(out)
 }

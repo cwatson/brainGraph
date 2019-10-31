@@ -19,6 +19,8 @@
 #' @param N Integer; the number of iterations if \code{'random'} is chosen.
 #'   Default: \code{1e3}
 #' @export
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return Data table with elements:
 #'   \item{type}{Character string describing the type of analysis performed}
@@ -51,6 +53,10 @@ robustness <- function(g, type=c('vertex', 'edge'),
   } else {
     otype <- paste('Targeted', type, 'attack')
     max.comp.removed <- rep(orig_max, n)
+  }
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
   }
   if (type == 'vertex') {
     if (measure == 'random') {
@@ -103,6 +109,6 @@ robustness <- function(g, type=c('vertex', 'edge'),
   comp.pct <- max.comp.removed / orig_max
   out <- data.table(type=otype, measure=measure, comp.size=max.comp.removed,
                     comp.pct=comp.pct, removed.pct=removed.pct)
-  if ('name' %in% graph_attr_names(g)) out$Group <- g$name
+  if ('name' %in% graph_attr_names(g)) out[, eval(getOption('bg.group')) := g$name]
   return(out)
 }

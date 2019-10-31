@@ -141,17 +141,18 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
                            permute=FALSE, perm.method=c('freedmanLane', 'terBraak', 'smith'),
                            part.method=c('beckmann', 'guttman', 'ridgway'),
                            N=5e3, perms=NULL, long=FALSE, ...) {
-  Study.ID <- region <- Outcome <- p.fdr <- p <- Contrast <- i <-
+  region <- Outcome <- p.fdr <- p <- Contrast <- i <-
     stat <- p.perm <- perm <- contrast <- V1 <- NULL
 
   if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
 
   # Get the outcome variable(s) into a data.table
+  sID <- getOption('bg.subject_id')
   level <- match.arg(level)
   DT.y <- glm_data_table(g.list, level, measure)
-  setkey(DT.y, Study.ID)
-  DT.y.m <- melt(DT.y, id.vars='Study.ID', variable.name='region', value.name=measure)
+  setkeyv(DT.y, sID)
+  DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
@@ -162,7 +163,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   if (is.null(outcome)) outcome <- measure
   regions <- DT.y.m[, levels(region)]
   y <- matrix(DT.y.m[region %in% regions, get(outcome)], ncol=length(regions),
-              dimnames=list(DT.y.m[, unique(Study.ID)], regions))
+              dimnames=list(DT.y.m[, unique(get(sID))], regions))
   if (level != 'vertex' || outcome != measure) {
     y <- y[, 1, drop=FALSE]
     dimnames(y)[[2]] <- outcome
@@ -264,13 +265,14 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 #' @rdname glm_helpers
 
 setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, level, ...) {
-  Study.ID <- region <- NULL
+  region <- NULL
+  sID <- getOption('bg.subject_id')
   covars <- droplevels(covars)
-  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
-  incomp <- covars[!complete.cases(covars), Study.ID]
-  covars <- covars[!Study.ID %in% incomp]
-  if (!is.null(DT.y.m)) DT.y.m <- DT.y.m[!Study.ID %in% incomp]   # Not called for NBS
-  setkey(covars, Study.ID)
+  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  incomp <- covars[!complete.cases(covars), get(sID)]
+  covars <- covars[!get(sID) %in% incomp]
+  if (!is.null(DT.y.m)) DT.y.m <- DT.y.m[!get(sID) %in% incomp]   # Not called for NBS
+  setkeyv(covars, sID)
 
   # Swap the outcome and measure variables, if outcome is not a network metric
   if (!is.null(outcome)) {
@@ -283,8 +285,8 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
 
     # Vertex-level has 1 design matrix per region, with the measure changing for each
     } else if (level == 'vertex') {
-      DT.X.m <- merge(DT.y.m, covars, by='Study.ID')
-      setcolorder(DT.X.m, c('Study.ID', 'region', names(covars[, !'Study.ID']), measure))
+      DT.X.m <- merge(DT.y.m, covars, by=sID)
+      setcolorder(DT.X.m, c(sID, 'region', names(covars[, !get(sID)]), measure))
       DT.X.m[, eval(outcome) := NULL]
 
       # Get all design matrices into a 3-D array
@@ -297,7 +299,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
     DT.y.m[, eval(measure) := NULL]
   }
   if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
-  rownames(X) <- covars$Study.ID
+  rownames(X) <- covars[, get(sID)]
 
   tmp <- contrast_names(contrasts, con.type, con.name, X)
   out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,

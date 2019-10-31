@@ -14,6 +14,8 @@
 #' @export
 #' @return A \code{brainGraphList} object in which the graphs are for each
 #'   subject
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach getDoParRegistered
 #'
 #' @examples
 #' \dontrun{
@@ -31,25 +33,28 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   out <- setNames(vector('list', length(attrs)), attrs)
   for (a in attrs) out[[a]] <- g.list[[1]][[a]]
 
-  kNumThresh <- length(g.list)
   if (!is.null(g.list[[1]]$threshold)) {
     thresholds <- vapply(g.list, with, numeric(1), threshold)
   } else {
-    thresholds <- seq(from=0, to=1, length.out=kNumThresh)
+    thresholds <- seq(from=0, to=1, length.out=length(g.list))
   }
   if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   subjects <- names(g.list[[1]]$graphs)
-  kNumSubjs <- length(subjects)
   grps <- groups(g.list[[1]])
+
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   g.auc <- foreach(i=seq_along(subjects)) %dopar% {
     g.subj <- lapply(g.list, `[`, i)
     g.tmp <- with(out,
         make_empty_brainGraph(atlas, type=type, level=level, modality=modality,
                               weighting=weighting, name=subjects[i], Group=grps[i]))
     if (!is.null(g.attr)) {
-      for (k in seq_along(g.attr)) {
-        y <- sapply(g.subj, graph_attr, g.attr[k])
-        g.tmp <- set_graph_attr(g.tmp, g.attr[k], abs(auc_diff(thresholds, y)))
+      for (k in g.attr) {
+        y <- sapply(g.subj, graph_attr, k)
+        g.tmp <- set_graph_attr(g.tmp, k, abs(auc_diff(thresholds, y)))
       }
     }
     if (!is.null(v.attr)) {

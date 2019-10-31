@@ -41,6 +41,8 @@
 #' @param .function A custom function you can pass if \code{level='other'}
 #' @export
 #' @importFrom permute shuffleSet
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return An object of class \code{brainGraph_permute} with input arguments in
 #'   addition to:
@@ -67,7 +69,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
                                measure=c('btwn.cent', 'degree', 'E.nodal', 'ev.cent',
                                          'knn', 'transitivity', 'vulnerability'),
                                atlas=resids$atlas, .function=NULL) {
-  Group <- NULL
+  gID <- getOption('bg.group')
   stopifnot(inherits(resids, 'brainGraph_resids'))
   measure <- match.arg(measure)
   level <- match.arg(level)
@@ -94,9 +96,13 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
   dims <- dim(perms)
   N <- dims[1L]
   perms <- rbind(perms, seq_len(dims[2L]))  # last row is observed metrics
-  grps <- as.numeric(resids$resids.all$Group)
+  grps <- as.numeric(resids$resids.all[, get(gID)])
 
   # Loop through the permutation matrix
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   res.perm <- switch(level,
                vertex=permute_vertex_foreach(perms, densities, resids, grps, measure, diffFun),
                other=permute_other_foreach(perms, densities, resids, grps, .function),
@@ -228,13 +234,14 @@ summary.brainGraph_permute <- function(object, measure=NULL,
                                        alternative=c('two.sided', 'less', 'greater'),
                                        alpha=0.05, p.sig=c('p', 'p.fdr'), ...) {
   perm.diff <- p <- N <- p.fdr <- region <- obs.diff <- NULL
+  gID <- getOption('bg.group')
   if (object$level == 'other') {  # Hack to figure out which level it is when level="other"
     object$level <- if (dim(object$DT)[2L] > 8) 'vertex' else 'graph'
   }
 
   permDT <- copy(object$DT)
   g <- with(object, make_graphs_perm(densities, resids, seq_len(nobs(resids)),
-                                     resids$resids.all[, as.numeric(Group)]))
+                                     resids$resids.all[, as.numeric(get(gID))]))
 
   # VERTEX-LEVEL
   #-------------------------------------

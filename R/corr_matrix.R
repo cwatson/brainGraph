@@ -59,13 +59,14 @@
 corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'raw'),
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
-  Group <- Study.ID <- NULL
+  gID <- getOption('bg.group')
   N <- nregions(resids)
   regions <- region.names(resids)
 
+  sID <- getOption('bg.subject_id')
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
-    res.all <- as.matrix(resids$resids.all[, !c('Study.ID', 'Group')])
+    res.all <- as.matrix(resids$resids.all[, !c(get(sID), get(gID))])
     corrs <- rcorr(res.all)
     r <- corrs$r
     emax <- N  * (N - 1) / 2
@@ -78,11 +79,11 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   what <- match.arg(what)
   type <- match.arg(type)
   if (what == 'resids') {
-    res.all <- resids$resids.all[, !'Study.ID']
+    res.all <- resids$resids.all[, !get(sID)]
   } else if (what == 'raw') {
-    res.all <- dcast(resids$all.dat.long, 'Study.ID + Group ~ Region')
-    setkey(res.all, Group, Study.ID)
-    res.all <- res.all[, !'Study.ID']
+    res.all <- dcast(resids$all.dat.long, paste(sID, '+', gID, '~ Region'))
+    setkeyv(res.all, c(gID, sID))
+    res.all <- res.all[, !get(sID)]
   }
   if (!is.null(exclude.reg)) {
     res.all <- res.all[, -exclude.reg, with=FALSE]
@@ -106,7 +107,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                          dimnames=list(NULL, grps))
   }
   for (g in grps) {
-    corrs <- rcorr(as.matrix(res.all[g, !'Group']), type=type)
+    corrs <- rcorr(as.matrix(res.all[g, !get(gID)]), type=type)
     r[, , g] <- corrs$r
     p[, , g] <- corrs$P
 

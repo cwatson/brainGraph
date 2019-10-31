@@ -188,13 +188,14 @@ get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1
 #' @rdname glm_helpers
 
 glm_data_table <- function(g.list, level, measure) {
+  sID <- getOption('bg.subject_id')
   if (level == 'vertex') {
     y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
     colnames(y) <- V(g.list[[1]])$name
-    DT.y <- as.data.table(y, keep.rownames='Study.ID')
+    DT.y <- as.data.table(y, keep.rownames=sID)
   } else if (level == 'graph') {
     DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1), measure), keep.rownames=TRUE)
-    setnames(DT.y, names(DT.y), c('Study.ID', 'graph'))
+    setnames(DT.y, names(DT.y), c(sID, 'graph'))
   }
   return(DT.y)
 }

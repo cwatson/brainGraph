@@ -25,12 +25,6 @@ each graph. Each row will be for a different graph.
 in which each row is a vertex and each column is a different network measure
 (degree, centrality, etc.).
 }
-\examples{
-\dontrun{
-dt.V <- vertex_attr_dt(g)
-setcolorder(dt.V, c('modality', 'atlas', 'Group', names(dt.V)[1:28]))
-}
-}
 \seealso{
 \code{\link[igraph]{graph_attr}, \link[igraph]{graph_attr_names}}
 

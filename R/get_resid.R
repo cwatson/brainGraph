@@ -48,16 +48,18 @@
 
 get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
                       use.mean=FALSE, exclude.cov=NULL, atlas=NULL, ...) {
-  Region <- resids <- Group <- Study.ID <- value <- NULL
+  Region <- resids <- value <- NULL
 
-  stopifnot('Group' %in% names(covars))
-  if (!'Study.ID' %in% names(covars)) covars$Study.ID <- as.character(seq_len(nrow(covars)))
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  stopifnot(gID %in% names(covars))
+  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
   method <- match.arg(method)
-  grps <- covars[, levels(factor(Group))]
-  exclude.cov <- c('Study.ID', exclude.cov)
-  DT.cov <- merge(covars, dt.vol, by='Study.ID')
+  grps <- covars[, levels(factor(get(gID)))]
+  exclude.cov <- c(sID, exclude.cov)
+  DT.cov <- merge(covars, dt.vol, by=sID)
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='Region')
-  setkey(DT.m, Region, Study.ID)
+  setkeyv(DT.m, c('Region', sID))
 
   if (isTRUE(use.mean)) {
     if (length(grep('^l.*', names(dt.vol))) == 0) {
@@ -67,8 +69,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       lh <- '^l.*'
       rh <- '^r.*'
     }
-    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(lh, names(dt.vol))], by=Study.ID]
-    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(rh, names(dt.vol))], by=Study.ID]
+    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(lh, names(dt.vol))], by=sID]
+    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(rh, names(dt.vol))], by=sID]
     covars.lh <- cbind(covars, mean.lh)
     covars.rh <- cbind(covars, mean.rh)
 
@@ -80,9 +82,9 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       DT.m[grep(rh, Region), resids := rstudent_mat(rhvars, value), by=Region]
       X <- list(lh=lhvars$X, rh=rhvars$X)
     } else {
-      covars.lh <- split(covars.lh, by='Group')
-      covars.rh <- split(covars.rh, by='Group')
-      DT.m <- split(DT.m, by='Group')
+      covars.lh <- split(covars.lh, by=gID)
+      covars.rh <- split(covars.rh, by=gID)
+      DT.m <- split(DT.m, by=gID)
       X <- setNames(vector('list', length(grps)), grps)
       for (g in grps) {
         lhvars <- get_lm_vars(covars.lh[[g]], exclude.cov, ...)
@@ -101,8 +103,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       DT.m[, resids := rstudent_mat(lmvars, value), by=Region]
       X <- lmvars$X
     } else {
-      covars <- split(covars, by='Group')
-      DT.m <- split(DT.m, by='Group')
+      covars <- split(covars, by=gID)
+      DT.m <- split(DT.m, by=gID)
       X <- setNames(vector('list', length(grps)), grps)
       for (g in grps) {
         lmvars <- get_lm_vars(covars[[g]], exclude.cov, ...)
@@ -115,8 +117,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   }
 
   # Return data to "wide" format with just the residuals
-  resids.all <- dcast(DT.m, 'Study.ID + Group ~ Region', value.var='resids')
-  setkey(resids.all, Group, Study.ID)
+  resids.all <- dcast(DT.m, paste(sID, '+', gID, '~ Region'), value.var='resids')
+  setkeyv(resids.all, c(gID, sID))
 
   out <- list(X=X, method=method, use.mean=use.mean, all.dat.long=DT.m,
               resids.all=resids.all, Group=grps, atlas=NULL)
@@ -173,13 +175,14 @@ rstudent_mat <- function(lmvars, y) {
 #' @rdname residuals
 
 `[.brainGraph_resids` <- function(x, i, g=NULL) {
-  Group <- Study.ID <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
   if (!is.null(g)) x$resids.all <- droplevels(x$resids.all[g])
   if (missing(i)) i <- seq_len(dim(x$resids.all)[1L])
   x$resids.all <- x$resids.all[i]
-  x$Group <- x$resids.all[, levels(factor(Group))]
-  setkey(x$resids.all, Group, Study.ID)
-  x$all.dat.long <- x$all.dat.long[Study.ID %in% case.names(x)]
+  x$Group <- x$resids.all[, levels(factor(get(gID)))]
+  setkeyv(x$resids.all, c(gID, sID))
+  x$all.dat.long <- x$all.dat.long[get(sID) %in% case.names(x)]
   return(x)
 }
 
@@ -196,17 +199,19 @@ rstudent_mat <- function(lmvars, y) {
 #' @rdname residuals
 
 summary.brainGraph_resids <- function(object, region=NULL, ...) {
-  Region <- resids <- Study.ID <- NULL
+  Region <- resids <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
   if (is.null(region)) region <- region.names(object)
   DT <- droplevels(object$all.dat.long[Region %in% region,
-                                       c('Study.ID', 'Group', 'Region', 'resids')])
+                                       c(sID, gID, 'Region', 'resids')])
   setkey(DT, Region, resids)
   outliers <- DT[, .SD[abs(resids) > abs(mean(resids) + 2*sd(resids))], by=Region]
   outliers.reg <- outliers[, .N, by=Region]
   outliers.reg.vec <- structure(outliers.reg$N, names=as.character(outliers.reg$Region))
 
-  outliers.sub <- outliers[, .N, by=Study.ID]
-  outliers.sub.vec <- structure(outliers.sub$N, names=as.character(outliers.sub$Study.ID))
+  outliers.sub <- outliers[, .N, by=sID]
+  outliers.sub.vec <- structure(outliers.sub$N, names=as.character(outliers.sub[, get(sID)]))
 
   out <- list(Region=region, DT.sum=DT,
               outliers=list(DT=outliers, Region=outliers.reg.vec, subject=outliers.sub.vec))
@@ -264,10 +269,12 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' }
 
 plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
-  Region <- Group <- ind <- mark <- Study.ID <- resids <- NULL
+  Region <- ind <- mark <- resids <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
   DT <- summary(x, region=region)$DT.sum
   regions <- DT[, levels(Region)]
-  setkey(DT, Group, Study.ID)
+  setkeyv(DT, c(gID, sID))
 
   rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(nobs(x)))
   DT[, ind := rnames, by=Region]
@@ -279,8 +286,8 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
 
   # Local function to plot for a single region
   plot_single <- function(DT.resids, cols) {
-    Region <- Group <- resids <- NULL
-    p <- ggplot(DT.resids, aes(x=x, y=resids, col=Group)) +
+    Region <- resids <- NULL
+    p <- ggplot(DT.resids, aes(x=x, y=resids, col=get(gID))) +
       geom_text_repel(aes(label=ind), size=3) +
       geom_point(aes(shape=mark, size=mark)) +
       geom_line(aes(x=x, y=x), col='gray50') +
@@ -292,7 +299,7 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
       labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(Region)]),
            x='Theoretical Quantiles', y='Sample Quantiles')
     if (!isTRUE(cols)) {
-      p <- p + scale_color_manual(values=rep('black', DT.resids[, length(unique(Group))]))
+      p <- p + scale_color_manual(values=rep('black', DT.resids[, length(unique(get(gID)))]))
     }
     return(p)
   }

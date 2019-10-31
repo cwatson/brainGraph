@@ -14,6 +14,8 @@
 #'   contributions (either \code{global} or \code{regional})
 #' @export
 #' @importFrom ade4 mantel.rtest
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return A \code{data.table} with columns for
 #'   \item{Study.ID}{Subject identifier}
@@ -37,7 +39,9 @@
 #'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
-  Group <- Study.ID <- i <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  i <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
   level <- match.arg(level)
   group.vec <- groups(resids)
@@ -49,15 +53,19 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
     combFun <- rbind
     diffFun <- function(a, b) colSums(abs(a - b))
   }
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   IC <- foreach(i=seq_len(n), .combine=combFun) %dopar% {
     resids.excl <- resids[-i]
     new.corrs <- corr.matrix(resids.excl[group.vec[i]], densities=0.1)
     diffFun(corrs$R[, , group.vec[i]], new.corrs$R[, , 1L])
   }
 
-  DT <- cbind(resids$resids.all[, list(Study.ID, Group)], IC)
+  DT <- cbind(resids$resids.all[, list(get(sID), get(gID))], IC)
   if (level == 'regional') {
-    DT <- melt(DT, id.vars=c('Study.ID', 'Group'), variable.name='region', value.name='RC')
+    DT <- melt(DT, id.vars=c(sID, gID), variable.name='region', value.name='RC')
   }
   out <- list(method='Leave one out', level=level, DT=DT)
   class(out) <- c('IC', class(out))
@@ -78,6 +86,8 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #'   (default: 1)
 #' @export
 #' @importFrom ade4 mantel.rtest
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @rdname individ_contrib
 #' @examples
@@ -87,7 +97,9 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' }
 
 aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) {
-  Group <- i <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  i <- NULL
   stopifnot(inherits(resids, 'brainGraph_resids'), inherits(corrs, 'corr_mats'))
 
   corr.mat <- corrs[, control.value]$R[, , 1L]
@@ -97,7 +109,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
   if (is.numeric(control.value)) control.value <- grps[control.value]
   patient.str <- setdiff(grps, control.value)
 
-  control.inds <- resids$resids.all[Group == control.value, which=TRUE]
+  control.inds <- resids$resids.all[get(gID) == control.value, which=TRUE]
   level <- match.arg(level)
   if (level == 'global') {
     combFun <- c
@@ -106,25 +118,30 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
     combFun <- rbind
     diffFun <- function(a, b) data.table(t(colSums(abs(a - b))))
   }
+
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   IC <- setNames(vector('list', length(patient.str)), patient.str)
   for (j in patient.str) {
-    pat.inds <- resids$resids.all[Group == j, which=TRUE]
+    pat.inds <- resids$resids.all[get(gID) == j, which=TRUE]
     IC[[j]] <- foreach(i=seq_len(kNumSubj[j]), .combine=combFun) %dopar% {
       resids.aop <- resids[c(control.inds, pat.inds[i])]
-      resids.aop$resids.all[, Group := control.value]
+      resids.aop$resids.all[, eval(gID) := control.value]
       resids.aop$resids.all <- droplevels(resids.aop$resids.all)
-      resids.aop$Group <- resids.aop$resids.all[, factor(levels(Group))]
-      setkey(resids.aop$resids.all, Group)
+      resids.aop$Group <- resids.aop$resids.all[, factor(levels(get(gID)))]
+      setkeyv(resids.aop$resids.all, gID)
       new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1L]
       diffFun(corr.mat, new.corr)
     }
-    IC[[j]] <- cbind(resids$resids.all[j, c('Study.ID', 'Group')], IC[[j]])
+    IC[[j]] <- cbind(resids$resids.all[j, c(sID, gID)], IC[[j]])
   }
   DT <- rbindlist(IC)
   if (level == 'global') {
     setnames(DT, 'V2', 'IC')
   } else if (level == 'regional') {
-    DT <- melt(DT, id.vars=c('Study.ID', 'Group'), variable.name='region', value.name='RC')
+    DT <- melt(DT, id.vars=c(sID, gID), variable.name='region', value.name='RC')
   }
   out <- list(method='Add one patient', level=level, DT=DT)
   class(out) <- c('IC', class(out))
@@ -145,26 +162,27 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
 #' @rdname individ_contrib
 
 summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
-  avg <- diff_mean <- Group <- IC <- Max <- med <- Min <- RC <- se <- stdev <- NULL
+  avg <- diff_mean <- IC <- Max <- med <- Min <- RC <- se <- stdev <- NULL
+  gID <- getOption('bg.group')
   object$digits <- digits
   DT.sum <- copy(object$DT)
   if (object$level == 'regional') {
     regions <- if (is.null(region)) region.names(DT.sum) else region
     object$regions <- regions
     DT.sum <- droplevels(DT.sum[region %in% regions])
-    DT.sum[, Min := min(RC), by=list(Group, region)]
-    DT.sum[, med := median(RC), by=list(Group, region)]
-    DT.sum[, avg := mean(RC), by=list(Group, region)]
-    DT.sum[, Max := max(RC), by=list(Group, region)]
-    DT.sum[, stdev := sd(RC), by=list(Group, region)]
-    DT.sum[, se := stdev / sqrt(.N), by=list(Group, region)]
-    outliers <- DT.sum[, .SD[RC > avg + 2 * stdev], by=list(Group, region)]
+    DT.sum[, Min := min(RC), by=list(gID, region)]
+    DT.sum[, med := median(RC), by=list(gID, region)]
+    DT.sum[, avg := mean(RC), by=list(gID, region)]
+    DT.sum[, Max := max(RC), by=list(gID, region)]
+    DT.sum[, stdev := sd(RC), by=list(gID, region)]
+    DT.sum[, se := stdev / sqrt(.N), by=list(gID, region)]
+    outliers <- DT.sum[, .SD[RC > avg + 2 * stdev], by=list(gID, region)]
     outliers.reg <- outliers[, .N, by=region]
     outliers.reg.vec <- with(outliers.reg, structure(N, names=as.character(region)))
     object$outliers <- list(DT=outliers, region=outliers.reg.vec)
   } else if (object$level == 'global') {
-    DT.sum[, avg := mean(IC), by=Group]
-    outliers <- DT.sum[, .SD[IC > avg + 2 * sd(IC)], by=Group]
+    DT.sum[, avg := mean(IC), by=gID]
+    outliers <- DT.sum[, .SD[IC > avg + 2 * sd(IC)], by=gID]
     outliers[, diff_mean := IC - avg]
     outliers[, avg := NULL]
     DT.sum[, avg := NULL]
@@ -174,11 +192,11 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
 
   # Calculate some group descriptive statistics
   if (object$level == 'global') {
-    grps <- object$DT.sum[, levels(Group)]
+    grps <- object$DT.sum[, levels(get(gID))]
     sums <- setNames(vector('list', length(grps)), grps)
     for (g in grps) {
-      sums[[g]] <- object$DT.sum[Group == g, quantile(IC, c(0, .1, .25, .5, .75, .9, 1))]
-      sums[[g]] <- append(sums[[g]], object$DT.sum[Group == g, mean(IC)], after=4)
+      sums[[g]] <- object$DT.sum[get(gID) == g, quantile(IC, c(0, .1, .25, .5, .75, .9, 1))]
+      sums[[g]] <- append(sums[[g]], object$DT.sum[get(gID) == g, mean(IC)], after=4)
       names(sums[[g]]) <- c('Min.', '10%', '1st Qu.', 'Median', 'Mean', '3rd Qu.', '90%', 'Max.')
     }
     sums <- t(abind::abind(sums, along=2))
@@ -193,15 +211,17 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
 #' @keywords internal
 
 print.summary.IC <- function(x, ...) {
-  Group <- region <- IC <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  region <- IC <- NULL
   print_title_summary('Individual contributions')
   cat('Method: ', x$method, '\n')
   cat('Level: ', x$level, '\n\n')
 
   if (x$level == 'regional') {
-    print(x$DT.sum[region == levels(region)[1], table(Group)])
+    print(x$DT.sum[region == levels(region)[1], table(get(gID))])
   } else {
-    print(x$DT.sum[, table(Group)])
+    print(x$DT.sum[, table(get(gID))])
   }
   cat('\n')
 
@@ -217,13 +237,13 @@ print.summary.IC <- function(x, ...) {
     message('# of outliers per region: (sorted in descending order)\n', dashes)
     print(sort(x$outliers$region, decreasing=TRUE))
     cat('\n')
-    DT <- x$DT.sum[, .SD[1, !c('Study.ID', 'RC')], by=list(Group, region)]
+    DT <- x$DT.sum[, .SD[1, !c(sID, 'RC')], by=list(gID, region)]
     setnames(DT, c('med', 'avg', 'stdev', 'se'), c('Median', 'Mean', 'Std. Dev', 'Std. Err'))
     message('Region summaries\n', dashes)
     print(DT, digits=x$digits)
   } else {
     message('Outliers\n', dashes)
-    print(x$outliers$DT[order(Group, -IC)], digits=x$digits)
+    print(x$outliers$DT[order(get(gID), -IC)], digits=x$digits)
   }
   invisible(x)
 }
@@ -244,10 +264,12 @@ print.summary.IC <- function(x, ...) {
 #' @rdname individ_contrib
 
 plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ids=TRUE, ...) {
-  RC <- Group <- avg <- se <- ind <- mark <- IC <- Study.ID <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  RC <- avg <- se <- ind <- mark <- IC <- NULL
   DT <- summary(x)$DT.sum
-  kNumGroups <- DT[, nlevels(Group)]
-  grps <- DT[, levels(Group)]
+  kNumGroups <- DT[, nlevels(get(gID))]
+  grps <- DT[, levels(get(gID))]
   leg.pos <- if (kNumGroups == 1) 'none' else 'bottom'
   if (x$level == 'regional') {
     xlabel <- 'Region'
@@ -265,18 +287,18 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     plot.type <- match.arg(plot.type)
     if (plot.type == 'boxplot') {
       p <- ggplot(DT[region %in% regions], aes(x=region, y=RC)) +
-        geom_boxplot(aes(fill=Group, group=interaction(Group, region)))
+        geom_boxplot(aes(fill=get(gID), group=interaction(get(gID), region)))
 
     } else {
-      p <- ggplot(DT[region %in% regions], aes(x=region, col=Group, group=Group))
+      p <- ggplot(DT[region %in% regions], aes(x=region, col=get(gID), group=get(gID)))
       if (plot.type == 'smooth') {
         p <- p + stat_smooth(method='loess', aes(y=RC))
 
       } else if (plot.type == 'mean') {
-        DT[, avg := mean(RC), by=list(Group, region)]
-        DT[, se := sd(RC) / sqrt(.N), by=list(Group, region)]
+        DT[, avg := mean(RC), by=list(gID, region)]
+        DT[, se := sd(RC) / sqrt(.N), by=list(gID, region)]
         p <- p + geom_line(aes(y=avg)) +
-          geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=Group), alpha=0.5)
+          geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=get(gID)), alpha=0.5)
       }
     }
 
@@ -284,7 +306,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     n <- dim(DT)[1L]
     txtsize <- if (n > 50) 9 else 12
     if (isTRUE(ids)) {
-      DT[, ind := Study.ID]
+      DT[, ind := get(sID)]
     } else {
       spec <- paste0('%0', floor(log10(n) + 1), 'i')
       DT[, ind := sprintf(spec, .I)]
@@ -295,12 +317,12 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     # From "ggsci"; the "npg" palette
     cols <- c('#E64B35', '#4DBBD5', '#00A087', '#3C5488', '#F39B7F',
               '#8491B4', '#91D1C2', '#DC0000', '#7E6148', '#B09C85')
-    p <- ggplot(DT, aes(x=Study.ID, y=IC, col=Group)) +
+    p <- ggplot(DT, aes(x=get(sID), y=IC, col=get(gID))) +
       geom_text_repel(aes(label=ind), size=3) +
       geom_point(aes(shape=mark, size=mark)) +
-      scale_color_manual(name='Group', labels=grps, values=cols[1:kNumGroups]) +
-      scale_shape_manual(name='Group', labels=grps, values=c(20, 17)) +
-      scale_size_manual(name='Group', labels=grps, values=c(2, 3))
+      scale_color_manual(name=gID, labels=grps, values=cols[1:kNumGroups]) +
+      scale_shape_manual(name=gID, labels=grps, values=c(20, 17)) +
+      scale_size_manual(name=gID, labels=grps, values=c(2, 3))
   }
   p <- p +
     labs(x=xlabel, y=ylabel, title=ptitle) +

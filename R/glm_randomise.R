@@ -143,6 +143,8 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
 #'   analyses). For GLM, it is \code{'region'}; for NBS, it is
 #' @inheritParams GLM
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #' @return A \code{data.table} with \code{N} rows and columns specifying the
 #'   region, permutation number, effect size (either \code{gamma} or the
 #'   numerator for the \emph{F-statistic}), and standard error
@@ -168,6 +170,11 @@ randomise <- function(perm.method, part.method, N, perms,
   #-----------------------------------------------------------------------------
   # Loop through contrasts
   #-----------------------------------------------------------------------------
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
+
   # Change name to avoid using "get", which is slow
   setnames(DT, outcome, 'outcome')
   for (j in setdiff(seq_len(nC), skip)) {

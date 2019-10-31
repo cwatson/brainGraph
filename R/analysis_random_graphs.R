@@ -43,8 +43,7 @@
 #' }
 
 analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, savedir='.', ...) {
-  Group <- NULL
-
+  grp <- getOption('bg.group')
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
@@ -86,7 +85,7 @@ analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, save
   }
   rand.dt <- rbindlist(rand.dt)
   small.dt <- rbindlist(small.dt)
-  setkey(small.dt, Group, density)
+  setkeyv(small.dt, c(grp, 'density'))
   rich.dt <- rbindlist(lapply(phi.norm, rbindlist))
 
   return(list(rich=rich.dt, small=small.dt, rand=rand.dt))
@@ -114,9 +113,11 @@ get_rand_attrs <- function(bg.list, level) {
   if (level == 'subject') {
     ids <- names(rand)
     DT <- data.table(Study.ID=rep(ids, times=N), Group=rep(grps, times=N))
+    setnames(DT, 'Study.ID', getOption('bg.subject_id'))
   } else if (level == 'group') {
     DT <- data.table(Group=rep(grps, times=N))
   }
+  setnames(DT, 'Group', getOption('bg.group'))
   DT <- cbind(DT, data.table(mod=mod, Cp=Cp, Lp=Lp, E.global=E.global))
   if ('density' %in% graph_attr_names(rand[[1]][[1]])) {
     densities <- vapply(rand, function(x) graph_attr(x[[1]], 'density'), numeric(1))

@@ -38,10 +38,11 @@ graph_attr_dt <- function(bg.list) {
     if (x %in% g.attrs) g.dt[, eval(x) := vapply(bg.list, graph_attr, character(1), x)]
   }
   if (level == 'subject') {
-    setnames(g.dt, 'name', 'Study.ID')
+    setnames(g.dt, 'name', getOption('bg.subject_id'))
   } else if (level == 'group') {
     g.dt[, name := NULL]
   }
+  setnames(g.dt, 'Group', getOption('bg.group'))
 
   return(g.dt)
 }
@@ -59,11 +60,6 @@ graph_attr_dt <- function(bg.list) {
 #'
 #' @seealso \code{\link[igraph]{vertex_attr}, \link[igraph]{vertex_attr_names},
 #' \link[igraph]{graph_from_data_frame}}
-#' @examples
-#' \dontrun{
-#' dt.V <- vertex_attr_dt(g)
-#' setcolorder(dt.V, c('modality', 'atlas', 'Group', names(dt.V)[1:28]))
-#' }
 
 vertex_attr_dt <- function(bg.list) {
   name <- NULL
@@ -93,13 +89,15 @@ vertex_attr_dt <- function(bg.list) {
     if (x %in% g.attrs) dt.V[, eval(x) := rep(sapply(bg.list, graph_attr, x), each=Nv)]
   }
   if (level == 'subject') {
-    setnames(dt.V, 'name', 'Study.ID')
+  
+    setnames(dt.V, 'name', getOption('bg.subject_id'))
   } else if (level == 'group') {
     dt.V[, name := NULL]
   }
   setcolorder(dt.V,
               c('density', 'region', 'lobe', 'hemi',
                 names(dt.V[, !c('density', 'region', 'lobe', 'hemi'), with=FALSE])))
+  setnames(dt.V, 'Group', getOption('bg.group'))
 
   return(dt.V)
 }

@@ -9,8 +9,9 @@
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
   "E.global", "Cp", "Lp", "assortativity", "strength", "mod.wt",
-  "E.global.wt"), conf = 0.95, .progress = TRUE, xfm.type = c("1/w",
-  "-log(w)", "1-w", "-log10(w/max(w))", "-log10(w/max(w)+1)"))
+  "E.global.wt"), conf = 0.95, .progress = getOption("bg.progress"),
+  xfm.type = c("1/w", "-log(w)", "1-w", "-log10(w/max(w))",
+  "-log10(w/max(w)+1)"))
 
 \method{summary}{brainGraph_boot}(object, ...)
 
@@ -30,7 +31,7 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
 \code{0.95}}
 
 \item{.progress}{Logical indicating whether or not to show a progress bar.
-Default: \code{TRUE}}
+Default: \code{getOption('bg.progress')}}
 
 \item{xfm.type}{Character string specifying how to transform the weights.
 Default: \code{1/w}}

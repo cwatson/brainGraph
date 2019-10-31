@@ -66,8 +66,10 @@ make_brainGraphList <- function(x, atlas, type=c('observed', 'random'),
 #'   'group'}, then you do not need to include this argument (the group names
 #'   will be the same as \code{gnames}). Default: \code{NULL})
 #' @param .progress Logical indicating whether to print a progress bar. Default:
-#'   \code{FALSE}
+#'   \code{getOption('bg.progress')}
 #' @export
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach getDoParRegistered
 #' @rdname brainGraphList
 
 make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
@@ -76,7 +78,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
                                       weighting=NULL, threshold=NULL,
                                       gnames=NULL, grpNames=NULL, subnet=NULL,
                                       mode='undirected', weighted=NULL, diag=FALSE,
-                                      .progress=FALSE, ...) {
+                                      .progress=getOption('bg.progress'), ...) {
   i <- NULL
   level <- match.arg(level)
   kNumGraphs <- dim(x)[3L]
@@ -100,9 +102,13 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
 
   # Show a progress bar so you aren't left in the dark
   #---------------------------------------------------------
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
+  loopfun <- make_brainGraph
   if (isTRUE(.progress)) {
-    os <- .Platform$OS.type
-    ncpu <- if (os == 'windows') as.numeric(Sys.getenv('NUMBER_OF_PROCESSORS')) else detectCores()
+    ncpu <- getOption('bg.ncpus')
     print(paste('Start time:', format(as.POSIXct(Sys.time()), '%Y-%m-%d %H:%M:%OS0')))
     progbar <- txtProgressBar(min=0, max=kNumGraphs, style=3)
     loopfun <- function(...) {
@@ -112,8 +118,6 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
       flush.console()
       make_brainGraph(...)
     }
-  } else {
-    loopfun <- make_brainGraph
   }
 
   env <- environment()
@@ -140,7 +144,7 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
                                           weighting=NULL, threshold=x$densities,
                                           gnames=names(x$r.thresh), grpNames=gnames,
                                           mode='undirected', weighted=NULL,
-                                          diag=FALSE, .progress=FALSE, ...) {
+                                          diag=FALSE, .progress=getOption('bg.progress'), ...) {
   dims <- vapply(x$r.thresh, dim, numeric(3L))[3L, ]
   if (any(dims > 1L)) x <- x[1]
   A <- abind::abind(x$r.thresh)

@@ -10,7 +10,8 @@
 brainGraph_mediate(g.list, covars, mediator, treat, outcome, covar.names,
   level = c("graph", "vertex"), boot = TRUE, boot.ci.type = c("perc",
   "bca"), N = 1000, conf.level = 0.95, control.value = 0,
-  treat.value = 1, long = TRUE, int = FALSE, ...)
+  treat.value = 1, long = TRUE, int = FALSE,
+  .progress = getOption("bg.progress"), ...)
 
 \method{summary}{bg_mediate}(object, mediate = FALSE, region = NULL,
   digits = max(3L, getOption("digits") - 2L), ...)
@@ -62,6 +63,9 @@ condition (default: \code{1})}
 
 \item{int}{Logical indicating whether or not to include an interaction of the
 mediator and treatment (default: \code{FALSE})}
+
+\item{.progress}{Logical indicating whether to print a progress bar. Default:
+\code{getOption('bg.progress')}}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}
 (e.g., \code{binarize}) (unused in the \code{summary} method)}

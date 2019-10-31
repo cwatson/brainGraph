@@ -45,7 +45,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                 part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
-  i <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- Study.ID <- NULL
+  i <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- NULL
   dimA <- dim(A)
   stopifnot(dimA[3L] == dim(covars)[1L])
   Nv <- dimA[1L]
@@ -56,7 +56,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   if (ctype == 'f') alt <- 'two.sided'
   glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
   X <- glmSetup$X; incomp <- glmSetup$incomp; contrasts <- glmSetup$contrasts; nC <- glmSetup$nC
-  if (length(incomp) > 0) A <- A[, , -glmSetup$covars[, which(Study.ID %in% incomp)]]
+  if (length(incomp) > 0) A <- A[, , -glmSetup$covars[, which(get(getOption('bg.subject_id')) %in% incomp)]]
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
   A <- symmetrize_array(A, symm.by)

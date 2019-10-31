@@ -30,25 +30,27 @@
 
 plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
                            densities, alpha=0.05, fdr=TRUE, g.list=NULL, smooth=TRUE) {
-  yloc <- Group <- norm <- xstart <- xend <- Study.ID <- NULL
+  yloc <- norm <- xstart <- xend <- NULL
+  gID <- getOption('bg.group')
 
   facet.by <- match.arg(facet.by)
   subDT <- rich.dt[round(get(facet.by), 2) %in% round(densities, 2)]
   pvar <- if (isTRUE(fdr)) 'p.fdr' else 'p'
   subDT[, star := ifelse(get(pvar) < alpha, '*', '')]
   subDT[, yloc := extendrange(norm), by=facet.by]
-  subDT[, Group := as.factor(Group)]
-  grps <- subDT[, levels(Group)]
+  subDT[, eval(gID) := as.factor(get(gID))]
+  grps <- subDT[, levels(get(gID))]
   if (length(grps) > 1) {
     for (i in 2:length(grps)) {
-      subDT[Group == grps[i], yloc := yloc - i * 0.05 * diff(range(norm, na.rm=TRUE)), by=facet.by]
+      subDT[get(gID) == grps[i], yloc := yloc - i * 0.05 * diff(range(norm, na.rm=TRUE)), by=facet.by]
     }
   }
-  setkeyv(subDT, c(facet.by, 'Group'))
+  setkeyv(subDT, c(facet.by, gID))
 
   rects <- data.table(density=subDT[, unique(get(facet.by))], xstart=0L, xend=0L,
-                      Group=rep(subDT[, unique(Group)],
+                      Group=rep(subDT[, unique(get(gID))],
                                 each=length(densities)))
+  setnames(rects, 'Group', gID)
   if (!is.null(g.list)) {
     # Check if components are 'brainGraphList' objects
     matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
@@ -67,25 +69,26 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   setkeyv(rects, key(subDT))
   rects[, eval(facet.by) := factor(get(facet.by), labels=densities)]
   subDT[, eval(facet.by) := factor(get(facet.by), labels=densities)]
-  setkeyv(subDT, c(facet.by, 'Group'))
-  setkeyv(rects, c(facet.by, 'Group'))
+  setkeyv(subDT, c(facet.by, gID))
+  setkeyv(rects, c(facet.by, gID))
 
-  if ('Study.ID' %in% names(subDT)) {
+  sID <- getOption('bg.subject_id')
+  if (sID %in% names(subDT)) {
     rects <- subDT[rects]
-    p <- ggplot(data=rects, aes(x=k, y=norm, group=Study.ID))
+    p <- ggplot(data=rects, aes(x=k, y=norm, group=get(sID)))
   } else {
     p <- ggplot(data=subDT[rects], aes(x=k, y=norm))
     smooth <- FALSE
   }
   p <- p +
     geom_hline(yintercept=1, size=0.5, lty=2) +
-    geom_text(aes(y=yloc, col=Group, label=star), size=6, show.legend=FALSE)
+    geom_text(aes(y=yloc, col=get(gID), label=star), size=6, show.legend=FALSE)
 
   if (isTRUE(smooth)) {
-    p <- p + stat_smooth(aes(col=Group, group=Group))
+    p <- p + stat_smooth(aes(col=get(gID), group=get(gID)))
   } else {
     p <- p +
-      geom_line(aes(col=Group)) +
+      geom_line(aes(col=get(gID))) +
       geom_rect(data=rects,
                 aes(x=NULL, y=NULL, xmin=xstart, xmax=xend, ymin=-Inf, ymax=Inf),
                 alpha=0.08, fill='red')

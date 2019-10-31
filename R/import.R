@@ -60,7 +60,7 @@
 #' }
 
 import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, custom.atlas=NULL) {
-  missing <- scgm <- Study.ID <- NULL
+  missing <- scgm <- NULL
 
   atlas <- match.arg(atlas, choices=c(data(package='brainGraph')$results[, 3], 'custom'))
   if (atlas == 'custom') {
@@ -85,7 +85,8 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
   if (grepl('scgm', atlas)) {
     asegfile <- file.path(datadir, 'asegstats.csv')
     scgm <- update_fs_names(asegfile, 'aseg', exclude.subs)
-    missing <- union(setdiff(scgm$Study.ID, lhrh$Study.ID), setdiff(lhrh$Study.ID, scgm$Study.ID))
+    sID <- getOption('bg.subject_id')
+    missing <- union(setdiff(scgm[[sID]], lhrh[[sID]]), setdiff(lhrh[[sID]], scgm[[sID]]))
   }
 
   return(list(atlas=atlas, modality=modality, lhrh=lhrh, aseg=scgm,
@@ -99,10 +100,10 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
 #' @keywords internal
 
 update_fs_names <- function(filename, modality, parcellation, hemi, exclude.subs) {
-  Study.ID <- NULL
+  sID <- getOption('bg.subject_id')
   stopifnot(file.exists(filename))
   DT <- fread(filename, colClasses=list(character=1))
-  names(DT)[1] <- 'Study.ID'
+  names(DT)[1] <- sID
 
   if (modality == 'aseg') {
     DT <- DT[, 1:15, with=FALSE]
@@ -142,7 +143,7 @@ update_fs_names <- function(filename, modality, parcellation, hemi, exclude.subs
     }
   }
 
-  setkey(DT, Study.ID)
-  if (!is.null(exclude.subs)) DT <- DT[!Study.ID %in% exclude.subs]
+  setkeyv(DT, sID)
+  if (!is.null(exclude.subs)) DT <- DT[!get(sID) %in% exclude.subs]
   return(DT)
 }

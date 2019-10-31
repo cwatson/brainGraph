@@ -18,7 +18,7 @@
 #' @param conf Numeric; the level for calculating confidence intervals. Default:
 #'   \code{0.95}
 #' @param .progress Logical indicating whether or not to show a progress bar.
-#'   Default: \code{TRUE}
+#'   Default: \code{getOption('bg.progress')}
 #' @inheritParams xfm.weights
 #' @export
 #' @importFrom boot boot
@@ -40,7 +40,7 @@
 brainGraph_boot <- function(densities, resids, R=1e3,
                             measure=c('mod', 'E.global', 'Cp', 'Lp', 'assortativity',
                                       'strength', 'mod.wt', 'E.global.wt'),
-                            conf=0.95, .progress=TRUE,
+                            conf=0.95, .progress=getOption('bg.progress'),
                             xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)')) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
 
@@ -67,6 +67,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
   }
 
   # Show a progress bar so you aren't left in the dark
+  intfun <- statfun
   if (isTRUE(.progress)) {
     intfun <- function(data, indices, measure, res.obj, xfm.type) {
       curVal <- get('counter', envir=env) + ncpus
@@ -75,18 +76,15 @@ brainGraph_boot <- function(densities, resids, R=1e3,
       flush.console()
       statfun(data, indices, measure, res.obj, xfm.type)
     }
-  } else {
-    intfun <- statfun
   }
 
+  ncpus <- getOption('bg.ncpus')
   if (.Platform$OS.type == 'windows') {
     my.parallel <- 'snow'
-    ncpus <- as.numeric(Sys.getenv('NUMBER_OF_PROCESSORS'))
     cl <- makeCluster(ncpus, type='SOCK')
     clusterEvalQ(cl, library(brainGraph))
   } else {
     my.parallel <- 'multicore'
-    ncpus <- detectCores()
     cl <- NULL
   }
 
@@ -124,6 +122,7 @@ summary.brainGraph_boot <- function(object, ...) {
                              density=rep(densities, length(Group)),
                              Observed=c(vapply(boot, with, numeric(kNumDensities), t0)),
                              se=c(vapply(boot, function(x) apply(x$t, 2, sd), numeric(kNumDensities)))))
+  setnames(boot.dt, 'Group', getOption('bg.group'))
   ci <- with(object,
              vapply(seq_along(densities), function(x)
                     vapply(boot, function(y)
@@ -175,15 +174,16 @@ print.summary.brainGraph_boot <- function(x, ...) {
 #'   \item{ci}{A ggplot object with ribbon representing confidence intervals}
 
 plot.brainGraph_boot <- function(x, ..., alpha=0.4) {
-  Observed <- Group <- se <- ci.low <- ci.high <- NULL
+  Observed <- se <- ci.low <- ci.high <- NULL
+  gID <- getOption('bg.group')
 
   boot.sum <- summary(x)
   boot.dt <- boot.sum$DT.sum
-  b <- ggplot(boot.dt, aes(x=density, y=Observed, col=Group)) +
+  b <- ggplot(boot.dt, aes(x=density, y=Observed, col=get(gID))) +
     geom_line() +
     labs(y=boot.sum$meas.full)
 
-  se <- b + geom_ribbon(aes(ymin=Observed-se, ymax=Observed+se, fill=Group), alpha=alpha)
-  ci <- b + geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=Group), alpha=alpha)
+  se <- b + geom_ribbon(aes(ymin=Observed-se, ymax=Observed+se, fill=get(gID)), alpha=alpha)
+  ci <- b + geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=get(gID)), alpha=alpha)
   return(list(se=se, ci=ci))
 }

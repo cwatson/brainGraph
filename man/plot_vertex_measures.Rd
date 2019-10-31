@@ -5,7 +5,7 @@
 \title{Plot vertex-level graph measures at a single density or threshold}
 \usage{
 plot_vertex_measures(g.list, measure, facet.by = NULL,
-  group.by = "Group", type = c("violin", "boxplot"),
+  group.by = getOption("bg.group"), type = c("violin", "boxplot"),
   show.points = FALSE, ylabel = measure, ...)
 }
 \arguments{
@@ -17,7 +17,7 @@ plot_vertex_measures(g.list, measure, facet.by = NULL,
 any). Default: \code{NULL}}
 
 \item{group.by}{Character string indicating which variable to group the data
-by. Default: \code{'Group'}}
+by. Default: \code{getOption('bg.group')}}
 
 \item{type}{Character string indicating the plot type. Default:
 \code{'violin'}}

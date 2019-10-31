@@ -64,16 +64,16 @@
 brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.means'),
                                   factorize=TRUE, binarize=NULL, int=NULL,
                                   mean.center=FALSE, center.how=c('all', 'within-groups'),
-                                  center.by='Group') {
-  Study.ID <- NULL
+                                  center.by=getOption('bg.group')) {
+  sID <- getOption('bg.subject_id')
   covars <- copy(covars)
-  covars[, Study.ID := as.character(Study.ID)]
+  covars[, eval(sID) := as.character(get(sID))]
   X <- matrix(1, nrow=dim(covars)[1L], ncol=1)
   colnames(X) <- 'Intercept'
 
   if (isTRUE(factorize)) {
     cols <- names(which(vapply(covars, is.character, logical(1))))
-    cols <- cols[!is.element(cols, 'Study.ID')]
+    cols <- cols[!is.element(cols, sID)]
     cols <- setdiff(cols, binarize)
     if (length(cols) > 0) covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
   }

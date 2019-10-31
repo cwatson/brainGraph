@@ -24,6 +24,7 @@ Imports:
     ade4,
     boot,
     data.table,
+    doParallel,
     expm,
     foreach,
     ggplot2,
@@ -43,4 +44,4 @@ Suggests:
     cairoDevice,
     mediation
 License: GPL-3
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

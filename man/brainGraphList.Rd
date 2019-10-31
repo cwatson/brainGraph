@@ -20,13 +20,14 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
   set.attrs = TRUE, modality = NULL, weighting = NULL,
   threshold = NULL, gnames = NULL, grpNames = NULL, subnet = NULL,
   mode = "undirected", weighted = NULL, diag = FALSE,
-  .progress = FALSE, ...)
+  .progress = getOption("bg.progress"), ...)
 
 \method{make_brainGraphList}{corr_mats}(x, atlas = x$atlas,
   type = "observed", level = "group", set.attrs = TRUE,
   modality = NULL, weighting = NULL, threshold = x$densities,
   gnames = names(x$r.thresh), grpNames = gnames, mode = "undirected",
-  weighted = NULL, diag = FALSE, .progress = FALSE, ...)
+  weighted = NULL, diag = FALSE,
+  .progress = getOption("bg.progress"), ...)
 
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
 
@@ -80,7 +81,7 @@ Default: \code{'undirected'}}
 connectivity matrix. Default: \code{FALSE}}
 
 \item{.progress}{Logical indicating whether to print a progress bar. Default:
-\code{FALSE}}
+\code{getOption('bg.progress')}}
 
 \item{i}{Integer, character, or logical vector for subsetting by subject, or
 by group (if \code{x$level='group'})}

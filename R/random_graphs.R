@@ -24,6 +24,8 @@
 #' @param ... Other arguments passed to \code{\link{make_brainGraph}}
 #' @inheritParams Creating_Graphs
 #' @export
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return \code{sim.rand.graph.par} - a \emph{list} of \emph{N} random graphs
 #'   with some additional vertex and graph attributes
@@ -43,6 +45,10 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
                                cl=g$transitivity, max.iters=100L, ...) {
   stopifnot(is_igraph(g))
   level <- match.arg(level)
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   if (isTRUE(clustering)) {
     r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
       tmp <- sim.rand.graph.clust(g, rewire.iters, cl, max.iters)
@@ -186,6 +192,8 @@ choose.edges <- function(A, degs.large) {
 #'   \code{weighted=FALSE}.
 #' @export
 #' @inheritParams Creating_Graphs
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #' @return \code{sim.rand.graph.hqs} - A list of random graphs from the null
 #'   covariance matrices
 #'
@@ -219,6 +227,10 @@ sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
     return(sig)
   }
 
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
   if (isTRUE(weighted)) {
     g <- foreach(i=seq_len(N)) %dopar% {
       S <- hqs(ehat, vhat, n, m)

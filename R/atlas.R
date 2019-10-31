@@ -15,7 +15,7 @@ guess_atlas <- function(x) {
   Nv <- vapply(bgAtlases, function(x) dim(get(x))[1L], integer(1))
 
   n <- switch(class(x)[1L],
-              data.frame=,data.table=dim(x)[2L] - ('Study.ID' %in% names(x)),
+              data.frame=,data.table=dim(x)[2L] - (getOption('bg.subject_id') %in% names(x)),
               igraph=vcount(x),
               brainGraph=if (is.null(x$atlas)) vcount(x) else x$atlas,
               matrix=,array=dim(x)[1L],

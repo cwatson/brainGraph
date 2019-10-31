@@ -437,21 +437,22 @@ influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
 #' @keywords internal
 
 print.infl.bg_GLM <- function(x, ...) {
-  Study.ID <- total <- value <- variable <- NULL
+  sID <- getOption('bg.subject_id')
+  total <- value <- variable <- NULL
   message('\nInfluence measures for a bg_GLM model with formula:')
   cat('  ', x$f, '\n\n')
   DT <- setDT(melt(x$is.inf))
-  setnames(DT, c('Study.ID', 'variable', 'region', 'value'))
-  setkey(DT, Study.ID)
+  setnames(DT, c(sID, 'variable', 'region', 'value'))
+  setkeyv(DT, sID)
   DT <- droplevels(DT[value == TRUE])
   DT.split <- split(DT, by='variable')
 
   if (dim(x$infmat)[3L] > 1L) {
     DT.split.wide <- lapply(DT.split, function(x)
-                            dcast.data.table(x, 'Study.ID ~ region + variable'))
+                            dcast.data.table(x, paste(sID, '~ region + variable')))
     for (n in names(DT.split.wide)) {
       setnames(DT.split.wide[[n]], sub(paste0('_', n), '', names(DT.split.wide[[n]])))
-      DT.split.wide[[n]][, total := DT[variable == n, .N, by=Study.ID]$N]
+      DT.split.wide[[n]][, total := DT[variable == n, .N, by=sID]$N]
       message('Variable: ', n)
       print(DT.split.wide[[n]])
       cat('\n')
@@ -459,7 +460,7 @@ print.infl.bg_GLM <- function(x, ...) {
   } else {
     for (n in names(DT.split)) {
       message('Variable: ', n)
-      cat('  ', paste(DT.split[[n]][, as.character(Study.ID)], collapse=', '), '\n')
+      cat('  ', paste(DT.split[[n]][, as.character(get(sID))], collapse=', '), '\n')
       cat('\n')
     }
   }

@@ -8,7 +8,7 @@
 #' @param facet.by Character string indicating the variable to facet by (if
 #'   any). Default: \code{NULL}
 #' @param group.by Character string indicating which variable to group the data
-#'   by. Default: \code{'Group'}
+#'   by. Default: \code{getOption('bg.group')}
 #' @param type Character string indicating the plot type. Default:
 #'   \code{'violin'}
 #' @param show.points Logical indicating whether or not to show individual data
@@ -27,15 +27,16 @@
 #' p.deg <- plot_vertex_measures(g[[1]], facet.by='network', measure='degree')
 #' }
 
-plot_vertex_measures <- function(g.list, measure, facet.by=NULL, group.by='Group',
+plot_vertex_measures <- function(g.list, measure, facet.by=NULL, group.by=getOption('bg.group'),
                                  type=c('violin', 'boxplot'),
                                  show.points=FALSE, ylabel=measure, ...) {
   variable <- value <- NULL
+  gID <- getOption('bg.group')
 
   if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
   DT <- vertex_attr_dt(g.list)
   stopifnot(measure %in% names(DT), group.by %in% names(DT))
-  idvars <- c('atlas', 'modality', 'weighting', 'Study.ID', 'Group', 'threshold',
+  idvars <- c('atlas', 'modality', 'weighting', getOption('bg.subject_id'), gID, 'threshold',
               'density', 'region', 'lobe', 'hemi', 'class', 'network')
   idvars <- idvars[which(idvars %in% names(DT))]
   DT.m <- melt(DT, id.vars=idvars)

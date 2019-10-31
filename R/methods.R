@@ -1,7 +1,7 @@
 #' Return group names
 #'
-#' \code{groups} returns the \dQuote{Group} graph attribute for each graph in
-#' the object.
+#' \code{groups} returns the \dQuote{Group} graph attribute for each graph or
+#' observation in the object.
 #'
 #' @param x,object An object
 #' @param ... Unused
@@ -27,8 +27,9 @@ groups.brainGraphList <- function(x) {
 #' @export
 #' @rdname methods
 groups.brainGraph_resids <- function(x) {
-  Group <- Study.ID <- NULL
-  structure(x$resids.all[, as.character(Group)], names=x$resids.all[, Study.ID])
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  structure(x$resids.all[, as.character(get(gID))], names=x$resids.all[, get(sID)])
 }
 
 #' @export
@@ -53,16 +54,16 @@ nobs.brainGraph_resids <- function(object, ...) {
 #' @method case.names brainGraph_resids
 #' @rdname methods
 case.names.brainGraph_resids <- function(object, ...) {
-  Study.ID <- NULL
-  object$resids.all[, as.character(Study.ID)]
+  sID <- getOption('bg.subject_id')
+  object$resids.all[, as.character(get(sID))]
 }
 
 #' Extract region names from brainGraph objects
 #'
 #' \code{region.names} is a generic method for extracting region names from
-#' various \code{brainGraph objects. These are generally convenience functions.
+#' various \code{brainGraph} objects. These are generally convenience functions.
 #'
-#' For a \code{data.table}, this function assumes that it contains a
+#' For a \code{data.table}, \code{region.names} assumes that it contains a
 #' \emph{factor} column named \code{region}.
 #'
 #' @export

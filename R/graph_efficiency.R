@@ -30,6 +30,8 @@
 #' @param D Numeric matrix; the graph's \dQuote{distance matrix}
 #' @export
 #' @importFrom Matrix rowSums
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return A numeric vector of the efficiencies for each vertex of the graph
 #'   (if \emph{type} is \code{local|nodal}) or a single number (if \emph{type}
@@ -63,16 +65,17 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
 
     if (length(verts) > 0) {
+      `%d%` <- `%do%`
       if (isTRUE(use.parallel)) {
-        eff[verts] <- foreach(i=verts, .combine='c') %dopar% {
-          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
-          efficiency(g.sub, 'global', weights=weights)
+        if (!getDoParRegistered()) {
+          cl <- makeCluster(getOption('bg.ncpus'))
+          registerDoParallel(cl)
         }
-      } else {
-        for (i in verts) {
-          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
-          eff[i] <- efficiency(g.sub, 'global', weights=weights)
-        }
+        `%d%` <- `%dopar%`
+      }
+      eff[verts] <- foreach(i=verts, .combine='c') %d% {
+        g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
+        efficiency(g.sub, 'global', weights=weights)
       }
     }
   } else {

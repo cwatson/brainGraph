@@ -8,7 +8,7 @@
 brainGraph_GLM_design(covars, coding = c("dummy", "effects",
   "cell.means"), factorize = TRUE, binarize = NULL, int = NULL,
   mean.center = FALSE, center.how = c("all", "within-groups"),
-  center.by = "Group")
+  center.by = getOption("bg.group"))
 }
 \arguments{
 \item{covars}{A \code{data.table} of covariates}

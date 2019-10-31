@@ -147,7 +147,10 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   dt.phi$density <- if ('density' %in% gnames) g$density else graph.density(g)
   if ('threshold' %in% gnames) dt.phi$threshold <- g$threshold
   if ('Group' %in% gnames) dt.phi$Group <- g$Group
-  if (!is.null(g$name)) dt.phi$Study.ID <- g$name
+  if (!is.null(g$name)) {
+    sID <- getOption('bg.subject_id')
+    dt.phi[, eval(sID) := g$name]
+  }
   return(dt.phi)
 }
 

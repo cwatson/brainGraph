@@ -32,14 +32,16 @@
 
 plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
                         level.names='default', exclude=NULL, perms=NULL, alt='two.sided') {
-  sig <- trend <- yloc <- value <- variable <- Group <- threshold <- NULL
+  sig <- trend <- yloc <- value <- variable <- threshold <- NULL
 
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
   DT <- rbindlist(lapply(g.list, graph_attr_dt))
-  idvars <- c('atlas', 'modality', 'weighting', 'Study.ID', 'Group', 'threshold', 'density')
+  idvars <- c('atlas', 'modality', 'weighting', sID, gID, 'threshold', 'density')
   idvars <- idvars[which(idvars %in% names(DT))]
   DT.m <- melt(DT, id.vars=idvars)
   DT.m <- droplevels(DT.m[!variable %in% exclude])
@@ -68,10 +70,10 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
 
   xvar <- match.arg(xvar)
   p <- switch(xvar,
-              density=ggplot(DT.m, aes(x=density, y=value, col=Group)),
-              threshold=ggplot(DT.m, aes(x=threshold, y=value, col=Group)) + scale_x_reverse())
+              density=ggplot(DT.m, aes(x=density, y=value, col=get(gID))),
+              threshold=ggplot(DT.m, aes(x=threshold, y=value, col=get(gID))) + scale_x_reverse())
 
-  if ('Study.ID' %in% names(DT.m)) {
+  if (sID %in% names(DT.m)) {
     p <- p + stat_smooth(method='gam', formula=y~s(x))
   } else {
     p <- p + geom_line()
