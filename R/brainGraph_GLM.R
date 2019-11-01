@@ -576,9 +576,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @param ids Logical indicating whether to plot Study ID's for outliers.
 #'   Otherwise plots the integer index
 #' @export
-#' @importFrom RcppEigen fastLmPure
 #' @importFrom ggrepel geom_text_repel
-#' @importFrom gridExtra arrangeGrob
 #' @importFrom grid gpar grid.draw grid.newpage textGrob
 #' @rdname glm
 #'
@@ -602,6 +600,11 @@ print.summary.bg_GLM <- function(x, ...) {
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   cl.h <- ind <- level <- mark <- resid <- ymax <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
+  if (!requireNamespace('gridExtra', quietly=TRUE)) {
+    stop('Must install the "gridExtra" package.')
+  } else {
+    requireNamespace('gridExtra')
+  }
   if (!is.numeric(which) || any(which < 1) || any(which > 6)) stop("'which' must be in 1:6")
   show <- rep(FALSE, 6)
   show[which] <- TRUE
@@ -695,7 +698,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
 
     top_title <- textGrob(paste0('Outcome: ', outcome, '    Region: ', region),
                           gp=gpar(fontface='bold', cex=1.0))
-    p.all <- arrangeGrob(grobs=diagPlots[which], nrow=prows, top=top_title, bottom=model_formula)
+    p.all <- gridExtra::arrangeGrob(grobs=diagPlots[which], nrow=prows, top=top_title, bottom=model_formula)
     return(p.all)
   }
 

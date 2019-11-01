@@ -13,7 +13,6 @@
 #' @param level Character string; the level at which you want to calculate
 #'   contributions (either \code{global} or \code{regional})
 #' @export
-#' @importFrom ade4 mantel.rtest
 #' @importFrom foreach getDoParRegistered
 #' @importFrom doParallel registerDoParallel
 #'
@@ -47,8 +46,13 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   group.vec <- groups(resids)
   n <- nobs(resids)
   if (level == 'global') {
+    if (!requireNamespace('ade4', quietly=TRUE)) {
+      stop('Must install the "ade4" package.')
+    } else {
+      requireNamespace('ade4')
+    }
     combFun <- c
-    diffFun <- function(a, b) 1 - mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
+    diffFun <- function(a, b) 1 - ade4::mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
     combFun <- rbind
     diffFun <- function(a, b) colSums(abs(a - b))
@@ -85,7 +89,6 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' @param control.value Integer or character string specifying the control group
 #'   (default: 1)
 #' @export
-#' @importFrom ade4 mantel.rtest
 #' @importFrom foreach getDoParRegistered
 #' @importFrom doParallel registerDoParallel
 #'
@@ -112,8 +115,13 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
   control.inds <- resids$resids.all[get(gID) == control.value, which=TRUE]
   level <- match.arg(level)
   if (level == 'global') {
+    if (!requireNamespace('ade4', quietly=TRUE)) {
+      stop('Must install the "ade4" package.')
+    } else {
+      requireNamespace('ade4')
+    }
     combFun <- c
-    diffFun <- function(a, b) 1 - mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
+    diffFun <- function(a, b) 1 - ade4::mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
     combFun <- rbind
     diffFun <- function(a, b) data.table(t(colSums(abs(a - b))))

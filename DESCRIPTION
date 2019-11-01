@@ -21,27 +21,28 @@ Depends:
     igraph (>= 1.0.0),
 Imports:
     abind,
-    ade4,
-    boot,
     data.table,
     doParallel,
-    expm,
     foreach,
     ggplot2,
     ggrepel,
-    gridExtra,
-    Hmisc,
+    grid,
     MASS,
     Matrix,
     methods,
-    oro.nifti,
     permute,
     parallel,
-    RcppEigen,
-    scales
+    RcppEigen
 Suggests:
+    Hmisc,
     RGtk2,
+    ade4,
+    boot,
     cairoDevice,
-    mediation
+    expm,
+    gridExtra,
+    mediation,
+    oro.nifti,
+    scales
 License: GPL-3
 RoxygenNote: 6.1.1

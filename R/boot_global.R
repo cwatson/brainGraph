@@ -43,6 +43,11 @@ brainGraph_boot <- function(densities, resids, R=1e3,
                             conf=0.95, .progress=getOption('bg.progress'),
                             xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)')) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
+  if (!requireNamespace('boot', quietly=TRUE)) {
+    stop('Must install the "boot" package.')
+  } else {
+    requireNamespace('boot')
+  }
 
   # 'statistic' function for the bootstrapping process
   statfun <- function(x, i, measure, res.obj, xfm.type) {
@@ -97,7 +102,7 @@ brainGraph_boot <- function(densities, resids, R=1e3,
     counter <- 0
     res.dt <- resids$resids.all[g]
     if (isTRUE(.progress)) progbar <- txtProgressBar(min=0, max=R, style=3)
-    my.boot[[g]] <- boot(res.dt, intfun, measure=measure, res.obj=resids[g], xfm.type=xfm.type, R=R,
+    my.boot[[g]] <- boot::boot(res.dt, intfun, measure=measure, res.obj=resids[g], xfm.type=xfm.type, R=R,
                          parallel=my.parallel, ncpus=ncpus, cl=cl)
     if (isTRUE(.progress)) close(progbar)
   }
@@ -115,6 +120,11 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' @rdname Bootstrapping
 
 summary.brainGraph_boot <- function(object, ...) {
+  if (!requireNamespace('boot', quietly=TRUE)) {
+    stop('Must install the "boot" package.')
+  } else {
+    requireNamespace('boot')
+  }
   kNumDensities <- length(object$densities)
   # Get everything into a data.table
   boot.dt <- with(object,
@@ -126,7 +136,7 @@ summary.brainGraph_boot <- function(object, ...) {
   ci <- with(object,
              vapply(seq_along(densities), function(x)
                     vapply(boot, function(y)
-                             boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3],
+                             boot::boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3],
                            numeric(2)),
                     numeric(2 * length(Group))))
   boot.dt$ci.low <- c(t(ci[2 * (seq_along(object$Group) - 1) + 1, ]))

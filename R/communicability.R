@@ -17,7 +17,6 @@
 #'
 #' @inheritParams efficiency
 #' @export
-#' @importFrom expm expm
 #'
 #' @return A numeric matrix of the communicability
 #'
@@ -30,6 +29,11 @@
 #'   \bold{6}, 411--414. \url{https://dx.doi.org/10.1098/rsif.2008.0484}
 
 communicability <- function(g, weights=NULL) {
+  if (!requireNamespace('expm', quietly=TRUE)) {
+    stop('Must install the "expm" package.')
+  } else {
+    requireNamespace('expm')
+  }
   stopifnot(is_igraph(g), is_connected(g))
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
     d <- check_strength(g)
@@ -40,7 +44,7 @@ communicability <- function(g, weights=NULL) {
     A <- as_adj(g, names=FALSE, sparse=FALSE)
   }
 
-  C <- expm(S %*% A %*% S)
+  C <- expm::expm(S %*% A %*% S)
   return(C)
 }
 
@@ -54,7 +58,6 @@ communicability <- function(g, weights=NULL) {
 #'
 #' @inheritParams efficiency
 #' @export
-#' @importFrom expm expm
 #'
 #' @return A numeric vector of the centrality for each vertex
 #'
@@ -66,16 +69,21 @@ communicability <- function(g, weights=NULL) {
 
 centr_betw_comm <- function(g, A=NULL) {
   stopifnot(is_igraph(g), is_connected(g))
+  if (!requireNamespace('expm', quietly=TRUE)) {
+    stop('Must install the "expm" package.')
+  } else {
+    requireNamespace('expm')
+  }
   if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE)
 
-  C <- expm(A)
+  C <- expm::expm(A)
   N <- dim(A)[1L]
   n <- (N - 1)^2 - (N - 1)
   Wr <- rep(0, N)
   for (i in seq_len(N)) {
     Er <- A
     Er[i, ] <- Er[, i] <- 0
-    G <- (C - expm(Er)) / C
+    G <- (C - expm::expm(Er)) / C
     Wr[i] <- (sum(G[-i, -i]) - sum(diag(G[-i, -i]))) / n
   }
   return(Wr)

@@ -28,7 +28,6 @@
 #' @param rand Logical indicating whether the function is being called for
 #'   permutation testing; not intended for general use (default: \code{FALSE})
 #' @export
-#' @importFrom Hmisc rcorr
 #'
 #' @return A \code{corr_mats} object containing the following components:
 #'   \item{R,P}{Numeric arrays of correlation coefficients and P-values. The
@@ -58,6 +57,11 @@
 
 corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'raw'),
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
+  if (!requireNamespace('Hmisc', quietly=TRUE)) {
+    stop('You must install "Hmisc" to use this function.')
+  } else {
+    requireNamespace('Hmisc')
+  }
   stopifnot(inherits(resids, 'brainGraph_resids'))
   gID <- getOption('bg.group')
   N <- nregions(resids)
@@ -67,7 +71,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
     res.all <- as.matrix(resids$resids.all[, !c(get(sID), get(gID))])
-    corrs <- rcorr(res.all)
+    corrs <- Hmisc::rcorr(res.all)
     r <- corrs$r
     emax <- N  * (N - 1) / 2
     thresholds <- get_thresholds(r, densities, emax)
@@ -107,7 +111,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                          dimnames=list(NULL, grps))
   }
   for (g in grps) {
-    corrs <- rcorr(as.matrix(res.all[g, !get(gID)]), type=type)
+    corrs <- Hmisc::rcorr(as.matrix(res.all[g, !get(gID)]), type=type)
     r[, , g] <- corrs$r
     p[, , g] <- corrs$P
 
