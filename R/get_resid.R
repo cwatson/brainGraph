@@ -13,7 +13,7 @@
 #'
 #' @param dt.vol A \code{data.table} containing all the volumetric measure of
 #'   interest (i.e., the object \code{lhrh} as ouptut by
-#'   \code{\link{brainGraph_init}})
+#'   \code{\link{import_scn}})
 #' @param covars A \code{data.table} of the covariates of interest
 #' @param method Character string indicating whether to test models for subject
 #'   groups separately or combined (default: \code{comb.groups})

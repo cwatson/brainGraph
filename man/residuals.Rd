@@ -21,7 +21,7 @@ get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
 \arguments{
 \item{dt.vol}{A \code{data.table} containing all the volumetric measure of
 interest (i.e., the object \code{lhrh} as ouptut by
-\code{\link{brainGraph_init}})}
+\code{\link{import_scn}})}
 
 \item{covars}{A \code{data.table} of the covariates of interest}
 
