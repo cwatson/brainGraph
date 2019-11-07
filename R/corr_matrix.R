@@ -75,7 +75,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     r <- corrs$r
     emax <- N  * (N - 1) / 2
     thresholds <- get_thresholds(r, densities, emax)
-    r.thresh <- array(0, dim=c(N, N, length(thresholds)), dimnames=list(regions, regions))
+    r.thresh <- array(0, dim=c(N, N, length(thresholds)), dimnames=list(regions, regions, NULL))
     for (i in seq_along(thresholds)) r.thresh[, , i] <- ifelse(r > thresholds[i], 1, 0)
     return(list(list(R=r, r.thresh=r.thresh)))
   }

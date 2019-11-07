@@ -37,7 +37,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   subDT <- rich.dt[round(get(facet.by), 2) %in% round(densities, 2)]
   pvar <- if (isTRUE(fdr)) 'p.fdr' else 'p'
   subDT[, star := ifelse(get(pvar) < alpha, '*', '')]
-  subDT[, yloc := extendrange(norm), by=facet.by]
+  subDT[, yloc := extendrange(norm)[1L], by=facet.by]
   subDT[, eval(gID) := as.factor(get(gID))]
   grps <- subDT[, levels(get(gID))]
   if (length(grps) > 1) {
@@ -62,8 +62,8 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
     k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1)), integer(length(g.list)))
     max.k <- apply(as.matrix(k), 1, max)
 
-    rects[, xstart := max.k]
-    rects[, xend := subDT[, max(k), by=density]$V1]
+    rects[, xstart := rep(max.k, each=length(densities))]
+    rects[, xend := rep(subDT[, max(k), by=facet.by]$V1, each=length(densities))]
   }
   setnames(rects, 'density', facet.by)
   setkeyv(rects, key(subDT))

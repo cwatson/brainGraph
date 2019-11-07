@@ -286,7 +286,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
     # Vertex-level has 1 design matrix per region, with the measure changing for each
     } else if (level == 'vertex') {
       DT.X.m <- merge(DT.y.m, covars, by=sID)
-      setcolorder(DT.X.m, c(sID, 'region', names(covars[, !get(sID)]), measure))
+      setcolorder(DT.X.m, c(sID, 'region', names(covars[, !sID, with=FALSE]), measure))
       DT.X.m[, eval(outcome) := NULL]
 
       # Get all design matrices into a 3-D array

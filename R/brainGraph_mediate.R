@@ -427,7 +427,7 @@ print.summary.bg_mediate <- function(x, ...) {
 #' @rdname mediation
 
 bg_to_mediate <- function(x, region=NULL) {
-  if (!inherits(x, 'bg_mediate')) {
+  if (!inherits(x, c('bg_mediate', 'summary.bg_mediate'))) {
     stop('Use only with \'bg_mediate\' objects!')
   }
   if (x$level == 'graph') {
