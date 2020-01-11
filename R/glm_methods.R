@@ -60,28 +60,47 @@ nobs.bg_GLM <- function(object, ...) {
 #' @rdname glm_info
 
 terms.bg_GLM <- function(x, ...) {
-  cvnames <- names(x$covars)[-1L]
+  cvnames <- setdiff(names(x$covars), getOption('bg.subject_id'))
   vnames <- variable.names(x)
   if (x$outcome != x$measure && !(x$measure %in% cvnames)) {
     cvnames <- c(cvnames, x$measure)
   }
-  cols <- sapply(cvnames, grep, vnames)
+  cols <- cols_orig <- sapply(cvnames, function(y) list(grep(y, vnames)))
 
-  # Determine if there are any interaction terms; TODO: only works for 2-way interactions
-  if (any(grepl(':', vnames))) {
-    combos <- combn(seq_along(cols), 2)
-    ints <- apply(combos, 2, function(x) intersect(cols[[x[1L]]], cols[[x[2L]]]))
-    match <- combos[, which(lengths(ints) > 0)]
-    int_terms <- cvnames[match]
-    int_name <- paste(int_terms, collapse=':')
-    nonzero <- Filter(length, ints)[[1L]]
-    cols[[int_name]] <- nonzero
-    cols[int_terms] <- lapply(cols[int_terms], setdiff, nonzero)
+  # Determine if there are any interaction terms
+  rmatches <- gregexpr(':', vnames)
+  numMatches <- vapply(rmatches, function(y) length(y[y > 0]), integer(1))
+  if (any(numMatches > 0)) {
+    combos <- combn(seq_along(cvnames), 2, simplify=FALSE)
+    ints <- lapply(combos, function(y) intersect(cols[[y[1L]]], cols[[y[2L]]]))
+    matches <- lapply(combos[which(lengths(ints) > 0L)], as.matrix)
+    int_terms <- vapply(matches, function(y) cvnames[y], character(2))
+    twoWays <- apply(int_terms, 2L, paste, collapse=':')
+    nonzero <- Filter(length, ints)
+    for (i in seq_along(twoWays)) {
+      cols[[twoWays[i]]] <- nonzero[[i]]
+      cols[int_terms[, i]] <- lapply(cols[int_terms[, i]], setdiff, nonzero[[i]])
+    }
+    cols <- Filter(length, cols)
+    if (any(numMatches == 2)) {
+      combos <- combn(seq_along(cvnames), 3)
+      ints <- apply(combos, 2L, function(y) intersect(cols_orig[[y[1L]]], intersect(cols_orig[[y[2L]]], cols_orig[[y[3L]]])))
+      matches <- as.matrix(combos[, which(lengths(ints) > 0L)])
+      int_terms <- cvnames[matches]
+      dim(int_terms) <- dim(matches)
+      int_name <- apply(int_terms, 2L, paste, collapse=':')
+      nonzero <- Filter(length, ints)
+      for (i in seq_along(int_name)) {
+        cols[[int_name[i]]] <- nonzero[[i]]
+        cols[int_terms[, i]] <- lapply(cols[int_terms[, i]], setdiff, nonzero[[i]])
+        cols[twoWays] <- lapply(cols[twoWays], setdiff, nonzero[[i]])
+      }
+    }
   }
   if (any(grepl('Intercept', vnames))) {
     cols <- c(list(Intercept=grep('Intercept', vnames)), cols)
   }
-  cols <- cols[order(unlist(lapply(cols, `[[`, 1)))]
+  cols <- cols[order(unlist(lapply(cols, `[[`, 1L)))]
   return(cols)
 }
 
@@ -91,14 +110,26 @@ terms.bg_GLM <- function(x, ...) {
 formula.bg_GLM <- function(x, ...) {
   tlabels <- labels(x)
   if (any(grepl('Intercept', tlabels))) tlabels <- tlabels[-grep('Intercept', tlabels)]
+  rmatches <- gregexpr(':', tlabels)
+  intOrder <- vapply(rmatches, function(y) length(y[y > 0]), integer(1)) + 1L
   splits <- strsplit(tlabels, ':')
-  splits.int <- which(lengths(splits) > 1L)
-  for (i in splits.int) {
-    if (all(splits[[i]] %in% tlabels)) {
-      inds.remove <- vapply(splits[[i]], function(x) which(x == tlabels), integer(1))
+  if (any(intOrder == 3L)) {
+    for (i in which(intOrder == 3L)) {
+      inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1))
       inds.remove <- c(inds.remove, i)
+      twoWays <- apply(combn(1:3, 2), 2L, function(y) paste(splits[[i]][y], collapse=':'))
+      inds.remove <- c(inds.remove, vapply(twoWays, function(y) which(y == tlabels), integer(1)))
       tlabels <- tlabels[-inds.remove]
       tlabels <- c(tlabels, paste(splits[[i]], collapse=' * '))
+    }
+  } else {
+    for (i in which(intOrder > 1L)) {
+      if (all(splits[[i]] %in% tlabels)) {
+        inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1))
+        inds.remove <- c(inds.remove, i)
+        tlabels <- tlabels[-inds.remove]
+        tlabels <- c(tlabels, paste(splits[[i]], collapse=' * '))
+      }
     }
   }
   form <- paste(x$outcome, '~', paste(tlabels, collapse=' + '))
