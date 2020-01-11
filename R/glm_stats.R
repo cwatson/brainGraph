@@ -3,7 +3,7 @@ design2array <- function(object) {
   X <- object$X
   dimX <- dim(X)
   regions <- region.names(object)
-  if (length(dim(X)) == 2L) {
+  if (length(dimX) == 2L) {
     X <- array(X, dim=c(dimX, length(regions)), dimnames=c(dimnames(X), list(regions)))
   }
   return(X)
@@ -441,9 +441,8 @@ print.infl.bg_GLM <- function(x, ...) {
   total <- value <- variable <- NULL
   message('\nInfluence measures for a bg_GLM model with formula:')
   cat('  ', x$f, '\n\n')
-  DT <- setDT(melt(x$is.inf))
+  DT <- as.data.table(x$is.inf, key='V1')
   setnames(DT, c(sID, 'variable', 'region', 'value'))
-  setkeyv(DT, sID)
   DT <- droplevels(DT[value == TRUE])
   DT.split <- split(DT, by='variable')
 

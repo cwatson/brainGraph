@@ -70,7 +70,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   sID <- getOption('bg.subject_id')
   # Different behavior if called for permutation testing
   if (isTRUE(rand)) {
-    res.all <- as.matrix(resids$resids.all[, !c(get(sID), get(gID))])
+    res.all <- as.matrix(resids$resids.all[, !c(sID, gID), with=FALSE])
     corrs <- Hmisc::rcorr(res.all)
     r <- corrs$r
     emax <- N  * (N - 1) / 2
@@ -83,11 +83,11 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   what <- match.arg(what)
   type <- match.arg(type)
   if (what == 'resids') {
-    res.all <- resids$resids.all[, !get(sID)]
+    res.all <- resids$resids.all[, !sID, with=FALSE]
   } else if (what == 'raw') {
     res.all <- dcast(resids$all.dat.long, paste(sID, '+', gID, '~ Region'))
     setkeyv(res.all, c(gID, sID))
-    res.all <- res.all[, !get(sID)]
+    res.all <- res.all[, !sID, with=FALSE]
   }
   if (!is.null(exclude.reg)) {
     res.all <- res.all[, -exclude.reg, with=FALSE]
@@ -111,7 +111,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
                          dimnames=list(NULL, grps))
   }
   for (g in grps) {
-    corrs <- Hmisc::rcorr(as.matrix(res.all[g, !get(gID)]), type=type)
+    corrs <- Hmisc::rcorr(as.matrix(res.all[g, !gID, with=FALSE]), type=type)
     r[, , g] <- corrs$r
     p[, , g] <- corrs$P
 
@@ -218,7 +218,8 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
                            grp.names=NULL, legend.title=NULL, ...) {
   Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.text <- NULL
   grps <- groups(x)
-  kNumVertices <- nregions(x)
+  regions <- region.names(x)
+  kNumVertices <- length(regions)
   base_size <- if (kNumVertices > 90) 7.5 else 9
   if (is.null(legend.title) && isTRUE(ordered)) {
     legend.title <- switch(order.by,
@@ -233,17 +234,19 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     axis.text.y=element_text(size=0.7*base_size),
     axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
     plot.title=element_text(hjust=0.5, face='bold'))
-  matplots <- vector('list', length(grps))
+  matplots <- setNames(vector('list', length(grps)), grps)
   if (type == 'raw') {
     legend.title <- paste0('Corr. coeff.\n(', simpleCap(x$type), ')')
-    mats <- x$R
-    for (g in seq_along(grps)) {
-      mats.m <- melt(mats[, , g])
-      setDT(mats.m)
+    mats <- as.data.table(x$R, sorted=FALSE)
+    setnames(mats, c('Var1', 'Var2', 'Group', 'value'))
+    mats[, Var1 := factor(Var1, levels=regions)]
+    mats[, Var2 := factor(Var2, levels=regions)]
+    for (g in grps) {
+      mats.m <- mats[Group == g]
       matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=value)) +
         geom_tile() +
         scale_fill_gradient2(low='white', high='red') + mytheme +
-        labs(title=grps[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+        labs(title=g, fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
     }
     return(matplots)
   } else {
@@ -268,22 +271,28 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
       grp.names <- levels(tmp)
     }
 
-    kNumCols <- apply(order.mat, 2, max)
+    kNumCols <- apply(order.mat, 2L, max)
     cols.new <- lapply(kNumCols, function(y) c(group.cols[seq_len(y)], 'gray50', 'white'))
     if (order.by == 'comp') cols.new <- lapply(cols.new, function(y) setdiff(y, 'gray50'))
     grp.names <- c(grp.names, 'Inter', '')
-    new.order <- apply(order.mat, 2, function(y) order(y))
+    new.order <- apply(order.mat, 2L, order)
 
   } else {
     new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2), ncol=2)
     cols.new <- lapply(grps, function(y) c('white', 'gray50'))
   }
-  dimnames(order.mat) <- list(rownames(x$R), grps)
+  dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)
+  names(cols.new) <- grps
 
-  for (g in seq_along(grps)) {
-    mats.ord <- mats[new.order[, g], new.order[, g], g]
-    mats.m <- melt(mats.ord)
-    setDT(mats.m)
+  mats.ord <- lapply(grps, function(y) array(mats[new.order[, y], new.order[, y], y],
+                                             dim=c(kNumVertices, kNumVertices, 1)))
+  names(mats.ord) <- grps
+  for (g in grps) {
+    dimnames(mats.ord[[g]]) <- list(regions[new.order[, g]], regions[new.order[, g]], g)
+    mats.m <- as.data.table(mats.ord[[g]], sorted=FALSE)
+    setnames(mats.m, c('Var1', 'Var2', 'Var3', 'value'))
+    mats.m[, Var1 := factor(Var1, levels=regions[new.order[, g]])]
+    mats.m[, Var2 := factor(Var2, levels=regions[new.order[, g]])]
     if (isTRUE(ordered)) {
       mats.m[, memb := '']
       mats.m[, memb1 := grp.names[order.mat[as.character(Var1), g]]]
@@ -304,7 +313,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=memb)) +
       geom_tile() +
       scale_fill_manual(values=cols.new[[g]]) + mytheme +
-      labs(title=grps[g], fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+      labs(title=g, fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
   }
   return(matplots)
 }

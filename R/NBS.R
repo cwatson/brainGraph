@@ -62,8 +62,8 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   A <- symmetrize_array(A, symm.by)
   inds.low <- which(lower.tri(A[, , 1], diag=TRUE), arr.ind=TRUE)
   for (k in seq_len(dimA[3L])) A[cbind(inds.low, k)] <- 0
-  A.m <- setDT(melt(A))
-  setkey(A.m, Var1, Var2, Var3)
+  A.m <- as.data.table(A)
+  setnames(A.m, c('Var1', 'Var2', 'Var3', 'value'))
   pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
   A.m.sub <- A.m[pos.vals]
 
