@@ -156,7 +156,8 @@ get_lm_vars <- function(covars, exclude.cov, ...) {
 rstudent_mat <- function(lmvars, y) {
   est <- fastLmPure(lmvars$X, y, method=2)
   var.hat <- rep(0, lmvars$n)
-  for (i in seq_len(lmvars$n)) var.hat[i] <- (1 / (lmvars$n - lmvars$p - 1)) * crossprod(est$residuals[-i])
+  for (i in seq_len(lmvars$n)) var.hat[i] <- crossprod(est$residuals[-i])
+  var.hat <- (1 / (lmvars$n - lmvars$p - 1)) * var.hat
   resids <- est$residuals / (sqrt(var.hat * (1 - lmvars$lev)))
 }
 
@@ -204,7 +205,7 @@ summary.brainGraph_resids <- function(object, region=NULL, ...) {
   gID <- getOption('bg.group')
   if (is.null(region)) region <- region.names(object)
   DT <- droplevels(object$all.dat.long[Region %in% region,
-                                       c(sID, gID, 'Region', 'resids')])
+                                       c(sID, gID, 'Region', 'resids'), with=FALSE])
   setkey(DT, Region, resids)
   outliers <- DT[, .SD[abs(resids) > abs(mean(resids) + 2*sd(resids))], by=Region]
   outliers.reg <- outliers[, .N, by=Region]

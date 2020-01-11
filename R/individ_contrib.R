@@ -67,7 +67,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
     diffFun(corrs$R[, , group.vec[i]], new.corrs$R[, , 1L])
   }
 
-  DT <- cbind(resids$resids.all[, list(get(sID), get(gID))], IC)
+  DT <- cbind(resids$resids.all[, c(..sID, ..gID)], IC)
   if (level == 'regional') {
     DT <- melt(DT, id.vars=c(sID, gID), variable.name='region', value.name='RC')
   }
@@ -138,12 +138,12 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
       resids.aop <- resids[c(control.inds, pat.inds[i])]
       resids.aop$resids.all[, eval(gID) := control.value]
       resids.aop$resids.all <- droplevels(resids.aop$resids.all)
-      resids.aop$Group <- resids.aop$resids.all[, factor(levels(get(gID)))]
+      resids.aop$Group <- resids.aop$resids.all[, levels(get(gID))]
       setkeyv(resids.aop$resids.all, gID)
       new.corr <- corr.matrix(resids.aop, densities=0.1)$R[, , 1L]
       diffFun(corr.mat, new.corr)
     }
-    IC[[j]] <- cbind(resids$resids.all[j, c(sID, gID)], IC[[j]])
+    IC[[j]] <- cbind(resids$resids.all[j, c(..sID, ..gID)], IC[[j]])
   }
   DT <- rbindlist(IC)
   if (level == 'global') {
@@ -170,7 +170,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
 #' @rdname individ_contrib
 
 summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
-  avg <- diff_mean <- IC <- Max <- med <- Min <- RC <- se <- stdev <- NULL
+  avg <- diff_from_mean <- IC <- Max <- med <- Min <- RC <- se <- stdev <- NULL
   gID <- getOption('bg.group')
   object$digits <- digits
   DT.sum <- copy(object$DT)
@@ -178,20 +178,21 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
     regions <- if (is.null(region)) region.names(DT.sum) else region
     object$regions <- regions
     DT.sum <- droplevels(DT.sum[region %in% regions])
-    DT.sum[, Min := min(RC), by=list(gID, region)]
-    DT.sum[, med := median(RC), by=list(gID, region)]
-    DT.sum[, avg := mean(RC), by=list(gID, region)]
-    DT.sum[, Max := max(RC), by=list(gID, region)]
-    DT.sum[, stdev := sd(RC), by=list(gID, region)]
-    DT.sum[, se := stdev / sqrt(.N), by=list(gID, region)]
-    outliers <- DT.sum[, .SD[RC > avg + 2 * stdev], by=list(gID, region)]
+    DT.sum[, Min := min(RC), by=list(get(gID), region)]
+    DT.sum[, med := median(RC), by=list(get(gID), region)]
+    DT.sum[, avg := mean(RC), by=list(get(gID), region)]
+    DT.sum[, Max := max(RC), by=list(get(gID), region)]
+    DT.sum[, stdev := sd(RC), by=list(get(gID), region)]
+    DT.sum[, se := stdev / sqrt(.N), by=list(get(gID), region)]
+    outliers <- DT.sum[, .SD[RC > avg + 2 * stdev], by=list(get(gID), region)]
+    setnames(outliers, 'get', gID)
     outliers.reg <- outliers[, .N, by=region]
     outliers.reg.vec <- with(outliers.reg, structure(N, names=as.character(region)))
     object$outliers <- list(DT=outliers, region=outliers.reg.vec)
   } else if (object$level == 'global') {
     DT.sum[, avg := mean(IC), by=gID]
     outliers <- DT.sum[, .SD[IC > avg + 2 * sd(IC)], by=gID]
-    outliers[, diff_mean := IC - avg]
+    outliers[, diff_from_mean := IC - avg]
     outliers[, avg := NULL]
     DT.sum[, avg := NULL]
     object$outliers$DT <- outliers
@@ -200,7 +201,7 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
 
   # Calculate some group descriptive statistics
   if (object$level == 'global') {
-    grps <- object$DT.sum[, levels(get(gID))]
+    grps <- object$DT.sum[, levels(factor(get(gID)))]
     sums <- setNames(vector('list', length(grps)), grps)
     for (g in grps) {
       sums[[g]] <- object$DT.sum[get(gID) == g, quantile(IC, c(0, .1, .25, .5, .75, .9, 1))]
@@ -245,8 +246,8 @@ print.summary.IC <- function(x, ...) {
     message('# of outliers per region: (sorted in descending order)\n', dashes)
     print(sort(x$outliers$region, decreasing=TRUE))
     cat('\n')
-    DT <- x$DT.sum[, .SD[1, !c(sID, 'RC')], by=list(gID, region)]
-    setnames(DT, c('med', 'avg', 'stdev', 'se'), c('Median', 'Mean', 'Std. Dev', 'Std. Err'))
+    DT <- x$DT.sum[, .SD[1, !c(sID, 'RC'), with=FALSE], by=list(get(gID), region)]
+    setnames(DT, c('get', 'med', 'avg', 'stdev', 'se'), c(gID, 'Median', 'Mean', 'Std. Dev', 'Std. Err'))
     message('Region summaries\n', dashes)
     print(DT, digits=x$digits)
   } else {
@@ -276,19 +277,13 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
   gID <- getOption('bg.group')
   RC <- avg <- se <- ind <- mark <- IC <- NULL
   DT <- summary(x)$DT.sum
-  kNumGroups <- DT[, nlevels(get(gID))]
-  grps <- DT[, levels(get(gID))]
+  kNumGroups <- DT[, nlevels(factor(get(gID)))]
+  grps <- DT[, levels(factor(get(gID)))]
   leg.pos <- if (kNumGroups == 1) 'none' else 'bottom'
+
   if (x$level == 'regional') {
     xlabel <- 'Region'
     ylabel <- 'Regional contribution'
-  } else {
-    xlabel <- 'Subject'
-    ylabel <- 'Individual contribution'
-  }
-  ptitle <- paste0(ylabel, 's, ', tolower(x$method), ' method')
-
-  if (x$level == 'regional') {
     regions <- if (is.null(region)) region.names(DT) else region
     txtsize <- if (length(regions) > 50) 6 else 9
 
@@ -303,14 +298,16 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
         p <- p + stat_smooth(method='loess', aes(y=RC))
 
       } else if (plot.type == 'mean') {
-        DT[, avg := mean(RC), by=list(gID, region)]
-        DT[, se := sd(RC) / sqrt(.N), by=list(gID, region)]
+        DT[, avg := mean(RC), by=list(get(gID), region)]
+        DT[, se := sd(RC) / sqrt(.N), by=list(get(gID), region)]
         p <- p + geom_line(aes(y=avg)) +
           geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=get(gID)), alpha=0.5)
       }
     }
 
   } else {
+    xlabel <- 'Subject'
+    ylabel <- 'Individual contribution'
     n <- dim(DT)[1L]
     txtsize <- if (n > 50) 9 else 12
     if (isTRUE(ids)) {
@@ -332,8 +329,9 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
       scale_shape_manual(name=gID, labels=grps, values=c(20, 17)) +
       scale_size_manual(name=gID, labels=grps, values=c(2, 3))
   }
+  ptitle <- paste0(ylabel, 's, ', tolower(x$method), ' method')
   p <- p +
-    labs(x=xlabel, y=ylabel, title=ptitle) +
+    labs(x=xlabel, y=ylabel, title=ptitle, fill=gID, col=gID) +
     theme(legend.position=leg.pos,
           panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
           axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),

@@ -67,7 +67,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   center.by=getOption('bg.group')) {
   sID <- getOption('bg.subject_id')
   covars <- copy(covars)
-  covars[, eval(sID) := as.character(get(sID))]
+  covars[, eval(sID) := as.character(sID)]
   X <- matrix(1, nrow=dim(covars)[1L], ncol=1)
   colnames(X) <- 'Intercept'
 
