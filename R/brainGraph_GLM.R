@@ -294,7 +294,9 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
       for (rgn in DT.X.m[, levels(region)]) {
         X[[rgn]] <- brainGraph_GLM_design(DT.X.m[region == rgn, !'region', with=FALSE], ...)
       }
+      attrs <- attributes(X[[rgn]])
       X <- abind::abind(X, along=3)
+      attributes(X) <- c(attributes(X), attrs)
     }
     DT.y.m[, eval(measure) := NULL]
   }

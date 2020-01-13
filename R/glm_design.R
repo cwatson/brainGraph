@@ -67,10 +67,12 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   center.by=getOption('bg.group')) {
   sID <- getOption('bg.subject_id')
   covars <- copy(covars)
-  covars[, eval(sID) := as.character(sID)]
+  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(dim(covars)[1L]))]
+  covars[, eval(sID) := as.character(get(sID))]
   X <- matrix(1, nrow=dim(covars)[1L], ncol=1)
-  colnames(X) <- 'Intercept'
+  dimnames(X) <- list(covars[, get(sID)], 'Intercept')
 
+  attrs <- list(factorize=factorize, mean.center=mean.center)
   if (isTRUE(factorize)) {
     cols <- names(which(vapply(covars, is.character, logical(1))))
     cols <- cols[!is.element(cols, sID)]
@@ -80,87 +82,97 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   if (!is.null(binarize)) {
     stopifnot(all(binarize %in% names(covars)))
     covars[, (binarize) := lapply(.SD, function(x) as.numeric(x) - 1), .SDcols=binarize]
+    attrs <- c(attrs, list(binarize=binarize))
   }
 
-  center.how <- match.arg(center.how)
   nums <- which(vapply(covars, is.numeric, logical(1)))
   if (isTRUE(mean.center)) {
+    center.how <- match.arg(center.how)
     covars[, (nums) := lapply(.SD, as.numeric), .SDcols=nums]
     if (center.how == 'all') {
       covars[, (nums) := lapply(.SD, function(x) x - mean(x)), .SDcols=nums]
     } else if (center.how == 'within-groups') {
       covars[, (nums) := lapply(.SD, function(x) x - mean(x)), .SDcols=nums, by=center.by]
     }
+    attrs <- c(attrs, list(center.how=center.how, center.by=center.by))
   }
-  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=FALSE]))
+  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, ..nums, with=FALSE]))
 
-  factors <- which(vapply(covars, class, character(1)) == 'factor')
+  factors <- names(which(vapply(covars, class, character(1)) == 'factor'))
   coding <- match.arg(coding)
-  for (f in factors) {
-    cov.name <- names(covars)[f]
-    cov.levels <- covars[, levels(get(cov.name))]
-    cov.vec <- covars[, as.numeric(get(cov.name))]
+  attrs <- c(list(coding=coding), attrs)
+  base_val <- switch(coding, effects=-1L, dummy=,cell.means=0L)
+  starting <- switch(coding, cell.means=1, dummy=,effects=2)
+  colRemove <- switch(coding, cell.means=999L, dummy=,effects=1L)  # Hack to keep all names w/ cell means
+  if (coding == 'cell.means' && all(X[, 1L] == 1)) X <- X[, -1L, drop=FALSE]  # Remove intercept term
+  for (f in factors) X <- create_dummy_vars(covars, X, f, base_val, starting, colRemove)
 
-    if (coding == 'cell.means') {
-      for (i in 1:max(cov.vec)) {
-        cov.vec.sub <- ifelse(cov.vec == i, 1, 0)
-        X <- cbind(X, cov.vec.sub)
-      }
-      if (all(X[, 1] == 1)) X <- X[, -1]  # Remove intercept term
-      p <- dim(X)[2L]
-      colnames(X)[(p - max(cov.vec) + 1):p] <- paste0(cov.name, cov.levels)
-
-    } else {
-      for (i in 2:max(cov.vec)) {
-        cov.vec.sub <- ifelse(cov.vec == i, 1, 0)
-        if (coding == 'effects') cov.vec.sub[cov.vec == 1] <- -1
-        X <- cbind(X, cov.vec.sub)
-      }
-      p <- dim(X)[2L]
-      colnames(X)[(p - (max(cov.vec) - 1) + 1):p] <- paste0(cov.name, cov.levels[-1])
-    }
-  }
-
-  if (!is.null(int) & length(int) > 1) {
+  if (!is.null(int) && length(int) > 1) {
     stopifnot(all(int %in% names(covars)))
     intcomb <- combn(int, 2, simplify=FALSE)
     if (length(int) == 3) intcomb <- c(intcomb, combn(int, 3, simplify=FALSE))
-    for (x in intcomb) X <- get_int(X, coding, names(factors), x)
+    for (x in intcomb) X <- get_int(X, coding, factors, x)
+    attrs <- c(attrs, list(int=int))
   }
 
+  attributes(X) <- c(attributes(X), attrs)
+  return(X)
+}
+
+#' Create dummy variables from a factor
+#'
+#' Create dummy variables from a factor variable in a data.table.
+#'
+#' @param fact Character string specifying the column name of the factor
+#' @param base_val Integer value for the \dQuote{base} group or factor level.
+#'   For dummy and cell-means coding, this is 0. For effects coding, it is -1.
+#' @param starting Numeric; the starting value to iterate over factor levels.
+#'   For dummy and effects coding, this is 2. For cell-means, it is 1.
+#' @param colRemove Numeric specifying which factor level to exclude when
+#'   assigning names. For dummy and effects coding, this is 1 (i.e., there is
+#'   no column for the base factor level in the matrix). For cell-means, this is
+#'   999 (a hack to make it work without knowing the number of levels in
+#'   advance)
+#' @return A numeric matrix with new columns
+#' @keywords internal
+
+create_dummy_vars <- function(covars, X, fact, base_val, starting, colRemove) {
+  cov.levels <- covars[, levels(get(fact))]
+  cov.vec <- covars[, as.numeric(get(fact))]
+  for (i in starting:max(cov.vec)) {
+    cov.vec.sub <- ifelse(cov.vec == i, 1L, ifelse(cov.vec == 1, base_val, 0))
+    X <- cbind(X, cov.vec.sub)
+  }
+  p <- dim(X)[2L]
+  colnames(X)[(p - max(cov.vec) + starting):p] <- paste0(fact, cov.levels[-colRemove])
   return(X)
 }
 
 get_int <- function(X, coding, factors, int) {
-  get_colnames <- function(string, X, factors) {
+  get_colnames <- function(string, X) {
     cnames <- grep(string, colnames(X), value=TRUE)
-    if ((!string %in% factors) && length(cnames) > 1) {
-      cnames <- grep(paste0('^', string, '$'), colnames(X), value=TRUE)
-    }
     if (any(grepl(':', cnames))) cnames <- cnames[-grep(':', cnames)]
     return(cnames)
   }
 
   p <- dim(X)[2L]
-  intnames <- lapply(int, get_colnames, X, factors)
+  intnames <- lapply(int, get_colnames, X)
 
   if (length(int) == 3) {
     X <- cbind(X, X[, intnames[[1]]] * X[, intnames[[2]]] * X[, intnames[[3]]])
     colnames(X)[(p + 1):dim(X)[2L]] <- paste(intnames[[1]], intnames[[2]], intnames[[3]], sep=':')
   } else {
-    if (int[1] %in% factors && int[2] %in% factors && coding == 'cell.means') {
+    if (all(int[1:2] %in% factors) && coding == 'cell.means') {
       for (j in seq_along(intnames[[1]])) {
         X <- cbind(X, X[, intnames[[1]][j]] * X[, intnames[[2]]])
-        p2 <- dim(X)[2L]
-        colnames(X)[(p + 1):p2] <- paste(intnames[[1]][j], intnames[[2]], sep=':')
+        colnames(X)[(p + 1):dim(X)[2L]] <- paste(intnames[[1]][j], intnames[[2]], sep=':')
         p <- dim(X)[2L]
       }
       X <- X[, -which(colnames(X) %in% intnames[[1]])]
       X <- X[, -which(colnames(X) %in% intnames[[2]])]
     } else {  # One of the int. terms is numeric
       X <- cbind(X, X[, intnames[[1]]] * X[, intnames[[2]]])
-      p2 <- dim(X)[2L]
-      colnames(X)[(p + 1):p2] <- paste(intnames[[1]], intnames[[2]], sep=':')
+      colnames(X)[(p + 1):dim(X)[2L]] <- paste(intnames[[1]], intnames[[2]], sep=':')
       if (coding == 'cell.means') {
         if (!int[1] %in% factors) {
           X <- X[, -which(colnames(X) %in% intnames[[1]])]

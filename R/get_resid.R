@@ -56,7 +56,6 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
   method <- match.arg(method)
   grps <- covars[, levels(factor(get(gID)))]
-  exclude.cov <- c(sID, exclude.cov)
   DT.cov <- merge(covars, dt.vol, by=sID)
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='Region')
   setkeyv(DT.m, c('Region', sID))
@@ -139,7 +138,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 #'   \item{p}{The number of parameters}
 
 get_lm_vars <- function(covars, exclude.cov, ...) {
-  X <- brainGraph_GLM_design(covars[, !exclude.cov, with=FALSE], ...)
+  if (!is.null(exclude.cov)) covars <- covars[, !exclude.cov, with=FALSE]
+  X <- brainGraph_GLM_design(covars, ...)
   H <- X %*% tcrossprod(solve(crossprod(X)), X)
   lev <- diag(H)
   dims <- dim(X)
