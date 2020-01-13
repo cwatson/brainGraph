@@ -374,12 +374,13 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
     grpNames <- unique(group.vec)
     kNumGroups <- length(grpNames)
     if (is.logical(g) && length(g) != kNumGroups) stop(stop_msg)
-    if (!is.logical(g) && length(g) > kNumGroups) {
+    if (length(g) > kNumGroups) {
       warning(warn_msg)
       g <- g[seq_len(kNumGroups)]
     }
-    if (is.numeric(g) || is.logical(g)) g <- grpNames[g]
-    if (is.character(g)) g <- which(group.vec %in% g)
+    g <- switch(class(g),
+                numeric=,logical=grpNames[g],
+                character=which(group.vec %in% g))
     x$graphs <- x$graphs[g]
   }
 
@@ -390,7 +391,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
     i <- seq_len(kNumSubs)
   }
   if (is.logical(i) && length(i) != kNumSubs) stop(sub('group', 'subject', stop_msg))
-  if (!is.logical(i) && length(i) > kNumSubs) {
+  if (length(i) > kNumSubs) {
     warning(sub('group', 'subject', warn_msg))
     i <- i[seq_len(kNumSubs)]
   }

@@ -156,12 +156,13 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
     if (is.logical(g) && length(g) != kNumGroups) {
       stop('Logical indexing vector must be of the same length as the number of groups.')
     }
-    if (!is.logical(g) && length(g) > kNumGroups) {
+    if (length(g) > kNumGroups) {
       warning('Indexing vector cannot have length greater than the number of groups.')
       g <- g[seq_len(kNumGroups)]
     }
-    if (is.numeric(g) || is.logical(g)) g <- grps[g]
-    if (is.character(g)) g <- which(grps %in% g)
+    g <- switch(class(g),
+                numeric=,logical=grps[g],
+                character=which(grps %in% g))
     x$R <- x$R[, , g, drop=FALSE]
     x$P <- x$P[, , g, drop=FALSE]
     x$r.thresh <- x$r.thresh[g]

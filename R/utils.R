@@ -152,7 +152,7 @@ get_metadata <- function(object) {
                          bg=packageVersion('brainGraph'),
                          ig=packageVersion('igraph'))
   object$sys <- Sys.info()[c(1:3, 5)]
-  object$date <- format(as.POSIXct(Sys.time()), '%Y-%m-%dT%H:%M:%OS0')
+  object$date <- format(Sys.time(), '%Y-%m-%dT%H:%M:%OS0')
   return(object)
 }
 
