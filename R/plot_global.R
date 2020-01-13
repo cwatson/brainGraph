@@ -40,7 +40,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
 
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
-  DT <- rbindlist(lapply(g.list, graph_attr_dt))
+  DT <- rbindlist(lapply(g.list, graph_attr_dt), use.names=TRUE)
   idvars <- c('atlas', 'modality', 'weighting', sID, gID, 'threshold', 'density')
   idvars <- idvars[which(idvars %in% names(DT))]
   DT.m <- melt(DT, id.vars=idvars)

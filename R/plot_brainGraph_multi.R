@@ -118,11 +118,21 @@ plot_brainGraph_multi <- function(g.list, filename='orthoview.png',
 #' @export
 #' @rdname plot_brainGraph_multi
 
-slicer <- function(g.list, plane, hemi, nrows, ncols, filename='all.png',
+slicer <- function(g.list, nrows, ncols, plane='axial', hemi='both', filename='all.png',
                    main=NULL, cex.main=1, ...) {
   if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
   kNumGraphs <- length(g.list)
+  if (missing(nrows) && missing(ncols)) {
+    nrows <- 1
+    ncols <- kNumGraphs
+  } else {
+    if (missing(ncols)) {
+      ncols <- ceiling(kNumGraphs / nrows)
+    } else if (missing(nrows)) {
+      nrows <- ceiling(kNumGraphs / ncols)
+    }
+  }
   kNumPlots <- nrows * ncols
   if (kNumPlots < kNumGraphs) {
     warning('Specified # of rows and columns less than the # of graphs; adjusting nrows.')

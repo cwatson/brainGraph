@@ -204,18 +204,18 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
   V(g)$rich <- 0
   rich <- which(degs >= deg.range[1] & degs <= deg.range[2])
   notrich <- setdiff(seq_len(vcount(g)), rich)
-  V(g)[rich]$rich <- 1
+  V(g)$rich[rich] <- 1
   E(g)[rich %--% rich]$type.rich <- 'rich-club'
   E(g)[rich %--% notrich]$type.rich <- 'feeder'
   E(g)[notrich %--% notrich]$type.rich <- 'local'
 
-  V(g)[rich]$color.rich <- 'red'
+  V(g)$color.rich[rich] <- 'red'
   V(g)[notrich]$color.rich <- 'gray'
   E(g)[E(g)$type.rich == 'rich-club']$color.rich <- 'red'
   E(g)[E(g)$type.rich == 'feeder']$color.rich <- 'orange'
   E(g)[E(g)$type.rich == 'local']$color.rich <- 'green'
 
-  V(g)[rich]$size.rich <- if (isTRUE(adj.vsize)) vec.transform(degs[rich], 3, 15) else 10
+  V(g)$size.rich[rich] <- if (isTRUE(adj.vsize)) vec.transform(degs[rich], 3, 15) else 10
   V(g)[notrich]$size.rich <- 0
   E(g)[E(g)$type.rich == 'rich-club']$size.rich <- 3.5
   E(g)[E(g)$type.rich == 'feeder']$size.rich <- 1.5
