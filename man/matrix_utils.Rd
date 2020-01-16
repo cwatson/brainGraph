@@ -2,13 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{get_thresholds}
 \alias{get_thresholds}
-\title{Calculate the threshold values to result in a specific density}
+\alias{is_binary}
+\title{Matrix utility functions}
 \usage{
 get_thresholds(mat, densities, emax = dim(mat)[1L] * (dim(mat)[1L] -
   1)/2, ...)
+
+is_binary(mat)
 }
 \arguments{
-\item{mat}{Numeric matrix that will be thresholded}
+\item{mat}{Numeric matrix}
 
 \item{densities}{Numeric vector of densities}
 
@@ -18,10 +21,16 @@ get_thresholds(mat, densities, emax = dim(mat)[1L] * (dim(mat)[1L] -
 }
 \value{
 Numeric vector of thresholds
+
+Logical of length 1
 }
 \description{
-Given a vector of densities, this function will return the numeric values
-that will result in graphs of the given densities. It is assumed that the
-density values are all between 0 and 1.
+\code{get_thresholds} calculates the threshold values to result in a specific
+density
+}
+\details{
+Given a vector of densities, \code{get_thresholds} returns the numeric values
+that will result in graphs of the given densities after thresholding by those
+values. It is assumed that the density values are all between 0 and 1.
 }
 \keyword{internal}

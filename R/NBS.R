@@ -192,6 +192,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
 
 #' @aliases summary.NBS
 #' @method print summary.NBS
+#' @export
 
 print.summary.NBS <- function(x, ...) {
   `p-value` <- `# edges` <- csize <- p.perm <- NULL

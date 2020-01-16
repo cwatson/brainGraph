@@ -222,7 +222,7 @@ summary.brainGraph_resids <- function(object, region=NULL, ...) {
 
 #' @aliases summary.brainGraph_resids
 #' @method print summary.brainGraph_resids
-#' @keywords internal
+#' @export
 
 print.summary.brainGraph_resids <- function(x, ...) {
   resids <- NULL

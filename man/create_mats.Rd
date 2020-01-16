@@ -132,7 +132,7 @@ Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
 }
 \seealso{
 Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}}, \code{\link{is_binary}},
+  \code{\link{cor.diff.test}},
   \code{\link{symmetrize_mats}}
 }
 \author{

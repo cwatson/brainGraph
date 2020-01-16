@@ -156,6 +156,7 @@ summary.brainGraph_boot <- function(object, ...) {
 
 #' @aliases summary.brainGraph_boot
 #' @method print summary.brainGraph_boot
+#' @export
 
 print.summary.brainGraph_boot <- function(x, ...) {
   print_title_summary('Bootstrap analysis')

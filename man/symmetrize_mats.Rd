@@ -39,8 +39,7 @@ in the input matrix.
 \code{\link[igraph]{graph_from_adjacency_matrix}}
 
 Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}}, \code{\link{create_mats}},
-  \code{\link{is_binary}}
+  \code{\link{cor.diff.test}}, \code{\link{create_mats}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

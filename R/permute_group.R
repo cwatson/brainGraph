@@ -348,6 +348,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
 
 #' @aliases summary.brainGraph_permute
 #' @method print summary.brainGraph_permute
+#' @export
 
 print.summary.brainGraph_permute <- function(x, ...) {
   print_title_summary('Permutation analysis')

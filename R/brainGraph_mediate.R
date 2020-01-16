@@ -354,7 +354,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 
 #' @aliases summary.bg_mediate
 #' @method print summary.bg_mediate
-#' @keywords internal
+#' @export
 
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL

@@ -207,7 +207,7 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
 
 #' @aliases summary.mtpc
 #' @method print summary.mtpc
-#' @keywords internal
+#' @export
 
 print.summary.mtpc <- function(x, ...) {
   A.mtpc <- A.crit <- contrast <- region <- NULL

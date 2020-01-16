@@ -316,6 +316,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
 
 #' @aliases summary.brainGraph
 #' @method print summary.brainGraph
+#' @export
 
 print.summary.brainGraph <- function(x, ...) {
   print_title_summary(paste0('Summary for *', x$object$type, '* ', x$object$level, '-level graph: ', x$object$name))

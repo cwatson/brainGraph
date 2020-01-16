@@ -4,7 +4,7 @@
 \alias{check_weights}
 \alias{check_degree}
 \alias{check_strength}
-\title{Check for edge weights}
+\title{Check for vertex or edge attributes}
 \usage{
 check_weights(g, weights)
 

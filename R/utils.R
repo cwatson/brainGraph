@@ -5,8 +5,7 @@
 #' objects are given, it wraps them in a list.
 #'
 #' @param ... Graphs or a list of graphs
-#' @keywords internal
-#' @return A list object
+#' @noRd
 
 args_as_list <- function(...) {
   graphs <- unlist(recursive=FALSE,
@@ -21,7 +20,7 @@ args_as_list <- function(...) {
   return(graphs)
 }
 
-#' Check for edge weights
+#' Check for vertex or edge attributes
 #'
 #' \code{check_weights} is a helper function for dealing with edge weights that
 #' get passed to different \code{igraph} functions.
@@ -77,12 +76,14 @@ check_strength <- function(g) {
 #' \deqn{CV(x) = \frac{sd(x)}{mean(x)}}
 #'
 #' @param x Numeric vector
+#' @param na.rm Logical indicating whether \code{NA} values should be stripped
+#'   when calculating sums. Default: \code{FALSE}
 #' @export
 
-coeff_var <- function(x) {
-  N <- length(x)
-  mu <- sum(x) / N
-  return(sqrt(1 / (N - 1) * (sum((x - mu)^2))) / mu)
+coeff_var <- function(x, na.rm=FALSE) {
+  N <- sum(!is.na(x))
+  mu <- sum(x, na.rm=na.rm) / N
+  return(sqrt(1 / (N - 1) * (sum((x - mu)^2, na.rm=na.rm))) / mu)
 }
 
 #' Calculate the p-value for differences in correlation coefficients
@@ -131,9 +132,9 @@ cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater
   return(list(p=p, z=diff.z))
 }
 
-#' Add metadata to a list-like object
+#' Utility functions
 #'
-#' Adds metadata to a list-like object.
+#' \code{get_metadata} adds metadata to a list-like object.
 #'
 #' If the object is a graph, graph-level attributes will be added. The
 #' elements added are:
@@ -145,7 +146,10 @@ cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater
 #'
 #' @param object A list-like object
 #' @keywords internal
-#' @return The same object with version, system, and date information added
+#' @return \code{get_metadata} - the same object with version, system, and date
+#'   information added
+#' @name Utility functions
+#' @rdname utils
 
 get_metadata <- function(object) {
   object$version <- list(r=R.version.string,
@@ -156,18 +160,22 @@ get_metadata <- function(object) {
   return(object)
 }
 
-#' Calculate the threshold values to result in a specific density
+#' Matrix utility functions
 #'
-#' Given a vector of densities, this function will return the numeric values
-#' that will result in graphs of the given densities. It is assumed that the
-#' density values are all between 0 and 1.
+#' \code{get_thresholds} calculates the threshold values to result in a specific
+#' density
 #'
-#' @param mat Numeric matrix that will be thresholded
+#' Given a vector of densities, \code{get_thresholds} returns the numeric values
+#' that will result in graphs of the given densities after thresholding by those
+#' values. It is assumed that the density values are all between 0 and 1.
+#'
+#' @param mat Numeric matrix
 #' @param densities Numeric vector of densities
 #' @param emax Integer; the maximum number of edges
 #' @param ... Arguments passed to \code{\link{sort}}
 #' @return Numeric vector of thresholds
 #' @keywords internal
+#' @rdname matrix_utils
 
 get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1) / 2, ...) {
   sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
@@ -204,7 +212,7 @@ glm_data_table <- function(g.list, level, measure) {
 #'
 #' @return Logical of length 1
 #' @keywords internal
-#' @family Matrix functions
+#' @rdname matrix_utils
 
 is_binary <- function(mat) {
   x <- identical(sum(abs(mat)) - sum(mat == 1), 0)
@@ -213,10 +221,13 @@ is_binary <- function(mat) {
 
 #' Convert a matrix to a list of rows
 #'
-#' Makes working with different contrast types (i.e., t or F) a little simpler.
+#' \code{matrix2list} makes working with different contrast types (i.e., t or F)
+#' a little simpler.
+#'
 #' @param mat Numeric matrix in which each row is a single contrast vector
 #' @return A list with length equal to the number of rows of \code{C}
 #' @keywords internal
+#' @rdname glm_helpers
 
 matrix2list <- function(mat) {
   l <- lapply(seq_len(dim(mat)[1L]), function(i) mat[i, , drop=FALSE])
@@ -256,43 +267,45 @@ sortfun <- function(alternative) {
 #'
 #' @param x A matrix with 2 columns of the points to rotate
 #' @param theta The angle to apply
-#'
-#' @keywords internal
 #' @return A matrix with 2 columns of the points' new locations
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @noRd
 
 rotation <- function(x, theta) {
-  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)),
-              nrow=2, ncol=2, byrow=FALSE)
+  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow=2)
   x.rot <- x %*% R
   return(x.rot)
 }
 
 #' Capitalize the first letter of a character string
-#' @keywords internal
+#' @noRd
 
 simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 
 #' Add newlines to a character string for printing
 #'
-#' The \code{delim} argument determines \emph{where} to insert the separator,
-#' which by default is a newline character.
+#' \code{split_string} inserts separator characters in a character string to
+#' truncate strings for printing.
 #'
-#' @param x A character string with length 1
+#' The \code{delim} argument determines \emph{where} to insert the separator.
+#' For example, given the default, it will attempt to insert newline characters
+#' only following a plus sign.
+#'
+#' @param x A character string
 #' @param max.len Integer; the max length of one line. Default: 80
 #' @param delim Character specifying where to end a line if it is longer than
 #'   \code{max.len}. Default: \code{'+'}
 #' @param sep Character specifying what to split by. Default: \code{'\n'} (a
 #'   newline character)
 #' @keywords internal
+#' @rdname utils
 
-split_string <- function(x, max_len=80L, delim='+', sep='\n') {
+split_string <- function(x, max_len=80L, delim='\\+', sep='\n') {
   str_len <- nchar(x)
   if (str_len > max_len) {
     nlines <- (str_len %/% max_len) + (str_len %% max_len > 0)
-    pluses <- gregexpr('\\+', x)[[1]]
+    delims <- gregexpr(delim, x)[[1L]]
     endpts <- rep(str_len, nlines)
-    for (i in seq_len(nlines - 1L)) endpts[i] <- max(pluses[pluses < 80*i])
+    for (i in seq_len(nlines - 1L)) endpts[i] <- max(delims[delims < max_len*i])
     startpts <- c(1L, endpts[-nlines] + 1L)
     lines <- paste(Map(function(a, b) substr(x, a, b), startpts, endpts), '\n')
     x <- trimws(paste(lines, collapse=''), 'right')
@@ -307,44 +320,44 @@ split_string <- function(x, max_len=80L, delim='+', sep='\n') {
 #' combinations of \emph{AND} and \emph{OR} (i.e., \code{&} and \code{|}).
 #'
 #' @param g A graph object
-#' @param subgraph Character string specifying an equation for which vertices to
+#' @param condition Character string specifying an equation for which vertices to
 #'   keep
 #' @keywords internal
 #' @return A graph object
 
-subset_graph <- function(g, subgraph) {
-  stopifnot(nzchar(subgraph))
-  orig.class <- class(g)
+subset_graph <- function(g, condition) {
+  stopifnot(nzchar(condition))
+
   # Function for creating the condition string to later subset the graph
   get_cond_string <- function(orig) {
-    spec <- '\\s\\&\\s|\\s\\|\\s'
-    substrings <- strsplit(orig, split=spec)[[1]]
-    if (length(substrings) > 1) {  # Multiple conditions
+    spec <- '\\s\\&\\s|\\s\\|\\s'  # Splits are either " & " or " | "
+    conditions <- strsplit(orig, split=spec)[[1L]]
+    if (length(conditions) > 1L) {  # Multiple conditions
       if (!isTRUE(grepl(spec, orig))) {
         stop('Logical operators must be surrounded by spaces!')
       }
-      nchars <- cumsum(nchar(substrings))
-      endpts <- nchars + vapply(seq_along(nchars), function(x) (3L * x) - 1L, integer(1))
+      nchars <- cumsum(nchar(conditions))
+      endpts <- nchars + seq(from=2L, by=3L, length.out=length(nchars))
       splits <- vapply(endpts, function(x) substr(orig, start=x, stop=x), character(1))
-      substrings <- trimws(substrings) # Remove unnecessary whitespace
+      conditions <- trimws(conditions) # Remove unnecessary whitespace
 
-      cond.string <- paste(vapply(seq_along(substrings), function(x)
-                                  paste0('V(g)$', substrings[x], splits[x]), character(1)),
+      cond.string <- paste(vapply(seq_along(conditions), function(x)
+                                  paste0('V(g)$', conditions[x], splits[x]), character(1)),
                            collapse='')
     } else {
-      cond.string <- paste0('V(g)$', substrings)
+      cond.string <- paste0('V(g)$', conditions)
     }
     return(cond.string)
   }
 
   # Handle when logical expressions are separated by parentheses
-  if (isTRUE(grepl('\\(.*\\&.*\\)', subgraph)) || isTRUE(grepl('\\(.*\\|.*\\)', subgraph))) {
-    subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
-    subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
+  if (isTRUE(grepl('\\(.*\\&.*\\)', condition)) || isTRUE(grepl('\\(.*\\|.*\\)', condition))) {
+    subs <- strsplit(condition, split='\\) & \\(')[[1L]]
+    subs <- as.list(trimws(subs, whitespace='[\\(\\) ]'))
     cond.strings <- vapply(subs, get_cond_string, character(1))
-    cond.string <- paste0('(', cond.strings[1], ') & (', cond.strings[2], ')')
+    cond.string <- paste0('(', paste(cond.strings, collapse=') & ('), ')')
   } else {
-    cond.string <- get_cond_string(subgraph)
+    cond.string <- get_cond_string(condition)
   }
 
   cond <- eval(parse(text=cond.string))
@@ -354,6 +367,7 @@ subset_graph <- function(g, subgraph) {
   } else {
     inds <- which(cond)
     cond <- setdiff(seq_len(vcount(g)), which(cond))
+    orig.class <- class(g)
     g <- delete.vertices(g, cond)
     class(g) <- orig.class
   }
@@ -362,15 +376,15 @@ subset_graph <- function(g, subgraph) {
 
 #' Transform a vector to have a different range
 #'
-#' This function takes a vector and transforms it to have a new range, given
-#' the input, or the default values of [0, 1].
+#' \code{vec.transform} takes a vector and transforms it to have a new range,
+#' given the input, or the default values of [0, 1].
 #'
-#' @param x the vector to transform
 #' @param min.val the minimum value of the new range
 #' @param max.val the maximum value of the new range
 #'
 #' @keywords internal
 #' @return A vector of the transformed input.
+#' @rdname utils
 
 vec.transform <- function(x, min.val=0, max.val=1) {
   diffrange <- diff(range(x, na.rm=TRUE))

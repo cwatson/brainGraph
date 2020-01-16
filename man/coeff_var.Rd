@@ -4,10 +4,13 @@
 \alias{coeff_var}
 \title{Calculate coefficient of variation}
 \usage{
-coeff_var(x)
+coeff_var(x, na.rm = FALSE)
 }
 \arguments{
 \item{x}{Numeric vector}
+
+\item{na.rm}{Logical indicating whether \code{NA} values should be stripped
+when calculating sums. Default: \code{FALSE}}
 }
 \description{
 Calculates the \emph{coefficient of variation}, defined as

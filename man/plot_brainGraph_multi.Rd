@@ -8,8 +8,8 @@
 plot_brainGraph_multi(g.list, filename = "orthoview.png",
   subgraph = NULL, main = NULL, label = NULL, cex.main = 1, ...)
 
-slicer(g.list, plane, hemi, nrows, ncols, filename = "all.png",
-  main = NULL, cex.main = 1, ...)
+slicer(g.list, nrows, ncols, plane = "axial", hemi = "both",
+  filename = "all.png", main = NULL, cex.main = 1, ...)
 }
 \arguments{
 \item{g.list}{A \code{brainGraphList} or a list of \code{brainGraph} objects}
@@ -30,15 +30,15 @@ plot titles. Default: \code{1} (no expansion)}
 
 \item{...}{Other arguments passed to \code{\link{plot.brainGraph}}}
 
+\item{nrows}{Integer; the number of rows in the figure}
+
+\item{ncols}{Integer; the number of columns in the figure}
+
 \item{plane}{Character string indicating which orientation to plot.
 Default: \code{'axial'}}
 
 \item{hemi}{Character string indicating which hemisphere to plot. Default:
 \code{'both'}}
-
-\item{nrows}{Integer; the number of rows in the figure}
-
-\item{ncols}{Integer; the number of columns in the figure}
 }
 \description{
 \code{plot_brainGraph_multi} writes a PNG file to disk containing three views

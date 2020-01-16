@@ -471,8 +471,8 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
 # S3 METHODS FOR "bg_GLM"
 ################################################################################
 
-#' @method print bg_GLM
-#' @keywords internal
+#' @export
+#' @rdname glm
 
 print.bg_GLM <- function(x, ...) {
   cat('\nA bg_GLM object at the', x$level, 'level with model:\n\n', formula(x))
@@ -541,7 +541,7 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
 
 #' @aliases summary.bg_GLM
 #' @method print summary.bg_GLM
-#' @keywords internal
+#' @export
 
 print.summary.bg_GLM <- function(x, ...) {
   print_title_summary('brainGraph GLM results')

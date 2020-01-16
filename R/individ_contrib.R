@@ -217,7 +217,7 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
 
 #' @aliases summary.IC
 #' @method print summary.IC
-#' @keywords internal
+#' @export
 
 print.summary.IC <- function(x, ...) {
   sID <- getOption('bg.subject_id')

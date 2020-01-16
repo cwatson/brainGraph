@@ -46,12 +46,6 @@ and number of observations for a \code{bg_GLM} object. The term labels are
 used for ANOVA tables.
 }
 \note{
-\code{terms} has only been tested for 2-way interactions. If your model
-has higher-order interactions, it may not work properly. Functions affected
-would include: \code{\link{residuals.bg_GLM}} (partial),
-\code{\link{vif.bg_GLM}}, and \code{\link{anova.bg_GLM}}. Furthermore,
-\code{labels} and \code{formula} may also be incorrect.
-
 \code{formula} returns a character string, not a \code{formula}
 object.
 }

@@ -43,8 +43,7 @@ The argument \code{W.files} accepts the same formats as \code{A.files}; see
 }
 \seealso{
 Other Matrix functions: \code{\link{cor.diff.test}},
-  \code{\link{create_mats}}, \code{\link{is_binary}},
-  \code{\link{symmetrize_mats}}
+  \code{\link{create_mats}}, \code{\link{symmetrize_mats}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

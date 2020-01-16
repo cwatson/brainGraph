@@ -6,6 +6,7 @@
 \alias{contrast_names}
 \alias{glm_fit_helper}
 \alias{glm_data_table}
+\alias{matrix2list}
 \alias{maxfun}
 \alias{sortfun}
 \title{Helper function to set-up for GLM analyses}
@@ -19,6 +20,8 @@ glm_fit_helper(DT, X, con.type, contrasts, alt, outcome, mykey,
   alpha = NULL)
 
 glm_data_table(g.list, level, measure)
+
+matrix2list(mat)
 
 maxfun(alternative)
 
@@ -62,6 +65,8 @@ analyses). For GLM, it is \code{'region'}; for NBS, it is
 
 \item{g.list}{A \code{brainGraphList} object}
 
+\item{mat}{Numeric matrix in which each row is a single contrast vector}
+
 \item{alternative}{Character string, whether to do a two- or one-sided test.
 Default: \code{'two.sided'}}
 }
@@ -69,6 +74,8 @@ Default: \code{'two.sided'}}
 \code{glm_data_table} - A \code{data.table} with one column
   containing the \code{Study.ID} and 1 or more columns with the graph- or
   vertex-level measure of interest.
+
+A list with length equal to the number of rows of \code{C}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses
@@ -83,6 +90,9 @@ later.
 \code{brainGraph_mediate} to create a \code{data.table} with the
 \code{Study.ID} and column(s) for the graph- or vertex-level metric of
 interest.
+
+\code{matrix2list} makes working with different contrast types (i.e., t or F)
+a little simpler.
 }
 \details{
 This function: removes unused levels from \code{covars} and \code{DT.y.m},

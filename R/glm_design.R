@@ -134,7 +134,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
 #'   999 (a hack to make it work without knowing the number of levels in
 #'   advance)
 #' @return A numeric matrix with new columns
-#' @keywords internal
+#' @noRd
 
 create_dummy_vars <- function(covars, X, fact, base_val, starting, colRemove) {
   cov.levels <- covars[, levels(get(fact))]

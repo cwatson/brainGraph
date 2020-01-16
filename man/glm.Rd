@@ -3,6 +3,7 @@
 \name{GLM}
 \alias{GLM}
 \alias{brainGraph_GLM}
+\alias{print.bg_GLM}
 \alias{summary.bg_GLM}
 \alias{plot.bg_GLM}
 \alias{[.bg_GLM}
@@ -15,6 +16,8 @@ brainGraph_GLM(g.list, covars, measure, contrasts, con.type = c("t",
   perm.method = c("freedmanLane", "terBraak", "smith"),
   part.method = c("beckmann", "guttman", "ridgway"), N = 5000,
   perms = NULL, long = FALSE, ...)
+
+\method{print}{bg_GLM}(x, ...)
 
 \method{summary}{bg_GLM}(object, p.sig = c("p", "p.fdr", "p.perm"),
   contrast = NULL, alpha = object$alpha, digits = max(3L,

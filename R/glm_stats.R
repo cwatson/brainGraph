@@ -434,7 +434,7 @@ influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
 }
 
 #' @method print infl.bg_GLM
-#' @keywords internal
+#' @export
 
 print.infl.bg_GLM <- function(x, ...) {
   sID <- getOption('bg.subject_id')
