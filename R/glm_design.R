@@ -67,7 +67,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   center.by=getOption('bg.group')) {
   sID <- getOption('bg.subject_id')
   covars <- copy(covars)
-  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(dim(covars)[1L]))]
+  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(dim(covars)[1L]))]
   covars[, eval(sID) := as.character(get(sID))]
   X <- matrix(1, nrow=dim(covars)[1L], ncol=1)
   dimnames(X) <- list(covars[, get(sID)], 'Intercept')
@@ -80,7 +80,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
     if (length(cols) > 0) covars[, (cols) := lapply(.SD, as.factor), .SDcols=cols]
   }
   if (!is.null(binarize)) {
-    stopifnot(all(binarize %in% names(covars)))
+    stopifnot(all(hasName(covars, binarize)))
     covars[, (binarize) := lapply(.SD, function(x) as.numeric(x) - 1), .SDcols=binarize]
     attrs <- c(attrs, list(binarize=binarize))
   }
@@ -108,7 +108,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
   for (f in factors) X <- create_dummy_vars(covars, X, f, base_val, starting, colRemove)
 
   if (!is.null(int) && length(int) > 1) {
-    stopifnot(all(int %in% names(covars)))
+    stopifnot(all(hasName(covars, int)))
     intcomb <- combn(int, 2, simplify=FALSE)
     if (length(int) == 3) intcomb <- c(intcomb, combn(int, 3, simplify=FALSE))
     for (x in intcomb) X <- get_int(X, coding, factors, x)
@@ -176,7 +176,7 @@ get_int <- function(X, coding, factors, int) {
       if (coding == 'cell.means') {
         if (!int[1] %in% factors) {
           X <- X[, -which(colnames(X) %in% intnames[[1]])]
-        } else if (!int[2] %in% names(factors)) {
+        } else if (!hasName(factors, int[2])) {
           X <- X[, -which(colnames(X) %in% intnames[[2]])]
         }
       }

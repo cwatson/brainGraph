@@ -200,7 +200,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
   out$atlas <- guess_atlas(g.list[[1]])
   class(out) <- c('bg_GLM', class(out))
-  if (!isTRUE(permute)) return(out)
+  if (isFALSE(permute)) return(out)
 
   #-------------------------------------
   # Permutation testing
@@ -268,7 +268,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
   region <- NULL
   sID <- getOption('bg.subject_id')
   covars <- droplevels(covars)
-  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
   incomp <- covars[!complete.cases(covars), get(sID)]
   covars <- covars[!get(sID) %in% incomp]
   if (!is.null(DT.y.m)) DT.y.m <- DT.y.m[!get(sID) %in% incomp]   # Not called for NBS
@@ -510,14 +510,14 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
   object$print.head <- print.head
   DT.sum <- object$DT[get(object$p.sig) < alpha]
   if (object$outcome == object$measure) DT.sum[, Outcome := NULL]
-  if ('threshold' %in% names(DT.sum)) DT.sum[, threshold := NULL]
+  if (hasName(DT.sum, 'threshold')) DT.sum[, threshold := NULL]
 
   # Change column order and names for `DT.sum`
   newcols <- c('Contrast', 'region', 'gamma', 'ci.low', 'ci.high', 'se',
                'stat', 'p', 'p.fdr', 'p.perm', 'contrast')
   oldnames <- c('region', 'gamma', 'se', 'stat', 'p', 'p.fdr', 'p.perm', 'ci.low', 'ci.high')
   newnames <- c('Region', 'Estimate', 'Std. error', 't value', 'p-value', 'p-value (FDR)', 'p-value (perm.)')
-  if (!isTRUE(object$permute)) {
+  if (isFALSE(object$permute)) {
     oldnames <- oldnames[-7]
     newnames <- newnames[-7]
     newcols <- newcols[-10]

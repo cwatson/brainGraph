@@ -134,8 +134,8 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   g.list <- g.list[]
 
   sID <- getOption('bg.subject_id')
-  stopifnot(all(c(treat, outcome, covar.names) %in% names(covars)))
-  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  stopifnot(all(hasName(covars, c(treat, outcome, covar.names))))
+  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
   covars <- droplevels(covars[, c(sID, treat, covar.names, outcome), with=FALSE])
   incomp <- covars[!complete.cases(covars), get(sID)]
   covars <- covars[!get(sID) %in% incomp]
@@ -200,7 +200,7 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
     res_ci <- res_boot[, lapply(.SD, BC.CI, low, high), by=region]
   }
 
-  if (!isTRUE(long)) res_boot <- NULL
+  if (isFALSE(long)) res_boot <- NULL
   out <- list(level=level, removed.subs=incomp, X.m=X.m, X.y=X.y, y.m=y.m, y.y=y.y,
               res.obs=res_obs, res.ci=res_ci, res.p=res_p,
               boot=boot, boot.ci.type=boot.ci.type, res.boot=res_boot,

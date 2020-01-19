@@ -46,7 +46,7 @@ bg.options <- list(
 
 .onLoad <- function(libname, pkgname) {
   op <- options()
-  toset <- !(names(bg.options) %in% names(op))
+  toset <- !(hasName(op, names(bg.options)))
   if (any(toset)) options(bg.options[toset])
 
   invisible()

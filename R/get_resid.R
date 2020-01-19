@@ -52,8 +52,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
-  stopifnot(gID %in% names(covars))
-  if (!sID %in% names(covars)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  stopifnot(hasName(covars, gID))
+  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
   method <- match.arg(method)
   grps <- covars[, levels(factor(get(gID)))]
   DT.cov <- merge(covars, dt.vol, by=sID)
@@ -299,7 +299,7 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
             axis.text.y=element_text(hjust=0.5, angle=90)) +
       labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(Region)]),
            x='Theoretical Quantiles', y='Sample Quantiles')
-    if (!isTRUE(cols)) {
+    if (isFALSE(cols)) {
       p <- p + scale_color_manual(values=rep('black', DT.resids[, length(unique(get(gID)))]))
     }
     return(p)

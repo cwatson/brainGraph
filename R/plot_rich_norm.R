@@ -73,7 +73,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   setkeyv(rects, c(facet.by, gID))
 
   sID <- getOption('bg.subject_id')
-  if (sID %in% names(subDT)) {
+  if (hasName(subDT, sID)) {
     rects <- subDT[rects]
     p <- ggplot(data=rects, aes(x=k, y=norm, group=get(sID)))
   } else {

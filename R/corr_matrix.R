@@ -171,7 +171,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   if (missing(i)) i <- seq_len(dim(x$thresholds)[1L])
   for (g in groups(x)) x$r.thresh[[g]] <- x$r.thresh[[g]][, , i, drop=FALSE]
   x$thresholds <- x$thresholds[i, , drop=FALSE]
-  if ('densities' %in% names(x)) x$densities <- x$densities[i]
+  if (hasName(x, 'densities')) x$densities <- x$densities[i]
   return(x)
 }
 
@@ -255,7 +255,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
   }
 
   if (isTRUE(ordered)) {
-    if (!order.by %in% names(get(x$atlas))) {
+    if (!hasName(get(x$atlas), order.by)) {
       if (inherits(graphs, 'brainGraphList')) {
         g.list <- graphs[]
       } else if (inherits(graphs[[thresh.num]], 'brainGraphList')) {

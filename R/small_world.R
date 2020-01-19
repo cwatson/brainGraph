@@ -56,6 +56,6 @@ small.world <- function(g.list, rand) {
       DT[, eval(x) := sapply(g.list, graph_attr, x)]
     }
   }
-  if ('Group' %in% names(DT)) setnames(DT, 'Group', getOption('bg.group'))
+  if (hasName(DT, 'Group')) setnames(DT, 'Group', getOption('bg.group'))
   return(DT)
 }

@@ -121,7 +121,7 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
     }
   }
 
-  if (!isTRUE(auc)) {
+  if (isFALSE(auc)) {
     setkey(res.perm, densities)
     obs.ind <- (N + 1) * seq_along(densities)
     obs.diff <- res.perm[obs.ind]
@@ -276,7 +276,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
   #-------------------------------------
   } else if (object$level == 'graph') {
     if (is.null(measure)) measure <- 'mod'
-    stopifnot(measure %in% names(permDT))
+    stopifnot(hasName(permDT, measure))
     permDT[, region := 'graph']
     if (measure %in% c('asymm', 'assortativity.lobe')) {
       g <- lapply(g, lapply, make_brainGraph, object$atlas, type='random')
@@ -322,7 +322,7 @@ summary.brainGraph_permute <- function(object, measure=NULL,
   setcolorder(sum.dt,
               c('densities', 'region', paste0(measure, '.', object$Group), 'obs.diff',
                 'ci.low', 'ci.high', 'perm.diff', 'p'))
-  if (!isTRUE(object$auc)) {
+  if (isFALSE(object$auc)) {
     if (object$level == 'graph') {
       sum.dt[, p.fdr := p.adjust(p, 'fdr')]
     } else {
@@ -385,7 +385,7 @@ plot.brainGraph_permute <- function(x, measure=NULL,
   p.sig <- match.arg(p.sig)
   if (x$level == 'graph') {
     if (is.null(measure)) measure <- 'mod'
-    stopifnot(measure %in% names(x$DT))
+    stopifnot(hasName(x$DT, measure))
   } else {
     measure <- x$measure
   }
@@ -401,7 +401,7 @@ plot.brainGraph_permute <- function(x, measure=NULL,
                     variable.name='Group', value.name='obs')
     plot.dt[, Group := factor(Group, labels=x$Group)]
     idvars <- c('densities', 'region', 'p', 'Group', 'obs')
-    if (!isTRUE(x$auc)) idvars <- c(idvars, 'p.fdr')
+    if (isFALSE(x$auc)) idvars <- c(idvars, 'p.fdr')
     plot.dt <- melt(plot.dt, id.vars=idvars)
     plot.dt[, c('sig', 'trend') := '']
     plot.dt[get(p.sig) < alpha, sig := '*']

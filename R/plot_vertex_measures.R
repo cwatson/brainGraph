@@ -35,10 +35,10 @@ plot_vertex_measures <- function(g.list, measure, facet.by=NULL, group.by=getOpt
 
   if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
   DT <- vertex_attr_dt(g.list)
-  stopifnot(measure %in% names(DT), group.by %in% names(DT))
+  stopifnot(all(hasName(DT, c(measure, group.by))))
   idvars <- c('atlas', 'modality', 'weighting', getOption('bg.subject_id'), gID, 'threshold',
               'density', 'region', 'lobe', 'hemi', 'class', 'network')
-  idvars <- idvars[which(idvars %in% names(DT))]
+  idvars <- idvars[which(hasName(DT, idvars))]
   DT.m <- melt(DT, id.vars=idvars)
   setnames(DT.m, group.by, 'group.by')
 
@@ -47,7 +47,7 @@ plot_vertex_measures <- function(g.list, measure, facet.by=NULL, group.by=getOpt
   p <- if (type == 'violin') p + geom_violin(...) else p + geom_boxplot(...)
 
   if (!is.null(facet.by)) {
-    stopifnot(facet.by %in% names(DT))
+    stopifnot(hasName(DT, facet.by))
     p <- p + facet_wrap(as.formula(paste('~', facet.by)), scales='free_y')
   }
   if (isTRUE(show.points)) {

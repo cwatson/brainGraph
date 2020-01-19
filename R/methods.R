@@ -77,7 +77,7 @@ region.names <- function(object) {
 #' @method region.names data.table
 #' @rdname methods
 region.names.data.table <- function(object) {
-  colname <- if ('Region' %in% names(object)) 'Region' else 'region'
+  colname <- if (hasName(object, 'Region')) 'Region' else 'region'
   object[, levels(get(colname))]
 }
 

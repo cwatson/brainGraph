@@ -333,7 +333,7 @@ subset_graph <- function(g, condition) {
     spec <- '\\s\\&\\s|\\s\\|\\s'  # Splits are either " & " or " | "
     conditions <- strsplit(orig, split=spec)[[1L]]
     if (length(conditions) > 1L) {  # Multiple conditions
-      if (!isTRUE(grepl(spec, orig))) {
+      if (isFALSE(grepl(spec, orig))) {
         stop('Logical operators must be surrounded by spaces!')
       }
       nchars <- cumsum(nchar(conditions))

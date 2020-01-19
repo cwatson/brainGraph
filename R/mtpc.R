@@ -347,7 +347,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     return(lineplot)
   } else if (x$level == 'vertex') {
     if (is.null(region)) {
-      if (!isTRUE(only.sig.regions)) {
+      if (isFALSE(only.sig.regions)) {
         region <- DT[, levels(region)]
       } else {
         region <- droplevels(DT[A.mtpc > A.crit])[, levels(region)]

@@ -42,7 +42,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
   gID <- getOption('bg.group')
   DT <- rbindlist(lapply(g.list, graph_attr_dt), use.names=TRUE)
   idvars <- c('atlas', 'modality', 'weighting', sID, gID, 'threshold', 'density')
-  idvars <- idvars[which(idvars %in% names(DT))]
+  idvars <- idvars[which(hasName(DT, idvars))]
   DT.m <- melt(DT, id.vars=idvars)
   DT.m <- droplevels(DT.m[!variable %in% exclude])
 
@@ -73,7 +73,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
               density=ggplot(DT.m, aes(x=density, y=value, col=get(gID))),
               threshold=ggplot(DT.m, aes(x=threshold, y=value, col=get(gID))) + scale_x_reverse())
 
-  if (sID %in% names(DT.m)) {
+  if (hasName(DT.m, sID)) {
     p <- p + stat_smooth(method='gam', formula=y~s(x))
   } else {
     p <- p + geom_line()
