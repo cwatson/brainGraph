@@ -8,7 +8,7 @@ print_bg_summary <- function(object) {
   type <- simpleCap(object$type)
   atlasfull <-
     switch(object$atlas,
-           aal116='AAL-116', aal2.120=,aal2.94='AAL2', aal90='AAL-90',
+           aal116='AAL-116', aal2.120=, aal2.94='AAL2', aal90='AAL-90',
            brainsuite='Brainsuite', craddock200='Craddock-200',
            destrieux='Destrieux', destrieux.scgm='Destrieux + SCGM',
            dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
@@ -189,4 +189,23 @@ print_permutation_summary <- function(x) {
   cat('# of permutations: ', prettyNum(x$N, ','), '\n')
 
   invisible(x)
+}
+
+# Print an abbreviated graph metric in full
+#-------------------------------------------------------------------------------
+print_full_metric <- function(x) {
+  full <- switch(x,
+      coreness=, degree=, eccentricity=, diameter=, strength=, vulnerability=simpleCap(x),
+      knn='K-nearest neighbor degree', mod='Modularity', mod.wt='Modularity (weighted)',
+      E.global='Global efficiency', E.global.wt='Global efficiency (weighted)',
+      E.local='Local efficiency', E.local.wt='Local efficiency (weighted)',
+      E.nodal='Nodal efficiency', E.nodal.wt='Nodal efficiency (weighted)',
+      Cp='Clustering coefficient', Lp='Characteristic path length',
+      assort=, assortativity='Degree assortativity', assort.lobe='Lobe assortativity',
+      btwn.cent='Betweenness centrality', ev.cent='Eigenvector centrality',
+      clo.cent='Closeness centrality', lev.cent='Leverage centrality', pagerank='PageRank',
+      subg.cent='Subgraph centrality', communicability='Communicability betweenness centrality',
+      asymm='Edge asymmetry', max.comp='Largest connected component', num.hubs='# of hubs',
+      num.tri='# of triangles', spatial.dist='Mean Euclidean distance', transitivity='Local transitivity')
+  return(full)
 }
