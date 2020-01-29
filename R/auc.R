@@ -31,16 +31,16 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   # Get the meta variables first
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting')
   out <- setNames(vector('list', length(attrs)), attrs)
-  for (a in attrs) out[[a]] <- g.list[[1]][[a]]
+  for (a in attrs) out[[a]] <- g.list[[1L]][[a]]
 
-  if (!is.null(g.list[[1]]$threshold)) {
+  if (!is.null(g.list[[1L]]$threshold)) {
     thresholds <- vapply(g.list, with, numeric(1), threshold)
   } else {
     thresholds <- seq(from=0, to=1, length.out=length(g.list))
   }
   if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
-  subjects <- names(g.list[[1]]$graphs)
-  grps <- groups(g.list[[1]])
+  subjects <- names(g.list[[1L]]$graphs)
+  grps <- groups(g.list[[1L]])
 
   if (!getDoParRegistered()) {
     cl <- makeCluster(getOption('bg.ncpus'))
@@ -75,30 +75,49 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
 #' Difference in the area-under-the-curve of two vectors
 #'
 #' This function takes two vectors, calculates the area-under-the-curve (AUC),
-#' and calculates the difference between the two.
+#' and calculates the difference between the two (if applicable).
 #'
-#' If \code{y} has 2 columns, then each column should be the values for each
-#' subject group. If \code{y} has multiple columns (e.g., equal to the number of
-#' vertices of a graph), it will calculate the AUC for each column.
+#' There are 4 different behaviors for this function:
+#' \enumerate{
+#'   \item If \code{x} is a single numeric value, then \code{y} should be a
+#'     vector of 2 values and the difference is returned. This generally should
+#'     not occur and may be removed in the future.
+#'   \item If \code{y} has 1 column (or is a vector), then the AUC of \code{y}
+#'     is returned.
+#'   \item If \code{y} has exactly 2 columns, then each column should contain
+#'     the values of interest for each subject group, and the difference in
+#'     AUC's for each group is returned.
+#'   \item If \code{y} has multiple columns (e.g., equal to the number of
+#'     vertices of a graph), it will calculate the AUC for each column.
+#' }
 #'
 #' @param x Numeric vector of the x-values
-#' @param y A numeric matrix
+#' @param y A numeric vector or matrix
 #'
 #' @keywords internal
 #' @return A numeric value of the difference between two groups, or a numeric
 #'   vector of the AUC across vertices
 
 auc_diff <- function(x, y) {
-  if (length(x) > 1) {
-    if (NCOL(y) == 1) {  # A single vector, for MTPC
-      return(sum(-diff(x) * (head(y, -1) + tail(y, -1))) / 2)
-    } else if (ncol(y) > 2) {
-      return(apply(y, 2, function(z) auc_diff(x, z)))
+  if (length(x) > 1L) {
+    if (NCOL(y) == 1L) {  # A single vector, for MTPC
+      return(sum(-diff(x) * (head(y, -1L) + tail(y, -1L))) / 2)
+    } else if (ncol(y) > 2L) {
+      return(apply(y, 2L, function(z) auc_diff(x, z)))
     } else {
-      return(-diff(apply(y, 2, function(z)
-                         sum(diff(x) * (head(z, -1) + tail(z, -1))) / 2)))
+      return(auc_diff_perm(x, y))
     }
   } else {
-    return(y[1] - y[2])
+    return(y[1L] - y[2L])
   }
+}
+
+#' @param x Numeric vector
+#' @param y Numeric matrix with 2 columns and number of rows equal to the length
+#'   of \code{x}
+#' @return A single numeric value of the between-group AUC difference
+#' @noRd
+
+auc_diff_perm <- function(x, y) {
+  -diff(apply(y, 2L, function(z) sum(diff(x) * (head(z, -1L) + tail(z, -1L))) / 2))
 }
