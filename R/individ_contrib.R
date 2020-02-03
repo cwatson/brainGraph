@@ -38,6 +38,7 @@
 #'   \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 
 loo <- function(resids, corrs, level=c('global', 'regional')) {
+  ..sID <- ..gID <- NULL
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
   i <- NULL
@@ -100,6 +101,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #' }
 
 aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) {
+  ..sID <- ..gID <- NULL
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
   i <- NULL

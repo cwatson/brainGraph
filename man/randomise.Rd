@@ -35,13 +35,18 @@ Default: \code{NULL}}
 \item{skip}{Integer vector indicating which (if any) contrasts to skip (if
 there were no significant differences anywhere)}
 
-\item{DT}{\code{data.table} with outcome variables}
+\item{DT}{\code{data.table} with outcome variables. Specifically, it must at
+least contain a column matching \code{outcome} and column(s) matching the
+value of \code{mykey}. If \code{mykey} contains a comma (i.e., as with
+\code{\link{NBS}}) then it must contain columns for each of the
+comma-separated variables.}
 
 \item{outcome}{Character string specifying the name of the outcome variable,
 if it differs from the graph metric (\code{measure})}
 
 \item{mykey}{The \code{key} to key by (to differentiate NBS and other GLM
-analyses). For GLM, it is \code{'region'}; for NBS, it is}
+analyses). For GLM, it is \code{'region'}; for NBS, it is
+\code{'Var1,Var2'}.}
 }
 \value{
 A list containing:

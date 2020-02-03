@@ -227,7 +227,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
 
     D <- distances(g, weights=NA)
     V(g)$knn <- knn(g, weights=NA)$knn
-    V(g)$Lp <- mean_distance_wt(g, weights=NA, D=D)
+    V(g)$Lp <- mean_distance_wt(g, 'vertex', weights=NA, D=D)
 
     E(g)$btwn <- edge.betweenness(g)
     V(g)$btwn.cent <- centr_betw(g)$res

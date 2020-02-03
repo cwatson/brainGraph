@@ -154,7 +154,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   x$level <- level
   x$type <- type
   attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
-  attrs <- names(which(vapply(attrs, function(x) !is.null(get(x)), logical(1))))
+  attrs <- names(which(vapply(attrs, function(y) !is.null(get(y)), logical(1))))
   for (a in attrs) x <- set_graph_attr(x, a, get(a))
   if (level == 'group' && !is.null(Group)) x$name <- x$Group
 

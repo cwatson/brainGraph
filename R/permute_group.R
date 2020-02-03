@@ -224,7 +224,7 @@ permute_other_foreach <- function(perms, densities, resids, grps, .function) {
 summary.brainGraph_permute <- function(object, measure=object$measure,
                                        alternative=c('two.sided', 'less', 'greater'),
                                        alpha=0.05, p.sig=c('p', 'p.fdr'), ...) {
-  perm.diff <- p <- p.fdr <- region <- obs.diff <- NULL
+  perm.diff <- p <- p.fdr <- region <- obs.diff <- ..measure <- NULL
   gID <- getOption('bg.group')
   if (object$level == 'other') {  # Hack to figure out which level it is when level="other"
     object$level <- if (dim(object$DT)[2L] > 6) 'vertex' else 'graph'

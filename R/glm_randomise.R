@@ -139,9 +139,14 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #' @param nC Integer; the number of contrasts
 #' @param skip Integer vector indicating which (if any) contrasts to skip (if
 #'   there were no significant differences anywhere)
-#' @param DT \code{data.table} with outcome variables
+#' @param DT \code{data.table} with outcome variables. Specifically, it must at
+#'   least contain a column matching \code{outcome} and column(s) matching the
+#'   value of \code{mykey}. If \code{mykey} contains a comma (i.e., as with
+#'   \code{\link{NBS}}) then it must contain columns for each of the
+#'   comma-separated variables.
 #' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
 #'   analyses). For GLM, it is \code{'region'}; for NBS, it is
+#'   \code{'Var1,Var2'}.
 #' @inheritParams GLM
 #' @importFrom foreach getDoParRegistered
 #' @importFrom doParallel registerDoParallel
@@ -152,7 +157,7 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 
 randomise <- function(perm.method, part.method, N, perms,
                       contrasts, con.type, nC, skip, DT, outcome, X, mykey) {
-  i <- region <- numer <- se <- perm <- Var1 <- Var2 <- value <- stat <- NULL
+  i <- NULL
   randMats <- setup_randomise(perm.method, part.method, X, contrasts, con.type, nC)
   Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
   if (con.type == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}

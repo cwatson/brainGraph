@@ -12,9 +12,10 @@
   modality = NULL, weighting = NULL, threshold = NULL,
   gnames = x$con.name, ...)
 
-\method{make_brainGraphList}{mtpc}(x, atlas, type = "observed",
-  level = "contrast", set.attrs = FALSE, modality = NULL,
-  weighting = NULL, threshold = NULL, gnames = x$con.name, ...)
+\method{make_brainGraphList}{mtpc}(x, atlas = x$atlas,
+  type = "observed", level = "contrast", set.attrs = FALSE,
+  modality = NULL, weighting = NULL, threshold = NULL,
+  gnames = x$con.name, ...)
 
 \method{make_brainGraphList}{NBS}(x, atlas, type = "observed",
   level = "contrast", set.attrs = TRUE, modality = NULL,

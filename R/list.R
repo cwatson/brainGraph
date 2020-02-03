@@ -92,6 +92,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   grpNames <- as.character(grpNames)
 
   type <- match.arg(type)
+  if (missing(atlas)) atlas <- guess_atlas(x)
   attrs <- c('atlas', 'type', 'level', 'modality', 'weighting', 'threshold')
   out <- setNames(vector('list', length(attrs)), attrs)
   for (a in attrs) {
@@ -233,7 +234,7 @@ make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
 #' @export
 #' @rdname glm_brainGraphList
 
-make_brainGraphList.mtpc <- function(x, atlas, type='observed', level='contrast',
+make_brainGraphList.mtpc <- function(x, atlas=x$atlas, type='observed', level='contrast',
                                      set.attrs=FALSE, modality=NULL, weighting=NULL,
                                      threshold=NULL, gnames=x$con.name, ...) {
   contrast <- region <- A.mtpc <- A.crit <- S.crit <- S.mtpc <- tau.mtpc <- NULL
