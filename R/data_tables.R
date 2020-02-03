@@ -15,20 +15,20 @@
 
 graph_attr_dt <- function(bg.list) {
   name <- NULL
-  if (inherits(bg.list, 'brainGraphList')) {
+  if (is.brainGraphList(bg.list)) {
     level <- bg.list$level
     bg.list <- bg.list$graphs
   } else {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
   }
   N <- length(bg.list)
-  inds <- which(vapply(graph_attr(bg.list[[1]]), is.numeric, logical(1)))
-  g.attrs <- graph_attr_names(bg.list[[1]])
+  inds <- which(vapply(graph_attr(bg.list[[1L]]), is.numeric, logical(1)))
+  g.attrs <- graph_attr_names(bg.list[[1L]])
   g.attr.num <- names(inds)
   g.dt <- as.data.table(vapply(g.attr.num, function(x)
                                vapply(bg.list, graph_attr, numeric(1), x), numeric(N)))
 
-  if (N == 1) {
+  if (N == 1L) {
     g.dt <- as.data.table(t(g.dt))
     colnames(g.dt) <- g.attr.num
   }
@@ -63,18 +63,18 @@ graph_attr_dt <- function(bg.list) {
 
 vertex_attr_dt <- function(bg.list) {
   name <- NULL
-  if (inherits(bg.list, 'brainGraphList')) {
+  if (is.brainGraphList(bg.list)) {
     level <- bg.list$level
     atlas <- bg.list$atlas
     bg.list <- bg.list$graphs
   } else {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
-    atlas <- bg.list[[1]]$atlas
+    atlas <- bg.list[[1L]]$atlas
     level <- 'subject'
   }
 
   dt.V <- rbindlist(lapply(bg.list, as_data_frame, what='vertices'))
-  cols.char <- names(which(vapply(vertex_attr(bg.list[[1]]), is.character, logical(1))))
+  cols.char <- names(which(vapply(vertex_attr(bg.list[[1L]]), is.character, logical(1))))
   cols.rem <- setdiff(cols.char, c('name', 'lobe', 'hemi', 'class', 'network'))
   cols.rem <- c(cols.rem, 'x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni',
                 'lobe.hemi', 'circle.layout', 'circle.layout.comm')
@@ -82,8 +82,8 @@ vertex_attr_dt <- function(bg.list) {
   setnames(dt.V, 'name', 'region')
 
   # Add some important graph attributes, as well
-  Nv <- vcount(bg.list[[1]])
-  g.attrs <- graph_attr_names(bg.list[[1]])
+  Nv <- vcount(bg.list[[1L]])
+  g.attrs <- graph_attr_names(bg.list[[1L]])
   g.attrs.char <- c('name', 'atlas', 'modality', 'weighting', 'Group', 'density', 'threshold')
   for (x in g.attrs.char) {
     if (x %in% g.attrs) dt.V[, eval(x) := rep(sapply(bg.list, graph_attr, x), each=Nv)]

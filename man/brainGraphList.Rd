@@ -8,6 +8,7 @@
 \alias{Extract.brainGraphList}
 \alias{[.brainGraphList}
 \alias{print.brainGraphList}
+\alias{is.brainGraphList}
 \alias{nobs.brainGraphList}
 \alias{as_brainGraphList}
 \title{Create a list of brainGraph graphs}
@@ -34,6 +35,8 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
 
 \method{print}{brainGraphList}(x, ...)
+
+is.brainGraphList(x)
 
 \method{nobs}{brainGraphList}(object, ...)
 

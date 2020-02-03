@@ -79,7 +79,7 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
 
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+  matches <- vapply(g.list, is.brainGraphList, logical(1))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
   stopifnot(length(g.list) == length(thresholds))
 
@@ -130,16 +130,16 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   tau.mtpc <- tau.mtpc[, .SD[1], by=contrast]
 
   for (i in seq_len(kNumContrasts)) {
-    null.crit <- which(apply(null.dist.all[[i]], 1, function(x)
+    null.crit <- which(apply(null.dist.all[[i]], 1L, function(x)
                              any(with(rlefun(x, Scrit[i]), values == TRUE & lengths >= clust.size))))
     if (length(null.crit) > 0) {
       null.crits <- null.dist.all[[i]][null.crit, , drop=FALSE]
-      Acrit[i] <- mean(apply(null.crits, 1, auc_rle, Scrit[i], thresholds, alt, clust.size))
+      Acrit[i] <- mean(apply(null.crits, 1L, auc_rle, Scrit[i], thresholds, alt, clust.size))
       mtpc.all[contrast == i, A.crit := Acrit[i]]
     }
   }
 
-  glm.attr <- res.glm[[1]]
+  glm.attr <- res.glm[[1L]]
   glm.attr[c('y', 'DT', 'permute', 'perm')] <- NULL
   for (i in seq_along(thresholds)) res.glm[[i]]$perm$null.dist <- NULL
   mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$threshold,
@@ -275,8 +275,8 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
   DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
   whichmaxfun <- switch(x$alt, two.sided=function(y) which.max(abs(y)), less=which.min, greater=which.max)
   myMax <- maxfun(x$alt)
-  thr <- apply(x$null.dist[[mycontrast]], 1, whichmaxfun)
-  thr.y <- apply(x$null.dist[[mycontrast]], 1, myMax)
+  thr <- apply(x$null.dist[[mycontrast]], 1L, whichmaxfun)
+  thr.y <- apply(x$null.dist[[mycontrast]], 1L, myMax)
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
 
   # Local function to plot for a single region
@@ -288,10 +288,10 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     if (n == 0) {
       DT[, stat_ribbon := NA]
     } else {
-      if (n == 1) {
-        all.inds <- c(apply(inds, 1, function(z) z[1]:z[2]))
-      } else if (n > 1) {
-        all.inds <- c(unlist(apply(inds, 1, function(z) z[1]:z[2])))
+      if (n == 1L) {
+        all.inds <- c(apply(inds, 1L, function(z) z[1L]:z[2L]))
+      } else if (n > 1L) {
+        all.inds <- c(unlist(apply(inds, 1L, function(z) z[1L]:z[2L])))
       } else {
         all.inds <- 1:dim(DT)[1L]
       }
@@ -301,7 +301,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     lineplot <- ggplot(data=DT, mapping=aes(x=threshold)) +
       geom_line(aes(y=stat), col='red4', size=1.25, na.rm=TRUE) +
       geom_hline(aes(yintercept=nullthresh), lty=2)
-    if (n > 0) {
+    if (n > 0L) {
       if (x$alt == 'less') {
         lineplot <- lineplot +
           geom_ribbon(aes(ymax=stat_ribbon, ymin=nullthresh), fill='red4', alpha=0.3)

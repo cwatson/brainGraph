@@ -42,10 +42,10 @@
 #'   savedir='/home/cwatson/dti/rand', clustering=F)
 #' }
 
-analysis_random_graphs <- function(g.list, level=g.list[[1]]$level, N=100L, savedir='.', ...) {
+analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, savedir='.', ...) {
   grp <- getOption('bg.group')
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+  matches <- vapply(g.list, is.brainGraphList, logical(1))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
   kNumThresh <- length(g.list)
@@ -123,8 +123,8 @@ get_rand_attrs <- function(bg.list, level) {
     densities <- vapply(rand, function(x) graph_attr(x[[1]], 'density'), numeric(1))
     DT[, density := rep(densities, times=N)]
   }
-  if ('threshold' %in% graph_attr_names(rand[[1]][[1]])) {
-    threshes <- vapply(rand, function(x) graph_attr(x[[1]], 'threshold'), numeric(1))
+  if ('threshold' %in% graph_attr_names(rand[[1L]][[1L]])) {
+    threshes <- vapply(rand, function(x) graph_attr(x[[1L]], 'threshold'), numeric(1))
     DT[, threshold := rep(threshes, times=N)]
   }
   return(DT)

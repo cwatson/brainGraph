@@ -33,7 +33,7 @@ plot_vertex_measures <- function(g.list, measure, facet.by=NULL, group.by=getOpt
   variable <- value <- NULL
   gID <- getOption('bg.group')
 
-  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   DT <- vertex_attr_dt(g.list)
   stopifnot(all(hasName(DT, c(measure, group.by))))
   idvars <- c('atlas', 'modality', 'weighting', getOption('bg.subject_id'), gID, 'threshold',

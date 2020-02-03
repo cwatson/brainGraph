@@ -144,7 +144,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   region <- Outcome <- p.fdr <- p <- Contrast <- i <-
     stat <- p.perm <- perm <- contrast <- V1 <- NULL
 
-  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
 
   # Get the outcome variable(s) into a data.table
@@ -198,7 +198,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
               con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp, permute=permute)
   if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
-  out$atlas <- guess_atlas(g.list[[1]])
+  out$atlas <- guess_atlas(g.list[[1L]])
   class(out) <- c('bg_GLM', class(out))
   if (isFALSE(permute)) return(out)
 
@@ -215,7 +215,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   dfR <- dimX[1L] - dimX[2L]
   runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
   # Different design matrix for each region
-  if (length(dimX) == 3 && level == 'vertex') {
+  if (length(dimX) == 3L && level == 'vertex') {
     null.dist <- setNames(vector('list', length(runX)), runX)
     for (k in intersect(runX, runY)) {
       null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
@@ -526,7 +526,7 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
     clp <- 100 * (1 - object$alpha)
     newnames <- c(newnames, paste0(clp, '% CI ', c('low', 'high')))
   } else if (object$con.type == 'f') {
-    newcols[3] <- oldnames[2] <- 'ESS'
+    newcols[3L] <- oldnames[2L] <- 'ESS'
     newnames[c(2, 4)] <- c('Extra Sum Sq.', 'F value')
     newcols <- newcols[-c(4, 5)]
     oldnames <- oldnames[-grep('ci.', oldnames)]
@@ -705,7 +705,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   }
 
   dimX <- dim(x$X)
-  p <- if (length(dimX) == 3L) qr(x$X[, , 1])$rank else qr(x$X)$rank
+  p <- if (length(dimX) == 3L) qr(x$X[, , 1L])$rank else qr(x$X)$rank
   rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(dimX[1L]))
   outcome <- x$outcome
 

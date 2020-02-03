@@ -14,7 +14,7 @@
 
 count_homologous <- function(g) {
   V1 <- V2 <- NULL
-  stopifnot(inherits(g, 'brainGraph'))
+  stopifnot(is.brainGraph(g))
   if (isTRUE(any(grepl('\\.L[0-9]*$', V(g)$name)))) {
     lh <- '\\.L[0-9]*$'
     rh <- '\\.R[0-9]*$'
@@ -49,7 +49,7 @@ count_homologous <- function(g) {
 count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
   total <- intra <- inter <- NULL
   group <- match.arg(group)
-  stopifnot(inherits(g, 'brainGraph'), group %in% vertex_attr_names(g))
+  stopifnot(is.brainGraph(g), group %in% vertex_attr_names(g))
 
   group.names <- get(g$atlas)[, levels(get(group))]
   A <- as_adj(g, names=FALSE, sparse=FALSE)

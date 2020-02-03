@@ -433,6 +433,10 @@ print.brainGraphList <- function(x, ...) {
   invisible(x)
 }
 
+#' @export
+#' @rdname brainGraphList
+is.brainGraphList <- function(x) inherits(x, 'brainGraphList')
+
 #' @param object A \code{brainGraphList} object
 #' @export
 #' @rdname brainGraphList
@@ -470,7 +474,7 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
   type <- match.arg(type)
   level <- match.arg(level)
   if (type == 'observed' || level == 'group') {
-    stopifnot(all(vapply(g.list, inherits, logical(1), 'brainGraph')))
+    stopifnot(all(vapply(g.list, is.brainGraph, logical(1))))
     g1 <- g.list[[1]]
     ids <- vapply(g.list, graph_attr, character(1), 'name')
   } else {

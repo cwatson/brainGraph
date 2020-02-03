@@ -77,7 +77,7 @@
 plot_brainGraph_multi <- function(g.list, filename='orthoview.png',
                                   subgraph=NULL, main=NULL, label=NULL,
                                   cex.main=1, ...) {
-  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
   kNumGraphs <- length(g.list)
 
@@ -85,7 +85,7 @@ plot_brainGraph_multi <- function(g.list, filename='orthoview.png',
   height <- 673
   png(filename=filename, width=width, height=height*kNumGraphs, units='px', res=300)
   layout(matrix(1:(3*kNumGraphs), kNumGraphs, 3, byrow=TRUE),
-         widths=c(4/3, 1, 4/3), heights=rep.int(1, kNumGraphs))
+         widths=c(4/3, 1, 4/3), heights=rep.int(1L, kNumGraphs))
 
   # See if there are multiple "subgraph", "main", or "label" arguments
   if (!is.null(subgraph)) subgraph <- rep_len(as.list(subgraph), kNumGraphs)
@@ -120,7 +120,7 @@ plot_brainGraph_multi <- function(g.list, filename='orthoview.png',
 
 slicer <- function(g.list, nrows, ncols, plane='axial', hemi='both', filename='all.png',
                    main=NULL, cex.main=1, ...) {
-  if (!inherits(g.list, 'brainGraphList')) try(g.list <- as_brainGraphList(g.list))
+  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
   kNumGraphs <- length(g.list)
   if (missing(nrows) && missing(ncols)) {
@@ -145,7 +145,7 @@ slicer <- function(g.list, nrows, ncols, plane='axial', hemi='both', filename='a
   height <- if (plane == 'axial') 768 else 640
   png(filename=filename, width=width*ncols, height=height*nrows, units='px', res=300)
   layout(matrix(seq_len(kNumPlots), nrows, ncols, byrow=TRUE),
-         widths=rep.int(1, ncols), heights=rep.int(1, nrows))
+         widths=rep.int(1L, ncols), heights=rep.int(1L, nrows))
 
   main.title <- lapply(g.list, graph_attr, 'name')
   if (!is.null(main)) {

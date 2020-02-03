@@ -307,7 +307,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
                     graph=graph_attr_names(object),
                     vertex=vertex_attr_names(object),
                     edge=edge_attr_names(object))
-    if (length(attrs) > 0) attrs.l[[atype]] <- print_text_vector(attrs, 3)
+    if (length(attrs) > 0L) attrs.l[[atype]] <- print_text_vector(attrs, 3L)
   }
   out <- list(object=object, df=df, attrs=attrs.l, print.attrs=print.attrs)
   class(out) <- c('summary.brainGraph', class(out))
@@ -393,7 +393,7 @@ make_empty_brainGraph <- function(atlas, type=c('observed', 'random'),
 
 make_ego_brainGraph <- function(g, vs) {
 
-  subgs <- make_ego_graph(g, order=1, nodes=vs)
+  subgs <- make_ego_graph(g, order=1L, nodes=vs)
   if (is.character(vs)) vs <- which(V(g)$name %in% vs)
 
   for (i in seq_along(vs)) {
@@ -402,8 +402,8 @@ make_ego_brainGraph <- function(g, vs) {
 
   combine_graphs <- function(x, y) {
     n <- length(x)
-    if (n < 2) {
-      res <- x[[1]] %u% y
+    if (n < 2L) {
+      res <- x[[1L]] %u% y
     } else {
       y <- x[[n]] %u% y
       x <- x[-n]
@@ -413,7 +413,7 @@ make_ego_brainGraph <- function(g, vs) {
   }
 
   inds <- unique(c(vs, unlist(lapply(vs, function(x) neighbors(g, x)))))
-  subg.all <- combine_graphs(subgs, make_empty_graph(directed=F) + vertices(V(g)$name[inds]))
+  subg.all <- combine_graphs(subgs, make_empty_graph(directed=FALSE) + vertices(V(g)$name[inds]))
   return(subg.all)
 }
 
@@ -436,26 +436,26 @@ make_ego_brainGraph <- function(g, vs) {
 make_intersection_brainGraph <- function(..., subgraph) {
   g <- inds <- NULL
   graphs <- args_as_list(...)
-  stopifnot(all(vapply(graphs, inherits, logical(1), 'brainGraph')))
-  Nv <- vcount(graphs[[1]])
+  stopifnot(all(vapply(graphs, is.brainGraph, logical(1))))
+  Nv <- vcount(graphs[[1L]])
 
   subs <- lapply(graphs, subset_graph, subgraph)
   graphs.sub <- lapply(subs, with, g)
   inds.sub <- lapply(subs, with, inds)
   graphs.valid <- graphs.sub[which(vapply(graphs.sub, function(x) !is.null(x), logical(1)))]
 
-  if (length(graphs.valid) == 0) {
-    return(make_empty_brainGraph(graphs[[1]]$atlas))
-  } else if (length(graphs.valid) == 1) {
-    return(graphs.valid[[1]])
+  if (length(graphs.valid) == 0L) {
+    return(make_empty_brainGraph(graphs[[1L]]$atlas))
+  } else if (length(graphs.valid) == 1L) {
+    return(graphs.valid[[1L]])
   } else {
     g.int <- do.call(intersection, c(graphs.valid, keep.all.vertices=FALSE))
-    memb <- which(V(graphs[[1]])$name %in% V(g.int)$name)
+    memb <- which(V(graphs[[1L]])$name %in% V(g.int)$name)
     g.int <- delete_all_attr(g.int)
-    V(g.int)$name <- V(graphs[[1]])$name[memb]
-    g.int <- graphs[[1]] %s% g.int
-    g.int <- graphs[[1]] - vertices(setdiff(seq_len(Nv), memb))
-    class(g.int) <- class(graphs[[1]])
+    V(g.int)$name <- V(graphs[[1L]])$name[memb]
+    g.int <- graphs[[1L]] %s% g.int
+    g.int <- graphs[[1L]] - vertices(setdiff(seq_len(Nv), memb))
+    class(g.int) <- class(graphs[[1L]])
     return(g.int)
   }
 }

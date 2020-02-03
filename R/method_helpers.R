@@ -49,11 +49,6 @@ print_bg_summary <- function(object) {
   }
   if (is.brainGraph(object)) {
     if (!is_weighted(object)) weighting <- 'Unweighted'
-  } else if (inherits(object, 'brainGraphList')) {
-    if (!is_weighted(object$graphs[[1L]])) weighting <- 'Unweighted'
-  }
-  # Only for 'brainGraph' objects
-  if (inherits(object, 'brainGraph')) {
     dens.pct <- sprintf('%1.2f%s', 100 * graph.density(object), '%')
     if (!is.null(object$name)) name <- object$name
     if (!is.null(object$Group)) Group <- object$Group
@@ -61,6 +56,8 @@ print_bg_summary <- function(object) {
                        group='Group:',
                        contrast='Contrast:',
                        'Subject ID:')
+  } else if (is.brainGraphList(object)) {
+    if (!is_weighted(object$graphs[[1L]])) weighting <- 'Unweighted'
   }
 
   df <- data.frame(

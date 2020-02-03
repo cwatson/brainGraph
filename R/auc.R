@@ -25,7 +25,7 @@
 make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   threshold <- i <- NULL
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, inherits, logical(1), 'brainGraphList')
+  matches <- vapply(g.list, is.brainGraphList, logical(1))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
   # Get the meta variables first

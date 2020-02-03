@@ -8,7 +8,7 @@
 \alias{sim.rand.graph.hqs}
 \title{Perform an analysis with random graphs for brain MRI data}
 \usage{
-analysis_random_graphs(g.list, level = g.list[[1]]$level, N = 100L,
+analysis_random_graphs(g.list, level = g.list[[1L]]$level, N = 100L,
   savedir = ".", ...)
 
 sim.rand.graph.par(g, level = c("subject", "group"), N = 100L,

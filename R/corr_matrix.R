@@ -161,7 +161,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
       g <- g[seq_len(kNumGroups)]
     }
     g <- switch(class(g),
-                numeric=,logical=grps[g],
+                numeric=, logical=grps[g],
                 character=which(grps %in% g))
     x$R <- x$R[, , g, drop=FALSE]
     x$P <- x$P[, , g, drop=FALSE]
@@ -221,10 +221,10 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
   grps <- groups(x)
   regions <- region.names(x)
   kNumVertices <- length(regions)
-  base_size <- if (kNumVertices > 90) 7.5 else 9
+  base_size <- if (kNumVertices > 90L) 7.5 else 9
   if (is.null(legend.title) && isTRUE(ordered)) {
     legend.title <- switch(order.by,
-      comp='Connected\nComponent', hemi='Hemisphere', comm=,comm.wt='Community (#)',
+      comp='Connected\nComponent', hemi='Hemisphere', comm=, comm.wt='Community (#)',
       class='Tissue class', simpleCap(order.by))
   }
 
@@ -256,16 +256,16 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
 
   if (isTRUE(ordered)) {
     if (!hasName(get(x$atlas), order.by)) {
-      if (inherits(graphs, 'brainGraphList')) {
+      if (is.brainGraphList(graphs)) {
         g.list <- graphs[]
-      } else if (inherits(graphs[[thresh.num]], 'brainGraphList')) {
+      } else if (is.brainGraphList(graphs[[thresh.num]])) {
         g.list <- graphs[[thresh.num]][]
       } else {
         stop('Please provide a (list of) "brainGraphList" object(s).')
       }
       order.mat <- vapply(g.list, vertex_attr, numeric(kNumVertices), order.by)
       if (is.null(grp.names)) grp.names <- ''
-      if (length(grp.names) == 1) grp.names <- paste(grp.names, seq_len(max(order.mat)))
+      if (length(grp.names) == 1L) grp.names <- paste(grp.names, seq_len(max(order.mat)))
     } else {
       tmp <- get(x$atlas)[, get(order.by)]
       order.mat <- matrix(rep(as.integer(tmp), 2), ncol=2)
@@ -279,7 +279,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     new.order <- apply(order.mat, 2L, order)
 
   } else {
-    new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2), ncol=2)
+    new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2L), ncol=2)
     cols.new <- lapply(grps, function(y) c('white', 'gray50'))
   }
   dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)

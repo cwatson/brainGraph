@@ -26,7 +26,7 @@
 small.world <- function(g.list, rand) {
   if (is_igraph(g.list) || is.brainGraph(g.list)) {
     g.list <- list(g.list)
-  } else if (inherits(g.list, 'brainGraphList')) {
+  } else if (is.brainGraphList(g.list)) {
     g.list <- g.list$graphs
     rand <- rand$graphs
   } else if (!is.list(g.list)) {
@@ -52,7 +52,7 @@ small.world <- function(g.list, rand) {
   }
   attrs <- c('Group', 'threshold')
   for (x in attrs) {
-    if (x %in% graph_attr_names(g.list[[1]])) {
+    if (x %in% graph_attr_names(g.list[[1L]])) {
       DT[, eval(x) := sapply(g.list, graph_attr, x)]
     }
   }
