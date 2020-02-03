@@ -8,15 +8,16 @@
 \usage{
 brainGraph_permute(densities, resids, N = 5000, perms = NULL,
   auc = FALSE, level = c("graph", "vertex", "other"),
-  measure = c("btwn.cent", "degree", "E.nodal", "ev.cent", "knn",
-  "transitivity", "vulnerability"), atlas = resids$atlas,
-  .function = NULL)
+  measure = c("btwn.cent", "coreness", "degree", "eccentricity",
+  "clo.cent", "communicability", "ev.cent", "lev.cent", "pagerank",
+  "subg.cent", "E.local", "E.nodal", "knn", "Lp", "transitivity",
+  "vulnerability"), .function = NULL)
 
-\method{summary}{brainGraph_permute}(object, measure = NULL,
+\method{summary}{brainGraph_permute}(object, measure = object$measure,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   p.sig = c("p", "p.fdr"), ...)
 
-\method{plot}{brainGraph_permute}(x, measure = NULL,
+\method{plot}{brainGraph_permute}(x, measure = x$measure,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   p.sig = c("p", "p.fdr"), ptitle = NULL, ...)
 }
@@ -41,9 +42,6 @@ differences (default: \code{graph})}
 calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
 For the \code{summary} method, this is to focus on a single
 \emph{graph-level} measure (since multiple are calculated at once).}
-
-\item{atlas}{Character string of the atlas name; required if
-\code{level='graph'}}
 
 \item{.function}{A custom function you can pass if \code{level='other'}}
 
@@ -86,10 +84,12 @@ across densities, then specify \code{auc=TRUE}.
 There are three possible \dQuote{levels}:
 \enumerate{
   \item \emph{graph} Calculate modularity (Louvain algorithm), clustering
-  coefficient, characteristic path length, degree assortativity, global
-  efficiency, lobe assortativity, and edge asymmetry.
-  \item \emph{vertex} Choose one of: betweenness centrality, degree, nodal
-  efficiency, k-nearest neighbor degree, transitivity, or vulnerability.
+  coefficient, characteristic path length, degree assortativity, and global
+  efficiency.
+  \item \emph{vertex} Choose one of: centrality metrics (betweenness,
+  closeness, communicability, eigenvector, leverage, pagerank, subgraph);
+  k-core; degree; eccentricity; nodal or local efficiency; k-nearest neighbor
+  degree; shortest path length; transitivity; or vulnerability.
   \item \emph{other} Supply your own function. This is useful if you want to
   calculate something that I haven't hard-coded. It must take as its own
   arguments: \code{g} (a list of lists of \code{igraph} graph objects); and
@@ -100,7 +100,7 @@ There are three possible \dQuote{levels}:
 \dontrun{
 myResids <- get.resid(lhrh, covars)
 myPerms <- shuffleSet(n=nrow(myResids$resids.all), nset=1e3)
-out <- brainGraph_permute(densities, m, perms=myPerms, atlas='dk')
+out <- brainGraph_permute(densities, m, perms=myPerms)
 out <- brainGraph_permute(densities, m, perms=myPerms, level='vertex')
 out <- brainGraph_permute(densities, m, perms=myPerms,
   level='other', .function=myFun)

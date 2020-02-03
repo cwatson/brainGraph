@@ -264,7 +264,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 #'
 #' Helper function that plots a single slice from the MNI152 template.
 #' @inheritParams plot.brainGraph
-#' @keywords internal
+#' @noRd
 
 plot_mni <- function(plane, hemi) {
   if (plane == 'axial') {

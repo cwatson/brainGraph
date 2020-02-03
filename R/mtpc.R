@@ -210,7 +210,6 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
 #' @export
 
 print.summary.mtpc <- function(x, ...) {
-  A.mtpc <- A.crit <- contrast <- region <- NULL
   print_title_summary('MTPC results')
   cat('Level: ', x$level, '\n')
 
@@ -361,3 +360,34 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
     return(lineplots)
   }
 }
+
+#' @export
+#' @rdname mtpc
+nobs.mtpc <- function(object, ...) vapply(object$res.glm, nobs, integer(1))
+
+#' @export
+#' @rdname mtpc
+terms.mtpc <- terms.bg_GLM
+
+#' @export
+#' @rdname mtpc
+formula.mtpc <- formula.bg_GLM
+
+#' @export
+#' @rdname mtpc
+labels.mtpc <- labels.bg_GLM
+
+#' @method case.names mtpc
+#' @export
+#' @rdname mtpc
+case.names.mtpc <- case.names.bg_GLM
+
+#' @method variable.names mtpc
+#' @export
+#' @rdname mtpc
+variable.names.mtpc <- variable.names.bg_GLM
+
+#' @method df.residual mtpc
+#' @export
+#' @rdname mtpc
+df.residual.mtpc <- df.residual.bg_GLM

@@ -217,7 +217,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
 plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
                            ordered=TRUE, order.by='lobe', graphs=NULL,
                            grp.names=NULL, legend.title=NULL, ...) {
-  Var1 <- Var2 <- value <- memb1 <- memb2 <- memb <- col.text <- NULL
+  Var1 <- Var2 <- Group <- value <- memb1 <- memb2 <- memb <- col.text <- NULL
   grps <- groups(x)
   regions <- region.names(x)
   kNumVertices <- length(regions)

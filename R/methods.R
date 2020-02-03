@@ -6,6 +6,7 @@
 #' @param x,object An object
 #' @param ... Unused
 #' @export
+#' @method groups brainGraphList
 #' @name Methods
 #' @rdname methods
 
@@ -25,6 +26,7 @@ groups.brainGraphList <- function(x) {
 }
 
 #' @export
+#' @method groups brainGraph_resids
 #' @rdname methods
 groups.brainGraph_resids <- function(x) {
   sID <- getOption('bg.subject_id')
@@ -33,30 +35,9 @@ groups.brainGraph_resids <- function(x) {
 }
 
 #' @export
+#' @method groups corr_mats
 #' @rdname methods
-groups.corr_mats <- function(x) {
-  names(x$r.thresh)
-}
-
-#' @export
-#' @rdname methods
-nobs.brainGraphList <- function(object, ...) {
-  length(object$graphs)
-}
-
-#' @export
-#' @rdname methods
-nobs.brainGraph_resids <- function(object, ...) {
-  dim(object$resids.all)[1L]
-}
-
-#' @export
-#' @method case.names brainGraph_resids
-#' @rdname methods
-case.names.brainGraph_resids <- function(object, ...) {
-  sID <- getOption('bg.subject_id')
-  object$resids.all[, as.character(get(sID))]
-}
+groups.corr_mats <- function(x) names(x$r.thresh)
 
 #' Extract region names from brainGraph objects
 #'
@@ -92,9 +73,13 @@ region.names.brainGraph_resids <- function(object) {
 #' @export
 #' @method region.names corr_mats
 #' @rdname correlation_matrices
-region.names.corr_mats <- function(object) {
-  dimnames(object$R)[[1L]]
-}
+region.names.corr_mats <- function(object) dimnames(object$R)[[1L]]
+
+#' @export
+#' @method region.names mtpc
+#' @include mtpc.R
+#' @rdname mtpc
+region.names.mtpc <- region.names.bg_GLM
 
 #' Extract the number of regions in a brainGraph object
 #'
@@ -117,6 +102,13 @@ nregions.brainGraph_resids <- function(object) {
 
 #' @export
 #' @rdname correlation_matrices
-nregions.corr_mats <- function(object) {
-  dim(object$R)[1L]
-}
+nregions.corr_mats <- function(object) dim(object$R)[1L]
+
+#' @export
+#' @include mtpc.R
+#' @rdname mtpc
+nregions.mtpc <- nregions.bg_GLM
+
+#' @export
+#' @rdname NBS
+nregions.NBS <- function(object) dim(object$T.mat)[1L]

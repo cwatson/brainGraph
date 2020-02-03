@@ -82,7 +82,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
     p.mat[, , j][DT.lm[contrast == j, cbind(Var1, Var2)]] <- DT.lm[contrast == j, p]
 
     clusts <- components(graph_from_adjacency_matrix(T.max[, , j], diag=FALSE, mode='undirected', weighted=TRUE))
-    comps.obs[[j]] <- data.table(csize=sort(unique(clusts$csize), decreasing=TRUE))
+    comps.obs[[j]] <- data.table(csize=with(clusts, sort(csize[csize > 1L], decreasing=TRUE)))
   }
   comps.obs <- rbindlist(comps.obs, idcol='contrast')
 
@@ -135,9 +135,9 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   comps.perm <- rbindlist(comps.perm, idcol='contrast')
   kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_len(nC)) {
-    comps.obs[contrast == j, p.perm := mapply(function(x, y) (sum(y >= x) + 1) / (N + 1),
-                                              csize,
-                                              rep(list(comps.perm[contrast == j, perm]), kNumComps[j]))]
+    comps.obs[contrast == j,
+              p.perm := (sum(comps.perm[contrast == j, perm] >= csize) + 1) / (N + 1),
+              by=csize]
   }
 
   comps.out <- list(observed=comps.obs)
@@ -153,39 +153,24 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
 #' Print a summary of NBS analysis
 #'
-#' @param object A \code{NBS} object
+#' @param object,x A \code{NBS} object
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @rdname NBS
 
 summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), ...) {
-  contrast <- csize <- NULL
 
   # Observed component sizes
   #--------------------------------------
-  ecounts <- vector('list', length(object$con.name))
-  for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
-    g.nbs <- graph_from_adjacency_matrix(object$T.mat[, , j], diag=F, mode='undirected', weighted=TRUE)
-    clusts <- components(g.nbs)
-    comps <- sort(unique(clusts$csize), decreasing=TRUE)
-    z <- clusts$membership
-    zsort <- match(z, order(table(z), decreasing=TRUE))
-    z.ind <- unique(table(zsort))
-    ecounts[[j]] <- rep(0, sum(z.ind > 1))
-    for (i in seq_along(ecounts[[j]])) {
-      ecounts[[j]][i] <- ecount(induced_subgraph(g.nbs, which(zsort == i)))
-    }
+  nbs.dt <- with(object, data.table(alt=alt, N=N, components$observed, ecount=0))
+  g.nbs <- make_brainGraphList(object, guess_atlas(object$T.mat), set.attrs=FALSE, .progress=FALSE)
+  for (j in seq_along(g.nbs[])) {
+    nbs.dt[contrast == j, ecount := vapply(seq_len(.N), function(x)
+                                           ecount(subset_graph(g.nbs[j], paste('comp ==', x))$g),
+                                           numeric(1))]
   }
 
-  nbs.dt <- with(object,
-                 data.table(alt=alt, N=N, components$observed))
-  nbs.dt[, ecount := 0]
-  for (j in seq_along(object$con.name)) {
-    if (sum(object$T.mat[, , j]) == 0) next  # No edges met initial criteria
-    nbs.dt[contrast == j & csize > 1, ecount := ecounts[[j]]]
-  }
-  nbs.sum <- c(object, list(contrast=contrast, DT.sum=nbs.dt, digits=digits))
+  nbs.sum <- c(object, list(printCon=contrast, DT.sum=nbs.dt, digits=digits))
   class(nbs.sum) <- c('summary.NBS', class(nbs.sum))
   return(nbs.sum)
 }
@@ -195,7 +180,6 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
 #' @export
 
 print.summary.NBS <- function(x, ...) {
-  `p-value` <- `# edges` <- csize <- p.perm <- NULL
   print_title_summary('Network-based statistic results')
   print_permutation_summary(x)
 
@@ -204,27 +188,51 @@ print.summary.NBS <- function(x, ...) {
   print_contrast_type_summary(x)
   print_subs_summary(x)
 
-  xdt <- x$DT.sum[csize > 1]
-  setnames(xdt, c('csize', 'ecount'), c('# vertices', '# edges'))
-  xdt[, `p-value` := signif(p.perm)]
-  xdt[, c('alt', 'N', 'p.perm') := NULL]
-
   # Print results for each contrast
   message('\n', 'Statistics', '\n', rep('-', getOption('width') / 4))
-  if (is.null(x$contrast)) {
-    contrast <- xdt[, unique(contrast)]
-  } else {
-    contrast <- x$contrast
-  }
+  print_contrast_stats_summary(x, ...)
 
-  for (i in contrast) {
-    message(x$con.name[i])
-    if (dim(xdt[contrast == i])[1L] == 0) {
-      message('\tNo signficant results!\n')
-    } else {
-      printCoefmat(xdt[contrast == i, !'contrast'], tst.ind=2, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)
-      cat('\n')
-    }
-  }
   invisible(x)
 }
+
+#' @export
+#' @rdname NBS
+#' @include glm_methods.R
+nobs.NBS <- nobs.bg_GLM
+
+#' @export
+#' @rdname NBS
+terms.NBS <- function(x, ...) {
+  x$outcome <- x$measure <- 'weight'
+  terms(structure(x, class='bg_GLM'))
+}
+
+#' @export
+#' @rdname NBS
+formula.NBS <- function(x, ...) {
+  x$outcome <- x$measure <- 'weight'
+  formula(structure(x, class='bg_GLM'))
+}
+
+#' @export
+#' @rdname NBS
+#' @include glm_methods.R
+labels.NBS <- labels.bg_GLM
+
+#' @method case.names NBS
+#' @export
+#' @rdname NBS
+#' @include glm_methods.R
+case.names.NBS <- case.names.bg_GLM
+
+#' @method variable.names NBS
+#' @export
+#' @rdname NBS
+#' @include glm_methods.R
+variable.names.NBS <- variable.names.bg_GLM
+
+#' @method df.residual NBS
+#' @export
+#' @rdname NBS
+#' @include glm_stats.R
+df.residual.NBS <- df.residual.bg_GLM

@@ -75,7 +75,8 @@ Default: \code{'two.sided'}}
   containing the \code{Study.ID} and 1 or more columns with the graph- or
   vertex-level measure of interest.
 
-A list with length equal to the number of rows of \code{C}
+\code{matrix2list} -- A list with length equal to the number of rows
+  of \code{C}
 }
 \description{
 \code{setup_glm} is used to setup the data/objects for any function that uses

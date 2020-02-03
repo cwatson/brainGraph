@@ -5,9 +5,6 @@
 \alias{groups.brainGraphList}
 \alias{groups.brainGraph_resids}
 \alias{groups.corr_mats}
-\alias{nobs.brainGraphList}
-\alias{nobs.brainGraph_resids}
-\alias{case.names.brainGraph_resids}
 \alias{region.names}
 \alias{region.names.data.table}
 \alias{nregions}
@@ -18,12 +15,6 @@
 \method{groups}{brainGraph_resids}(x)
 
 \method{groups}{corr_mats}(x)
-
-\method{nobs}{brainGraphList}(object, ...)
-
-\method{nobs}{brainGraph_resids}(object, ...)
-
-\method{case.names}{brainGraph_resids}(object, ...)
 
 region.names(object)
 

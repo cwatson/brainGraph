@@ -7,6 +7,8 @@
 \alias{make_brainGraphList.corr_mats}
 \alias{Extract.brainGraphList}
 \alias{[.brainGraphList}
+\alias{print.brainGraphList}
+\alias{nobs.brainGraphList}
 \alias{as_brainGraphList}
 \title{Create a list of brainGraph graphs}
 \usage{
@@ -30,6 +32,10 @@ make_brainGraphList(x, atlas, type = c("observed", "random"),
   .progress = getOption("bg.progress"), ...)
 
 \method{[}{brainGraphList}(x, i, g = NULL, drop = TRUE)
+
+\method{print}{brainGraphList}(x, ...)
+
+\method{nobs}{brainGraphList}(object, ...)
 
 as_brainGraphList(g.list, type = c("observed", "random"),
   level = c("subject", "group", "contrast"))
@@ -91,6 +97,8 @@ by group (if \code{x$level='group'})}
 
 \item{drop}{If \code{TRUE} (the default), then return only the list of
 graphs; otherwise, subset the graphs and return the entire object}
+
+\item{object}{A \code{brainGraphList} object}
 
 \item{g.list}{List of graph objects}
 }

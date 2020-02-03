@@ -7,6 +7,8 @@
 \alias{[.brainGraph_resids}
 \alias{summary.brainGraph_resids}
 \alias{plot.brainGraph_resids}
+\alias{nobs.brainGraph_resids}
+\alias{case.names.brainGraph_resids}
 \alias{region.names.brainGraph_resids}
 \alias{nregions.brainGraph_resids}
 \title{Linear model residuals in structural covariance networks}
@@ -20,6 +22,10 @@ get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
 
 \method{plot}{brainGraph_resids}(x, region = NULL, cols = FALSE,
   ids = TRUE, ...)
+
+\method{nobs}{brainGraph_resids}(object, ...)
+
+\method{case.names}{brainGraph_resids}(object, ...)
 
 \method{region.names}{brainGraph_resids}(object)
 

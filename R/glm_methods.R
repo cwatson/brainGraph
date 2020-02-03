@@ -16,6 +16,7 @@
 #' @return A \code{bg_GLM} object with the specified row(s) selected or removed
 #'   from both \code{X} and \code{y}, and column(s) selected/removed from
 #'   \code{X}
+#' @include brainGraph_GLM.R
 #' @rdname glm
 
 `[.bg_GLM` <- function(x, i, j) {
@@ -47,9 +48,7 @@
 #' @name GLM basic info
 #' @rdname glm_info
 
-nobs.bg_GLM <- function(object, ...) {
-  dim(object$X)[1L]
-}
+nobs.bg_GLM <- function(object, ...) dim(object$X)[1L]
 
 #' @export
 #' @rdname glm_info
@@ -112,7 +111,7 @@ formula.bg_GLM <- function(x, ...) {
     for (i in which(intOrder == 3L)) {
       inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1))
       inds.remove <- c(inds.remove, i)
-      twoWays <- apply(combn(1:3, 2), 2L, function(y) paste(splits[[i]][y], collapse=':'))
+      twoWays <- combn(splits[[i]], 2L, function(y) paste(y, collapse=':'))
       inds.remove <- c(inds.remove, vapply(twoWays, function(y) which(y == tlabels), integer(1)))
       tlabels <- tlabels[-inds.remove]
       tlabels <- c(tlabels, paste(splits[[i]], collapse=' * '))
@@ -133,26 +132,17 @@ formula.bg_GLM <- function(x, ...) {
 
 #' @export
 #' @rdname glm_info
-
-labels.bg_GLM <- function(object, ...) {
-  labels(terms(object))
-}
+labels.bg_GLM <- function(object, ...) labels(terms(object))
 
 #' @export
 #' @method case.names bg_GLM
 #' @rdname glm_info
-
-case.names.bg_GLM <- function(object, ...) {
-  dimnames(object$X)[[1L]]
-}
+case.names.bg_GLM <- function(object, ...) dimnames(object$X)[[1L]]
 
 #' @export
 #' @method variable.names bg_GLM
 #' @rdname glm_info
-
-variable.names.bg_GLM <- function(object, ...) {
-  dimnames(object$X)[[2L]]
-}
+variable.names.bg_GLM <- function(object, ...) dimnames(object$X)[[2L]]
 
 #' @export
 #' @method region.names bg_GLM

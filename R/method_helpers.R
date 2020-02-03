@@ -50,7 +50,7 @@ print_bg_summary <- function(object) {
   if (is.brainGraph(object)) {
     if (!is_weighted(object)) weighting <- 'Unweighted'
   } else if (inherits(object, 'brainGraphList')) {
-    if (!is_weighted(object$graphs[[1]])) weighting <- 'Unweighted'
+    if (!is_weighted(object$graphs[[1L]])) weighting <- 'Unweighted'
   }
   # Only for 'brainGraph' objects
   if (inherits(object, 'brainGraph')) {
@@ -71,20 +71,20 @@ print_bg_summary <- function(object) {
               'Graph density:', thresh_str, name_str, 'Group:'),
           B=c('', ver, date_created, type, atlasfull, modality, weighting,
               clustmethod, dens.pct, thresh, name, Group))
-  dimnames(df)[[2]] <- rep('', 2)
+  dimnames(df)[[2L]] <- rep('', 2L)
   return(df)
 }
 
 # Print a character vector "x" as a data.frame with "nc" columns
 #-------------------------------------------------------------------------------
-print_text_vector <- function(x, nc) {
-  div <- length(x) %/% nc
+print_text_vector <- function(x, numCols) {
+  div <- length(x) %/% numCols
   splits <- split(x, ceiling(seq_along(x) / div))
   lens <- lengths(splits)
   nsplits <- length(splits)
   splits[[nsplits]] <- c(splits[[nsplits]], rep('', div - lens[nsplits]))
   attrs.df <- as.data.frame(splits, stringsAsFactors=FALSE)
-  dimnames(attrs.df)[[2]] <- rep('', nsplits)
+  dimnames(attrs.df)[[2L]] <- rep('', nsplits)
   return(attrs.df)
 }
 
@@ -92,7 +92,7 @@ print_text_vector <- function(x, nc) {
 #-------------------------------------------------------------------------------
 print_title_summary <- function(title) {
   title <- paste(title)
-  width <- max(getOption('width') / 2, nchar(title))
+  width <- max(getOption('width') / 2L, nchar(title))
   message('\n', rep('=', width))
   message(title)
   message(rep('=', width))
@@ -114,10 +114,8 @@ print_measure_summary <- function(x) {
 #-------------------------------------------------------------------------------
 print_contrast_type_summary <- function(x) {
   cat('Contrast type: ', paste(toupper(x$con.type), 'contrast'), '\n')
-  alt <- switch(x$alt,
-                two.sided='C != 0',
-                greater='C > 0',
-                less='C < 0')
+  symb <- switch(x$alt, two.sided='!=', greater='>', less='<')
+  alt <- sprintf('C %s 0', symb)
   cat('Alternative hypothesis: ', alt, '\n')
   cat('Contrasts: ', '\n')
 
@@ -138,7 +136,7 @@ print_contrast_type_summary <- function(x) {
 #-------------------------------------------------------------------------------
 print_subs_summary <- function(x) {
   n <- length(x$removed.subs)
-  if (n > 0) {
+  if (n > 0L) {
     message(n, ' subjects removed due to incomplete data:')
     cat('  ', paste(x$removed.subs, collapse=', '), '\n')
   }
@@ -147,24 +145,37 @@ print_subs_summary <- function(x) {
 
 # Print per-contrast statistics
 #-------------------------------------------------------------------------------
-print_contrast_stats_summary <- function(x) {
-  contrast <- NULL
+print_contrast_stats_summary <- function(x, ...) {
+  contrast <- csize <- p.perm <- `p-value` <- NULL
   printCon <- if (is.null(x$printCon)) x$DT[, unique(contrast)] else x$printCon
 
-  DT <- x$DT.sum[, !c('Contrast', 'Outcome')]
-  oldnames <- grep('p-value', names(x$DT.sum), value=TRUE)
-  newname <- if (x$con.type == 'f') 'Pr(>F)' else 'Pr(>|t|)'
-  newnames <- sub('p-value', newname, oldnames)
-  setnames(DT, oldnames, newnames)
+  cls <- class(x)
+  if ('summary.NBS' %in% cls) {
+    DT <- x$DT.sum[csize > 1]
+    setnames(DT, c('csize', 'ecount'), c('# vertices', '# edges'))
+    DT[, `p-value` := signif(p.perm)]
+    DT[, c('alt', 'N', 'p.perm') := NULL]
+  } else {
+    DT <- x$DT.sum[, !c(intersect(names(x$DT.sum), c('Contrast', 'Outcome'))), with=FALSE]
+    oldnames <- grep('p-value', names(x$DT.sum), value=TRUE)
+    newname <- if (x$con.type == 'f') 'Pr(>F)' else 'Pr(>|t|)'
+    newnames <- sub('p-value', newname, oldnames)
+    setnames(DT, oldnames, newnames)
+  }
+
   for (i in printCon) {
     message('Contrast ', i, ': ', x$con.name[i])
-    if (nrow(DT[contrast == i]) == 0) {
+    if (dim(DT[contrast == i])[1L] == 0L) {
       message('\tNo signficant results!\n')
     } else {
-      if (isTRUE(x$print.head)) {
-        print(DT[contrast == i, !'contrast'], topn=5, nrows=10, digits=x$digits)
+      if ('summary.NBS' %in% cls) {
+        printCoefmat(DT[contrast == i, !'contrast'], tst.ind=2L, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)
       } else {
-        print(DT[contrast == i, !'contrast'], digits=x$digits)
+        if (isTRUE(x$print.head)) {
+          print(DT[contrast == i, !'contrast'], topn=5L, nrows=10L, digits=x$digits)
+        } else {
+          print(DT[contrast == i, !'contrast'], digits=x$digits)
+        }
       }
       cat('\n')
     }
@@ -175,15 +186,12 @@ print_contrast_stats_summary <- function(x) {
 # Print details regarding permutation analyses
 #-------------------------------------------------------------------------------
 print_permutation_summary <- function(x) {
-  message('\n', 'Permutation analysis', '\n', rep('-', getOption('width') / 4))
+  message('\n', 'Permutation analysis', '\n', rep('-', getOption('width') / 4L))
   perm.method <- switch(x$perm.method,
                         freedmanLane='Freedman-Lane',
                         terBraak='ter Braak',
                         smith='Smith')
-  part.method <- switch(x$part.method,
-                        beckmann='Beckmann',
-                        guttman='Guttman',
-                        ridgway='Ridgway')
+  part.method <- simpleCap(x$part.method)
   cat('Permutation method: ', perm.method, '\n')
   cat('Partition method: ', part.method, '\n')
   cat('# of permutations: ', prettyNum(x$N, ','), '\n')

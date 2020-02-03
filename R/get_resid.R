@@ -311,3 +311,15 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
   }
   return(p.all)
 }
+
+#' @export
+#' @rdname residuals
+nobs.brainGraph_resids <- function(object, ...) dim(object$resids.all)[1L]
+
+#' @export
+#' @method case.names brainGraph_resids
+#' @rdname residuals
+case.names.brainGraph_resids <- function(object, ...) {
+  sID <- getOption('bg.subject_id')
+  object$resids.all[, as.character(get(sID))]
+}

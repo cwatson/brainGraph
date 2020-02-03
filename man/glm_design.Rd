@@ -36,7 +36,12 @@ or groupwise means. Default: \code{'all'}}
 for calculating means (if applicable). Default: \code{'Group'}}
 }
 \value{
-A numeric matrix
+A numeric matrix. Rownames are subject ID's and column names are the
+  variable names. There will be additional attributes recording the
+  \code{coding}, \code{factorize}, and \code{mean.center} function arguments.
+  There will also be attributes for \code{binarize} and \code{int} if they
+  are not \code{NULL}, and \code{center.how} and \code{center.by} if
+  \code{mean.center=TRUE}.
 }
 \description{
 \code{brainGraph_GLM_design} takes a \code{data.table} of covariates and

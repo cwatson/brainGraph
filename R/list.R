@@ -379,7 +379,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
       g <- g[seq_len(kNumGroups)]
     }
     g <- switch(class(g),
-                numeric=,logical=grpNames[g],
+                numeric=, logical=grpNames[g],
                 character=which(group.vec %in% g))
     x$graphs <- x$graphs[g]
   }
@@ -403,6 +403,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 }
 
 #' @export
+#' @rdname brainGraphList
 print.brainGraphList <- function(x, ...) {
   kNumGraphs <- length(x$graphs)
   gnames <- names(x$graphs)
@@ -430,6 +431,11 @@ print.brainGraphList <- function(x, ...) {
   }
   invisible(x)
 }
+
+#' @param object A \code{brainGraphList} object
+#' @export
+#' @rdname brainGraphList
+nobs.brainGraphList <- function(object, ...) length(object$graphs)
 
 #' Coerce list of graphs to a brainGraphList object
 #'

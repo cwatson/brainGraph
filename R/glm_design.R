@@ -54,7 +54,12 @@
 #'   for calculating means (if applicable). Default: \code{'Group'}
 #' @export
 #'
-#' @return A numeric matrix
+#' @return A numeric matrix. Rownames are subject ID's and column names are the
+#'   variable names. There will be additional attributes recording the
+#'   \code{coding}, \code{factorize}, and \code{mean.center} function arguments.
+#'   There will also be attributes for \code{binarize} and \code{int} if they
+#'   are not \code{NULL}, and \code{center.how} and \code{center.by} if
+#'   \code{mean.center=TRUE}.
 #'
 #' @name GLM design
 #' @rdname glm_design
@@ -65,6 +70,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   factorize=TRUE, binarize=NULL, int=NULL,
                                   mean.center=FALSE, center.how=c('all', 'within-groups'),
                                   center.by=getOption('bg.group')) {
+  ..nums <- NULL
   sID <- getOption('bg.subject_id')
   covars <- copy(covars)
   if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(dim(covars)[1L]))]

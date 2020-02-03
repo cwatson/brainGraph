@@ -21,7 +21,6 @@
 #'   Default: \code{getOption('bg.progress')}
 #' @inheritParams xfm.weights
 #' @export
-#' @importFrom boot boot
 #'
 #' @return \code{brainGraph_boot} -- an object of class \code{brainGraph_boot}
 #'   containing some input variables, in addition to a list of
@@ -115,7 +114,6 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' Print a summary from a bootstrap analysis
 #'
 #' @param object,x A \code{brainGraph_boot} object
-#' @importFrom boot boot.ci
 #' @export
 #' @rdname Bootstrapping
 
