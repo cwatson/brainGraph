@@ -44,6 +44,10 @@ bg.options <- list(
   bg.ncpus=2L
 )
 
+# Hack to avoid WARNING or NOTE w/ Rcheck
+# See https://github.com/Rdatatable/data.table/issues/4171
+patterns <- function(...) NULL
+
 .onLoad <- function(libname, pkgname) {
   op <- options()
   toset <- !(hasName(op, names(bg.options)))

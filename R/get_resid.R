@@ -32,7 +32,10 @@
 #'
 #' @return \code{get.resid} - an object of class \code{brainGraph_resids} with
 #'   elements:
-#'   \item{X}{The \emph{design matrix}}
+#'   \item{X}{The \emph{design matrix}, if using default arguments. If
+#'   \code{use.mean=TRUE} then it will be a \emph{named list} with a separate
+#'   matrix for the left and right hemispheres. If \code{method='sep.groups'}, a
+#'   nested named list for each group and hemisphere.}
 #'   \item{method}{The input argument \code{method}}
 #'   \item{use.mean}{The input argument \code{use.mean}}
 #'   \item{all.dat.long}{A \code{data.table} in \dQuote{long} format of the
@@ -40,6 +43,7 @@
 #'     column added}
 #'   \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
 #'   \item{Group}{Group names}
+#'   \item{atlas}{The atlas name}
 #' @name Residuals
 #' @rdname residuals
 #' @seealso \code{\link[stats]{influence.measures}}, \code{\link[stats]{qqnorm}}
@@ -68,8 +72,8 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       lh <- '^l.*'
       rh <- '^r.*'
     }
-    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(lh, names(dt.vol))], by=sID]
-    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=names(dt.vol)[grep(rh, names(dt.vol))], by=sID]
+    mean.lh <- dt.vol[, rowMeans(.SD), .SDcols=patterns(lh)]
+    mean.rh <- dt.vol[, rowMeans(.SD), .SDcols=patterns(rh)]
     covars.lh <- cbind(covars, mean.lh)
     covars.rh <- cbind(covars, mean.rh)
 
@@ -78,7 +82,9 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       rhvars <- get_lm_vars(covars.rh, exclude.cov, ...)
 
       DT.m[grep(lh, Region), resids := rstudent_mat(lhvars, value), by=Region]
+      DT.m[grep(lh, Region), resids := resids / sqrt(1 / lhvars$df)]
       DT.m[grep(rh, Region), resids := rstudent_mat(rhvars, value), by=Region]
+      DT.m[grep(rh, Region), resids := resids / sqrt(1 / rhvars$df)]
       X <- list(lh=lhvars$X, rh=rhvars$X)
     } else {
       covars.lh <- split(covars.lh, by=gID)
@@ -90,7 +96,9 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
         rhvars <- get_lm_vars(covars.rh[[g]], exclude.cov, ...)
 
         DT.m[[g]][grep(lh, Region), resids := rstudent_mat(lhvars, value), by=Region]
+        DT.m[[g]][grep(lh, Region), resids := resids / sqrt(1 / lhvars$df)]
         DT.m[[g]][grep(rh, Region), resids := rstudent_mat(rhvars, value), by=Region]
+        DT.m[[g]][grep(rh, Region), resids := resids / sqrt(1 / rhvars$df)]
         X[[g]] <- list(lh=lhvars$X, rh=rhvars$X)
       }
       DT.m <- rbindlist(DT.m)
@@ -100,6 +108,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
     if (method == 'comb.groups') {
       lmvars <- get_lm_vars(covars, exclude.cov, ...)
       DT.m[, resids := rstudent_mat(lmvars, value), by=Region]
+      DT.m[, resids := resids / sqrt(1 / lmvars$df)]
       X <- lmvars$X
     } else {
       covars <- split(covars, by=gID)
@@ -108,6 +117,7 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
       for (g in grps) {
         lmvars <- get_lm_vars(covars[[g]], exclude.cov, ...)
         DT.m[[g]][, resids := rstudent_mat(lmvars, value), by=Region]
+        DT.m[[g]][, resids := resids / sqrt(1 / lmvars$df)]
         X[[g]] <- lmvars$X
       }
       DT.m <- rbindlist(DT.m)
@@ -140,25 +150,29 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
 get_lm_vars <- function(covars, exclude.cov, ...) {
   if (!is.null(exclude.cov)) covars <- covars[, !exclude.cov, with=FALSE]
   X <- brainGraph_GLM_design(covars, ...)
-  H <- X %*% tcrossprod(solve(crossprod(X)), X)
-  lev <- diag(H)
+  XtX <- crossprod(X)
+  U <- chol.default(XtX)
+  Z <- forwardsolve(t(U), t(X))
+  lev <- colSums(Z^2)
   dims <- dim(X)
-  return(list(X=X, lev=lev, n=dims[1L], p=dims[2L]))
+  return(list(X=X, XtX=XtX, lev=lev, df=dims[1L]-dims[2L]-1))
 }
 
 #' Calculate studentized residuals with matrix input
 #'
-#' @param lmvars List containing: \code{X} (design matrix); \code{lev}
-#'   (leverage); \code{n} (num. observations); \code{p} (num. parameters)
+#' @param lmvars List containing: \code{X} (design matrix); \code{XtX}
+#'   (cross-product of the design matrix); \code{lev} (leverage); \code{df}
+#'   (model degrees of freedom minus 1)
 #' @param y Numeric vector; the outcome variable
 #' @keywords internal
 
 rstudent_mat <- function(lmvars, y) {
-  est <- fastLmPure(lmvars$X, y, method=2)
-  var.hat <- rep(0, lmvars$n)
-  for (i in seq_len(lmvars$n)) var.hat[i] <- crossprod(est$residuals[-i])
-  var.hat <- (1 / (lmvars$n - lmvars$p - 1)) * var.hat
-  resids <- est$residuals / (sqrt(var.hat * (1 - lmvars$lev)))
+  XtY <- crossprod(lmvars$X, y)
+  beta <- solve(lmvars$XtX, XtY)
+  res <- c(y - lmvars$X %*% beta)
+
+  var.hat <- c(crossprod(res)) - res^2
+  resids <- res / (sqrt(var.hat * (1 - lmvars$lev)))
 }
 
 #' Indexing for structural covariance residuals

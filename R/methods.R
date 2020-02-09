@@ -95,10 +95,7 @@ nregions <- function(object) {
 
 #' @export
 #' @rdname residuals
-nregions.brainGraph_resids <- function(object) {
-  Region <- NULL
-  object$all.dat.long[, nlevels(Region)]
-}
+nregions.brainGraph_resids <- function(object) dim(object$resids.all)[2L] - 2L
 
 #' @export
 #' @rdname correlation_matrices

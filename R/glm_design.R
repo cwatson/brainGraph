@@ -70,7 +70,6 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
                                   factorize=TRUE, binarize=NULL, int=NULL,
                                   mean.center=FALSE, center.how=c('all', 'within-groups'),
                                   center.by=getOption('bg.group')) {
-  ..nums <- NULL
   sID <- getOption('bg.subject_id')
   covars <- copy(covars)
   if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(dim(covars)[1L]))]
@@ -102,7 +101,7 @@ brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.mea
     }
     attrs <- c(attrs, list(center.how=center.how, center.by=center.by))
   }
-  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, ..nums, with=FALSE]))
+  if (length(nums) > 0) X <- cbind(X, as.matrix(covars[, nums, with=FALSE]))
 
   factors <- names(which(vapply(covars, class, character(1)) == 'factor'))
   coding <- match.arg(coding)
