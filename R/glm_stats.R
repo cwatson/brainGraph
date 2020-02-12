@@ -2,8 +2,8 @@
 design2array <- function(object) {
   X <- object$X
   dimX <- dim(X)
-  regions <- region.names(object)
   if (length(dimX) == 2L) {
+    regions <- region.names(object)
     X <- array(X, dim=c(dimX, length(regions)), dimnames=c(dimnames(X), list(regions)))
   }
   return(X)
@@ -57,7 +57,7 @@ design2array <- function(object) {
 #'
 #' @name GLM statistics
 #' @rdname glm_stats
-#' @seealso \code{\link{GLM}}
+#' @seealso \code{\link{GLM}}, \code{\link[car]{Anova}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 coef.bg_GLM <- function(object, ...) {
@@ -65,9 +65,9 @@ coef.bg_GLM <- function(object, ...) {
 
   # outcome != measure && level == 'vertex' (multiple design matrices)
   if (length(dim(object$X)) == 3L) {
-    fits <- apply(object$X, 3, function(x) fastLmPure(x, object$y, method=2))
+    fits <- apply(object$X, 3L, function(x) fastLmPure(x, object$y, method=2))
   } else {
-    fits <- apply(object$y, 2, function(y) fastLmPure(object$X, y, method=2))
+    fits <- apply(object$y, 2L, function(y) fastLmPure(object$X, y, method=2))
   }
 
   coeffs <- vapply(fits, function(x) x$coefficients, numeric(ncol(object$X)))
@@ -88,8 +88,8 @@ coef.bg_GLM <- function(object, ...) {
 confint.bg_GLM <- function(object, parm, level=0.95, ...) {
   object$coefficients <- coef(object)
   dimC <- dim(object$coefficients)
-  std_err <- apply(vcov(object), 3, function(x) sqrt(diag(x)))
-  pnames <- dimnames(std_err)[[1L]]
+  std_err <- apply(vcov(object), 3L, function(x) sqrt(diag(x)))
+  pnames <- variable.names(object)
   if (missing(parm)) {
     parm <- pnames
   } else if (is.numeric(parm)) {
@@ -119,7 +119,7 @@ fitted.bg_GLM <- function(object, ...) {
     fits <- vapply(seq_len(dimX[3L]), function(x) as.matrix(object$X[, , x]) %*% coeffs[, x],
                    numeric(dimX[1L]))
   } else {
-    fits <- apply(coeffs, 2, function(x) object$X %*% x)
+    fits <- apply(coeffs, 2L, function(x) object$X %*% x)
   }
   dimnames(fits) <- list(case.names(object), colnames(coeffs))
   return(fits)
@@ -157,10 +157,7 @@ residuals.bg_GLM <- function(object, type=c('response', 'partial'), ...) {
 
 #' @export
 #' @rdname glm_stats
-
-deviance.bg_GLM <- function(object, ...) {
-  apply(residuals(object), 2, crossprod)
-}
+deviance.bg_GLM <- function(object, ...) apply(residuals(object), 2L, crossprod)
 
 #' @param adjusted Logical indicating whether to calculate the adjusted
 #'   R-squared. Default: \code{FALSE}
@@ -170,11 +167,10 @@ deviance.bg_GLM <- function(object, ...) {
 coeff_determ <- function(object, adjusted=FALSE) {
   stopifnot(inherits(object, 'bg_GLM'))
   SSR <- deviance(object)
-  SStot <- apply(object$y, 2, function(x) crossprod(x - mean(x)))
+  SStot <- apply(object$y, 2L, function(x) crossprod(x - mean(x)))
   numer <- if (isTRUE(adjusted)) SSR / df.residual(object) else SSR
   denom <- if (isTRUE(adjusted)) SStot / (nobs(object) - 1) else SStot
-  r.sq <- 1 - numer / denom
-  return(r.sq)
+  1 - numer / denom
 }
 
 #' @export
@@ -189,11 +185,7 @@ df.residual.bg_GLM <- function(object, ...) {
 
 #' @export
 #' @rdname glm_stats
-
-sigma.bg_GLM <- function(object, ...) {
-  stopifnot(inherits(object, 'bg_GLM'))
-  return(sqrt(deviance(object) / df.residual(object)))
-}
+sigma.bg_GLM <- function(object, ...) sqrt(deviance(object) / df.residual(object))
 
 #' @export
 #' @rdname glm_stats
@@ -277,16 +269,19 @@ vcov.bg_GLM <- function(object, ...) {
 #' @seealso \code{\link{GLM}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
+# Convenience function to calculate leave-one-out resid SD
+sigma_loo <- function(resids, dfR) {
+  var.hat <- apply(resids, 2L, function(x) c(crossprod(x)) - x^2)
+  var.hat <- sqrt(var.hat / (dfR - 1))
+}
+
 rstandard.bg_GLM <- function(model, type=c('sd.1', 'predictive'), ...) {
   model$coefficients <- coef(model)
   model$residuals <- residuals(model)
-  sd <- sigma(model)
   hat <- hatvalues(model)
-  dimR <- dim(model$residuals)
   type <- match.arg(type)
-  denom <- if (type == 'sd.1') t(sd * sqrt(1 - t(hat))) else 1 - hat
-  res.std <- model$residuals / denom
-  return(res.std)
+  denom <- if (type == 'sd.1') t(sigma(model) * sqrt(1 - t(hat))) else 1 - hat
+  model$residuals / denom
 }
 
 #' @export
@@ -296,28 +291,25 @@ rstudent.bg_GLM <- function(model, ...) {
   dfR <- df.residual(model)
   res <- residuals(model)
   hat <- hatvalues(model)
-  dimR <- dim(res)
-  var.hat <- matrix(0, nrow=dimR[1L], ncol=dimR[2L], dimnames=dimnames(res))
-  for (i in seq_len(dimR[1L])) var.hat[i, ] <- deviance(model[-i])
-  var.hat <- var.hat / (dfR - 1)
-  res.std <- res / (sqrt(var.hat * (1 - hat)))
-  return(res.std)
+  var.hat <- sigma_loo(res, dfR)
+  res / (var.hat * sqrt(1 - hat))
 }
 
 #' @export
 #' @rdname glm_influence
 
 hatvalues.bg_GLM <- function(model, ...) {
+  if (!is.null(model$hatvalues)) return(model$hatvalues)
   X <- design2array(model)
   dimX <- dim(X)
   namesX <- dimnames(X)
-  A <- array(apply(X, 3, crossprod), dim=dimX[c(2L, 2L, 3L)])
-  U <- array(apply(A, 3, chol.default), dim=dim(A))
+  A <- array(apply(X, 3L, crossprod), dim=dimX[c(2L, 2L, 3L)])
+  U <- array(apply(A, 3L, chol.default), dim=dim(A))
   Z <- array(0, dim=dimX[c(2L, 1L, 3L)])
   for (i in seq_len(dimX[3L])) {
     Z[, , i] <- forwardsolve(t(U[, , i]), t(X[, , i]))
   }
-  res <- apply(Z, 3, function(x) colSums(x^2))
+  res <- apply(Z, 3L, function(x) colSums(x^2))
   dimnames(res) <- c(namesX[1L], namesX[3L])
   return(res)
 }
@@ -327,12 +319,11 @@ hatvalues.bg_GLM <- function(model, ...) {
 
 cooks.distance.bg_GLM <- function(model, ...) {
   X <- design2array(model)
-  p <- qr(X[, , 1])$rank
+  p <- qr(X[, , 1L])$rank
   hat <- hatvalues(model)
   res <- model$residuals <- residuals(model)
   sd <- sigma(model)
-  cook <- hat * (res / t(sd * (1 - t(hat))))^2 / p
-  return(cook)
+  hat * (res / t(sd * (1 - t(hat))))^2 / p
 }
 
 #' @export
@@ -340,12 +331,9 @@ cooks.distance.bg_GLM <- function(model, ...) {
 
 dffits.bg_GLM <- function(model) {
   res <- residuals(model)
-  kNumRegions <- nregions(model)
   hat <- hatvalues(model)
-  sig <- vapply(seq_len(dim(model$X)[1L]), function(i) sigma(model[-i]), numeric(kNumRegions))
-  if (kNumRegions > 1L) sig <- t(sig)
-  out <- res * sqrt(hat) / (sig * (1 - hat))
-  return(out)
+  sig <- sigma_loo(res, df.residual(model))
+  res * sqrt(hat) / (sig * (1 - hat))
 }
 
 #' @export
@@ -368,15 +356,14 @@ dfbetas.bg_GLM <- function(model, ...) {
   X <- design2array(model)
   dimX <- dim(X)
 
-  QR <- apply(X, 3, qr)
+  QR <- apply(X, 3L, qr)
   xxi <- vapply(QR, function(x) sqrt(diag(chol2inv(x$qr, x$rank))), numeric(dimX[2L]))
-  sig <- vapply(seq_len(dimX[1L]), function(i) sigma(model[-i]), numeric(dimX[3L]))
-  if (!is.matrix(sig)) sig <- t(sig)
+  sig <- sigma_loo(residuals(model), df.residual(model))
   dfb <- if (is.null(model$dfbeta)) dfbeta(model) else model$dfbeta
 
   dfbs <- array(0, dim=dimX, dimnames=dimnames(dfb))
   for (i in seq_len(dimX[3L])) {
-    dfbs[, , i] <- dfb[, , i] / tcrossprod(sig[i, ], xxi[, i])
+    dfbs[, , i] <- dfb[, , i] / tcrossprod(sig[, i], xxi[, i])
   }
   return(dfbs)
 }
@@ -388,9 +375,7 @@ covratio.bg_GLM <- function(model) {
   dfR <- df.residual(model)
   omh <- 1 - hatvalues(model)
   res <- residuals(model)
-  dimR <- dim(res)
-  sig <- vapply(seq_len(dimR[1L]), function(i) sigma(model[-i]), numeric(dimR[2L]))
-  if (is.matrix(sig)) sig <- t(sig)
+  sig <- sigma_loo(res, dfR)
   e.star <- res / (sig * sqrt(omh))
   1 / (omh * ((e.star^2 + dfR - 1) / dfR)^dim(model$X)[2L])
 }
@@ -402,12 +387,11 @@ covratio.bg_GLM <- function(model) {
 
 influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
   n <- nobs(model)
-  hat <- hatvalues(model)
-  coeffs <- if (isTRUE(do.coef)) dfbetas(model) else NULL
-  sig <- vapply(seq_len(n), function(i) sigma(model[-i]), numeric(dim(hat)[2L]))
+  hat <- model$hatvalues <- hatvalues(model)
+  model$residuals <- residuals(model)
+  sig <- sigma_loo(model$residuals, df.residual(model))
   dff <- dffits.bg_GLM(model)
   covr <- covratio.bg_GLM(model)
-  model$residuals <- residuals(model)
   cook <- cooks.distance(model)
 
   # Create an array and determine which observations are influential based on any metric
@@ -422,7 +406,8 @@ influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
                 pf(cook, k, dfR) > 0.5,
                 hat > (3 * k) / n,
                 along=1.5)
-  if (!is.null(coeffs)) {
+  if (isTRUE(do.coef)) {
+    coeffs <- dfbetas(model)
     cnames <- c(paste0('dfb.', vnames), cnames)
     infmat <- abind(coeffs, infmat, along=2L)
     infl <- abind(abs(coeffs) > 1, infl, along=2L)
@@ -436,30 +421,29 @@ influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
 #' @method print infl.bg_GLM
 #' @export
 
-print.infl.bg_GLM <- function(x, ...) {
+print.infl.bg_GLM <- function(x, region=NULL, ...) {
   sID <- getOption('bg.subject_id')
-  total <- value <- variable <- NULL
-  message('\nInfluence measures for a bg_GLM model with formula:')
+  Region <- total <- value <- NULL
+  message('\nInfluence measures and outliers for a bg_GLM model with formula:')
   cat('  ', x$f, '\n\n')
   DT <- as.data.table(x$is.inf, key='V1')
-  setnames(DT, c(sID, 'variable', 'region', 'value'))
-  DT <- droplevels(DT[value == TRUE])
-  DT.split <- split(DT, by='variable')
+  setnames(DT, c(sID, 'variable', 'Region', 'value'))
+  if (!is.null(region)) DT <- DT[Region %in% region]
+  DT <- DT[value == TRUE]
+  DT.split <- split(DT, by='variable', keep.by=FALSE)
 
   if (dim(x$infmat)[3L] > 1L) {
-    DT.split.wide <- lapply(DT.split, function(x)
-                            dcast.data.table(x, paste(sID, '~ region + variable')))
-    for (n in names(DT.split.wide)) {
-      setnames(DT.split.wide[[n]], sub(paste0('_', n), '', names(DT.split.wide[[n]])))
-      DT.split.wide[[n]][, total := DT[variable == n, .N, by=sID]$N]
-      message('Variable: ', n)
-      print(DT.split.wide[[n]])
+    DT.split.wide <- lapply(DT.split, dcast, paste(sID, '~ Region'))
+    for (nm in names(DT.split.wide)) {
+      DT.split.wide[[nm]][, total := DT.split[[nm]][, .N, by=sID]$N]
+      message('Variable: ', nm)
+      print(DT.split.wide[[nm]])
       cat('\n')
     }
-  } else {
-    for (n in names(DT.split)) {
-      message('Variable: ', n)
-      cat('  ', paste(DT.split[[n]][, as.character(get(sID))], collapse=', '), '\n')
+  } else {  # single region
+    for (nm in names(DT.split)) {
+      message('Variable: ', nm)
+      cat('  ', paste(DT.split[[nm]][, as.character(get(sID))], collapse=', '), '\n')
       cat('\n')
     }
   }
@@ -496,14 +480,14 @@ vif.bg_GLM <- function(mod, ...) {
   dimnames(res) <- list(tlabels, c('GVIF', 'Df', 'GVIF^(1/(2*Df))'), regions)
 
   for (rgn in regions) {
-    res[, 1, rgn] <- vapply(cols, function(j)
+    res[, 1L, rgn] <- vapply(cols, function(j)
                             det(as.matrix(R[j, j, rgn])) * det(as.matrix(R[-j, -j, rgn])),
                             numeric(1))
   }
-  res[, 1, ] <- t(t(res[, 1, ]) / detR)
+  res[, 1L, ] <- t(t(res[, 1L, ]) / detR)
   df <- lengths(cols)
-  res[, 2, ] <- df
-  if (any(df != 1L)) res[, 3, ] <- res[, 1, ]^(1 / (2 * df))
+  res[, 2L, ] <- df
+  if (any(df != 1L)) res[, 3L, ] <- res[, 1L, ]^(1 / (2 * df))
   return(res)
 }
 
@@ -522,7 +506,6 @@ vif.bg_GLM <- function(mod, ...) {
 #' @export
 #' @return \code{anova} returns a \emph{list} of tables of class \code{anova}
 #' @rdname glm_stats
-#' @seealso \code{\link[car]{Anova}}
 
 anova.bg_GLM <- function(object, region=NULL, ...) {
   dfR <- df.residual(object)
@@ -545,7 +528,7 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
   omega2 <- (ss - (outer(MSE, df))) / (SSTot + MSE)
   omega2.part <- (ss - (outer(MSE, df))) / (ss + outer(MSE, Ndf))
   f <- ms / (RSS / dfR)
-  p <- t(apply(f, 1, pf, df_terms, dfR, lower.tail=FALSE))
+  p <- t(apply(f, 1L, pf, df_terms, dfR, lower.tail=FALSE))
 
   tab <- setNames(vector('list', length(regions)), regions)
   for (i in regions) {
@@ -587,7 +570,7 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
 
 logLik.bg_GLM <- function(object, REML=FALSE, ...) {
   X <- design2array(object)
-  p <- qr(X[, , 1])$rank
+  p <- qr(X[, , 1L])$rank
   N0 <- N <- nobs(object)
 
   if (isTRUE(REML)) {
@@ -596,8 +579,7 @@ logLik.bg_GLM <- function(object, REML=FALSE, ...) {
   }
   val <- -0.5 * N * (log(2 * pi) + 1 - log(N) + log(deviance(object)))
   if (isTRUE(REML)) val <- val - QR
-  val <- structure(val, nall=N0, nobs=N, df=p+1, class='logLik')
-  return(val)
+  structure(val, nall=N0, nobs=N, df=p+1, class='logLik')
 }
 
 #' @param scale Should be left at its default

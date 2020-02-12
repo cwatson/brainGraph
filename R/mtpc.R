@@ -146,8 +146,7 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
                            S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
 
   if (isTRUE(long)) null.out <- null.dist.all
-  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms,
-                          perm.method=glm.attr$perm.method, part.method=glm.attr$part.method))
+  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms))
   class(out) <- c('mtpc', class(out))
   return(out)
 }
