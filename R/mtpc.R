@@ -83,7 +83,7 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
   stopifnot(length(g.list) == length(thresholds))
 
-  if (is.null(perms)) perms <- shuffleSet(n=length(g.list[[1]]$graphs), nset=N)
+  if (is.null(perms)) perms <- shuffleSet(n=length(g.list[[1L]]$graphs), nset=N)
 
   if (is.null(res.glm)) {
     res.glm <- lapply(g.list, function(z)
@@ -91,21 +91,21 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
                      level=level, permute=TRUE, perm.method=perm.method, part.method=part.method,
                      perms=perms, alpha=alpha, long=TRUE, ...))
   }
-  alt <- res.glm[[1]]$alt
+  alt <- res.glm[[1L]]$alt
   for (i in seq_along(thresholds)) res.glm[[i]]$DT[, threshold := thresholds[i]]
   mtpc.all <- rbindlist(lapply(res.glm, with, DT))
   setkey(mtpc.all, contrast, region)
   mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
   con.type <- match.arg(con.type)
-  kNumContrasts <- if (con.type == 't') nrow(res.glm[[1]]$contrasts) else length(res.glm[[1]]$contrasts)
+  kNumContrasts <- if (con.type == 't') nrow(res.glm[[1L]]$contrasts) else length(res.glm[[1L]]$contrasts)
   null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
   Scrit <- Acrit <- rep(0, kNumContrasts)
   myMax <- maxfun(alt)
   mySort <- sortfun(alt)
   for (i in seq_len(kNumContrasts)) {
     null.dist.all[[i]] <- vapply(res.glm, function(x) x$perm$null.dist[contrast == i, V1], numeric(N))
-    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1, myMax)
+    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1L, myMax)
     Scrit[i] <- mySort(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
     mtpc.all[contrast == i, S.crit := Scrit[i]]
   }
@@ -127,12 +127,12 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   S.mtpc <- mtpc.all[, maxobsfun(stat), by=contrast]
   S.mtpc <- S.mtpc[, unique(V1), by=contrast]
   tau.mtpc <- mtpc.all[stat %in% S.mtpc$V1, threshold, by=contrast]
-  tau.mtpc <- tau.mtpc[, .SD[1], by=contrast]
+  tau.mtpc <- tau.mtpc[, .SD[1L], by=contrast]
 
   for (i in seq_len(kNumContrasts)) {
     null.crit <- which(apply(null.dist.all[[i]], 1L, function(x)
                              any(with(rlefun(x, Scrit[i]), values == TRUE & lengths >= clust.size))))
-    if (length(null.crit) > 0) {
+    if (length(null.crit) > 0L) {
       null.crits <- null.dist.all[[i]][null.crit, , drop=FALSE]
       Acrit[i] <- mean(apply(null.crits, 1L, auc_rle, Scrit[i], thresholds, alt, clust.size))
       mtpc.all[contrast == i, A.crit := Acrit[i]]
@@ -209,10 +209,9 @@ summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits
 #' @export
 
 print.summary.mtpc <- function(x, ...) {
-  print_title_summary('MTPC results')
-  cat('Level: ', x$level, '\n')
+  print_title_summary('MTPC results (', x$level, '-level)')
 
-  print_measure_summary(x)
+  print_model_summary(x)
   print_permutation_summary(x)
 
   cat('# of thresholds: ', length(x$res.glm), '\n')
@@ -284,7 +283,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
 
     inds <- DT[, get_rle_inds(x$clust.size, x$alt, stat, S.crit, threshold)]
     n <- dim(inds)[1L]
-    if (n == 0) {
+    if (n == 0L) {
       DT[, stat_ribbon := NA]
     } else {
       if (n == 1L) {
@@ -362,7 +361,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
 
 #' @export
 #' @rdname mtpc
-nobs.mtpc <- function(object, ...) vapply(object$res.glm, nobs, integer(1))
+nobs.mtpc <- function(object, ...) nobs(object$res.glm[[1L]])
 
 #' @export
 #' @rdname mtpc

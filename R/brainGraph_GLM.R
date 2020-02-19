@@ -19,12 +19,18 @@
 #'
 #' @section Design matrix:
 #' The GLM's \emph{design matrix} will often be identical to the \emph{model
-#' matrix} associated with \code{lm} objects, and is created from the input
-#' \code{data.table} and arguments passed to
-#' \code{\link{brainGraph_GLM_design}}. The first column
-#' \emph{must} be named \emph{Study.ID}, and all graphs must have a \emph{name}
-#' graph-level attribute. The covariates table must be supplied even if you
-#' provide your own design matrix \code{X}.
+#' matrix} associated with \code{lm} objects (if \dQuote{dummy} coding, the
+#' default, is used) and is created from the input \code{data.table} and
+#' arguments passed to \code{\link{brainGraph_GLM_design}}. The first column
+#' should have the name of \code{getOption('bg.subject_id')} and its values
+#' must match the \emph{name} graph-level attribute of the input graphs. The
+#' covariates table must be supplied even if you provide your own design matrix
+#' \code{X}.  If \code{level='vertex'} and \code{outcome == measure}, there will
+#' be a single design for all regions but a separate model for each region
+#' (since the graph measure varies by region). If \code{level='vertex'} and
+#' \code{outcome != measure}, there will be a separate design (and, therefore, a
+#' separate model) for each region even though the outcome is the same in all
+#' models.
 #'
 #' @section Contrasts and statistics:
 #' Either t- or F-contrasts can be calculated (specified by \code{con.type}).
@@ -56,9 +62,10 @@
 #'   F-statistics). Default: \code{'t'}
 #' @param outcome Character string specifying the name of the outcome variable,
 #'   if it differs from the graph metric (\code{measure})
-#' @param X Numeric matrix, if you wish to supply your own design matrix
+#' @param X Numeric matrix, if you wish to supply your own design matrix.
+#'   Ignored if \code{outcome != measure}.
 #' @param con.name Character vector of the contrast name(s); if \code{contrasts}
-#'   has row names, those will be used for reporting results
+#'   has row/list names, those will be used for reporting results
 #' @param alternative Character string, whether to do a two- or one-sided test.
 #'   Default: \code{'two.sided'}
 #' @param alpha Numeric; the significance level. Default: 0.05
@@ -69,20 +76,25 @@
 #' @param perm.method Character string indicating the permutation method.
 #'   Default: \code{'freedmanLane'}
 #' @param part.method Character string; the method of partitioning the design
-#' matrix into covariates of interest and nuisance. Default: \code{beckmann}
+#'   matrix into covariates of interest and nuisance. Default: \code{'beckmann'}
 #' @param N Integer; number of permutations to create. Default: \code{5e3}
 #' @param perms Matrix of permutations, if you would like to provide your own.
 #'   Default: \code{NULL}
 #' @param long Logical indicating whether or not to return all permutation
 #'   results. Default: \code{FALSE}
-#' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
+#' @param ... Arguments passed to \code{\link{brainGraph_GLM_design}}
 #' @export
 #' @importFrom permute shuffleSet
 #'
 #' @return An object of class \code{bg_GLM} containing some input-specific
-#'   variables, in addition to:
+#'   variables (\code{level}, \code{outcome}, \code{measure}, \code{con.type},
+#'   \code{contrasts}, \code{con.name}, \code{alt}, \code{alpha},
+#'   \code{permute}, \code{perm.method}, \code{part.method}, \code{N}) in
+#'   addition to:
+#'   \item{DT.Xy}{A data table from which the design matrices are created and
+#'     the outcome variable, for all regions.}
 #'   \item{X}{A named numeric matrix or a 3D array of the design matrix.
-#'     Rownames are Study IDs, column names are predictor variables, and
+#'     Rownames are subject IDs, column names are predictor variables, and
 #'     dimnames along the 3rd dimension are region names (if applicable). This
 #'     is a 3D array only if \code{outcome != measure} and \code{level ==
 #'     'vertex'}.}
@@ -91,8 +103,18 @@
 #'     \code{outcome == measure} and \code{level == 'vertex'}.}
 #'   \item{DT}{A data table with an entry for each vertex (region) containing
 #'     statistics of interest}
-#'   \item{removed.subs}{A character vector of Study.ID's removed due to
-#'     incomplete data (if any)}
+#'   \item{removed.subs}{A named integer vector in which the names are subject
+#'     ID's of those removed due to incomplete data (if any). The integers
+#'     correspond to the row number in the input \code{covars} table.}
+#'   \item{runX}{If \code{outcome != measure} and \code{level == 'vertex'}, this
+#'     will be a character vector of the regions for which the design matrix is
+#'     invertible. Otherwise, it is \code{NULL}.}
+#'   \item{runY}{Character vector of the regions for which the outcome variable
+#'     has 0 variability. For example, if \code{level='vertex'} and
+#'     \code{measure='degree'}, some regions may be disconnected or have the
+#'     same degree for all subjects.}
+#'   \item{atlas}{Character string of the atlas used (guessed based on the
+#'     vertex count).}
 #'   \item{perm}{A list containing: \emph{null.dist} (the null distribution of
 #'     maximum statistics), \emph{thresh} (the statistic value corresponding
 #'     to the \eqn{100 \times (1 - \alpha)}th\% percentile of the null
@@ -131,7 +153,7 @@
 #' conmat <- matrix(c(0, 0, 0, 1), nrow=1)
 #' rownames(conmat) <- 'Control > Patient'
 #'
-#' g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
+#' res.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
 #'   measure='strength', contrasts=conmat, alt='greater', permute=TRUE, long=TRUE)
 #' }
 brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', 'f'),
@@ -141,8 +163,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
                            permute=FALSE, perm.method=c('freedmanLane', 'terBraak', 'smith'),
                            part.method=c('beckmann', 'guttman', 'ridgway'),
                            N=5e3, perms=NULL, long=FALSE, ...) {
-  region <- Outcome <- p.fdr <- p <- Contrast <- i <-
-    stat <- p.perm <- perm <- contrast <- V1 <- NULL
+  region <- runX <- Outcome <- p.fdr <- p <- contrast <- Contrast <- perm <- V1 <- p.perm <- stat <- NULL
 
   if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
@@ -153,51 +174,50 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   DT.y <- glm_data_table(g.list, level, measure)
   setkeyv(DT.y, sID)
   DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
+  regions <- DT.y.m[, levels(region)]
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, level, ...)
-  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.y.m <- glmSetup$DT.y.m
+  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, regions, ...)
+  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.Xy <- glmSetup$DT.Xy
   if (is.null(outcome)) outcome <- measure
-  regions <- DT.y.m[, levels(region)]
-  y <- matrix(DT.y.m[region %in% regions, get(outcome)], ncol=length(regions),
-              dimnames=list(DT.y.m[, unique(get(sID))], regions))
+  y <- as.matrix(dcast(DT.Xy, paste(sID, '~ region'), value.var=outcome), rownames=sID)
   if (level != 'vertex' || outcome != measure) {
-    y <- y[, 1, drop=FALSE]
-    dimnames(y)[[2]] <- outcome
+    y <- y[, 1L, drop=FALSE]
+    dimnames(y)[[2L]] <- outcome
   }
 
   #-------------------------------------
   # Do the model fitting/estimation
   #-------------------------------------
+  runY <- DT.Xy[, which(diff(range(get(outcome))) != 0), by=region][, as.character(region)]
   # Handle the case when there is a different design matrix for each region
-  dimX <- dim(X)
-  if (length(dimX) == 3 && level == 'vertex') {
-    # If any columns are all 0, do not fit a model for that region
-    runX <- names(which(apply(X, 3, function(p) !any(apply(p, 2, function(n) all(n == 0))))))
-    if (length(runX) == 0) {
-      stop('At least one covariate is equal to 0 for all regions; please check your data')
+  if (level == 'vertex' && outcome != measure) {
+    runX <- check_if_singular(X)  # Don't fit a model for regions where the design is rank-deficient
+    if (length(runX) == 0L) {
+      print(head(X[, , 1L]), digits=3L)
+      stop('Design matrices are rank-deficient for all regions; please check your data')
     }
 
     DT.lm <- setNames(vector('list', length(runX)), runX)
-    for (k in runX) {
-      DT.lm[[k]] <- glm_fit_helper(DT.y.m[region == k], X[, , k],
+    for (k in intersect(runX, runY)) {
+      DT.lm[[k]] <- glm_fit_helper(DT.Xy[region == k], X[, , k],
                                    ctype, contrasts, alt, outcome, 'region', alpha)
     }
     DT.lm <- rbindlist(DT.lm)
   } else {
-    DT.lm <- glm_fit_helper(DT.y.m, X, ctype, contrasts, alt, outcome, 'region', alpha)
+    DT.lm <- glm_fit_helper(DT.Xy[region %in% runY], X, ctype, contrasts, alt, outcome, 'region', alpha)
   }
   DT.lm[, Outcome := outcome]
   DT.lm[, p.fdr :=  p.adjust(p, 'fdr'), by=contrast]
   for (i in seq_along(con.name)) DT.lm[contrast == i, Contrast := con.name[i]]
   setkey(DT.lm, contrast, region)
 
-  out <- list(level=level, covars=glmSetup$covars, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype, contrasts=contrasts,
-              con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm, removed.subs=glmSetup$incomp, permute=permute)
-  if ((outcome != measure) && level == 'vertex') out$DT.X.m <- glmSetup$DT.X.m
+  out <- list(level=level, DT.Xy=DT.Xy, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype,
+              contrasts=contrasts, con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm,
+              removed.subs=glmSetup$incomp, permute=permute, runX=runX, runY=runY)
   out$atlas <- guess_atlas(g.list[[1L]])
   class(out) <- c('bg_GLM', class(out))
   if (isFALSE(permute)) return(out)
@@ -205,26 +225,25 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   #-------------------------------------
   # Permutation testing
   #-------------------------------------
-  null.dist <- null.thresh <- NA
   perm.method <- match.arg(perm.method)
   part.method <- match.arg(part.method)
+  dimX <- dim(X)
   if (is.null(perms) || dim(perms)[2L] != dimX[1L]) perms <- shuffleSet(n=dimX[1L], nset=N)
 
   myMax <- maxfun(alt)
   eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
   dfR <- dimX[1L] - dimX[2L]
-  runY <- DT.y.m[, which(!all(get(outcome) == 0)), by=region][, as.character(region)]
   # Different design matrix for each region
   if (length(dimX) == 3L && level == 'vertex') {
     null.dist <- setNames(vector('list', length(runX)), runX)
     for (k in intersect(runX, runY)) {
       null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
-                                  DT.y.m[region == k], outcome, X[, , k], 'region')
+                                  DT.Xy[region == k], outcome, X[, , k], 'region')
     }
     null.dist <- rbindlist(null.dist)
   } else {
     null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
-                           DT.y.m[region %in% runY], outcome, X, 'region')
+                           DT.Xy[region %in% runY], outcome, X, 'region')
   }
   null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
   mySort <- sortfun(alt)
@@ -248,7 +267,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 # HELPER FUNCTIONS
 ################################################################################
 
-#' Helper function to set-up for GLM analyses
+#' Helper functions to set-up for GLM analyses
 #'
 #' \code{setup_glm} is used to setup the data/objects for any function that uses
 #' the main GLM functionality in \code{brainGraph}.
@@ -257,65 +276,52 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 #' removes subjects with incomplete data, creates a design matrix (if not
 #' supplied), and supplies names to the contrast matrix.
 #'
-#' @param DT.y.m A \code{data.table} containing the outcome variable and
-#'   \code{Study.ID}
+#' @param DT.y.m A \code{data.table} containing the outcome variable and a
+#'   column of subject ID's
 #' @inheritParams GLM
 #' @keywords internal
 #' @name GLM helpers
 #' @rdname glm_helpers
 
-setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, level, ...) {
+setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, regions, ...) {
   region <- NULL
   sID <- getOption('bg.subject_id')
-  covars <- droplevels(covars)
+  covars <- droplevels(copy(covars))
   if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
-  incomp <- covars[!complete.cases(covars), get(sID)]
-  covars <- covars[!get(sID) %in% incomp]
-  if (!is.null(DT.y.m)) DT.y.m <- DT.y.m[!get(sID) %in% incomp]   # Not called for NBS
-  setkeyv(covars, sID)
+  incomp <- covars[!complete.cases(covars), which=TRUE]
+  names(incomp) <- covars[incomp, get(sID)]
+  DT.Xy <- DT.y.m[covars, on=sID]
+  if (length(incomp) > 0L) DT.Xy <- DT.Xy[-incomp]
 
   # Swap the outcome and measure variables, if outcome is not a network metric
   if (!is.null(outcome)) {
-    DT.y.m[, eval(outcome) := covars[, get(outcome)], by=region]
-    covars[, eval(outcome) := NULL]
+    setcolorder(DT.Xy, c(sID, 'region', names(covars[, !c(sID, outcome), with=FALSE]), measure, outcome))
 
-    # Graph-level case is simple; only 1 design matrix
-    if (level == 'graph') {
-      covars[, eval(measure) := DT.y.m[, get(measure)]]
-
-    # Vertex-level has 1 design matrix per region, with the measure changing for each
-    } else if (level == 'vertex') {
-      DT.X.m <- merge(DT.y.m, covars, by=sID)
-      setcolorder(DT.X.m, c(sID, 'region', names(covars[, !sID, with=FALSE]), measure))
-      DT.X.m[, eval(outcome) := NULL]
-
-      # Get all design matrices into a 3-D array
-      X <- setNames(vector('list', DT.X.m[, nlevels(region)]), DT.X.m[, levels(region)])
-      for (rgn in DT.X.m[, levels(region)]) {
-        X[[rgn]] <- brainGraph_GLM_design(DT.X.m[region == rgn, !'region', with=FALSE], ...)
-      }
-      attrs <- attributes(X[[rgn]])
-      X <- abind::abind(X, along=3)
-      attributes(X) <- c(attributes(X), attrs)
+    # Get all design matrices into a 3-D array
+    X <- setNames(vector('list', length(regions)), regions)
+    for (rgn in regions) {
+      X[[rgn]] <- brainGraph_GLM_design(DT.Xy[region == rgn, !c('region', outcome), with=FALSE], ...)
     }
-    DT.y.m[, eval(measure) := NULL]
+    attrs <- attributes(X[[rgn]])[-c(1L, 2L)]  # Don't include "dim" and "dimnames"
+    X <- drop(abind::abind(X, along=3))
+    attributes(X) <- c(attributes(X), attrs)
+  } else {
+    if (is.null(X)) X <- brainGraph_GLM_design(DT.Xy[region == regions[1L], !c('region', measure), with=FALSE], ...)
   }
-  if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
-  rownames(X) <- covars[, get(sID)]
 
   tmp <- contrast_names(contrasts, con.type, con.name, X)
-  out <- list(covars=covars, incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name,
-              nC=tmp$nC, DT.y.m=DT.y.m)
-  if (!is.null(outcome)) if (level == 'vertex') out$DT.X.m <- DT.X.m
+  out <- list(incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name, nC=tmp$nC, DT.Xy=DT.Xy)
   return(out)
 }
 
 #' Set contrast and column names for GLM analysis
 #'
-#' Simple helper function to check the dimensions of contrasts, generate
-#' contrast names, and set column names for GLM functions. For F-contrasts, if a
-#' \code{matrix} is given, convert it to a \code{list} to simplify processing
+#' \code{contrast_names} checks the dimensions of contrasts, generates contrast
+#' names, and sets column names for GLM functions. For F-contrasts, if a
+#' \code{matrix} is given, it converts it to a \code{list} to simplify processing
 #' later.
+#' @return \code{contrast_names} -- list containing the contrasts (matrix or
+#'   list), contrast names, and number of contrasts
 #' @keywords internal
 #' @rdname glm_helpers
 
@@ -327,7 +333,12 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
     stopifnot(con.type == 'f')
   }
 
-  stopifnot(all(vapply(contrasts, ncol, integer(1)) == dim(X)[2L]))
+  ncols <- vapply(contrasts, ncol, integer(1))
+  if (any(ncols != dim(X)[2L])) {
+    df <- data.frame(con.number=seq_along(contrasts), ncols=ncols)
+    print(df, row.names=FALSE)
+    stop('Design matrix has ', dim(X)[2L], ' columns but contrasts do not match (see above)')
+  }
   nC <- length(contrasts)
 
   if (is.null(con.name)) {
@@ -339,11 +350,21 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
     }
     names(contrasts) <- con.name
   }
-  for (i in seq_len(nC)) dimnames(contrasts[[i]])[[2]] <- dimnames(X)[[2]]
+  for (i in seq_len(nC)) dimnames(contrasts[[i]])[[2L]] <- dimnames(X)[[2L]]
 
   if (con.type == 't') contrasts <- abind::abind(contrasts, along=1)
 
   return(list(contrasts=contrasts, con.name=con.name, nC=nC))
+}
+
+#' \code{check_if_singular} returns the names of the regions in which the design
+#' matrix is of full rank (i.e., non-singular) and therefore is invertible.
+#'
+#' @keywords internal
+#' @rdname glm_helpers
+
+check_if_singular <- function(X) {
+  names(which(apply(X, 3L, function(x) qr(x)$rank) == dim(X)[2L]))
 }
 
 ################################################################################
@@ -475,8 +496,8 @@ brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
 #' @rdname glm
 
 print.bg_GLM <- function(x, ...) {
-  cat('\nA bg_GLM object at the', x$level, 'level with model:\n\n', formula(x))
-  cat('\n\n')
+  cat('\nA', paste0(x$level, '-level'), '"bg_GLM" object\n')
+  print_model_summary(x)
   print_contrast_type_summary(x)
   invisible(x)
 }
@@ -518,17 +539,17 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
   oldnames <- c('region', 'gamma', 'se', 'stat', 'p', 'p.fdr', 'p.perm', 'ci.low', 'ci.high')
   newnames <- c('Region', 'Estimate', 'Std. error', 't value', 'p-value', 'p-value (FDR)', 'p-value (perm.)')
   if (isFALSE(object$permute)) {
-    oldnames <- oldnames[-7]
-    newnames <- newnames[-7]
-    newcols <- newcols[-10]
+    oldnames <- oldnames[-7L]
+    newnames <- newnames[-7L]
+    newcols <- newcols[-10L]
   }
   if (object$con.type == 't') {
     clp <- 100 * (1 - object$alpha)
     newnames <- c(newnames, paste0(clp, '% CI ', c('low', 'high')))
   } else if (object$con.type == 'f') {
     newcols[3L] <- oldnames[2L] <- 'ESS'
-    newnames[c(2, 4)] <- c('Extra Sum Sq.', 'F value')
-    newcols <- newcols[-c(4, 5)]
+    newnames[c(2L, 4L)] <- c('Extra Sum Sq.', 'F value')
+    newcols <- newcols[-c(4L, 5L)]
     oldnames <- oldnames[-grep('ci.', oldnames)]
   }
   setcolorder(DT.sum, newcols)
@@ -544,10 +565,9 @@ summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NUL
 #' @export
 
 print.summary.bg_GLM <- function(x, ...) {
-  print_title_summary('brainGraph GLM results')
-  cat('Level: ', x$level, '\n')
+  print_title_summary('brainGraph GLM results (', x$level, '-level)')
 
-  print_measure_summary(x)
+  print_model_summary(x)
   print_contrast_type_summary(x)
   print_subs_summary(x)
 
@@ -575,7 +595,7 @@ print.summary.bg_GLM <- function(x, ...) {
 #'   plot; only relevant if \code{level='vertex'}. Default: \code{NULL}
 #' @param which Integer vector indicating which of the 6 plots to print to the
 #'   plot device. Default: \code{c(1:3, 5)}
-#' @param ids Logical indicating whether to plot Study ID's for outliers.
+#' @param ids Logical indicating whether to plot subject ID's for outliers.
 #'   Otherwise plots the integer index
 #' @export
 #' @importFrom ggrepel geom_text_repel
@@ -607,8 +627,8 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   } else {
     requireNamespace('gridExtra')
   }
-  if (!is.numeric(which) || any(which < 1) || any(which > 6)) stop("'which' must be in 1:6")
-  show <- rep(FALSE, 6)
+  if (!is.numeric(which) || any(which < 1L) || any(which > 6L)) stop("'which' must be in 1:6")
+  show <- rep(FALSE, 6L)
   show[which] <- TRUE
   prows <- 1L + (length(which) > 1L)
 
@@ -621,7 +641,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   plot_single <- function(dat, region) {
     leverage <- resid.std <- cook <- ind <- mark <- fit <- leverage.tr <- NULL
 
-    diagPlots <- vector('list', length=6)
+    diagPlots <- vector('list', length=6L)
     # 1. Resids vs fitted
     if (show[1L]) {
       diagPlots[[1L]] <- ggplot(dat, aes(x=fit, y=resid)) +
@@ -663,11 +683,11 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     # 5. Residual vs Leverage plot
     if (show[5L]) {
       r.hat <- dat[, range(leverage, na.rm=TRUE)]
-      hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1, length.out=101)
-      dt.cook <- data.table(hh=rep(hh, 2), level=rep(c(0.5, 1.0), each=101))
+      hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1L, length.out=101L)
+      dt.cook <- data.table(hh=rep(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
       dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
-      xmax <- dat[, round(max(leverage), 2)]
-      dt.cook[, ymax := .SD[which(xmax == round(hh, 2)), cl.h], by=level]
+      xmax <- dat[, round(max(leverage), 2L)]
+      dt.cook[, ymax := .SD[which(xmax == round(hh, 2L)), cl.h], by=level]
 
       diagPlots[[5L]] <- ggplot(dat, aes(x=leverage, y=resid.std)) +
         geom_point(aes(shape=mark)) +

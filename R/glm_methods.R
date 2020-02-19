@@ -54,11 +54,8 @@ nobs.bg_GLM <- function(object, ...) dim(object$X)[1L]
 #' @rdname glm_info
 
 terms.bg_GLM <- function(x, ...) {
-  cvnames <- setdiff(names(x$covars), getOption('bg.subject_id'))
+  cvnames <- setdiff(names(x$DT.Xy), c(getOption('bg.subject_id'), 'region', x$outcome))
   vnames <- variable.names(x)
-  if (x$outcome != x$measure && !(x$measure %in% cvnames)) {
-    cvnames <- c(cvnames, x$measure)
-  }
   cols <- cols_orig <- sapply(cvnames, function(y) list(grep(y, vnames)))
 
   # Determine if there are any interaction terms

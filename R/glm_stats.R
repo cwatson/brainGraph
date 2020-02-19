@@ -65,16 +65,11 @@ coef.bg_GLM <- function(object, ...) {
 
   # outcome != measure && level == 'vertex' (multiple design matrices)
   if (length(dim(object$X)) == 3L) {
-    fits <- apply(object$X, 3L, function(x) fastLmPure(x, object$y, method=2))
+    coeffs <- apply(object$X, 3L, function(x) fastLmPure(x, object$y, method=2)$coefficients)
   } else {
-    fits <- apply(object$y, 2L, function(y) fastLmPure(object$X, y, method=2))
+    coeffs <- apply(object$y, 2L, function(y) fastLmPure(object$X, y, method=2)$coefficients)
   }
 
-  coeffs <- vapply(fits, function(x) x$coefficients, numeric(ncol(object$X)))
-  if (!is.matrix(coeffs)) {
-    coeffs <- t(coeffs)
-    dimnames(coeffs)[[1L]] <- variable.names(object)
-  }
   if (object$level == 'graph') dimnames(coeffs)[[2L]] <- 'graph'
   return(coeffs)
 }
@@ -116,12 +111,12 @@ fitted.bg_GLM <- function(object, ...) {
   # outcome != measure && level == 'vertex' (multiple design mats)
   dimX <- dim(object$X)
   if (length(dimX) == 3L) {
-    fits <- vapply(seq_len(dimX[3L]), function(x) as.matrix(object$X[, , x]) %*% coeffs[, x],
+    fits <- vapply(seq_len(dimX[3L]), function(x) object$X[, , x] %*% coeffs[, x],
                    numeric(dimX[1L]))
+    dimnames(fits) <- list(case.names(object), dimnames(coeffs)[[2L]])
   } else {
-    fits <- apply(coeffs, 2L, function(x) object$X %*% x)
+    fits <- object$X %*% coeffs
   }
-  dimnames(fits) <- list(case.names(object), colnames(coeffs))
   return(fits)
 }
 
@@ -148,9 +143,8 @@ residuals.bg_GLM <- function(object, type=c('response', 'partial'), ...) {
 
   } else {
     fits <- fitted(object)
-    y <- if (length(dim(object$X)) == 3L) c(object$y) else object$y
+    y <- if (dim(object$y)[2L] == 1L) c(object$y) else object$y
     resids <- y - fits
-    if (object$level == 'graph') dimnames(resids)[[2L]] <- 'graph'
   }
   return(resids)
 }
@@ -167,7 +161,11 @@ deviance.bg_GLM <- function(object, ...) apply(residuals(object), 2L, crossprod)
 coeff_determ <- function(object, adjusted=FALSE) {
   stopifnot(inherits(object, 'bg_GLM'))
   SSR <- deviance(object)
-  SStot <- apply(object$y, 2L, function(x) crossprod(x - mean(x)))
+  if (dim(object$y)[2L] > 1L) {
+    SStot <- diag(tcrossprod(t(object$y) - colMeans(object$y)))
+  } else {
+    SStot <- c(crossprod(object$y - mean(object$y)))
+  }
   numer <- if (isTRUE(adjusted)) SSR / df.residual(object) else SSR
   denom <- if (isTRUE(adjusted)) SStot / (nobs(object) - 1) else SStot
   1 - numer / denom
@@ -192,15 +190,20 @@ sigma.bg_GLM <- function(object, ...) sqrt(deviance(object) / df.residual(object
 
 vcov.bg_GLM <- function(object, ...) {
   X <- design2array(object)
-  dimX <- dim(X)
-  dimV <- dimX[c(2L, 2L, 3L)]
-  namesX <- dimnames(X)
-  XtX <- array(apply(X, 3L, function(x) solve(crossprod(x))), dim=dimV)
+  dimV <- dim(X)[c(2L, 2L, 3L)]
+  namesV <- dimnames(X)[c(2L, 2L, 3L)]
+  runX <- if (is.null(object$runX)) namesV[[3L]] else object$runX
+  XtX <- array(NaN, dim=dimV, dimnames=namesV)
+  XtX[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x) solve(crossprod(x)))
   sig <- sigma(object)^2
   XtX <- aperm(XtX, c(3L, 1L, 2L))
-  vc <- aperm(sig * XtX, c(2L, 3L, 1L))
-  dimnames(vc) <- c(namesX[2L], namesX[2L], namesX[3L])
-  return(vc)
+  aperm(sig * XtX, c(2L, 3L, 1L))
+}
+
+# Convenience function to calculate leave-one-out resid SD
+sigma_loo <- function(resids, dfR) {
+  var.hat <- apply(resids, 2L, function(x) c(crossprod(x)) - x^2)
+  sqrt(var.hat / (dfR - 1))
 }
 
 #' Influence measures for a bg_GLM object
@@ -269,12 +272,6 @@ vcov.bg_GLM <- function(object, ...) {
 #' @seealso \code{\link{GLM}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-# Convenience function to calculate leave-one-out resid SD
-sigma_loo <- function(resids, dfR) {
-  var.hat <- apply(resids, 2L, function(x) c(crossprod(x)) - x^2)
-  var.hat <- sqrt(var.hat / (dfR - 1))
-}
-
 rstandard.bg_GLM <- function(model, type=c('sd.1', 'predictive'), ...) {
   model$coefficients <- coef(model)
   model$residuals <- residuals(model)
@@ -303,8 +300,10 @@ hatvalues.bg_GLM <- function(model, ...) {
   X <- design2array(model)
   dimX <- dim(X)
   namesX <- dimnames(X)
-  A <- array(apply(X, 3L, crossprod), dim=dimX[c(2L, 2L, 3L)])
-  U <- array(apply(A, 3L, chol.default), dim=dim(A))
+  runX <- if (is.null(model$runX)) namesX[[3L]] else model$runX
+  A <- U <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=c(namesX[2L], namesX[2L], namesX[3L]))
+  A[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, crossprod)
+  U[, , runX] <- apply(A[, , runX, drop=FALSE], 3L, chol.default)
   Z <- array(0, dim=dimX[c(2L, 1L, 3L)])
   for (i in seq_len(dimX[3L])) {
     Z[, , i] <- forwardsolve(t(U[, , i]), t(X[, , i]))
@@ -345,8 +344,7 @@ dfbeta.bg_GLM <- function(model, ...) {
   dimC <- dim(coeffs)
   dfb <- array(0, dim=c(dimC, Nobs), dimnames=c(dimnames(coeffs), dimnames(model$X)[1L]))
   for (i in seq_len(Nobs)) dfb[, , i] <- coeffs - coef(model[-i])
-  dfb <- aperm(dfb, c(3L, 1L, 2L))
-  return(dfb)
+  aperm(dfb, c(3L, 1L, 2L))
 }
 
 #' @export
@@ -355,9 +353,12 @@ dfbeta.bg_GLM <- function(model, ...) {
 dfbetas.bg_GLM <- function(model, ...) {
   X <- design2array(model)
   dimX <- dim(X)
+  namesX <- dimnames(X)
 
+  runX <- if (is.null(model$runX)) namesX[[3L]] else model$runX
   QR <- apply(X, 3L, qr)
-  xxi <- vapply(QR, function(x) sqrt(diag(chol2inv(x$qr, x$rank))), numeric(dimX[2L]))
+  xxi <- matrix(NaN, dimX[2L], dimX[3L], dimnames=c(namesX[2L], namesX[3L]))
+  xxi[, runX] <- vapply(QR[runX], function(x) sqrt(diag(chol2inv(x$qr, x$rank))), numeric(dimX[2L]))
   sig <- sigma_loo(residuals(model), df.residual(model))
   dfb <- if (is.null(model$dfbeta)) dfbeta(model) else model$dfbeta
 
@@ -575,11 +576,11 @@ logLik.bg_GLM <- function(object, REML=FALSE, ...) {
 
   if (isTRUE(REML)) {
     N <- N - p
-    QR <- colSums(apply(X, 3, function(x) log(abs(diag(qr(x)$qr)[1L:p]))))
+    QR <- colSums(apply(X, 3L, function(x) log(abs(diag(qr(x)$qr)[1L:p]))))
   }
   val <- -0.5 * N * (log(2 * pi) + 1 - log(N) + log(deviance(object)))
   if (isTRUE(REML)) val <- val - QR
-  structure(val, nall=N0, nobs=N, df=p+1, class='logLik')
+  structure(val, nall=N0, nobs=N, df=p+1L, class='logLik')
 }
 
 #' @param scale Should be left at its default
@@ -592,5 +593,5 @@ extractAIC.bg_GLM <- function(fit, scale=0, k=2, ...) {
   edf <- n - df.residual(fit)
   RSS <- deviance(fit)
   dev <- if (scale > 0) RSS / scale - n else n * log(RSS / n)
-  return(c(edf, dev + k * edf))
+  c(edf, dev + k * edf)
 }

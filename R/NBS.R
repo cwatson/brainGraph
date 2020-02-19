@@ -54,18 +54,29 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure=NULL, outcome=NULL, DT.y.m=NULL, level=NULL, ...)
-  X <- glmSetup$X; incomp <- glmSetup$incomp; contrasts <- glmSetup$contrasts; nC <- glmSetup$nC
-  if (length(incomp) > 0) A <- A[, , -glmSetup$covars[, which(get(getOption('bg.subject_id')) %in% incomp)]]
+
+  # Remove subjects w/ incomplete data
+  sID <- getOption('bg.subject_id')
+  covars <- droplevels(copy(covars))
+  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  incomp <- covars[!complete.cases(covars), which=TRUE]
+  names(incomp) <- covars[incomp, get(sID)]
+  if (length(incomp) > 0L) {
+    A <- A[, , -incomp, drop=FALSE]
+    covars <- covars[-incomp]
+  }
+  setkeyv(covars, sID)
+  if (is.null(X)) X <- brainGraph_GLM_design(covars, ...)
+  tmp <- contrast_names(contrasts, ctype, con.name, X)
+  contrasts <- tmp$contrasts; nC <- tmp$nC
 
   # Get the outcome variables into a data.table; symmetrize and 0 the lower triangle for speed
   A <- symmetrize_array(A, symm.by)
-  inds.low <- which(lower.tri(A[, , 1], diag=TRUE), arr.ind=TRUE)
+  inds.low <- which(lower.tri(A[, , 1L], diag=TRUE), arr.ind=TRUE)
   for (k in seq_len(dimA[3L])) A[cbind(inds.low, k)] <- 0
   A.m <- as.data.table(A)
   setnames(A.m, c('Var1', 'Var2', 'Var3', 'value'))
-  pos.vals <- A.m[, sum(value) > 0, by=list(Var1, Var2)][V1 == 1, !'V1']
-  A.m.sub <- A.m[pos.vals]
+  A.m.sub <- A.m[A.m[, .I[sum(value) > 0], by=list(Var1, Var2)]$V1]
 
   # Do the model fitting/estimation and filter based on "p.init"
   DT.lm <- glm_fit_helper(A.m.sub, X, ctype, contrasts, alt, 'value', 'Var1,Var2')
@@ -88,7 +99,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   part.method <- match.arg(part.method)
   perm.method <- match.arg(perm.method)
-  out <- list(covars=glmSetup$covars, X=X, con.type=ctype, contrasts=contrasts, con.name=glmSetup$con.name,
+  out <- list(covars=covars, X=X, con.type=ctype, contrasts=contrasts, con.name=tmp$con.name,
               alt=alt, p.init=p.init, removed.subs=incomp, T.mat=T.max, p.mat=p.mat,
               N=N, perm.method=perm.method, part.method=part.method)
   if (length(skip) == nC) {
@@ -154,6 +165,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 #' Print a summary of NBS analysis
 #'
 #' @param object,x A \code{NBS} object
+#' @param ... Arguments passed to \code{\link[stats]{printCoefMat}}
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @rdname NBS
@@ -170,8 +182,8 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
                                            numeric(1))]
   }
 
-  nbs.sum <- c(object, list(printCon=contrast, DT.sum=nbs.dt, digits=digits))
-  class(nbs.sum) <- c('summary.NBS', class(nbs.sum))
+  nbs.sum <- c(object, list(printCon=contrast, DT.sum=nbs.dt, digits=digits), list(...))
+  class(nbs.sum) <- c('summary.NBS', class(object))
   return(nbs.sum)
 }
 
@@ -181,6 +193,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
 
 print.summary.NBS <- function(x, ...) {
   print_title_summary('Network-based statistic results')
+  print_model_summary(x)
   print_permutation_summary(x)
 
   cat('Initial p-value: ', x$p.init, '\n\n')
@@ -204,6 +217,7 @@ nobs.NBS <- nobs.bg_GLM
 #' @rdname NBS
 terms.NBS <- function(x, ...) {
   x$outcome <- x$measure <- 'weight'
+  x$DT.Xy <- x$covars
   terms(structure(x, class='bg_GLM'))
 }
 
@@ -211,6 +225,7 @@ terms.NBS <- function(x, ...) {
 #' @rdname NBS
 formula.NBS <- function(x, ...) {
   x$outcome <- x$measure <- 'weight'
+  x$DT.Xy <- x$covars
   formula(structure(x, class='bg_GLM'))
 }
 

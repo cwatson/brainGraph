@@ -72,7 +72,7 @@ print_bg_summary <- function(object) {
   return(df)
 }
 
-# Print a character vector "x" as a data.frame with "nc" columns
+# Print a character vector "x" as a data.frame with "numCols" columns
 #-------------------------------------------------------------------------------
 print_text_vector <- function(x, numCols) {
   div <- length(x) %/% numCols
@@ -87,23 +87,20 @@ print_text_vector <- function(x, numCols) {
 
 # Print a simple title
 #-------------------------------------------------------------------------------
-print_title_summary <- function(title) {
-  title <- paste(title)
+print_title_summary <- function(...) {
+  title <- paste0(..., collapse='')
   width <- max(getOption('width') / 2L, nchar(title))
   message('\n', rep('=', width))
   message(title)
   message(rep('=', width))
 }
 
-# Print info about the outcome and/or graph measure of interest
+# Print info about the model
 #-------------------------------------------------------------------------------
-print_measure_summary <- function(x) {
-  if (x$outcome == x$measure) {
-    cat('Graph metric of interest (outcome): ', x$outcome, '\n\n')
-  } else {
-    cat('Graph metric of interest (covariate): ', x$measure, '\n')
-    cat('Outcome measure: ', x$outcome, '\n\n')
-  }
+print_model_summary <- function(x) {
+  cat('GLM formula:\n\t', formula(x), '\n')
+  cat('based on', nobs(x), 'observations, with', df.residual(x), 'degrees of freedom.')
+  cat('\n\n')
   invisible(x)
 }
 
@@ -135,7 +132,7 @@ print_subs_summary <- function(x) {
   n <- length(x$removed.subs)
   if (n > 0L) {
     message(n, ' subjects removed due to incomplete data:')
-    cat('  ', paste(x$removed.subs, collapse=', '), '\n')
+    cat('  ', paste(names(x$removed.subs), collapse=', '), '\n')
   }
   invisible(x)
 }
@@ -188,9 +185,8 @@ print_permutation_summary <- function(x) {
                         freedmanLane='Freedman-Lane',
                         terBraak='ter Braak',
                         smith='Smith')
-  part.method <- simpleCap(x$part.method)
   cat('Permutation method: ', perm.method, '\n')
-  cat('Partition method: ', part.method, '\n')
+  cat('Partition method: ', simpleCap(x$part.method), '\n')
   cat('# of permutations: ', prettyNum(x$N, ','), '\n')
 
   invisible(x)

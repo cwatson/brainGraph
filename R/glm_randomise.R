@@ -28,7 +28,7 @@
 partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway')) {
   part.method <- match.arg(part.method)
   if (part.method == 'guttman') {
-    idx <- which(con.mat != 0, arr.ind=TRUE)[, 2]
+    idx <- unique(which(con.mat != 0, arr.ind=TRUE)[, 2L])
     X <- M[, idx, drop=FALSE]
     Z <- M[, -idx, drop=FALSE]
     eCm <- cbind(con.mat[, idx, drop=FALSE], con.mat[, -idx, drop=FALSE])
@@ -47,10 +47,10 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
   } else if (part.method == 'ridgway') {
     rZ <- qr(M)$rank - qr(con.mat)$rank
     pinvC <- MASS::ginv(con.mat)
-    C0 <- diag(dim(M)[2L]) - t(con.mat) %*% MASS::ginv(t(con.mat))
+    C0 <- diag(dim(M)[2L]) - crossprod(con.mat, MASS::ginv(t(con.mat)))
     tmpX <- M %*% pinvC
     tmpZ <- svd(M %*% C0)$u
-    Z <- tmpZ[, 1:rZ]
+    Z <- tmpZ[, 1:rZ, drop=FALSE]
     X <- tmpX - Z %*% MASS::ginv(Z) %*% tmpX
     px <- dim(X)[2L]
     eCm <- cbind(diag(px), matrix(0, nrow=px, ncol=dim(Z)[2L]))
@@ -126,7 +126,7 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
       rkC[j] <- qr(eC[[j]])$rank
     }
   }
-  dfR <- dim(Mp[[1]])[1L] - qr(Mp[[1]])$rank
+  dfR <- dim(Mp[[1L]])[1L] - qr(Mp[[1L]])$rank
 
   out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC, dfR=dfR)
   if (con.type == 'f') out <- c(out, list(CMtM=CMtM, rkC=rkC))

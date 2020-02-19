@@ -147,7 +147,7 @@ make_brainGraphList.corr_mats <- function(x, atlas=x$atlas, type='observed',
                                           mode='undirected', weighted=NULL,
                                           diag=FALSE, .progress=getOption('bg.progress'), ...) {
   dims <- vapply(x$r.thresh, dim, numeric(3L))[3L, ]
-  if (any(dims > 1L)) x <- x[1]
+  if (any(dims > 1L)) x <- x[1L]
   A <- abind::abind(x$r.thresh)
   if (isTRUE(weighted)) A <- x$R * A
   out <- make_brainGraphList(A, atlas=atlas, type=type, level=level,
@@ -398,7 +398,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
   }
 
   if (is.character(i)) i <- which(names(x$graphs) %in% i)
-  x$graphs <- if (length(i) == 1 && isTRUE(drop)) x$graphs[[i]] else x$graphs[i]
+  x$graphs <- if (length(i) == 1L && isTRUE(drop)) x$graphs[[i]] else x$graphs[i]
   out <- if (isTRUE(drop)) x$graphs else x
   return(out)
 }
@@ -408,8 +408,8 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
 print.brainGraphList <- function(x, ...) {
   kNumGraphs <- length(x$graphs)
   gnames <- names(x$graphs)
-  print_title_summary(paste0('A "brainGraphList" object of *', x$type,
-                             '* graphs containing ', kNumGraphs, ' ', x$level, 's.'))
+  print_title_summary('A "brainGraphList" object of *', x$type,
+                      '* graphs containing ',kNumGraphs, ' ', x$level, 's.')
 
   df <- print_bg_summary(x)
   df <- df[-c(6, 10, 11, 13, 14), ]
@@ -419,14 +419,14 @@ print.brainGraphList <- function(x, ...) {
   # Print subject/group names
   msg <- switch(x$level, subject='IDs:', 'names:')
   message(paste(simpleCap(x$level), msg))
-  if (kNumGraphs < 10) {
+  if (kNumGraphs < 10L) {
     print(gnames)
   } else {
-    attrs.df <- print_text_vector(gnames, 6)
+    attrs.df <- print_text_vector(gnames, 6L)
     print(attrs.df, row.names=FALSE)
     cat('\n')
   }
-  if (x$level == 'subject' && 'Group' %in% graph_attr_names(x$graphs[[1]])) {
+  if (x$level == 'subject' && 'Group' %in% graph_attr_names(x$graphs[[1L]])) {
     message('Group membership:')
     print(table(groups(x)))
   }
@@ -475,12 +475,12 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
   level <- match.arg(level)
   if (type == 'observed' || level == 'group') {
     stopifnot(all(vapply(g.list, is.brainGraph, logical(1))))
-    g1 <- g.list[[1]]
+    g1 <- g.list[[1L]]
     ids <- vapply(g.list, graph_attr, character(1), 'name')
   } else {
     stopifnot(all(vapply(g.list, function(x) is_igraph(x[[1]]), logical(1))))
-    g1 <- g.list[[1]][[1]]
-    ids <- vapply(g.list, function(x) graph_attr(x[[1]], 'name'), character(1))
+    g1 <- g.list[[1L]][[1L]]
+    ids <- vapply(g.list, function(x) graph_attr(x[[1L]], 'name'), character(1))
   }
 
   attrnames <- graph_attr_names(g1)
@@ -491,7 +491,7 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
   for (x in attrs) {
     if (x %in% attrnames) out[[x]] <- graph_attr(g1, x)
   }
-  if (length(out$version < 3)) out$version <- list(r='', bg=out$version, ig='')
+  if (length(out$version) < 3L) out$version <- list(r='', bg=out$version, ig='')
   for (x in c('sys', 'date')) if (is.null(out[[x]])) out[[x]] <- ''
   out$graphs <- g.list
   names(out$graphs) <- ids

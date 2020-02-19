@@ -359,7 +359,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL
   width <- getOption('width')
-  print_title_summary(paste0(simpleCap(x$level), '-level mediation results'))
+  print_title_summary(simpleCap(x$level), '-level mediation results')
   cat('# of observations: ', x$nobs, '\n')
 
   # Print a table of the model variables
