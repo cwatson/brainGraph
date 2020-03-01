@@ -29,7 +29,7 @@ aop(resids, corrs, level = c("global", "regional"), control.value = 1L)
 contributions (either \code{global} or \code{regional})}
 
 \item{control.value}{Integer or character string specifying the control group
-(default: 1)}
+(default: 1L)}
 
 \item{object, x}{A \code{IC} object}
 

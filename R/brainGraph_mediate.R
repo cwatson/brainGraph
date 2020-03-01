@@ -133,18 +133,20 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
 
-  sID <- getOption('bg.subject_id')
   stopifnot(all(hasName(covars, c(treat, outcome, covar.names))))
-  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  sID <- getOption('bg.subject_id')
+  if (!hasName(covars, sID)) covars[, eval(sID) := seq_len(dim(covars)[1L])]
+  covars[, eval(sID) := check_sID(get(sID))]
   covars <- droplevels(covars[, c(sID, treat, covar.names, outcome), with=FALSE])
-  incomp <- covars[!complete.cases(covars), get(sID)]
+  incomp <- covars[!complete.cases(covars), which=TRUE]
+  names(incomp) <- covars[incomp, get(sID)]
   covars <- covars[!get(sID) %in% incomp]
   setkeyv(covars, sID)
 
   level <- match.arg(level)
   dt.graph <- glm_data_table(g.list, level, mediator)
-  dt.graph <- dt.graph[!get(sID) %in% incomp]
-  DT <- merge(covars, dt.graph, on=key(covars))
+  DT <- covars[dt.graph, on=sID]
+  if (length(incomp) > 0L) DT <- DT[-incomp]
   DT[, eval(treat) := as.factor(get(treat))]
   DT.m <- melt(DT, id.vars=names(covars), variable.name='region', value.name=mediator)
 
@@ -222,11 +224,11 @@ boot_mediate <- function(N, n, X.m, y.m, treat, cat.1, X.y,
   index <- rbind(index, seq_len(n))
 
   # Loop through the resamples
-  res <- foreach(b=seq_len(N + 1), .combine='rbind') %dopar% {
+  res <- foreach(b=seq_len(N + 1L), .combine='rbind') %dopar% {
     neworder <- index[b, ]
 
     # Mediator predictions
-    est.m <- fastLmPure(X.m[neworder, ], y.m[neworder], method=2)
+    est.m <- fastLmPure(X.m[neworder, ], y.m[neworder], method=2L)
     error <- rnorm(n, mean=0, sd=est.m$s)
 
     X.m.t <- X.m.c <- X.m
@@ -236,15 +238,15 @@ boot_mediate <- function(N, n, X.m, y.m, treat, cat.1, X.y,
     PredictM0 <- X.m.c %*% est.m$coefficients + error
 
     # Outcome predictions
-    est.y <- fastLmPure(X.y[neworder, ], y.y[neworder], method=2)
-    effects.tmp <- matrix(NA, nrow=n, ncol=4)
-    for (e in 1:4) { # These calculate d1, d0, z1, z0 (respectively) for each "sim")
-      tt <- switch(e, c(1, 1, 1, 0), c(0, 0, 1, 0), c(1, 0, 1, 1), c(1, 0, 0, 0))
+    est.y <- fastLmPure(X.y[neworder, ], y.y[neworder], method=2L)
+    effects.tmp <- matrix(NA, nrow=n, ncol=4L)
+    for (e in 1L:4L) { # These calculate d1, d0, z1, z0 (respectively) for each "sim")
+      tt <- switch(e, c(1L, 1L, 1L, 0L), c(0L, 0L, 1L, 0L), c(1L, 0L, 1L, 1L), c(1L, 0L, 0L, 0L))
       X.y.t <- X.y.c <- X.y
       X.y.t[, treatstr] <- tt[1L]
       X.y.c[, treatstr] <- tt[2L]
-      X.y.t[, mediator] <- PredictM1 * tt[3L] + PredictM0 * (1 - tt[3L])  #PredictMt
-      X.y.c[, mediator] <- PredictM1 * tt[4L] + PredictM0 * (1 - tt[4L])  #PredictMc
+      X.y.t[, mediator] <- PredictM1 * tt[3L] + PredictM0 * (1L - tt[3L])  #PredictMt
+      X.y.c[, mediator] <- PredictM1 * tt[4L] + PredictM0 * (1L - tt[4L])  #PredictMc
       if (isTRUE(int)) {
         X.y.t[, treatintstr] <- X.y.t[, treatstr] * X.y.t[, mediator]
         X.y.c[, treatintstr] <- X.y.c[, treatstr] * X.y.c[, mediator]
@@ -276,7 +278,7 @@ pval <- function(x, xhat) {
 BC.CI <- function(theta, low, high) {
   z.inv <- length(theta[theta < mean(theta)]) / length(theta)
   z <- qnorm(z.inv)
-  U <- (length(theta) - 1) * (mean(theta) - theta)
+  U <- (length(theta) - 1L) * (mean(theta) - theta)
   top <- sum(U^3)
   under <- 6 * (sum(U^2))^{3/2}
   a <- top / under
@@ -309,16 +311,16 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
   DT.obs <- copy(object$res.obs)
   DT.ci <- copy(object$res.ci)
   DT.p <- copy(object$res.p)
-  setnames(DT.ci, c('region', paste0(names(DT.ci)[-1], '.ci')))
-  setnames(DT.p, c('region', paste0(names(DT.p)[-1], '.p')))
+  setnames(DT.ci, c('region', paste0(names(DT.ci)[-1L], '.ci')))
+  setnames(DT.p, c('region', paste0(names(DT.p)[-1L], '.p')))
   DT.all <- merge(merge(DT.obs, DT.p, by='region'), DT.ci, by='region')
   DT.all[, c('Mediator', 'treat', 'Outcome') := with(object, mediator, treat, outcome)]
 
   change <- matrix(c('d0', 'd0.p', 'z0', 'z0.p', 'tau', 'tau.p', 'n0', 'n0.p',
                      'b0.acme', 'p0.acme', 'b0.ade', 'p0.ade', 'b.tot', 'p.tot', 'b0.prop', 'p0.prop'),
-                   ncol=2)
+                   ncol=2L)
   setnames(DT.all, change[, 1L], change[, 2L])
-  change_ci <- change[seq.int(1, 7, by=2), ]
+  change_ci <- change[seq.int(1L, 7L, by=2L), ]
   change_ci <- cbind(paste0(change_ci[, 1L], '.ci'),
                      sub('[bdnz]([01]?)\\.', 'ci.low\\1.', change_ci[, 2L]))
   change_ci <- cbind(change_ci, sub('low', 'high', change_ci[, 2L]))
@@ -330,10 +332,10 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
   total <- sub('0.acme', '.tot', acme)
   # Different behavior if mediator-treatment interaction
   if (isTRUE(object$INT)) {
-    change1 <- sub('0', '1', change)[-c(5, 6), ]
+    change1 <- sub('0', '1', change)[-c(5L, 6L), ]
     change1 <- rbind(change1, sub('1', '.avg', change1))
-    setnames(DT.all, change1[, 1], change1[, 2])
-    change_ci1 <- sub('0', '1', change_ci)[-3, ]
+    setnames(DT.all, change1[, 1L], change1[, 2L])
+    change_ci1 <- sub('0', '1', change_ci)[-3L, ]
     change_ci1 <- rbind(change_ci1, sub('1', '.avg', change_ci1))
     DT.all[, eval(change_ci1[, 2L]) := lapply(.SD, function(x) x[1L]), by=region, .SDcols=change_ci1[, 1L]]
     DT.all[, eval(change_ci1[, 3L]) := lapply(.SD, function(x) x[2L]), by=region, .SDcols=change_ci1[, 1L]]
@@ -344,7 +346,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
   }
   DT.all[, grep('.*.ci', names(DT.all)) := NULL]
   setcolorder(DT.all, c(mainnames, acme, sub('acme', 'ade', acme), total, sub('acme', 'prop', acme)))
-  DT.all <- DT.all[, .SD[1], keyby=region]
+  DT.all <- DT.all[, .SD[1L], keyby=region]
   DT.all[, region := as.factor(region)]
 
   object <- c(object, list(DT.sum=DT.all, region=region, digits=digits, mediate=mediate))
@@ -358,17 +360,16 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL
-  width <- getOption('width')
+  width <- getOption('width') / 4
   print_title_summary(simpleCap(x$level), '-level mediation results')
   cat('# of observations: ', x$nobs, '\n')
 
   # Print a table of the model variables
-  message('\n', 'Variables', '\n', rep('-', width / 4))
+  message('\n', 'Variables', '\n', rep('-', width))
   df <- data.frame(A=c('  Mediator:', ' Treatment:', '    Control condition:',
                        '  Treatment condition:', '   Outcome:'),
                    B=c(x$mediator, x$treat, x$control.value, x$treat.value, x$outcome))
-  nc <- length(x$covar.names)
-  cov.df <- data.frame(A=c('', 'Covariates:', rep('', nc - 1)),
+  cov.df <- data.frame(A=c('', 'Covariates:', rep('', length(x$covar.names) - 1L)),
                        B=c('', x$covar.names))
   df <- rbind(df, cov.df)
   dimnames(df)[[2L]] <- rep('', 2L)
@@ -380,7 +381,7 @@ print.summary.bg_mediate <- function(x, ...) {
   if (isTRUE(x$boot)) {
     low <- (1 - x$conf.level) / 2
     high <- 1 - low
-    message('\n', 'Bootstrapping', '\n', rep('-', width / 4))
+    message('\n', 'Bootstrapping', '\n', rep('-', width))
     ci <- switch(x$boot.ci.type,
                  perc='Percentile bootstrap',
                  bca='Bias-corrected accelerated')
@@ -391,14 +392,9 @@ print.summary.bg_mediate <- function(x, ...) {
   }
 
   if (isTRUE(x$mediate)) {
-    if (!requireNamespace('mediation', quietly=TRUE)) {
-      warning('You need to install "mediation" for their "summary" output.')
-      return(invisible(x))
-    } else {
-      requireNamespace('mediation')
-    }
+    if (!requireNamespace('mediation', quietly=TRUE)) stop('Must install the "mediation" package.')
     region <- if (is.null(x$region)) x$DT.sum[, levels(region)[1L]] else x$region
-    message('Mediation summary for: ', region, '\n', rep('-', width / 4))
+    message('Mediation summary for: ', region, '\n', rep('-', width))
     print(summary(bg_to_mediate(x, region)))
   } else {
     if (is.null(x$region)) {
@@ -406,7 +402,7 @@ print.summary.bg_mediate <- function(x, ...) {
     } else {
       regions <- x$region
     }
-    message('Mediation statistics', '\n', rep('-', width / 4))
+    message('Mediation statistics', '\n', rep('-', width))
     print(x$DT.sum[region %in% regions])
   }
   invisible(x)
@@ -437,7 +433,7 @@ bg_to_mediate <- function(x, region=NULL) {
   } else {
     regions <- x$res.obs[, unique(region)]
     if (is.null(region)) {
-      i <- 1
+      i <- 1L
     } else {
       i <- which(region == regions)
     }

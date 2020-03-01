@@ -10,7 +10,7 @@ partition(M, con.mat, part.method = c("beckmann", "guttman", "ridgway"))
 \item{M}{Numeric matrix; the full design matrix}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance. Default: \code{beckmann}}
+matrix into covariates of interest and nuisance. Default: \code{'beckmann'}}
 }
 \value{
 A list containing:

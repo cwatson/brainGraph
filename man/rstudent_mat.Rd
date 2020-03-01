@@ -7,8 +7,9 @@
 rstudent_mat(lmvars, y)
 }
 \arguments{
-\item{lmvars}{List containing: \code{X} (design matrix); \code{lev}
-(leverage); \code{n} (num. observations); \code{p} (num. parameters)}
+\item{lmvars}{List containing: \code{X} (design matrix); \code{XtX}
+(cross-product of the design matrix); \code{lev} (leverage); \code{df}
+(model degrees of freedom minus 1)}
 
 \item{y}{Numeric vector; the outcome variable}
 }

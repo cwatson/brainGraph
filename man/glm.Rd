@@ -44,10 +44,11 @@ F-statistics). Default: \code{'t'}}
 \item{outcome}{Character string specifying the name of the outcome variable,
 if it differs from the graph metric (\code{measure})}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix.
+Ignored if \code{outcome != measure}.}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
-has row names, those will be used for reporting results}
+has row/list names, those will be used for reporting results}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test.
 Default: \code{'two.sided'}}
@@ -64,7 +65,7 @@ Default: \code{FALSE}}
 Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance. Default: \code{beckmann}}
+matrix into covariates of interest and nuisance. Default: \code{'beckmann'}}
 
 \item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
@@ -74,7 +75,7 @@ Default: \code{NULL}}
 \item{long}{Logical indicating whether or not to return all permutation
 results. Default: \code{FALSE}}
 
-\item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
+\item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}}}
 
 \item{object, x}{A \code{bg_GLM} object}
 
@@ -95,7 +96,7 @@ plot; only relevant if \code{level='vertex'}. Default: \code{NULL}}
 \item{which}{Integer vector indicating which of the 6 plots to print to the
 plot device. Default: \code{c(1:3, 5)}}
 
-\item{ids}{Logical indicating whether to plot Study ID's for outliers.
+\item{ids}{Logical indicating whether to plot subject ID's for outliers.
 Otherwise plots the integer index}
 
 \item{i}{Integer/character vector; the observation number(s) or row names to
@@ -106,9 +107,14 @@ names to select or remove}
 }
 \value{
 An object of class \code{bg_GLM} containing some input-specific
-  variables, in addition to:
+  variables (\code{level}, \code{outcome}, \code{measure}, \code{con.type},
+  \code{contrasts}, \code{con.name}, \code{alt}, \code{alpha},
+  \code{permute}, \code{perm.method}, \code{part.method}, \code{N}) in
+  addition to:
+  \item{DT.Xy}{A data table from which the design matrices are created and
+    the outcome variable, for all regions.}
   \item{X}{A named numeric matrix or a 3D array of the design matrix.
-    Rownames are Study IDs, column names are predictor variables, and
+    Rownames are subject IDs, column names are predictor variables, and
     dimnames along the 3rd dimension are region names (if applicable). This
     is a 3D array only if \code{outcome != measure} and \code{level ==
     'vertex'}.}
@@ -117,8 +123,18 @@ An object of class \code{bg_GLM} containing some input-specific
     \code{outcome == measure} and \code{level == 'vertex'}.}
   \item{DT}{A data table with an entry for each vertex (region) containing
     statistics of interest}
-  \item{removed.subs}{A character vector of Study.ID's removed due to
-    incomplete data (if any)}
+  \item{removed.subs}{A named integer vector in which the names are subject
+    ID's of those removed due to incomplete data (if any). The integers
+    correspond to the row number in the input \code{covars} table.}
+  \item{runX}{If \code{outcome != measure} and \code{level == 'vertex'}, this
+    will be a character vector of the regions for which the design matrix is
+    invertible. Otherwise, it is \code{NULL}.}
+  \item{runY}{Character vector of the regions for which the outcome variable
+    has 0 variability. For example, if \code{level='vertex'} and
+    \code{measure='degree'}, some regions may be disconnected or have the
+    same degree for all subjects.}
+  \item{atlas}{Character string of the atlas used (guessed based on the
+    vertex count).}
   \item{perm}{A list containing: \emph{null.dist} (the null distribution of
     maximum statistics), \emph{thresh} (the statistic value corresponding
     to the \eqn{100 \times (1 - \alpha)}th\% percentile of the null
@@ -173,12 +189,18 @@ not be called directly by the user.
 \section{Design matrix}{
 
 The GLM's \emph{design matrix} will often be identical to the \emph{model
-matrix} associated with \code{lm} objects, and is created from the input
-\code{data.table} and arguments passed to
-\code{\link{brainGraph_GLM_design}}. The first column
-\emph{must} be named \emph{Study.ID}, and all graphs must have a \emph{name}
-graph-level attribute. The covariates table must be supplied even if you
-provide your own design matrix \code{X}.
+matrix} associated with \code{lm} objects (if \dQuote{dummy} coding, the
+default, is used) and is created from the input \code{data.table} and
+arguments passed to \code{\link{brainGraph_GLM_design}}. The first column
+should have the name of \code{getOption('bg.subject_id')} and its values
+must match the \emph{name} graph-level attribute of the input graphs. The
+covariates table must be supplied even if you provide your own design matrix
+\code{X}.  If \code{level='vertex'} and \code{outcome == measure}, there will
+be a single design for all regions but a separate model for each region
+(since the graph measure varies by region). If \code{level='vertex'} and
+\code{outcome != measure}, there will be a separate design (and, therefore, a
+separate model) for each region even though the outcome is the same in all
+models.
 }
 
 \section{Contrasts and statistics}{
@@ -211,7 +233,7 @@ the same as that in FSL's \emph{randomise}.
 conmat <- matrix(c(0, 0, 0, 1), nrow=1)
 rownames(conmat) <- 'Control > Patient'
 
-g.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
+res.lm <- brainGraph_GLM(g[[6]], covars=covars.all[tract == 1],
   measure='strength', contrasts=conmat, alt='greater', permute=TRUE, long=TRUE)
 }
 \dontrun{

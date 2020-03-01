@@ -54,16 +54,17 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
                       use.mean=FALSE, exclude.cov=NULL, atlas=NULL, ...) {
   Region <- resids <- value <- NULL
 
-  sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
   stopifnot(hasName(covars, gID))
-  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
-  method <- match.arg(method)
   grps <- covars[, levels(factor(get(gID)))]
+  sID <- getOption('bg.subject_id')
+  if (!hasName(covars, sID)) covars[, eval(sID) := seq_len(dim(covars)[1L])]
+  covars[, eval(sID) := check_sID(get(sID))]
   DT.cov <- merge(covars, dt.vol, by=sID)
   DT.m <- melt(DT.cov, id.vars=names(covars), variable.name='Region')
   setkeyv(DT.m, c('Region', sID))
 
+  method <- match.arg(method)
   if (isTRUE(use.mean)) {
     if (length(grep('^l.*', names(dt.vol))) == 0) {
       lh <- '.*\\.L$'
@@ -155,7 +156,7 @@ get_lm_vars <- function(covars, exclude.cov, ...) {
   Z <- forwardsolve(t(U), t(X))
   lev <- colSums(Z^2)
   dims <- dim(X)
-  return(list(X=X, XtX=XtX, lev=lev, df=dims[1L]-dims[2L]-1))
+  return(list(X=X, XtX=XtX, lev=lev, df=dims[1L]-dims[2L]-1L))
 }
 
 #' Calculate studentized residuals with matrix input

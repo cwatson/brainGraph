@@ -172,7 +172,6 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   sID <- getOption('bg.subject_id')
   level <- match.arg(level)
   DT.y <- glm_data_table(g.list, level, measure)
-  setkeyv(DT.y, sID)
   DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
   regions <- DT.y.m[, levels(region)]
 
@@ -184,7 +183,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.Xy <- glmSetup$DT.Xy
   if (is.null(outcome)) outcome <- measure
   y <- as.matrix(dcast(DT.Xy, paste(sID, '~ region'), value.var=outcome), rownames=sID)
-  if (level != 'vertex' || outcome != measure) {
+  if (level == 'graph' || outcome != measure) {
     y <- y[, 1L, drop=FALSE]
     dimnames(y)[[2L]] <- outcome
   }
@@ -247,13 +246,13 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   }
   null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
   mySort <- sortfun(alt)
-  null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1], by=contrast]
+  null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1L], by=contrast]
   compfun <- switch(alt,
                     two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
                     less=function(x, y) sum(x <= y, na.rm=TRUE),
                     greater=function(x, y) sum(x >= y, na.rm=TRUE))
   for (i in seq_along(con.name)) {
-    DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1) / (N + 1), by=region]
+    DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1L) / (N + 1L), by=region]
   }
 
   perm <- list(thresh=null.thresh)
@@ -287,15 +286,16 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
   region <- NULL
   sID <- getOption('bg.subject_id')
   covars <- droplevels(copy(covars))
-  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  if (!hasName(covars, sID)) covars[, eval(sID) := seq_len(dim(covars)[1L])]
+  covars[, eval(sID) := check_sID(get(sID))]
   incomp <- covars[!complete.cases(covars), which=TRUE]
   names(incomp) <- covars[incomp, get(sID)]
   DT.Xy <- DT.y.m[covars, on=sID]
-  if (length(incomp) > 0L) DT.Xy <- DT.Xy[-incomp]
+  if (length(incomp) > 0L) DT.Xy <- DT.Xy[!get(sID) %in% names(incomp)]
 
   # Swap the outcome and measure variables, if outcome is not a network metric
   if (!is.null(outcome)) {
-    setcolorder(DT.Xy, c(sID, 'region', names(covars[, !c(sID, outcome), with=FALSE]), measure, outcome))
+    setcolorder(DT.Xy, c(sID, 'region', setdiff(names(covars), c(sID, outcome)), measure, outcome))
 
     # Get all design matrices into a 3-D array
     X <- setNames(vector('list', length(regions)), regions)
@@ -333,7 +333,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
     stopifnot(con.type == 'f')
   }
 
-  ncols <- vapply(contrasts, ncol, integer(1))
+  ncols <- vapply(contrasts, ncol, integer(1L))
   if (any(ncols != dim(X)[2L])) {
     df <- data.frame(con.number=seq_along(contrasts), ncols=ncols)
     print(df, row.names=FALSE)
@@ -448,7 +448,7 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
-  est <- fastLmPure(X, y, method=2)
+  est <- fastLmPure(X, y, method=2L)
   b <- est$coefficients
   gamma <- contrast %*% b
   sigma.squared <- est$s^2
@@ -479,7 +479,7 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
 #' @rdname glm_fit
 
 brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
-  est <- fastLmPure(X, y, method=2)
+  est <- fastLmPure(X, y, method=2L)
   b <- as.matrix(est$coefficients)
   gamma <- contrast %*% b
   SSEF <- as.numeric(crossprod(est$residuals))
@@ -620,13 +620,9 @@ print.summary.bg_GLM <- function(x, ...) {
 #' }
 
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
-  cl.h <- ind <- level <- mark <- resid <- ymax <- NULL
+  cl.h <- ind <- level <- mark <- resid <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
-  if (!requireNamespace('gridExtra', quietly=TRUE)) {
-    stop('Must install the "gridExtra" package.')
-  } else {
-    requireNamespace('gridExtra')
-  }
+  if (!requireNamespace('gridExtra', quietly=TRUE)) stop('Must install the "gridExtra" package.')
   if (!is.numeric(which) || any(which < 1L) || any(which > 6L)) stop("'which' must be in 1:6")
   show <- rep(FALSE, 6L)
   show[which] <- TRUE
@@ -686,8 +682,6 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1L, length.out=101L)
       dt.cook <- data.table(hh=rep(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
       dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
-      xmax <- dat[, round(max(leverage), 2L)]
-      dt.cook[, ymax := .SD[which(xmax == round(hh, 2L)), cl.h], by=level]
 
       diagPlots[[5L]] <- ggplot(dat, aes(x=leverage, y=resid.std)) +
         geom_point(aes(shape=mark)) +
@@ -695,11 +689,11 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
         stat_smooth(method='loess', se=FALSE, col='red') +
         geom_vline(xintercept=0, lty=3, col='gray50') +
         geom_hline(yintercept=0, lty=3, col='gray50') +
-        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2) +
-        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2) +
-        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2) +
-        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2) +
-        xlim(extendrange(c(0, xmax))) +
+        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
+        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
+        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
+        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
+        xlim(extendrange(c(0, r.hat[2L]))) +
         ylim(dat[, extendrange(range(resid.std), f=0.09)]) +
         mytheme + labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
     }
@@ -752,12 +746,11 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     grid.draw(p.all)
 
   } else if (x$level == 'vertex') {
-    if (all(x$y == 0)) return(NULL)
-    if (is.null(region)) region <- regions
-    p.all <- setNames(vector('list', length(region)), region)
-    runY <- if (outcome == x$measure) names(which(colSums(x$y[, region, drop=FALSE]) != 0)) else region
-    for (z in runY) p.all[[z]] <- plot_single(DT[[z]], z)
-    p.all[vapply(p.all, is.null, logical(1))] <- NULL
+    if (length(x$runY) == 0) return(NULL)
+    run <- if (is.null(region)) run <- intersect(intersect(x$runX, x$runY), regions) else region
+    p.all <- setNames(vector('list', length(run)), run)
+    for (z in run) p.all[[z]] <- plot_single(DT[[z]], z)
+    p.all[vapply(p.all, is.null, logical(1L))] <- NULL
   }
   return(p.all)
 }

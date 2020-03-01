@@ -4,17 +4,20 @@
 \alias{GLM helpers}
 \alias{setup_glm}
 \alias{contrast_names}
+\alias{check_if_singular}
 \alias{glm_fit_helper}
 \alias{glm_data_table}
 \alias{matrix2list}
 \alias{maxfun}
 \alias{sortfun}
-\title{Helper function to set-up for GLM analyses}
+\title{Helper functions to set-up for GLM analyses}
 \usage{
 setup_glm(covars, X, contrasts, con.type, con.name, measure, outcome,
-  DT.y.m, level, ...)
+  DT.y.m, regions, ...)
 
 contrast_names(contrasts, con.type, con.name, X)
+
+check_if_singular(X)
 
 glm_fit_helper(DT, X, con.type, contrasts, alt, outcome, mykey,
   alpha = NULL)
@@ -30,7 +33,8 @@ sortfun(alternative)
 \arguments{
 \item{covars}{A \code{data.table} of covariates}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix.
+Ignored if \code{outcome != measure}.}
 
 \item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}
@@ -39,20 +43,17 @@ only one contrast is desired, you can supply a vector}
 F-statistics). Default: \code{'t'}}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
-has row names, those will be used for reporting results}
+has row/list names, those will be used for reporting results}
 
 \item{measure}{Character string of the graph measure of interest}
 
 \item{outcome}{Character string specifying the name of the outcome variable,
 if it differs from the graph metric (\code{measure})}
 
-\item{DT.y.m}{A \code{data.table} containing the outcome variable and
-\code{Study.ID}}
+\item{DT.y.m}{A \code{data.table} containing the outcome variable and a
+column of subject ID's}
 
-\item{level}{Character string; either \code{vertex} (default) or
-\code{graph}}
-
-\item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
+\item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}}}
 
 \item{DT}{A data.table with all the necessary data; namely \code{region}
 (equals \code{graph} if \code{level='graph'}), and the outcome measure(s)}
@@ -65,14 +66,20 @@ analyses). For GLM, it is \code{'region'}; for NBS, it is
 
 \item{g.list}{A \code{brainGraphList} object}
 
+\item{level}{Character string; either \code{vertex} (default) or
+\code{graph}}
+
 \item{mat}{Numeric matrix in which each row is a single contrast vector}
 
 \item{alternative}{Character string, whether to do a two- or one-sided test.
 Default: \code{'two.sided'}}
 }
 \value{
+\code{contrast_names} -- list containing the contrasts (matrix or
+  list), contrast names, and number of contrasts
+
 \code{glm_data_table} - A \code{data.table} with one column
-  containing the \code{Study.ID} and 1 or more columns with the graph- or
+  containing the subject ID's and 1 or more columns with the graph- or
   vertex-level measure of interest.
 
 \code{matrix2list} -- A list with length equal to the number of rows
@@ -82,14 +89,14 @@ Default: \code{'two.sided'}}
 \code{setup_glm} is used to setup the data/objects for any function that uses
 the main GLM functionality in \code{brainGraph}.
 
-Simple helper function to check the dimensions of contrasts, generate
-contrast names, and set column names for GLM functions. For F-contrasts, if a
-\code{matrix} is given, convert it to a \code{list} to simplify processing
+\code{contrast_names} checks the dimensions of contrasts, generates contrast
+names, and sets column names for GLM functions. For F-contrasts, if a
+\code{matrix} is given, it converts it to a \code{list} to simplify processing
 later.
 
 \code{glm_data_table} is used in \code{brainGraph_GLM} and
 \code{brainGraph_mediate} to create a \code{data.table} with the
-\code{Study.ID} and column(s) for the graph- or vertex-level metric of
+\emph{subject IDs} and column(s) for the graph- or vertex-level metric of
 interest.
 
 \code{matrix2list} makes working with different contrast types (i.e., t or F)

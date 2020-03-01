@@ -8,9 +8,11 @@
 #' component size is created by fitting a GLM to permuted data. For details, see
 #' \code{\link{GLM}}.
 #'
+#' When printing a \code{summary}, you can include arguments to
+#' \code{\link[stats]{printCoefmat}}.
+#'
 #' @param A Three-dimensional array of all subjects' connectivity matrices
 #' @param p.init Numeric; the initial p-value threshold (default: \code{0.001})
-#' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #' @inheritParams GLM
 #' @inheritParams symmetrize_mats
 #' @export
@@ -58,7 +60,8 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   # Remove subjects w/ incomplete data
   sID <- getOption('bg.subject_id')
   covars <- droplevels(copy(covars))
-  if (!hasName(covars, sID)) covars[, eval(sID) := as.character(seq_len(nrow(covars)))]
+  if (!hasName(covars, sID)) covars[, eval(sID) := seq_len(dim(covars)[1L])]
+  covars[, eval(sID) := check_sID(get(sID))]
   incomp <- covars[!complete.cases(covars), which=TRUE]
   names(incomp) <- covars[incomp, get(sID)]
   if (length(incomp) > 0L) {
@@ -111,7 +114,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   # Create a null distribution of maximum component sizes
   #---------------------------------------------------------
   dimX <- dim(X)
-  if (is.null(perms)) perms <- shuffleSet(n=dimX[1L], nset=N)
+  if (is.null(perms) || dim(perms)[2L] != dimX[1L]) perms <- shuffleSet(n=dimX[1L], nset=N)
   null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, nC, skip,
                          A.m.sub, outcome='value', X, mykey='Var1,Var2')
   dfR <- dimX[1L] - dimX[2L]
@@ -125,7 +128,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
     null.dist <- null.dist[statfun(stat, dfR), list(contrast, Var1, Var2, stat, perm)]
   } else {
     statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
-    rkC <- vapply(contrasts, function(x) qr(x)$rank, integer(1))
+    rkC <- vapply(contrasts, function(x) qr(x)$rank, integer(1L))
     null.dist <- split(null.dist, by='contrast')
     for (j in setdiff(seq_len(nC), skip)) {
       null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC[j], dfR), list(Var1, Var2, stat, perm)]
@@ -147,7 +150,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   kNumComps <- comps.obs[, .N, by=contrast]$N
   for (j in seq_len(nC)) {
     comps.obs[contrast == j,
-              p.perm := (sum(comps.perm[contrast == j, perm] >= csize) + 1) / (N + 1),
+              p.perm := (sum(comps.perm[contrast == j, perm] >= csize) + 1L) / (N + 1L),
               by=csize]
   }
 
@@ -165,7 +168,6 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 #' Print a summary of NBS analysis
 #'
 #' @param object,x A \code{NBS} object
-#' @param ... Arguments passed to \code{\link[stats]{printCoefMat}}
 #' @inheritParams summary.bg_GLM
 #' @export
 #' @rdname NBS
@@ -179,7 +181,7 @@ summary.NBS <- function(object, contrast=NULL, digits=max(3L, getOption('digits'
   for (j in seq_along(g.nbs[])) {
     nbs.dt[contrast == j, ecount := vapply(seq_len(.N), function(x)
                                            ecount(subset_graph(g.nbs[j], paste('comp ==', x))$g),
-                                           numeric(1))]
+                                           numeric(1L))]
   }
 
   nbs.sum <- c(object, list(printCon=contrast, DT.sum=nbs.dt, digits=digits), list(...))

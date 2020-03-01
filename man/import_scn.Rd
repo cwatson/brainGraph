@@ -8,7 +8,7 @@ import_scn(datadir, atlas, modality = "thickness", exclude.subs = NULL,
   custom.atlas = NULL)
 }
 \arguments{
-\item{datadir}{The path to the directory containing the data files}
+\item{datadir}{The path name of the directory containing the data files}
 
 \item{atlas}{Character string specifying the atlas in use. For a custom
 atlas, please specify \code{'custom'}, and provide the name to the
@@ -31,16 +31,17 @@ A list containing:
     hemispheres}
   \item{aseg}{A \code{data.table} of structural MRI measures for subcortical
     gray matter, if applicable}
-  \item{excluded}{Vector of subject ID's that were excluded}
-  \item{missing}{Vector of subject ID's that are not present in \emph{both}
+  \item{subs.excluded}{Vector of subject ID's that were excluded}
+  \item{subs.missing}{Vector of subject ID's that are not present in \emph{both}
     the cortical and subcortical tables (if applicable)}
 }
 \description{
-Given a directory, atlas name, and modality, this function imports data for
-structural connectivity analysis. It expects files containing a table of
-region-wise structural MRI measures (e.g., mean cortical thickness), one for
-each hemisphere. The first column of all files should contain the
-\emph{subject ID}; the column name will be changed to \code{Study.ID}.
+Given a directory, atlas name, and imaging modality/structural metric, this
+function imports data for structural connectivity analysis. It expects files
+containing a table of region-wise structural MRI measures (e.g., mean
+cortical thickness), with one file for each hemisphere. The first column of
+all files should contain the \emph{subject ID}; the column name will be
+changed to the value of \code{getOption('bg.subject_id')}.
 }
 \details{
 The files should have specific names; the second in the following list is
@@ -65,6 +66,10 @@ When using a custom atlas, the name of the atlas's data.table should
   shown above). Furthermore, it must conform to the output of Freesurfer's
   \code{aparcstats2table} (and \code{asegstats2table}, if applicable).
   Otherwise, please contact me for inclusion of a different data type.
+
+The subject ID column will be zero-padded (to the left) to avoid issues
+  when the variable is numeric; this ensures that all ID's will have the same
+  number of characters and sorting will be done properly.
 }
 \examples{
 \dontrun{

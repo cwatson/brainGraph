@@ -1,10 +1,11 @@
 #' Import data for structural connectivity analysis
 #'
-#' Given a directory, atlas name, and modality, this function imports data for
-#' structural connectivity analysis. It expects files containing a table of
-#' region-wise structural MRI measures (e.g., mean cortical thickness), one for
-#' each hemisphere. The first column of all files should contain the
-#' \emph{subject ID}; the column name will be changed to \code{Study.ID}.
+#' Given a directory, atlas name, and imaging modality/structural metric, this
+#' function imports data for structural connectivity analysis. It expects files
+#' containing a table of region-wise structural MRI measures (e.g., mean
+#' cortical thickness), with one file for each hemisphere. The first column of
+#' all files should contain the \emph{subject ID}; the column name will be
+#' changed to the value of \code{getOption('bg.subject_id')}.
 #'
 #' The files should have specific names; the second in the following list is
 #' only required for atlases/parcellations that include \emph{subcortical gray
@@ -28,7 +29,11 @@
 #'   \code{aparcstats2table} (and \code{asegstats2table}, if applicable).
 #'   Otherwise, please contact me for inclusion of a different data type.
 #'
-#' @param datadir The path to the directory containing the data files
+#' @note The subject ID column will be zero-padded (to the left) to avoid issues
+#'   when the variable is numeric; this ensures that all ID's will have the same
+#'   number of characters and sorting will be done properly.
+#'
+#' @param datadir The path name of the directory containing the data files
 #' @param atlas Character string specifying the atlas in use. For a custom
 #'   atlas, please specify \code{'custom'}, and provide the name to the
 #'   \code{custom.atlas} argument
@@ -47,8 +52,8 @@
 #'     hemispheres}
 #'   \item{aseg}{A \code{data.table} of structural MRI measures for subcortical
 #'     gray matter, if applicable}
-#'   \item{excluded}{Vector of subject ID's that were excluded}
-#'   \item{missing}{Vector of subject ID's that are not present in \emph{both}
+#'   \item{subs.excluded}{Vector of subject ID's that were excluded}
+#'   \item{subs.missing}{Vector of subject ID's that are not present in \emph{both}
 #'     the cortical and subcortical tables (if applicable)}
 #'
 #' @family Structural covariance network functions
@@ -60,25 +65,25 @@
 #' }
 
 import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, custom.atlas=NULL) {
-  missing <- scgm <- NULL
+  subs.missing <- scgm <- NULL
 
-  atlas <- match.arg(atlas, choices=c(data(package='brainGraph')$results[, 3], 'custom'))
+  atl <- c('dk', 'dkt', 'destrieux')
+  atl <- c(atl, paste0(atl, '.scgm'))
+  atlas <- match.arg(atlas, choices=c(atl, 'custom'))
   if (atlas == 'custom') {
     stopifnot(!is.null(custom.atlas), exists(custom.atlas))
     atlas <- parc <- custom.atlas
   } else {
     parc <- switch(atlas,
-                   dk=,dk.scgm='aparc',
-                   dkt=,dkt.scgm='aparc.DKTatlas40',
-                   destrieux=,destrieux.scgm='aparc.a2009s',
-                   stop(paste0('Invalid atlas ', atlas, '. Choose from the following:\n',
-                               paste(data(package='brainGraph')$results[, 3], collapse='\n'))))
+                   dk=, dk.scgm='aparc',
+                   dkt=, dkt.scgm='aparc.DKTatlas40',
+                   destrieux=, destrieux.scgm='aparc.a2009s')
   }
 
   # Cortical measures, both hemispheres
   files <- file.path(datadir, paste0(parc, c('_lh_', '_rh_'), modality, '.csv'))
-  lh <- update_fs_names(files[1], modality, parc, 'lh', exclude.subs)
-  rh <- update_fs_names(files[2], modality, parc, 'rh', exclude.subs)
+  lh <- update_fs_names(files[1L], modality, parc, 'lh', exclude.subs)
+  rh <- update_fs_names(files[2L], modality, parc, 'rh', exclude.subs)
   lhrh <- merge(lh, rh)
 
   # Subcortical measures
@@ -86,11 +91,11 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
     asegfile <- file.path(datadir, 'asegstats.csv')
     scgm <- update_fs_names(asegfile, 'aseg', exclude.subs)
     sID <- getOption('bg.subject_id')
-    missing <- union(setdiff(scgm[[sID]], lhrh[[sID]]), setdiff(lhrh[[sID]], scgm[[sID]]))
+    subs.missing <- union(setdiff(scgm[[sID]], lhrh[[sID]]), setdiff(lhrh[[sID]], scgm[[sID]]))
   }
 
   return(list(atlas=atlas, modality=modality, lhrh=lhrh, aseg=scgm,
-              excluded=exclude.subs, missing=missing))
+              subs.excluded=exclude.subs, subs.missing=subs.missing))
 }
 
 #' Update column names in a Freesurfer table
@@ -102,26 +107,21 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
 update_fs_names <- function(filename, modality, parcellation, hemi, exclude.subs) {
   sID <- getOption('bg.subject_id')
   stopifnot(file.exists(filename))
-  DT <- fread(filename, colClasses=list(character=1))
-  names(DT)[1] <- sID
+  DT <- fread(filename, colClasses=list(character=1L))
+  setnames(DT, 1L, sID)
 
   if (modality == 'aseg') {
-    DT <- DT[, 1:15, with=FALSE]
-    names(DT) <- gsub('Left-', 'l', names(DT))
-    names(DT) <- gsub('Right-', 'r', names(DT))
-    names(DT) <- gsub('Thalamus.Proper', 'THAL', names(DT))
-    names(DT) <- gsub('Putamen', 'PUT', names(DT))
-    names(DT) <- gsub('Pallidum', 'PALL', names(DT))
-    names(DT) <- gsub('Caudate', 'CAUD', names(DT))
-    names(DT) <- gsub('Hippocampus', 'HIPP', names(DT))
-    names(DT) <- gsub('Amygdala', 'AMYG', names(DT))
-    names(DT) <- gsub('Accumbens.area', 'ACCU', names(DT))
+    DT <- DT[, 1L:15L, with=FALSE]
+    full <- c('Left-', 'Right-', 'Thalamus.Proper', 'Putamen', 'Pallidum',
+              'Caudate', 'Hippocampus', 'Amygdala', 'Accumbens.area')
+    abbrev <- c('l', 'r', 'THAL', 'PUT', 'PALL', 'CAUD', 'HIPP', 'AMYG', 'ACCU')
+    for (i in seq_along(full)) names(DT) <- gsub(full[i], abbrev[i], names(DT))
   } else {
     # Remove the "mean" column, if present
     if (any(grepl('mean', ignore.case=TRUE, names(DT)))) {
       DT <- DT[, -grep('mean', ignore.case=TRUE, names(DT)), with=FALSE]
     }
-    names(DT) <- gsub(paste0(hemi, '[_|\\.]'), substr(hemi, 1, 1), names(DT))
+    names(DT) <- gsub(paste0(hemi, '[_|\\.]'), substr(hemi, 1L, 1L), names(DT))
     names(DT) <- gsub(paste0('_', modality), '', names(DT))
 
     if (parcellation == 'aparc.a2009s') {
@@ -143,7 +143,8 @@ update_fs_names <- function(filename, modality, parcellation, hemi, exclude.subs
     }
   }
 
-  setkeyv(DT, sID)
   if (!is.null(exclude.subs)) DT <- DT[!get(sID) %in% exclude.subs]
+  DT[, eval(sID) := check_sID(get(sID))]
+  setkeyv(DT, sID)
   return(DT)
 }

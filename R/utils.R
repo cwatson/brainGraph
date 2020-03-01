@@ -70,6 +70,37 @@ check_strength <- function(g) {
   return(x)
 }
 
+#' Test if an object is a character vector of numbers
+#'
+#' \code{check_sID} is a convenience function to test if a vector (typically the
+#' \emph{subject ID} column in a \code{data.table}) is a character vector of
+#' numbers, a factor vector of numbers, or a numeric vector. If so, it will
+#' zero-pad the variable to have equal width.
+#'
+#' This function is meant to avoid issues that arise when sorting a vector of
+#' numbers that have been converted to \code{character}. For example,
+#' \code{\link{import_scn}} automatically reads in the first column (with
+#' \emph{FreeSurfer} outputs this is the column of subject IDs) as a
+#' \code{character} variable. If the subject IDs had been all numbers/integers,
+#' then sorting (i.e., setting the \code{key} in a \code{data.table}) would be
+#' incorrect: e.g., it might be \code{'1', '10', '2', ...}.
+#'
+#' @return \code{check_sID} returns either the input vector or a character
+#'   vector padded with \code{0}
+#' @export
+#' @rdname pad_zeros
+
+check_sID <- function(x) {
+  cls <- class(x)
+  if (cls == 'factor') {
+    test <- suppressWarnings(as.numeric(as.character(x)) == x)
+  } else {
+    test <- suppressWarnings(as.character(as.numeric(x)) == x)
+  }
+  if (isTRUE(all(test))) x <- pad_zeros(x)
+  return(x)
+}
+
 #' Calculate coefficient of variation
 #'
 #' Calculates the \emph{coefficient of variation}, defined as
@@ -155,7 +186,7 @@ get_metadata <- function(object) {
   object$version <- list(r=R.version.string,
                          bg=packageVersion('brainGraph'),
                          ig=packageVersion('igraph'))
-  object$sys <- Sys.info()[c(1:3, 5)]
+  object$sys <- Sys.info()[c(1L:3L, 5L)]
   object$date <- format(Sys.time(), '%Y-%m-%dT%H:%M:%OS0')
   return(object)
 }
@@ -185,12 +216,12 @@ get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1
 #'
 #' \code{glm_data_table} is used in \code{brainGraph_GLM} and
 #' \code{brainGraph_mediate} to create a \code{data.table} with the
-#' \code{Study.ID} and column(s) for the graph- or vertex-level metric of
+#' \emph{subject IDs} and column(s) for the graph- or vertex-level metric of
 #' interest.
 #'
 #' @inheritParams GLM
 #' @return \code{glm_data_table} - A \code{data.table} with one column
-#'   containing the \code{Study.ID} and 1 or more columns with the graph- or
+#'   containing the subject ID's and 1 or more columns with the graph- or
 #'   vertex-level measure of interest.
 #' @keywords internal
 #' @rdname glm_helpers
@@ -198,11 +229,11 @@ get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1
 glm_data_table <- function(g.list, level, measure) {
   sID <- getOption('bg.subject_id')
   if (level == 'vertex') {
-    y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1]])), measure))
-    colnames(y) <- V(g.list[[1]])$name
+    y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1L]])), measure))
+    colnames(y) <- V(g.list[[1L]])$name
     DT.y <- as.data.table(y, keep.rownames=sID)
   } else if (level == 'graph') {
-    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1), measure), keep.rownames=TRUE)
+    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1L), measure), keep.rownames=TRUE)
     setnames(DT.y, names(DT.y), c(sID, 'graph'))
   }
   return(DT.y)
@@ -225,13 +256,14 @@ is_binary <- function(mat) {
 #' a little simpler.
 #'
 #' @param mat Numeric matrix in which each row is a single contrast vector
-#' @return A list with length equal to the number of rows of \code{C}
+#' @return \code{matrix2list} -- A list with length equal to the number of rows
+#'   of \code{C}
 #' @keywords internal
 #' @rdname glm_helpers
 
 matrix2list <- function(mat) {
   l <- lapply(seq_len(dim(mat)[1L]), function(i) mat[i, , drop=FALSE])
-  nam <- dimnames(mat)[[1]]
+  nam <- dimnames(mat)[[1L]]
   if (!is.null(nam)) names(l) <- nam
   return(l)
 }
@@ -260,6 +292,44 @@ sortfun <- function(alternative) {
   return(fun)
 }
 
+#' Pad the front of a numeric or character vector with zeros
+#'
+#' \code{pad_zeros} pads a vector with zeros to avoid issues with ordering a
+#' column of integers or integers converted to \code{character}.
+#'
+#' If \dQuote{x} is a numeric vector, then the resultant string width will be
+#' determined by \code{max(x)} or \code{x} itself if the input is a single
+#' integer. For example, if \code{x=10}, it will return \code{'01', '02', ...,
+#' '10'}. If \dQuote{x} is a character vector, then the output's string width
+#' will be \code{max(nchar(x))}. For example, if \code{x} includes both
+#' \code{'1'} and \code{'1000'}, it will return \code{'0001'}, etc.
+#'
+#' @param x \code{pad_zeros} accepts either a vector (numeric or character) or a
+#'   single integer. \code{check_sID} accepts a character, numeric, or factor
+#'   vector
+#' @return A character vector with zero-padded values
+#' @export
+#' @examples
+#' pad_zeros(10)  # '01' '02' ... '10'
+#' x <- c(1, 10, 100)
+#' pad_zeros(x)   # '001' '010' '100'
+#' x <- as.character(x)
+#' pad_zeros(x)   # '001' '010' '100'
+
+pad_zeros <- function(x) {
+  if (is.numeric(x)) {
+    if (length(x) == 1L) x <- seq_len(x)
+    n <- max(x)
+    x <- formatC(x, width=floor(log10(n) + 1L), flag='0')
+  } else if (is.character(x)) {
+    nc <- nchar(x)
+    if (length(unique(nc)) == 1L) return(x)
+    spec <- paste0('%0', max(nc), 's')
+    x <- gsub(' ', '0', sprintf(spec, x))
+  }
+  return(x)
+}
+
 #' Apply a rotation matrix to a set of points
 #'
 #' This function takes a set of points and applies a rotation matrix (e.g. will
@@ -271,7 +341,7 @@ sortfun <- function(alternative) {
 #' @noRd
 
 rotation <- function(x, theta) {
-  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow=2)
+  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow=2L)
   x.rot <- x %*% R
   return(x.rot)
 }
@@ -302,7 +372,7 @@ simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 split_string <- function(x, max_len=80L, delim='\\+', sep='\n') {
   str_len <- nchar(x)
   if (str_len > max_len) {
-    nlines <- (str_len %/% max_len) + (str_len %% max_len > 0)
+    nlines <- (str_len %/% max_len) + (str_len %% max_len > 0L)
     delims <- gregexpr(delim, x)[[1L]]
     endpts <- rep(str_len, nlines)
     for (i in seq_len(nlines - 1L)) endpts[i] <- max(delims[delims < max_len*i])
@@ -337,12 +407,12 @@ subset_graph <- function(g, condition) {
         stop('Logical operators must be surrounded by spaces!')
       }
       nchars <- cumsum(nchar(conditions))
-      endpts <- nchars + seq(from=2L, by=3L, length.out=length(nchars))
-      splits <- vapply(endpts, function(x) substr(orig, start=x, stop=x), character(1))
+      endpts <- nchars + seq.int(from=2L, by=3L, length.out=length(nchars))
+      splits <- vapply(endpts, function(x) substr(orig, start=x, stop=x), character(1L))
       conditions <- trimws(conditions) # Remove unnecessary whitespace
 
       cond.string <- paste(vapply(seq_along(conditions), function(x)
-                                  paste0('V(g)$', conditions[x], splits[x]), character(1)),
+                                  paste0('V(g)$', conditions[x], splits[x]), character(1L)),
                            collapse='')
     } else {
       cond.string <- paste0('V(g)$', conditions)
@@ -354,7 +424,7 @@ subset_graph <- function(g, condition) {
   if (isTRUE(grepl('\\(.*\\&.*\\)', condition)) || isTRUE(grepl('\\(.*\\|.*\\)', condition))) {
     subs <- strsplit(condition, split='\\) & \\(')[[1L]]
     subs <- as.list(trimws(subs, whitespace='[\\(\\) ]'))
-    cond.strings <- vapply(subs, get_cond_string, character(1))
+    cond.strings <- vapply(subs, get_cond_string, character(1L))
     cond.string <- paste0('(', paste(cond.strings, collapse=') & ('), ')')
   } else {
     cond.string <- get_cond_string(condition)

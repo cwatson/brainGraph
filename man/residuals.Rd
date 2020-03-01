@@ -63,13 +63,16 @@ to show summary for all regions}
 \item{cols}{Logical indicating whether to color by group. Default:
 \code{FALSE}}
 
-\item{ids}{Logical indicating whether to plot Study ID's for outliers.
+\item{ids}{Logical indicating whether to plot subject ID's for outliers.
 Otherwise plots the integer index}
 }
 \value{
 \code{get.resid} - an object of class \code{brainGraph_resids} with
   elements:
-  \item{X}{The \emph{design matrix}}
+  \item{X}{The \emph{design matrix}, if using default arguments. If
+  \code{use.mean=TRUE} then it will be a \emph{named list} with a separate
+  matrix for the left and right hemispheres. If \code{method='sep.groups'}, a
+  nested named list for each group and hemisphere.}
   \item{method}{The input argument \code{method}}
   \item{use.mean}{The input argument \code{use.mean}}
   \item{all.dat.long}{A \code{data.table} in \dQuote{long} format of the
@@ -77,6 +80,7 @@ Otherwise plots the integer index}
     column added}
   \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
   \item{Group}{Group names}
+  \item{atlas}{The atlas name}
 
 \code{\link{summary.brainGraph_resids}} returns a list with two
   data tables, one of the residuals, and one of only the outlier regions

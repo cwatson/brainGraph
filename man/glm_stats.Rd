@@ -108,9 +108,7 @@ When calculating \emph{partial residuals}, the parameter estimates are
   \emph{not} re-calculated after removing one of the model terms.
 }
 \seealso{
-\code{\link{GLM}}
-
-\code{\link[car]{Anova}}
+\code{\link{GLM}}, \code{\link[car]{Anova}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

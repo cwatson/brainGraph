@@ -11,7 +11,8 @@ brainGraph_GLM_fit_t(X, y, XtX, contrast)
 brainGraph_GLM_fit_f(X, y, dfR, contrast, rkC, CXtX)
 }
 \arguments{
-\item{X}{Numeric matrix, if you wish to supply your own design matrix}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix.
+Ignored if \code{outcome != measure}.}
 
 \item{y}{Numeric vector; the outcome variable}
 

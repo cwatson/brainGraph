@@ -50,10 +50,11 @@ only one contrast is desired, you can supply a vector}
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix.
+Ignored if \code{outcome != measure}.}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
-has row names, those will be used for reporting results}
+has row/list names, those will be used for reporting results}
 
 \item{p.init}{Numeric; the initial p-value threshold (default: \code{0.001})}
 
@@ -61,7 +62,7 @@ has row names, those will be used for reporting results}
 Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance. Default: \code{beckmann}}
+matrix into covariates of interest and nuisance. Default: \code{'beckmann'}}
 
 \item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
@@ -77,7 +78,7 @@ Default: \code{'two.sided'}}
 \item{long}{Logical indicating whether or not to return all permutation
 results. Default: \code{FALSE}}
 
-\item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}}
+\item{...}{Arguments passed to \code{\link{brainGraph_GLM_design}}}
 
 \item{object, x}{A \code{NBS} object}
 
@@ -107,6 +108,10 @@ connectivity matrices and a \code{data.table} of covariates, in addition to a
 contrast matrix or list. A null distribution of the largest connected
 component size is created by fitting a GLM to permuted data. For details, see
 \code{\link{GLM}}.
+}
+\details{
+When printing a \code{summary}, you can include arguments to
+\code{\link[stats]{printCoefmat}}.
 }
 \examples{
 \dontrun{

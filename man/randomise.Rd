@@ -15,9 +15,10 @@ randomise(perm.method, part.method, N, perms, contrasts, con.type, nC,
 Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance. Default: \code{beckmann}}
+matrix into covariates of interest and nuisance. Default: \code{'beckmann'}}
 
-\item{X}{Numeric matrix, if you wish to supply your own design matrix}
+\item{X}{Numeric matrix, if you wish to supply your own design matrix.
+Ignored if \code{outcome != measure}.}
 
 \item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
 only one contrast is desired, you can supply a vector}

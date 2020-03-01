@@ -67,7 +67,7 @@ F-statistics). Default: \code{'t'}}
 if it differs from the graph metric (\code{measure})}
 
 \item{con.name}{Character vector of the contrast name(s); if \code{contrasts}
-has row names, those will be used for reporting results}
+has row/list names, those will be used for reporting results}
 
 \item{level}{Character string; either \code{vertex} (default) or
 \code{graph}}
@@ -80,7 +80,7 @@ consecutive thresholds for which the observed statistic exceeds the null)
 Default: \code{'freedmanLane'}}
 
 \item{part.method}{Character string; the method of partitioning the design
-matrix into covariates of interest and nuisance. Default: \code{beckmann}}
+matrix into covariates of interest and nuisance. Default: \code{'beckmann'}}
 
 \item{N}{Integer; number of permutations to create. Default: \code{5e3}}
 
