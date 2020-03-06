@@ -47,11 +47,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
   group.vec <- groups(resids)
   n <- nobs(resids)
   if (level == 'global') {
-    if (!requireNamespace('ade4', quietly=TRUE)) {
-      stop('Must install the "ade4" package.')
-    } else {
-      requireNamespace('ade4')
-    }
+    if (!requireNamespace('ade4', quietly=TRUE)) stop('Must install the "ade4" package.')
     combFun <- c
     diffFun <- function(a, b) 1 - ade4::mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
@@ -88,7 +84,7 @@ loo <- function(resids, corrs, level=c('global', 'regional')) {
 #'   first group.
 #'
 #' @param control.value Integer or character string specifying the control group
-#'   (default: 1)
+#'   (default: 1L)
 #' @export
 #' @importFrom foreach getDoParRegistered
 #' @importFrom doParallel registerDoParallel
@@ -117,11 +113,7 @@ aop <- function(resids, corrs, level=c('global', 'regional'), control.value=1L) 
   control.inds <- resids$resids.all[get(gID) == control.value, which=TRUE]
   level <- match.arg(level)
   if (level == 'global') {
-    if (!requireNamespace('ade4', quietly=TRUE)) {
-      stop('Must install the "ade4" package.')
-    } else {
-      requireNamespace('ade4')
-    }
+    if (!requireNamespace('ade4', quietly=TRUE)) stop('Must install the "ade4" package.')
     combFun <- c
     diffFun <- function(a, b) 1 - ade4::mantel.rtest(as.dist(a), as.dist(b), nrepet=1e3)$obs
   } else if (level == 'regional') {
@@ -207,10 +199,10 @@ summary.IC <- function(object, region=NULL, digits=max(3L, getOption('digits') -
     sums <- setNames(vector('list', length(grps)), grps)
     for (g in grps) {
       sums[[g]] <- object$DT.sum[get(gID) == g, quantile(IC, c(0, .1, .25, .5, .75, .9, 1))]
-      sums[[g]] <- append(sums[[g]], object$DT.sum[get(gID) == g, mean(IC)], after=4)
+      sums[[g]] <- append(sums[[g]], object$DT.sum[get(gID) == g, mean(IC)], after=4L)
       names(sums[[g]]) <- c('Min.', '10%', '1st Qu.', 'Median', 'Mean', '3rd Qu.', '90%', 'Max.')
     }
-    sums <- t(abind::abind(sums, along=2))
+    sums <- t(abind::abind(sums, along=2L))
     object$sums <- sums
   }
   class(object) <- c('summary.IC', class(object))
@@ -230,14 +222,14 @@ print.summary.IC <- function(x, ...) {
   cat('Level: ', x$level, '\n\n')
 
   if (x$level == 'regional') {
-    print(x$DT.sum[region == levels(region)[1], table(get(gID))])
+    print(x$DT.sum[region == levels(region)[1L], table(get(gID))])
   } else {
     print(x$DT.sum[, table(get(gID))])
   }
   cat('\n')
 
   width <- getOption('width')
-  dashes <- rep('-', width / 4)
+  dashes <- rep.int('-', width / 4)
   if (x$level == 'global') {
     message('Group summaries\n', dashes)
     print(x$sums, digits=x$digits)
@@ -248,7 +240,7 @@ print.summary.IC <- function(x, ...) {
     message('# of outliers per region: (sorted in descending order)\n', dashes)
     print(sort(x$outliers$region, decreasing=TRUE))
     cat('\n')
-    DT <- x$DT.sum[, .SD[1, !c(sID, 'RC'), with=FALSE], by=list(get(gID), region)]
+    DT <- x$DT.sum[, .SD[1L, !c(sID, 'RC'), with=FALSE], by=list(get(gID), region)]
     setnames(DT, c('get', 'med', 'avg', 'stdev', 'se'), c(gID, 'Median', 'Mean', 'Std. Dev', 'Std. Err'))
     message('Region summaries\n', dashes)
     print(DT, digits=x$digits)
@@ -281,7 +273,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
   DT <- summary(x)$DT.sum
   kNumGroups <- DT[, nlevels(factor(get(gID)))]
   grps <- DT[, levels(factor(get(gID)))]
-  leg.pos <- if (kNumGroups == 1) 'none' else 'bottom'
+  leg.pos <- if (kNumGroups == 1L) 'none' else 'bottom'
 
   if (x$level == 'regional') {
     xlabel <- 'Region'
@@ -327,7 +319,7 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     p <- ggplot(DT, aes(x=get(sID), y=IC, col=get(gID))) +
       geom_text_repel(aes(label=ind), size=3) +
       geom_point(aes(shape=mark, size=mark)) +
-      scale_color_manual(name=gID, labels=grps, values=cols[1:kNumGroups]) +
+      scale_color_manual(name=gID, labels=grps, values=cols[1L:kNumGroups]) +
       scale_shape_manual(name=gID, labels=grps, values=c(20, 17)) +
       scale_size_manual(name=gID, labels=grps, values=c(2, 3))
   }

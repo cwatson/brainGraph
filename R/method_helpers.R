@@ -3,7 +3,7 @@
 print_bg_summary <- function(object) {
   name <- name_str <- dens.pct <- Group <- modality <- weighting <- thresh <- clustmethod <- 'N/A'
 
-  ver <- vapply(object$version, as.character, character(1))
+  ver <- vapply(object$version, as.character, character(1L))
   date_created <- sub('T', ' ', object$date)
   type <- simpleCap(object$type)
   atlasfull <-
@@ -33,7 +33,7 @@ print_bg_summary <- function(object) {
     thresh <- prettyNum(object$threshold, ',', digits=4L)
     if (length(thresh) > 1L) {
       thresh_str <- sub(':', 's:', thresh_str)
-      if (length(thresh) > 6L) thresh <- thresh[1:6]
+      if (length(thresh) > 6L) thresh <- thresh[1L:6L]
       thresh <- paste(thresh, collapse='; ')
     }
   }
@@ -68,7 +68,7 @@ print_bg_summary <- function(object) {
               'Graph density:', thresh_str, name_str, 'Group:'),
           B=c('', ver, date_created, type, atlasfull, modality, weighting,
               clustmethod, dens.pct, thresh, name, Group))
-  dimnames(df)[[2L]] <- rep('', 2L)
+  dimnames(df)[[2L]] <- rep.int('', 2L)
   return(df)
 }
 
@@ -79,9 +79,9 @@ print_text_vector <- function(x, numCols) {
   splits <- split(x, ceiling(seq_along(x) / div))
   lens <- lengths(splits)
   nsplits <- length(splits)
-  splits[[nsplits]] <- c(splits[[nsplits]], rep('', div - lens[nsplits]))
+  splits[[nsplits]] <- c(splits[[nsplits]], rep.int('', div - lens[nsplits]))
   attrs.df <- as.data.frame(splits, stringsAsFactors=FALSE)
-  dimnames(attrs.df)[[2L]] <- rep('', nsplits)
+  dimnames(attrs.df)[[2L]] <- rep.int('', nsplits)
   return(attrs.df)
 }
 
@@ -90,9 +90,9 @@ print_text_vector <- function(x, numCols) {
 print_title_summary <- function(...) {
   title <- paste0(..., collapse='')
   width <- max(getOption('width') / 2L, nchar(title))
-  message('\n', rep('=', width))
+  message('\n', rep.int('=', width))
   message(title)
-  message(rep('=', width))
+  message(rep.int('=', width))
 }
 
 # Print info about the model
@@ -180,7 +180,7 @@ print_contrast_stats_summary <- function(x, ...) {
 # Print details regarding permutation analyses
 #-------------------------------------------------------------------------------
 print_permutation_summary <- function(x) {
-  message('\n', 'Permutation analysis', '\n', rep('-', getOption('width') / 4L))
+  message('\n', 'Permutation analysis', '\n', rep.int('-', getOption('width') / 4L))
   perm.method <- switch(x$perm.method,
                         freedmanLane='Freedman-Lane',
                         terBraak='ter Braak',

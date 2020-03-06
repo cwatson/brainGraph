@@ -22,11 +22,11 @@ graph_attr_dt <- function(bg.list) {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
   }
   N <- length(bg.list)
-  inds <- which(vapply(graph_attr(bg.list[[1L]]), is.numeric, logical(1)))
+  inds <- which(vapply(graph_attr(bg.list[[1L]]), is.numeric, logical(1L)))
   g.attrs <- graph_attr_names(bg.list[[1L]])
   g.attr.num <- names(inds)
   g.dt <- as.data.table(vapply(g.attr.num, function(x)
-                               vapply(bg.list, graph_attr, numeric(1), x), numeric(N)))
+                               vapply(bg.list, graph_attr, numeric(1L), x), numeric(N)))
 
   if (N == 1L) {
     g.dt <- as.data.table(t(g.dt))
@@ -35,7 +35,7 @@ graph_attr_dt <- function(bg.list) {
 
   g.attrs.char <- c('name', 'atlas', 'modality', 'weighting', 'Group')
   for (x in g.attrs.char) {
-    if (x %in% g.attrs) g.dt[, eval(x) := vapply(bg.list, graph_attr, character(1), x)]
+    if (x %in% g.attrs) g.dt[, eval(x) := vapply(bg.list, graph_attr, character(1L), x)]
   }
   if (level == 'subject') {
     setnames(g.dt, 'name', getOption('bg.subject_id'))
@@ -74,7 +74,7 @@ vertex_attr_dt <- function(bg.list) {
   }
 
   dt.V <- rbindlist(lapply(bg.list, as_data_frame, what='vertices'))
-  cols.char <- names(which(vapply(vertex_attr(bg.list[[1L]]), is.character, logical(1))))
+  cols.char <- names(which(vapply(vertex_attr(bg.list[[1L]]), is.character, logical(1L))))
   cols.rem <- setdiff(cols.char, c('name', 'lobe', 'hemi', 'class', 'network'))
   cols.rem <- c(cols.rem, 'x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni',
                 'lobe.hemi', 'circle.layout', 'circle.layout.comm')

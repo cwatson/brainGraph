@@ -65,9 +65,9 @@ coef.bg_GLM <- function(object, ...) {
 
   # outcome != measure && level == 'vertex' (multiple design matrices)
   if (length(dim(object$X)) == 3L) {
-    coeffs <- apply(object$X, 3L, function(x) fastLmPure(x, object$y, method=2)$coefficients)
+    coeffs <- apply(object$X, 3L, function(x) fastLmPure(x, object$y, method=2L)$coefficients)
   } else {
-    coeffs <- apply(object$y, 2L, function(y) fastLmPure(object$X, y, method=2)$coefficients)
+    coeffs <- apply(object$y, 2L, function(y) fastLmPure(object$X, y, method=2L)$coefficients)
   }
 
   if (object$level == 'graph') dimnames(coeffs)[[2L]] <- 'graph'
@@ -167,7 +167,7 @@ coeff_determ <- function(object, adjusted=FALSE) {
     SStot <- c(crossprod(object$y - mean(object$y)))
   }
   numer <- if (isTRUE(adjusted)) SSR / df.residual(object) else SSR
-  denom <- if (isTRUE(adjusted)) SStot / (nobs(object) - 1) else SStot
+  denom <- if (isTRUE(adjusted)) SStot / (nobs(object) - 1L) else SStot
   1 - numer / denom
 }
 
@@ -203,7 +203,7 @@ vcov.bg_GLM <- function(object, ...) {
 # Convenience function to calculate leave-one-out resid SD
 sigma_loo <- function(resids, dfR) {
   var.hat <- apply(resids, 2L, function(x) c(crossprod(x)) - x^2)
-  sqrt(var.hat / (dfR - 1))
+  sqrt(var.hat / (dfR - 1L))
 }
 
 #' Influence measures for a bg_GLM object
@@ -483,12 +483,12 @@ vif.bg_GLM <- function(mod, ...) {
   for (rgn in regions) {
     res[, 1L, rgn] <- vapply(cols, function(j)
                             det(as.matrix(R[j, j, rgn])) * det(as.matrix(R[-j, -j, rgn])),
-                            numeric(1))
+                            numeric(1L))
   }
   res[, 1L, ] <- t(t(res[, 1L, ]) / detR)
   df <- lengths(cols)
   res[, 2L, ] <- df
-  if (any(df != 1L)) res[, 3L, ] <- res[, 1L, ]^(1 / (2 * df))
+  if (any(df != 1L)) res[, 3L, ] <- res[, 1L, ]^(1 / (2L * df))
   return(res)
 }
 

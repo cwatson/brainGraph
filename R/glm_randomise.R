@@ -50,12 +50,12 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
     C0 <- diag(dim(M)[2L]) - crossprod(con.mat, MASS::ginv(t(con.mat)))
     tmpX <- M %*% pinvC
     tmpZ <- svd(M %*% C0)$u
-    Z <- tmpZ[, 1:rZ, drop=FALSE]
+    Z <- tmpZ[, 1L:rZ, drop=FALSE]
     X <- tmpX - Z %*% MASS::ginv(Z) %*% tmpX
     px <- dim(X)[2L]
     eCm <- cbind(diag(px), matrix(0, nrow=px, ncol=dim(Z)[2L]))
   }
-  eCx <- eCm[, 1:dim(X)[2L], drop=FALSE]
+  eCx <- eCm[, 1L:dim(X)[2L], drop=FALSE]
   return(list(X=X, Z=Z, eCm=eCm, eCx=eCx))
 }
 
@@ -98,7 +98,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC) {
   n <- dim(X)[1L]
   Mp <- MtM <- Rz <- eC <- Xp <- Zp <- CMtM <- vector('list', length=nC)
-  rkC <- rep(0L, nC)
+  rkC <- rep.int(0L, nC)
 
   if (con.type == 't') contrasts <- matrix2list(contrasts)
   for (j in seq_len(nC)) {
@@ -166,7 +166,7 @@ randomise <- function(perm.method, part.method, N, perms,
   if (grepl(',', mykey)) {
     v <- DT[, eval(parse(text=paste0('interaction(', mykey, ')')))]
     perm.order <- rep(seq_len(N), each=length(unique(v)))
-    mykey <- parse(text=paste0('list(', paste0(strsplit(mykey, ',')[[1]], collapse=','), ')'))
+    mykey <- parse(text=paste0('list(', paste0(strsplit(mykey, ',')[[1L]], collapse=','), ')'))
   } else {
     perm.order <- rep(seq_len(N), each=DT[, length(unique(get(mykey)))])
   }

@@ -25,13 +25,13 @@ centr_lev <- function(g, A=NULL) {
 
   if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   k <- colSums(A)
-  lev.cent <- rep(NA, dim(A)[1L])
+  lev.cent <- rep.int(NA, dim(A)[1L])
   # This is a tiny bit slower for larger graphs
 #  for (i in which(k > 0)) {
 #    lev.cent[i] <- sum((k[i] - k[A[i, ] == 1]) / (k[i] + k[A[i, ] == 1])) / k[i]
 #  }
   dd <- lapply(seq_along(k), function(x) k[A[x, ] == 1])
-  lev.cent[which(k > 0)] <- vapply(which(k > 0), function(x) sum((k[x] - dd[[x]]) / (k[x] + dd[[x]])) / k[x], numeric(1))
+  lev.cent[which(k > 0)] <- vapply(which(k > 0), function(x) sum((k[x] - dd[[x]]) / (k[x] + dd[[x]])) / k[x], numeric(1L))
 
   lev.cent[is.nan(lev.cent)] <- NA
   return(lev.cent)

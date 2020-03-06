@@ -40,17 +40,13 @@ plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
   subDT <- dat[region %in% regions]
   type <- match.arg(type)
   if (type == 'histogram') {
-    if (!requireNamespace('scales', quietly=TRUE)) {
-      stop('Must install the "scales" package to plot with histograms.')
-    } else {
-      requireNamespace('scales')
-    }
+    if (!requireNamespace('scales', quietly=TRUE)) stop('Must install the "scales" package to plot with histograms.')
     # Allow for variable bin widths
     groups <- subDT[, levels(Group)]
     setkey(subDT, region, Group)
     breaksdt <- subDT[, list(breaks=pretty(range(value), n=nclass.FD(value))),
                       by=list(Group, region)]
-    breaksdt[, bwidth := .SD[1:2, diff(breaks)], by=list(Group, region)]
+    breaksdt[, bwidth := .SD[1L:2L, diff(breaks)], by=list(Group, region)]
     subDT[, bwidth := rep(breaksdt[, min(bwidth), by=region]$V1,
                           times=subDT[, .N, by=region]$N)]
     # A partial recreation of Hadley's ggplot2:::bin function
@@ -58,7 +54,7 @@ plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
       breaks <- sort(scales::fullseq(range(x), binwidth, pad=TRUE))
       bins <- cut(x, breaks, include.lowest=TRUE, right=FALSE)
       left <- breaks[-length(breaks)]
-      right <- breaks[-1]
+      right <- breaks[-1L]
       x <- (left + right) / 2
       width <- diff(breaks)
 

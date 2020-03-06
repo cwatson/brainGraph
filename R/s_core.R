@@ -34,18 +34,18 @@ s_core <- function(g, W=NULL) {
   if (!is_weighted(g)) return(coreness(g))
 
   if (is.null(W)) W <- as_adj(g, names=FALSE, sparse=FALSE, attr='weight')
-  ct <- 1
+  ct <- 1L
   s.core <- vector('integer', length=dim(W)[1L])
   repeat {
     str.tmp <- colSums(W)
     s.thr <- min(str.tmp[which(str.tmp > 0)])
     v.remove <- which(str.tmp <= s.thr & str.tmp > 0)
-    if (length(v.remove) > 0) {
+    if (length(v.remove) > 0L) {
       s.core[v.remove] <- ct
       W[v.remove, ] <- W[, v.remove] <- 0
-      ct <- ct + 1
+      ct <- ct + 1L
     }
-    if (sum(colSums(W) > 0) == 0) break
+    if (sum(colSums(W) > 0) == 0L) break
   }
   return(s.core)
 }

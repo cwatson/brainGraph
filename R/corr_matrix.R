@@ -57,11 +57,7 @@
 
 corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'raw'),
                         exclude.reg=NULL, type=c('pearson', 'spearman'), rand=FALSE) {
-  if (!requireNamespace('Hmisc', quietly=TRUE)) {
-    stop('You must install "Hmisc" to use this function.')
-  } else {
-    requireNamespace('Hmisc')
-  }
+  if (!requireNamespace('Hmisc', quietly=TRUE)) stop('You must install "Hmisc" to use this function.')
   stopifnot(inherits(resids, 'brainGraph_resids'))
   gID <- getOption('bg.group')
   N <- nregions(resids)
@@ -102,7 +98,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   r.thresh <- setNames(vector('list', kNumGroups), grps)
   if (!is.null(thresholds)) {
     kNumThresh <- length(thresholds)
-    thresh.mat <- matrix(rep(thresholds, kNumGroups),
+    thresh.mat <- matrix(rep.int(thresholds, kNumGroups),
                          nrow=kNumThresh, ncol=kNumGroups,
                          dimnames=list(NULL, grps))
   } else {
@@ -268,7 +264,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
       if (length(grp.names) == 1L) grp.names <- paste(grp.names, seq_len(max(order.mat)))
     } else {
       tmp <- get(x$atlas)[, get(order.by)]
-      order.mat <- matrix(rep(as.integer(tmp), 2), ncol=2)
+      order.mat <- matrix(rep.int(as.integer(tmp), 2L), ncol=2L)
       grp.names <- levels(tmp)
     }
 
@@ -279,14 +275,14 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     new.order <- apply(order.mat, 2L, order)
 
   } else {
-    new.order <- order.mat <- matrix(rep(seq_len(kNumVertices), 2L), ncol=2)
+    new.order <- order.mat <- matrix(rep.int(seq_len(kNumVertices), 2L), ncol=2L)
     cols.new <- lapply(grps, function(y) c('white', 'gray50'))
   }
   dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)
   names(cols.new) <- grps
 
   mats.ord <- lapply(grps, function(y) array(mats[new.order[, y], new.order[, y], y],
-                                             dim=c(kNumVertices, kNumVertices, 1)))
+                                             dim=c(kNumVertices, kNumVertices, 1L)))
   names(mats.ord) <- grps
   for (g in grps) {
     dimnames(mats.ord[[g]]) <- list(regions[new.order[, g]], regions[new.order[, g]], g)

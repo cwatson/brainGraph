@@ -13,13 +13,13 @@
 groups.brainGraphList <- function(x) {
   out <- NULL
   if (x$type == 'observed') {
-    if ('Group' %in% graph_attr_names(x[1])) {
-      out <- vapply(x[], graph_attr, character(1), 'Group')
+    if ('Group' %in% graph_attr_names(x[1L])) {
+      out <- vapply(x[], graph_attr, character(1L), 'Group')
     }
   } else if (x$type == 'random') {
     subs <- x$graphs
-    if ('Group' %in% graph_attr_names(subs[[1]])) {
-      out <- vapply(subs, function(g) graph_attr(g[[1]], 'Group'), character(1))
+    if ('Group' %in% graph_attr_names(subs[[1L]])) {
+      out <- vapply(subs, function(g) graph_attr(g[[1L]], 'Group'), character(1L))
     }
   }
   return(out)

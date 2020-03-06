@@ -219,7 +219,7 @@ boot_mediate <- function(N, n, X.m, y.m, treat, cat.1, X.y,
   b <- tau <- d1 <- d0 <- z1 <- z0 <- n0 <- n1 <- d.avg <- z.avg <- n.avg <- NULL
 
   # Randomization/resampling matrix
-  A <- matrix(rep(seq_len(n), N), byrow=TRUE, nrow=N)
+  A <- matrix(rep.int(seq_len(n), N), byrow=TRUE, nrow=N)
   index <- t(apply(A, 1L, sample, replace=TRUE))
   index <- rbind(index, seq_len(n))
 
@@ -320,7 +320,7 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
                      'b0.acme', 'p0.acme', 'b0.ade', 'p0.ade', 'b.tot', 'p.tot', 'b0.prop', 'p0.prop'),
                    ncol=2L)
   setnames(DT.all, change[, 1L], change[, 2L])
-  change_ci <- change[seq.int(1L, 7L, by=2L), ]
+  change_ci <- change[seq.int(1L, 7L, 2L), ]
   change_ci <- cbind(paste0(change_ci[, 1L], '.ci'),
                      sub('[bdnz]([01]?)\\.', 'ci.low\\1.', change_ci[, 2L]))
   change_ci <- cbind(change_ci, sub('low', 'high', change_ci[, 2L]))
@@ -361,18 +361,19 @@ summary.bg_mediate <- function(object, mediate=FALSE, region=NULL, digits=max(3L
 print.summary.bg_mediate <- function(x, ...) {
   region <- NULL
   width <- getOption('width') / 4
+  dashes <- rep.int('-', width)
   print_title_summary(simpleCap(x$level), '-level mediation results')
   cat('# of observations: ', x$nobs, '\n')
 
   # Print a table of the model variables
-  message('\n', 'Variables', '\n', rep('-', width))
+  message('\n', 'Variables', '\n', dashes)
   df <- data.frame(A=c('  Mediator:', ' Treatment:', '    Control condition:',
                        '  Treatment condition:', '   Outcome:'),
                    B=c(x$mediator, x$treat, x$control.value, x$treat.value, x$outcome))
-  cov.df <- data.frame(A=c('', 'Covariates:', rep('', length(x$covar.names) - 1L)),
+  cov.df <- data.frame(A=c('', 'Covariates:', rep.int('', length(x$covar.names) - 1L)),
                        B=c('', x$covar.names))
   df <- rbind(df, cov.df)
-  dimnames(df)[[2L]] <- rep('', 2L)
+  dimnames(df)[[2L]] <- rep.int('', 2L)
   print(df, right=FALSE, row.names=FALSE)
   cat('\nTreatment-mediator interaction? ', x$INT, '\n\n')
 
@@ -381,7 +382,7 @@ print.summary.bg_mediate <- function(x, ...) {
   if (isTRUE(x$boot)) {
     low <- (1 - x$conf.level) / 2
     high <- 1 - low
-    message('\n', 'Bootstrapping', '\n', rep('-', width))
+    message('\n', 'Bootstrapping', '\n', dashes)
     ci <- switch(x$boot.ci.type,
                  perc='Percentile bootstrap',
                  bca='Bias-corrected accelerated')
@@ -394,7 +395,7 @@ print.summary.bg_mediate <- function(x, ...) {
   if (isTRUE(x$mediate)) {
     if (!requireNamespace('mediation', quietly=TRUE)) stop('Must install the "mediation" package.')
     region <- if (is.null(x$region)) x$DT.sum[, levels(region)[1L]] else x$region
-    message('Mediation summary for: ', region, '\n', rep('-', width))
+    message('Mediation summary for: ', region, '\n', dashes)
     print(summary(bg_to_mediate(x, region)))
   } else {
     if (is.null(x$region)) {
@@ -402,7 +403,7 @@ print.summary.bg_mediate <- function(x, ...) {
     } else {
       regions <- x$region
     }
-    message('Mediation statistics', '\n', rep('-', width))
+    message('Mediation statistics', '\n', dashes)
     print(x$DT.sum[region %in% regions])
   }
   invisible(x)

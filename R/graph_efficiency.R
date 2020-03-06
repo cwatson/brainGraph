@@ -59,12 +59,12 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       weighted <- TRUE
     }
     if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE, attr=e.attr)
-    eff <- rep(0, dim(A)[1L])
+    eff <- rep.int(0, dim(A)[1L])
     verts <- which(rowSums((A > 0) + 0) > 1)
-    X <- apply(A, 1, function(x) which(x > 0))
+    X <- apply(A, 1L, function(x) which(x > 0))
     if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
 
-    if (length(verts) > 0) {
+    if (length(verts) > 0L) {
       `%d%` <- `%do%`
       if (isTRUE(use.parallel)) {
         if (!getDoParRegistered()) {
@@ -82,7 +82,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     if (is.null(D)) D <- distances(g, weights=weights)
     Nv <- dim(D)[1L]
     Dinv <- 1 / D
-    eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1)
+    eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1L)
     if (type == 'global') eff <- sum(eff) / length(eff)
   }
   return(eff)

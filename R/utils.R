@@ -114,7 +114,7 @@ check_sID <- function(x) {
 coeff_var <- function(x, na.rm=FALSE) {
   N <- sum(!is.na(x))
   mu <- sum(x, na.rm=na.rm) / N
-  return(sqrt(1 / (N - 1) * (sum((x - mu)^2, na.rm=na.rm))) / mu)
+  return(sqrt(1 / (N - 1L) * (sum((x - mu)^2, na.rm=na.rm))) / mu)
 }
 
 #' Calculate the p-value for differences in correlation coefficients
@@ -151,7 +151,7 @@ cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater
   z1 <- 0.5 * log((1 + r1) / (1 - r1))
   z2 <- 0.5 * log((1 + r2) / (1 - r2))
 
-  SEdiff <- sqrt((1 / (n[1L] - 3)) + (1 / (n[2L] - 3)))
+  SEdiff <- sqrt((1 / (n[1L] - 3L)) + (1 / (n[2L] - 3L)))
   diff.z <- (z1 - z2) / SEdiff
 
   alt <- match.arg(alternative)
@@ -208,7 +208,7 @@ get_metadata <- function(object) {
 #' @keywords internal
 #' @rdname matrix_utils
 
-get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1) / 2, ...) {
+get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1L) / 2, ...) {
   sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
 }
 
@@ -374,7 +374,7 @@ split_string <- function(x, max_len=80L, delim='\\+', sep='\n') {
   if (str_len > max_len) {
     nlines <- (str_len %/% max_len) + (str_len %% max_len > 0L)
     delims <- gregexpr(delim, x)[[1L]]
-    endpts <- rep(str_len, nlines)
+    endpts <- rep.int(str_len, nlines)
     for (i in seq_len(nlines - 1L)) endpts[i] <- max(delims[delims < max_len*i])
     startpts <- c(1L, endpts[-nlines] + 1L)
     lines <- paste(Map(function(a, b) substr(x, a, b), startpts, endpts), '\n')
@@ -431,7 +431,7 @@ subset_graph <- function(g, condition) {
   }
 
   cond <- eval(parse(text=cond.string))
-  if (sum(cond, na.rm=TRUE) == 0) {
+  if (sum(cond, na.rm=TRUE) == 0L) {
     warning('No vertices meet criteria! No graph created')
     return(list(g=NULL, inds=NULL))
   } else {
@@ -459,7 +459,7 @@ subset_graph <- function(g, condition) {
 vec.transform <- function(x, min.val=0, max.val=1) {
   diffrange <- diff(range(x, na.rm=TRUE))
   if (diffrange == 0) {
-    out <- rep(max.val, length=length(x))
+    out <- rep_len(max.val, length(x))
   } else {
     out <- ((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diffrange) + min.val
   }

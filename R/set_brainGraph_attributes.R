@@ -108,7 +108,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
 
   # Handle different cases for different community detection methods
   clust.funs <- ls('package:igraph', pattern='^cluster_')
-  clust.funs <- substr(clust.funs, 9, nchar(clust.funs))
+  clust.funs <- substr(clust.funs, 9L, nchar(clust.funs))
   if (!clust.method %in% clust.funs) {
     stop('Invalid clustering method! You must choose from the following:\n',
          paste(clust.funs, collapse='\n'))
@@ -140,7 +140,7 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
     V(g)$comp <- match(x, order(table(x), decreasing=TRUE))
     if (length(unique(x)) < n) g <- set_graph_colors(g, 'color.comp', V(g)$comp)
     g$conn.comp <- data.frame(size=as.integer(names(comps)), number=as.integer(comps))
-    g$max.comp <- g$conn.comp[1, 1]
+    g$max.comp <- g$conn.comp[1L, 1L]
     g$num.tri <- sum(count_triangles(g)) / 3
     g$diameter <- diameter(g, weights=NA)
     g$transitivity <- transitivity(g)
@@ -299,30 +299,30 @@ delete_all_attr <- function(g, keep.names=FALSE) {
 
 set_graph_colors <- function(g, name, memb) {
   stopifnot(length(memb) == vcount(g))
-  colname <- strsplit(name, '.', fixed=TRUE)[[1]][2]
+  colname <- strsplit(name, '.', fixed=TRUE)[[1L]][2L]
   if (colname %in% c('lobe', 'class', 'network')) {
     atlas.dt <- get(g$atlas)
     memb <- atlas.dt[name %in% V(g)$name, as.integer(get(colname))] # Preserve order
   } else {
     memb <- as.integer(factor(memb))
   }
-  big.groups <- which(table(memb) > 1)
+  big.groups <- which(table(memb) > 1L)
 
   # Vertex colors
-  group.cols.memb <- rep('gray', length=max(memb))
+  group.cols.memb <- rep_len('gray', max(memb))
   if (length(big.groups) > 0L) group.cols.memb[big.groups] <- group.cols[big.groups]
   g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
 
   # Edge colors
   m <- ecount(g)
   if (m > 0) {
-    newcols <- rep('gray50', m)
+    newcols <- rep.int('gray50', m)
     if (length(big.groups) > 0L) {
       tmp <- vector('list', length=max(big.groups))
       A <- as_adj(g, names=FALSE, sparse=FALSE, edges=TRUE)
       for (i in big.groups) {
         x <- which(memb == i)
-        tmp[[i]] <- unique(as.integer(A[x, x]))[-1]
+        tmp[[i]] <- unique(as.integer(A[x, x]))[-1L]
         if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
       }
     }

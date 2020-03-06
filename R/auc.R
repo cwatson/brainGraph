@@ -25,7 +25,7 @@
 make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   threshold <- i <- NULL
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, is.brainGraphList, logical(1))
+  matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
   # Get the meta variables first
@@ -34,9 +34,9 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   for (a in attrs) out[[a]] <- g.list[[1L]][[a]]
 
   if (!is.null(g.list[[1L]]$threshold)) {
-    thresholds <- vapply(g.list, with, numeric(1), threshold)
+    thresholds <- vapply(g.list, with, numeric(1L), threshold)
   } else {
-    thresholds <- seq(from=0, to=1, length.out=length(g.list))
+    thresholds <- seq.int(from=0, to=1, length.out=length(g.list))
   }
   if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   subjects <- names(g.list[[1L]]$graphs)

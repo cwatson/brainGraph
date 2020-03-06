@@ -25,8 +25,8 @@ edge_spatial_dist <- function(g) {
   coords <- get(g$atlas)[, list(name, x.mni, y.mni, z.mni)]
   setkey(coords, name)
   es <- as_edgelist(g)
-  dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -
-                         coords[es[, 1], list(x.mni, y.mni, z.mni)])^2))
+  dists <- sqrt(rowSums((coords[es[, 2L], list(x.mni, y.mni, z.mni)] -
+                         coords[es[, 1L], list(x.mni, y.mni, z.mni)])^2))
 }
 
 #' Calculate average Euclidean distance for each vertex

@@ -29,11 +29,7 @@
 #'   \bold{6}, 411--414. \url{https://dx.doi.org/10.1098/rsif.2008.0484}
 
 communicability <- function(g, weights=NULL) {
-  if (!requireNamespace('expm', quietly=TRUE)) {
-    stop('Must install the "expm" package.')
-  } else {
-    requireNamespace('expm')
-  }
+  if (!requireNamespace('expm', quietly=TRUE)) stop('Must install the "expm" package.')
   stopifnot(is_igraph(g), is_connected(g))
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
     d <- check_strength(g)
@@ -69,17 +65,13 @@ communicability <- function(g, weights=NULL) {
 
 centr_betw_comm <- function(g, A=NULL) {
   stopifnot(is_igraph(g), is_connected(g))
-  if (!requireNamespace('expm', quietly=TRUE)) {
-    stop('Must install the "expm" package.')
-  } else {
-    requireNamespace('expm')
-  }
+  if (!requireNamespace('expm', quietly=TRUE)) stop('Must install the "expm" package.')
   if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE)
 
   C <- expm::expm(A)
   N <- dim(A)[1L]
   n <- (N - 1)^2 - (N - 1)
-  Wr <- rep(0, N)
+  Wr <- rep.int(0, N)
   for (i in seq_len(N)) {
     Er <- A
     Er[i, ] <- Er[, i] <- 0

@@ -97,7 +97,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   if (isTRUE(mni) && plane != 'circular') plot_mni(plane, hemi)
 
   mult <- 100
-  adjust <- 0
+  adjust <- 0L
   atlas <- graph_attr(x, 'atlas')
   Nv <- vcount(x)
   keep <- seq_len(Nv)
@@ -109,7 +109,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   #---------------------------------------------------------
   if (hemi != 'both') subgraph <- paste0(subgraph, " & hemi == '", hemi, "'")
   if (!is.null(subgraph)) {
-    if (substr(subgraph, 1, 3) == ' & ') subgraph <- substr(subgraph, 4, nchar(subgraph))
+    if (substr(subgraph, 1L, 3L) == ' & ') subgraph <- substr(subgraph, 4L, nchar(subgraph))
     sg <- subset_graph(x, subgraph)
     x <- sg$g
     keep <- sg$inds
@@ -117,7 +117,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   }
 
   if (plane == 'sagittal') {
-    adjust <- 1
+    adjust <- 1L
     V(x)$x <- -V(x)$y.mni
     V(x)$y <- V(x)$z.mni
     xlim.g <- switch(atlas,
@@ -144,8 +144,8 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   } else if (plane == 'circular') {
     par(new=TRUE, bg='black', mar=c(5, 0, 2, 0)+0.1)
     mult <- 1
-    V(x)$x <- layout.circ[keep, 1]
-    V(x)$y <- layout.circ[keep, 2]
+    V(x)$x <- layout.circ[keep, 1L]
+    V(x)$y <- layout.circ[keep, 2L]
     xlim.g <- c(-1.5, 1.5)
     ylim.g <- c(-1.00, 1.5)
   }
@@ -167,18 +167,18 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   #-------------------------------------
   if (hasArg('vertex.color')) {
     vcols <- fargs$vertex.color
-    if (is.character(vcols) && length(vcols) == 1) {
+    if (is.character(vcols) && length(vcols) == 1L) {
       stopifnot(vcols %in% vertex_attr_names(x))
       vcols <- vertex_attr(x, vcols)
-      if (adjust == 1) vcols[medial] <- adjustcolor(vcols[medial], alpha.f=0.4)
+      if (adjust == 1L) vcols[medial] <- adjustcolor(vcols[medial], alpha.f=0.4)
     }
   }
   if (hasArg('edge.color')) {
     ecols <- fargs$edge.color
-    if (is.character(ecols) && length(ecols) == 1) {
+    if (is.character(ecols) && length(ecols) == 1L) {
       stopifnot(ecols %in% edge_attr_names(x))
       ecols <- edge_attr(x, ecols)
-      if (adjust == 1) {
+      if (adjust == 1L) {
         medial.es <- as.numeric(E(x)[medial %--% medial])
         ecols[medial.es] <- adjustcolor(ecols[medial.es], alpha.f=0.4)
       }
@@ -224,7 +224,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 
   if (!is.null(subtitle) && subtitle == 'default') {
     Ne <- ecount(x)
-    g.density <- round(graph.density(x), digits=3)
+    g.density <- round(graph.density(x), digits=3L)
     subtitle <- paste('# vertices: ', Nv, '\t# edges: ', Ne, '\n', 'Density: ', g.density)
   }
   par(new=TRUE, mar=c(5, 0, 2, 0)+0.1)
@@ -233,7 +233,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
 
   if (isTRUE(show.legend) && hasArg('vertex.color')) {
     atlas.dt <- get(atlas)
-    vattr <- strsplit(fargs$vertex.color, '.', fixed=TRUE)[[1]][2]
+    vattr <- strsplit(fargs$vertex.color, '.', fixed=TRUE)[[1L]][2L]
     if (vattr %in% c('lobe', 'network', 'class')) {
       vattr_all <- vertex_attr(x, vattr)
       vattr_graph <- unique(vattr_all)
@@ -245,13 +245,13 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
       }
       group.nums <- which(levels(atlas_vals) %in% vattr_graph)
     } else if (vattr == 'rich') {
-      group.nums <- 1:3
+      group.nums <- 1L:3L
       cnames <- c('Rich-club', 'Feeder', 'Local')
     } else {
       group.nums <- as.integer(which(table(vertex_attr(x, vattr)) > 2))
       cnames <- paste0(simpleCap(vattr), '. ', group.nums)
     }
-    cex <- if (length(group.nums) > 4) 1 else 1.25
+    cex <- if (length(group.nums) > 4L) 1 else 1.25
     cols <- group.cols[group.nums]
     l.inset <- c(-0.01, 0)  # Increasing 1st moves it toward the center (L-R), 2nd toward center (U-D)
     loc <- 'topleft'
@@ -284,7 +284,7 @@ plot_mni <- function(plane, hemi) {
   y <- seq_len(dims[2L])
   zlim <- c(3500, max(X[, , slice]))
   imcol <- gray(0:64/64)
-  breaks <- seq(min(zlim), max(zlim), length=length(imcol) + 1)
+  breaks <- seq.int(min(zlim), max(zlim), length.out=length(imcol) + 1L)
 
   par(mai=c(0, 0, 0, 0), mar=c(0, 0, 0, 0), bg='black', bty='o')
   graphics::image(x, y, X[, , slice], col=imcol, breaks=breaks, asp=1)

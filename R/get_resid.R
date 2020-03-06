@@ -169,7 +169,7 @@ get_lm_vars <- function(covars, exclude.cov, ...) {
 
 rstudent_mat <- function(lmvars, y) {
   XtY <- crossprod(lmvars$X, y)
-  beta <- solve(lmvars$XtX, XtY)
+  beta <- solve.default(lmvars$XtX, XtY)
   res <- c(y - lmvars$X %*% beta)
 
   var.hat <- c(crossprod(res)) - res^2
@@ -244,7 +244,7 @@ print.summary.brainGraph_resids <- function(x, ...) {
   print_title_summary('Structural covariance residuals')
   cat('\n')
   width <- getOption('width')
-  dashes <- rep('-', width / 4)
+  dashes <- rep.int('-', width / 4)
   message('# of outliers per region: (sorted in descending order)\n', dashes)
   print(sort(x$outliers$Region, decreasing=TRUE))
   cat('\n')
@@ -315,7 +315,7 @@ plot.brainGraph_resids <- function(x, region=NULL, cols=FALSE, ids=TRUE, ...) {
       labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(Region)]),
            x='Theoretical Quantiles', y='Sample Quantiles')
     if (isFALSE(cols)) {
-      p <- p + scale_color_manual(values=rep('black', DT.resids[, length(unique(get(gID)))]))
+      p <- p + scale_color_manual(values=rep.int('black', DT.resids[, length(unique(get(gID)))]))
     }
     return(p)
   }

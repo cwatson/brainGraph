@@ -33,7 +33,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE, A=NULL) {
   degs <- check_degree(g)
   Nv <- vcount(g)
   Nk <- sum(degs > k)
-  if (Nk == 0) return(list(phi=NaN, graph=make_empty_graph(), Nk=0, Ek=0))
+  if (Nk == 0L) return(list(phi=NaN, graph=make_empty_graph(), Nk=0L, Ek=0))
 
   eattr <- wts <- NULL
   if (isTRUE(weighted)) {
@@ -42,7 +42,7 @@ rich_club_coeff <- function(g, k=1, weighted=FALSE, A=NULL) {
   }
   if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE, attr=eattr)
 
-  vids <- order(degs)[(Nv - Nk + 1):Nv]
+  vids <- order(degs)[(Nv - Nk + 1L):Nv]
   g.rich <- graph_from_adjacency_matrix(A[vids, vids, drop=FALSE], mode='undirected',
                                         diag=FALSE, weighted=wts)
   Ek <- ecount(g.rich)
@@ -78,9 +78,9 @@ rich_club_all <- function(g, weighted=FALSE, A=NULL) {
   k <- check_degree(g)
   deg_range <- seq_len(max(k))
   R <- lapply(deg_range, function(x) rich_club_coeff(g, x, weighted, A=A))
-  phi <- vapply(R, with, numeric(1), phi)
-  Nk <- vapply(R, with, numeric(1), Nk)
-  Ek <- vapply(R, with, numeric(1), Ek)
+  phi <- vapply(R, with, numeric(1L), phi)
+  Nk <- vapply(R, with, numeric(1L), Nk)
+  Ek <- vapply(R, with, numeric(1L), Ek)
   dt.rich <- data.table(k=deg_range, phi=phi, Nk=Nk, Ek=Ek)
   return(dt.rich)
 }
@@ -127,7 +127,7 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   if (is.null(rand)) {
     rand <- sim.rand.graph.par(g, N, ...)
   } else {
-    if (!all(vapply(rand, is_igraph, logical(1)))) {
+    if (!all(vapply(rand, is_igraph, logical(1L)))) {
       stop('Argument "rand" must be a list of igraph graph objects!')
     }
     N <- length(rand)
@@ -139,8 +139,8 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
                    rand=c(phi.rand),
                    orig=rep(g$rich$phi, each=N))
   DT[, norm := unique(orig) / mean(rand), by=k]
-  DT[, p := (sum(rand >= unique(orig)) + 1) / (N + 1), by=k]
-  dt.phi <- DT[, .SD[1], by=k]
+  DT[, p := (sum(rand >= unique(orig)) + 1L) / (N + 1L), by=k]
+  dt.phi <- DT[, .SD[1L], by=k]
   dt.phi[, p.fdr := p.adjust(p, 'fdr')]
   dt.phi[, rand := NULL]
   dt.phi$rand <- DT[, mean(rand), by=k]$V1
@@ -202,7 +202,7 @@ rich_club_attrs <- function(g, deg.range=NULL, adj.vsize=FALSE) {
   degs <- check_degree(g)
   if (is.null(deg.range)) deg.range <- c(1, max(degs))
   V(g)$rich <- 0
-  rich <- which(degs >= deg.range[1] & degs <= deg.range[2])
+  rich <- which(degs >= deg.range[1L] & degs <= deg.range[2L])
   notrich <- setdiff(seq_len(vcount(g)), rich)
   V(g)$rich[rich] <- 1
   E(g)[rich %--% rich]$type.rich <- 'rich-club'
@@ -262,7 +262,7 @@ rich_core <- function(g, weighted=FALSE, A=NULL) {
   }
   degs <- colSums(A)
   vorder <- order(degs, decreasing=TRUE)
-  kplus <- vapply(vorder, function(x) sum(A[x, which(degs > degs[x])]), double(1))
+  kplus <- vapply(vorder, function(x) sum(A[x, which(degs > degs[x])]), double(1L))
 
   dens <- if ('density' %in% graph_attr_names(g)) g$density else graph.density(g)
   r <- max(which(kplus == max(kplus)))

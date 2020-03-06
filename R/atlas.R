@@ -11,8 +11,8 @@
 #' @rdname atlas_helpers
 
 guess_atlas <- function(x) {
-  bgAtlases <- data(package='brainGraph')$results[, 3]
-  Nv <- vapply(bgAtlases, function(x) dim(get(x))[1L], integer(1))
+  bgAtlases <- data(package='brainGraph')$results[, 3L]
+  Nv <- vapply(bgAtlases, function(x) dim(get(x))[1L], integer(1L))
 
   n <- switch(class(x)[1L],
               data.frame=, data.table=dim(x)[2L] - (hasName(x, getOption('bg.subject_id'))),
@@ -25,7 +25,7 @@ guess_atlas <- function(x) {
     atlas <- n
   } else {
     matched <- which(Nv == n)
-    atlas <- if (length(matched > 0)) names(matched) else NA_character_
+    atlas <- if (length(matched) > 0L) names(matched) else NA_character_
   }
   return(atlas)
 }
@@ -107,7 +107,7 @@ as_atlas <- function(object) {
 create_atlas <- function(regions, coords, lobes, hemis) {
   if (is.list(coords)) {
     warning("'coords' is a list; using only the first element.")
-    coords <- coords[[1]]
+    coords <- coords[[1L]]
   }
   if (!is.numeric(coords)) {
     warning('Coercing coordinates to numeric.')
@@ -115,23 +115,23 @@ create_atlas <- function(regions, coords, lobes, hemis) {
   }
   if (!is.matrix(coords)) {
     warning('Converting coordinates to a 3-column matrix.')
-    try(coords <- matrix(coords, ncol=3))
+    try(coords <- matrix(coords, ncol=3L))
   }
   dims <- dim(coords)
-  if (dims[2L] != 3) stop('Coordinates must be a matrix with 3 columns.')
+  if (dims[2L] != 3L) stop('Coordinates must be a matrix with 3 columns.')
 
   kNumRegions <- length(regions)
   kNumCoords <- dims[1L]
   kNumLobes <- length(lobes)
   kNumHemis <- length(hemis)
-  if (length(unique(c(kNumRegions, kNumCoords, kNumLobes, kNumHemis))) != 1) {
+  if (length(unique(c(kNumRegions, kNumCoords, kNumLobes, kNumHemis))) != 1L) {
     stop('All input data must have the same length.')
   }
 
   out <- data.table(name=as.character(regions),
-                    x.mni=coords[, 1],
-                    y.mni=coords[, 2],
-                    z.mni=coords[, 3],
+                    x.mni=coords[, 1L],
+                    y.mni=coords[, 2L],
+                    z.mni=coords[, 3L],
                     lobe=as.factor(lobes),
                     hemi=as.factor(hemis),
                     index=seq_len(kNumCoords))

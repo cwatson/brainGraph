@@ -146,33 +146,33 @@ choose.edges <- function(A, degs.large) {
   #-----------------------------------------------------------------------------
   get_random_v <- function(A, degs.large) {
     repeat {
-      x <- degs.large[sample.int(length(degs.large), 1)]
+      x <- degs.large[sample.int(length(degs.large), 1L)]
       neighb <- intersect(which(A[x, ] == 1), degs.large)
-      if (length(neighb) >= 2) return(list(x, neighb[sample.int(length(neighb), 2)]))
+      if (length(neighb) >= 2L) return(list(x, neighb[sample.int(length(neighb), 2L)]))
     }
   }
   #-----------------------------------------------------------------------------
   repeat {
     tmp <- get_random_v(A, degs.large)
-    x <- tmp[[1]]
-    y <- tmp[[2]]
+    x <- tmp[[1L]]
+    y <- tmp[[2L]]
 
     # Try to select random neighbors (z1 & z2) of y1 & y2 s.t. z1 != z2 != x
-    y1.neighb <- which(A[y[1], ] == 1)
-    choices1 <- setdiff(y1.neighb, c(x, y[2]))
-    if (length(choices1) == 0) {
+    y1.neighb <- which(A[y[1L], ] == 1)
+    choices1 <- setdiff(y1.neighb, c(x, y[2L]))
+    if (length(choices1) == 0L) {
       next
     } else {
-      z1 <- choices1[sample.int(length(choices1), 1)]
+      z1 <- choices1[sample.int(length(choices1), 1L)]
     }
 
-    y2.neighb <- which(A[y[2], ] == 1)
-    choices2 <- setdiff(y2.neighb, c(x, y[1], z1))
-    if (length(choices2) > 0) break
+    y2.neighb <- which(A[y[2L], ] == 1)
+    choices2 <- setdiff(y2.neighb, c(x, y[1L], z1))
+    if (length(choices2) > 0L) break
   }
 
-  z2 <- choices2[sample.int(length(choices2), 1)]
-  return(data.frame(y1=y[1], y2=y[2], z1, z2))
+  z2 <- choices2[sample.int(length(choices2), 1L)]
+  return(data.frame(y1=y[1L], y2=y[2L], z1, z2))
 }
 
 #' Hirschberger-Qi-Steuer null covariance matrix generation

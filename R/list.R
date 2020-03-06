@@ -89,7 +89,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
     gnames <- check_sID(gnames)
   }
   if (is.null(grpNames)) {
-    grpNames <- if (level == 'group') gnames else rep('1', kNumGraphs)
+    grpNames <- if (level == 'group') gnames else rep.int('1', kNumGraphs)
   } else {
     stopifnot(length(grpNames) == kNumGraphs)
     grpNames <- switch(class(grpNames),
@@ -538,7 +538,7 @@ plot.brainGraphList <- function(x, plane, hemi, filename.base, diffs=FALSE, ...)
     if (isTRUE(diffs)) {
       g.diff <- graph.difference(x$graphs[[i]], x$graphs[[i - 1L]])
       class(g.diff) <- c('brainGraph', class(g.diff))
-      ecols <- rep('deeppink', ecount(g.diff))
+      ecols <- rep.int('deeppink', ecount(g.diff))
       if (hasArg('edge.color')) ecols <- list(...)$edge.color
       plot(g.diff, add=TRUE, vertex.label=NA, vertex.shape='none',
            edge.width=5, edge.color=ecols, mni=FALSE, subtitle=NULL)

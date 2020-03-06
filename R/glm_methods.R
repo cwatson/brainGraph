@@ -60,12 +60,12 @@ terms.bg_GLM <- function(x, ...) {
 
   # Determine if there are any interaction terms
   rmatches <- gregexpr(':', vnames)
-  numMatches <- vapply(rmatches, function(y) length(y[y > 0]), integer(1))
-  if (any(numMatches > 0)) {
-    combos <- combn(seq_along(cvnames), 2, simplify=FALSE)
+  numMatches <- vapply(rmatches, function(y) length(y[y > 0L]), integer(1L))
+  if (any(numMatches > 0L)) {
+    combos <- combn(seq_along(cvnames), 2L, simplify=FALSE)
     ints <- lapply(combos, function(y) intersect(cols[[y[1L]]], cols[[y[2L]]]))
     matches <- lapply(combos[which(lengths(ints) > 0L)], as.matrix)
-    int_terms <- vapply(matches, function(y) cvnames[y], character(2))
+    int_terms <- vapply(matches, function(y) cvnames[y], character(2L))
     twoWays <- apply(int_terms, 2L, paste, collapse=':')
     nonzero <- Filter(length, ints)
     for (i in seq_along(twoWays)) {
@@ -73,8 +73,8 @@ terms.bg_GLM <- function(x, ...) {
       cols[int_terms[, i]] <- lapply(cols[int_terms[, i]], setdiff, nonzero[[i]])
     }
     cols <- Filter(length, cols)
-    if (any(numMatches == 2)) {
-      combos <- combn(seq_along(cvnames), 3)
+    if (any(numMatches == 2L)) {
+      combos <- combn(seq_along(cvnames), 3L)
       ints <- apply(combos, 2L, function(y) intersect(cols_orig[[y[1L]]], intersect(cols_orig[[y[2L]]], cols_orig[[y[3L]]])))
       matches <- as.matrix(combos[, which(lengths(ints) > 0L)])
       int_terms <- cvnames[matches]
@@ -102,21 +102,21 @@ formula.bg_GLM <- function(x, ...) {
   tlabels <- labels(x)
   if (any(grepl('Intercept', tlabels))) tlabels <- tlabels[-grep('Intercept', tlabels)]
   rmatches <- gregexpr(':', tlabels)
-  intOrder <- vapply(rmatches, function(y) length(y[y > 0]), integer(1)) + 1L
+  intOrder <- vapply(rmatches, function(y) length(y[y > 0L]), integer(1L)) + 1L
   splits <- strsplit(tlabels, ':')
   if (any(intOrder == 3L)) {
     for (i in which(intOrder == 3L)) {
-      inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1))
+      inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1L))
       inds.remove <- c(inds.remove, i)
       twoWays <- combn(splits[[i]], 2L, function(y) paste(y, collapse=':'))
-      inds.remove <- c(inds.remove, vapply(twoWays, function(y) which(y == tlabels), integer(1)))
+      inds.remove <- c(inds.remove, vapply(twoWays, function(y) which(y == tlabels), integer(1L)))
       tlabels <- tlabels[-inds.remove]
       tlabels <- c(tlabels, paste(splits[[i]], collapse=' * '))
     }
   } else {
     for (i in which(intOrder > 1L)) {
       if (all(splits[[i]] %in% tlabels)) {
-        inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1))
+        inds.remove <- vapply(splits[[i]], function(y) which(y == tlabels), integer(1L))
         inds.remove <- c(inds.remove, i)
         tlabels <- tlabels[-inds.remove]
         tlabels <- c(tlabels, paste(splits[[i]], collapse=' * '))

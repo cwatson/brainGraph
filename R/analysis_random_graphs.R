@@ -45,15 +45,14 @@
 analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, savedir='.', ...) {
   grp <- getOption('bg.group')
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, is.brainGraphList, logical(1))
+  matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
-  kNumThresh <- length(g.list)
-  kNumSubj <- vapply(g.list, function(x) length(x$graphs), integer(1))
   if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE)
 
-  # Loop through all graphs, generate random graphs, calculate rich club coeff's
-  phi.norm <- rand.dt <- small.dt <- vector('list', kNumThresh)
+  # Generate random graphs and calculate rich club coeff's for all thresholds
+  kNumSubj <- vapply(g.list, nobs, integer(1L))
+  phi.norm <- rand.dt <- small.dt <- vector('list', length(g.list))
   for (i in seq_along(g.list)) {
     phi.norm[[i]] <- vector('list', kNumSubj[i])
 
@@ -105,27 +104,27 @@ get_rand_attrs <- function(bg.list, level) {
   grps <- groups(bg.list)
   N <- lengths(rand)
 
-  mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'mod'))
-  Cp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Cp'))
-  Lp <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'Lp'))
-  E.global <- unlist(lapply(rand, vapply, graph_attr, numeric(1), USE.NAMES=FALSE, 'E.global'))
+  mod <- unlist(lapply(rand, vapply, graph_attr, numeric(1L), USE.NAMES=FALSE, 'mod'))
+  Cp <- unlist(lapply(rand, vapply, graph_attr, numeric(1L), USE.NAMES=FALSE, 'Cp'))
+  Lp <- unlist(lapply(rand, vapply, graph_attr, numeric(1L), USE.NAMES=FALSE, 'Lp'))
+  E.global <- unlist(lapply(rand, vapply, graph_attr, numeric(1L), USE.NAMES=FALSE, 'E.global'))
 
   if (level == 'subject') {
     ids <- names(rand)
-    DT <- data.table(Study.ID=rep(ids, times=N), Group=rep(grps, times=N))
+    DT <- data.table(Study.ID=rep.int(ids, N), Group=rep.int(grps, N))
     setnames(DT, 'Study.ID', getOption('bg.subject_id'))
   } else if (level == 'group') {
-    DT <- data.table(Group=rep(grps, times=N))
+    DT <- data.table(Group=rep.int(grps, N))
   }
   setnames(DT, 'Group', getOption('bg.group'))
   DT <- cbind(DT, data.table(mod=mod, Cp=Cp, Lp=Lp, E.global=E.global))
-  if ('density' %in% graph_attr_names(rand[[1]][[1]])) {
-    densities <- vapply(rand, function(x) graph_attr(x[[1]], 'density'), numeric(1))
-    DT[, density := rep(densities, times=N)]
+  if ('density' %in% graph_attr_names(rand[[1L]][[1L]])) {
+    densities <- vapply(rand, function(x) graph_attr(x[[1L]], 'density'), numeric(1L))
+    DT[, density := rep.int(densities, N)]
   }
   if ('threshold' %in% graph_attr_names(rand[[1L]][[1L]])) {
-    threshes <- vapply(rand, function(x) graph_attr(x[[1L]], 'threshold'), numeric(1))
-    DT[, threshold := rep(threshes, times=N)]
+    threshes <- vapply(rand, function(x) graph_attr(x[[1L]], 'threshold'), numeric(1L))
+    DT[, threshold := rep.int(threshes, N)]
   }
   return(DT)
 }

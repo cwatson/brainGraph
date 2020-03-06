@@ -35,7 +35,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
   sig <- trend <- yloc <- value <- variable <- threshold <- NULL
 
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, is.brainGraphList, logical(1))
+  matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
 
   sID <- getOption('bg.subject_id')
@@ -52,7 +52,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
     DT.m[, yloc := extendrange(value)[1L], by=variable]
     vars <- setdiff(names(perms$DT), 'densities')
     nvars <- length(vars)
-    if (length(alt) < nvars) alt <- rep(alt, length.out=nvars)
+    if (length(alt) < nvars) alt <- rep_len(alt, nvars)
     for (i in seq_along(vars)) {
       dt <- plot(perms, measure=vars[i], alternative=alt[i])[[1L]]$data[variable == 'obs.diff']
       DT.m[variable == vars[i], sig := dt$sig]
@@ -64,7 +64,7 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
   if (!is.null(level.names)) {
     if (level.names == 'default') level.names <- rename_levels(DT.m)
     nvars <- DT.m[, nlevels(variable)]
-    if (length(level.names) < nvars) level.names <- rep(level.names, length.out=nvars)
+    if (length(level.names) < nvars) level.names <- rep_len(level.names, nvars)
     levels(DT.m$variable) <- level.names
   }
 

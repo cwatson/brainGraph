@@ -50,7 +50,6 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   i <- value <- Var1 <- Var2 <- Var3 <- p <- stat <- V1 <- contrast <- p.perm <- csize <- perm <- NULL
   dimA <- dim(A)
   stopifnot(dimA[3L] == dim(covars)[1L])
-  Nv <- dimA[1L]
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
@@ -66,6 +65,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   names(incomp) <- covars[incomp, get(sID)]
   if (length(incomp) > 0L) {
     A <- A[, , -incomp, drop=FALSE]
+    dimA <- dim(A)
     covars <- covars[-incomp]
   }
   setkeyv(covars, sID)
@@ -87,7 +87,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
 
   # Create stat and p-val matrices, and get observed components
   comps.obs <- comps.perm <- vector('list', nC)
-  T.max <- p.mat <- array(0, dim=c(Nv, Nv, nC))
+  T.max <- p.mat <- array(0, dim=c(dimA[1L], dimA[1L], nC))
   nrows <- DT.lm[, .N, by=contrast]$N
   skip <- which(nrows == 0L)
   if (length(skip) > 0L) comps.obs[skip] <- data.table(csize=0)
@@ -139,11 +139,11 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
   # Get the maximum component for each contrast & permutation
   for (j in setdiff(seq_len(nC), skip)) {
     comps.perm[[j]] <- foreach(i=null.dist[contrast == j, unique(perm)], .combine='c') %dopar% {
-      T.mat.tmp <- matrix(0, Nv, Nv)
+      T.mat.tmp <- matrix(0, dimA[1L], dimA[1L])
       T.mat.tmp[null.dist[contrast == j & perm == i, cbind(Var1, Var2)]] <- null.dist[contrast == j & perm == i, stat]
       max(components(graph_from_adjacency_matrix(T.mat.tmp, diag=F, mode='undirected', weighted=TRUE))$csize)
     }
-    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep(0, N - length(comps.perm[[j]])))
+    if (length(comps.perm[[j]]) < N) comps.perm[[j]] <- c(comps.perm[[j]], rep.int(0, N - length(comps.perm[[j]])))
     comps.perm[[j]] <- data.table(perm=comps.perm[[j]])
   }
   comps.perm <- rbindlist(comps.perm, idcol='contrast')
@@ -204,7 +204,7 @@ print.summary.NBS <- function(x, ...) {
   print_subs_summary(x)
 
   # Print results for each contrast
-  message('\n', 'Statistics', '\n', rep('-', getOption('width') / 4))
+  message('\n', 'Statistics', '\n', rep.int('-', getOption('width') / 4))
   print_contrast_stats_summary(x, ...)
 
   invisible(x)

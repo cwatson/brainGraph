@@ -79,7 +79,7 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
 
   # Check if components are 'brainGraphList' objects
-  matches <- vapply(g.list, is.brainGraphList, logical(1))
+  matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
   stopifnot(length(g.list) == length(thresholds))
 
@@ -98,9 +98,9 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
   con.type <- match.arg(con.type)
-  kNumContrasts <- if (con.type == 't') nrow(res.glm[[1L]]$contrasts) else length(res.glm[[1L]]$contrasts)
+  kNumContrasts <- length(res.glm[[1L]]$con.name)
   null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
-  Scrit <- Acrit <- rep(0, kNumContrasts)
+  Scrit <- Acrit <- rep.int(0, kNumContrasts)
   myMax <- maxfun(alt)
   mySort <- sortfun(alt)
   for (i in seq_len(kNumContrasts)) {
@@ -168,9 +168,9 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
   myruns <- which(runs$values == TRUE & runs$lengths >= clust.size)
   runs.len.cumsum <- cumsum(runs$lengths)
   ends <- runs.len.cumsum[myruns]
-  newindex <- ifelse(myruns > 1, myruns - 1, 0)
-  starts <- runs.len.cumsum[newindex] + 1
-  if (0 %in% newindex) starts <- c(1, starts)
+  newindex <- ifelse(myruns > 1L, myruns - 1L, 0L)
+  starts <- runs.len.cumsum[newindex] + 1L
+  if (0L %in% newindex) starts <- c(1L, starts)
   return(list(starts=starts, ends=ends))
 }
 
@@ -220,7 +220,7 @@ print.summary.mtpc <- function(x, ...) {
   print_contrast_type_summary(x)
   print_subs_summary(x)
 
-  message('\n', 'Statistics', '\n', rep('-', 20))
+  message('\n', 'Statistics', '\n', rep.int('-', getOption('width') / 4))
   clp <- 100 * (1 - x$alpha)
   cat('tau.mtpc: threshold of the maximum observed statistic\n')
   cat('S.mtpc: maximum observed statistic\n')
@@ -291,7 +291,7 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       } else if (n > 1L) {
         all.inds <- c(unlist(apply(inds, 1L, function(z) z[1L]:z[2L])))
       } else {
-        all.inds <- 1:dim(DT)[1L]
+        all.inds <- 1L:dim(DT)[1L]
       }
       DT[-all.inds, stat_ribbon := NA]
     }

@@ -42,31 +42,27 @@ brainGraph_boot <- function(densities, resids, R=1e3,
                             conf=0.95, .progress=getOption('bg.progress'),
                             xfm.type=c('1/w', '-log(w)', '1-w', '-log10(w/max(w))', '-log10(w/max(w)+1)')) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
-  if (!requireNamespace('boot', quietly=TRUE)) {
-    stop('Must install the "boot" package.')
-  } else {
-    requireNamespace('boot')
-  }
+  if (!requireNamespace('boot', quietly=TRUE)) stop('Must install the "boot" package.')
 
   # 'statistic' function for the bootstrapping process
   statfun <- function(x, i, measure, res.obj, xfm.type) {
     corrs <- corr.matrix(res.obj[i], densities=densities, rand=TRUE)
     if (measure %in% c('strength', 'mod.wt', 'E.global.wt')) {
-      g.boot <- apply(corrs[[1]]$r.thresh, 3, function(y)
-                      graph_from_adjacency_matrix(corrs[[1]]$R * y, mode='undirected',
+      g.boot <- apply(corrs[[1L]]$r.thresh, 3L, function(y)
+                      graph_from_adjacency_matrix(corrs[[1L]]$R * y, mode='undirected',
                                                   diag=FALSE, weighted=TRUE))
     } else {
-      g.boot <- apply(corrs[[1]]$r.thresh, 3, graph_from_adjacency_matrix,
+      g.boot <- apply(corrs[[1L]]$r.thresh, 3L, graph_from_adjacency_matrix,
                       mode='undirected', diag=FALSE)
     }
     res <- switch(measure,
-        mod=,mod.wt=vapply(g.boot, function(y) max(cluster_louvain(y)$modularity), numeric(1)),
-        E.global=vapply(g.boot, efficiency, numeric(1), 'global'),
-        E.global.wt=vapply(g.boot, function(g) efficiency(xfm.weights(g, xfm.type), 'global'), numeric(1)),
-        Cp=vapply(g.boot, transitivity, numeric(1), type='localaverage'),
-        Lp=vapply(g.boot, mean_distance, numeric(1)),
-        assortativity=vapply(g.boot, assortativity_degree, numeric(1)),
-        strength=vapply(g.boot, function(y) mean(strength(y)), numeric(1)))
+        mod=, mod.wt=vapply(g.boot, function(y) max(cluster_louvain(y)$modularity), numeric(1L)),
+        E.global=vapply(g.boot, efficiency, numeric(1L), 'global'),
+        E.global.wt=vapply(g.boot, function(g) efficiency(xfm.weights(g, xfm.type), 'global'), numeric(1L)),
+        Cp=vapply(g.boot, transitivity, numeric(1L), type='localaverage'),
+        Lp=vapply(g.boot, mean_distance, numeric(1L)),
+        assortativity=vapply(g.boot, assortativity_degree, numeric(1L)),
+        strength=vapply(g.boot, function(y) mean(strength(y)), numeric(1L)))
     return(res)
   }
 
@@ -118,27 +114,23 @@ brainGraph_boot <- function(densities, resids, R=1e3,
 #' @rdname Bootstrapping
 
 summary.brainGraph_boot <- function(object, ...) {
-  if (!requireNamespace('boot', quietly=TRUE)) {
-    stop('Must install the "boot" package.')
-  } else {
-    requireNamespace('boot')
-  }
+  if (!requireNamespace('boot', quietly=TRUE)) stop('Must install the "boot" package.')
   kNumDensities <- length(object$densities)
   # Get everything into a data.table
   boot.dt <- with(object,
                   data.table(Group=rep(Group, each=kNumDensities),
-                             density=rep(densities, length(Group)),
+                             density=rep.int(densities, length(Group)),
                              Observed=c(vapply(boot, with, numeric(kNumDensities), t0)),
-                             se=c(vapply(boot, function(x) apply(x$t, 2, sd), numeric(kNumDensities)))))
+                             se=c(vapply(boot, function(x) apply(x$t, 2L, sd), numeric(kNumDensities)))))
   setnames(boot.dt, 'Group', getOption('bg.group'))
   ci <- with(object,
              vapply(seq_along(densities), function(x)
                     vapply(boot, function(y)
-                             boot::boot.ci(y, type='norm', index=x, conf=conf)$normal[2:3],
-                           numeric(2)),
-                    numeric(2 * length(Group))))
-  boot.dt$ci.low <- c(t(ci[2 * (seq_along(object$Group) - 1) + 1, ]))
-  boot.dt$ci.high <- c(t(ci[2 * (seq_along(object$Group) - 1) + 2, ]))
+                           boot::boot.ci(y, type='norm', index=x, conf=conf)$normal[2L:3L],
+                           numeric(2L)),
+                    numeric(2L * length(Group))))
+  boot.dt$ci.low <- c(t(ci[2L * (seq_along(object$Group) - 1L) + 1L, ]))
+  boot.dt$ci.high <- c(t(ci[2L * (seq_along(object$Group) - 1L) + 2L, ]))
 
   meas.full <- switch(object$measure,
                       mod='Modularity', mod.wt='Modularity (weighted)',
@@ -147,7 +139,7 @@ summary.brainGraph_boot <- function(object, ...) {
                       Lp='Average shortest path length',
                       assortativity='Degree assortativity',
                       strength='Average strength')
-  boot.sum <- list(meas.full=meas.full, DT.sum=boot.dt, conf=object$conf, R=object$boot[[1]]$R)
+  boot.sum <- list(meas.full=meas.full, DT.sum=boot.dt, conf=object$conf, R=object$boot[[1L]]$R)
   class(boot.sum) <- c('summary.brainGraph_boot', class(boot.sum))
   boot.sum
 }

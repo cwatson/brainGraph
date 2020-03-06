@@ -49,8 +49,8 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A
     cent <- check_strength(g)
   }
   N <- max(memb)
-  if (N == 1) return(rep(0, length(memb)))
-  Cn <- max(vapply(seq_len(N), function(x) sum(cent[memb == x]), numeric(1)))
+  if (N == 1L) return(rep.int(0, length(memb)))
+  Cn <- max(vapply(seq_len(N), function(x) sum(cent[memb == x]), numeric(1L)))
 
   if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
   Kis <- vapply(seq_len(N), function(x) colSums(A * (memb==x)), numeric(length(Ki)))
@@ -60,7 +60,7 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A
   for (i in which(Ki > 0)) {
     barKis[i, ] <- Kis[i, ] / Kjs[, memb[i]]
     Vi <- which(A[, i] == 1)
-    Cis[i, ] <- vapply(seq_len(N), function(x) sum(cent[Vi[memb[Vi] == x]]), numeric(1))
+    Cis[i, ] <- vapply(seq_len(N), function(x) sum(cent[Vi[memb[Vi] == x]]), numeric(1L))
   }
 
   barCis <- Cis / Cn
@@ -123,8 +123,8 @@ within_module_deg_z_score <- function(g, memb, A=NULL) {
   stopifnot(is_igraph(g))
   N <- max(memb)
   if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
-  z <- Ki <- rep(0, dim(A)[1L])
-  Ksi <- sigKsi <- rep(0, N)
+  z <- Ki <- rep.int(0, dim(A)[1L])
+  Ksi <- sigKsi <- rep.int(0, N)
 
   for (S in seq_len(N)) {
     x <- A[memb==S, ] %*% (memb==S)

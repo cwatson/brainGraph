@@ -84,7 +84,7 @@ plot_brainGraph_multi <- function(g.list, filename='orthoview.png',
   width <- 671 * 3
   height <- 673
   png(filename=filename, width=width, height=height*kNumGraphs, units='px', res=300)
-  layout(matrix(1:(3*kNumGraphs), kNumGraphs, 3, byrow=TRUE),
+  layout(matrix(1L:(3L*kNumGraphs), kNumGraphs, 3L, byrow=TRUE),
          widths=c(4/3, 1, 4/3), heights=rep.int(1L, kNumGraphs))
 
   # See if there are multiple "subgraph", "main", or "label" arguments
@@ -124,7 +124,7 @@ slicer <- function(g.list, nrows, ncols, plane='axial', hemi='both', filename='a
   g.list <- g.list[]
   kNumGraphs <- length(g.list)
   if (missing(nrows) && missing(ncols)) {
-    nrows <- 1
+    nrows <- 1L
     ncols <- kNumGraphs
   } else {
     if (missing(ncols)) {
@@ -137,7 +137,7 @@ slicer <- function(g.list, nrows, ncols, plane='axial', hemi='both', filename='a
   if (kNumPlots < kNumGraphs) {
     warning('Specified # of rows and columns less than the # of graphs; adjusting nrows.')
     rem <- (kNumGraphs / nrows) %% ncols
-    nrows <- (kNumGraphs %/% ncols) + (rem > 0)
+    nrows <- (kNumGraphs %/% ncols) + (rem > 0L)
     kNumPlots <- nrows * ncols
   }
 

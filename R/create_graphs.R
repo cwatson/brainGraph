@@ -154,7 +154,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   x$level <- level
   x$type <- type
   attrs <- c('modality', 'weighting', 'threshold', 'name', 'Group')
-  attrs <- names(which(vapply(attrs, function(y) !is.null(get(y)), logical(1))))
+  attrs <- names(which(vapply(attrs, function(y) !is.null(get(y)), logical(1L))))
   for (a in attrs) x <- set_graph_attr(x, a, get(a))
   if (level == 'group' && !is.null(Group)) x$name <- x$Group
 
@@ -174,9 +174,9 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
 
     lobeorder <- list('Frontal', c('Insula', 'Central'), c('Limbic', 'Cingulate'),
                       'SCGM', 'Temporal', 'Parietal', 'Occipital', 'Cerebellum', 'Brainstem')
-    if (!'Brainstem' %in% lobes) lobeorder <- lobeorder[-9]
-    if (!'Cerebellum' %in% lobes) lobeorder <- lobeorder[-8]
-    if (!'SCGM' %in% lobes) lobeorder <- lobeorder[-4]
+    if (!'Brainstem' %in% lobes) lobeorder <- lobeorder[-9L]
+    if (!'Cerebellum' %in% lobes) lobeorder <- lobeorder[-8L]
+    if (!'SCGM' %in% lobes) lobeorder <- lobeorder[-4L]
     for (i in seq_along(lobeorder)) {
       l.cir <- c(l.cir, DT[lobe %in% lobeorder[[i]] & !hemi %in% c('B', 'R'),
                            .SD[order(-y.mni, x.mni), index]])
@@ -294,7 +294,7 @@ summary.brainGraph <- function(object, print.attrs=c('all', 'graph', 'vertex', '
   if (!is.brainGraph(object)) NextMethod(generic='summary', object=object)
 
   df <- print_bg_summary(object)
-  if (object$level != 'subject') df <- df[-14, ]
+  if (object$level != 'subject') df <- df[-14L, ]
 
   print.attrs <- match.arg(print.attrs)
   attrtypes <- switch(print.attrs,
@@ -329,8 +329,8 @@ print.summary.brainGraph <- function(x, ...) {
         cat('No', tolower(atype), 'attributes!')
       } else {
         title <- paste(simpleCap(atype), 'attributes')
-        width <- getOption('width') - nchar(title) - 1
-        message(title, paste(rep('-', width / 2), collapse=''))
+        width <- getOption('width') - nchar(title) - 1L
+        message(title, paste(rep.int('-', width / 2), collapse=''))
         print(x$attrs[[atype]], right=FALSE, row.names=FALSE)
       }
       cat('\n')
@@ -436,13 +436,13 @@ make_ego_brainGraph <- function(g, vs) {
 make_intersection_brainGraph <- function(..., subgraph) {
   g <- inds <- NULL
   graphs <- args_as_list(...)
-  stopifnot(all(vapply(graphs, is.brainGraph, logical(1))))
+  stopifnot(all(vapply(graphs, is.brainGraph, logical(1L))))
   Nv <- vcount(graphs[[1L]])
 
   subs <- lapply(graphs, subset_graph, subgraph)
   graphs.sub <- lapply(subs, with, g)
   inds.sub <- lapply(subs, with, inds)
-  graphs.valid <- graphs.sub[which(vapply(graphs.sub, function(x) !is.null(x), logical(1)))]
+  graphs.valid <- graphs.sub[which(vapply(graphs.sub, function(x) !is.null(x), logical(1L)))]
 
   if (length(graphs.valid) == 0L) {
     return(make_empty_brainGraph(graphs[[1L]]$atlas))

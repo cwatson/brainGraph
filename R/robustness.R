@@ -45,14 +45,14 @@ robustness <- function(g, type=c('vertex', 'edge'),
   measure <- match.arg(measure)
   orig_max <- max(components(g)$csize)
   n <- switch(type, vertex=vcount(g), edge=ecount(g))
-  removed.pct <- seq(0, 1, length=n+1)
+  removed.pct <- seq.int(0, 1, length.out=n+1L)
   if (measure == 'random') {
     otype <- paste('Random', type, 'removal')
-    rand <- matrix(rep(seq_len(n), N), nrow=n, ncol=N)
-    index <- apply(rand, 2, sample)
+    rand <- matrix(rep.int(seq_len(n), N), nrow=n, ncol=N)
+    index <- apply(rand, 2L, sample)
   } else {
     otype <- paste('Targeted', type, 'attack')
-    max.comp.removed <- rep(orig_max, n)
+    max.comp.removed <- rep.int(orig_max, n)
   }
   if (!getDoParRegistered()) {
     cl <- makeCluster(getOption('bg.ncpus'))
@@ -62,10 +62,10 @@ robustness <- function(g, type=c('vertex', 'edge'),
     if (measure == 'random') {
       max.comp <- foreach(i=seq_len(N), .combine='cbind') %dopar% {
         ord <- V(g)$name[index[, i]]
-        tmp <- rep(orig_max, n)
-        for (j in seq_len(n - 1)) {
+        tmp <- rep.int(orig_max, n)
+        for (j in seq_len(n - 1L)) {
           g <- delete_vertices(g, ord[j])
-          tmp[j+1] <- max(components(g)$csize)
+          tmp[j + 1L] <- max(components(g)$csize)
         }
         tmp
       }
@@ -74,9 +74,9 @@ robustness <- function(g, type=c('vertex', 'edge'),
     } else {
       val <- if (measure == 'btwn.cent') centr_betw(g)$res else check_degree(g)
       ord <- V(g)$name[order(val, decreasing=TRUE)]
-      for (j in seq_len(n - 1)) {
+      for (j in seq_len(n - 1L)) {
         g <- delete_vertices(g, ord[j])
-        max.comp.removed[j+1] <- max(components(g)$csize)
+        max.comp.removed[j + 1L] <- max(components(g)$csize)
       }
     }
 
@@ -86,10 +86,10 @@ robustness <- function(g, type=c('vertex', 'edge'),
     } else if (measure == 'random') {
       max.comp <- foreach(i=seq_len(N), .combine='cbind') %dopar% {
         el <- as_edgelist(g, names=FALSE)[index[, i], ]
-        tmp <- rep(orig_max, n)
-        for (j in seq_len(n - 1)) {
+        tmp <- rep.int(orig_max, n)
+        for (j in seq_len(n - 1L)) {
           g.rand <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
-          tmp[j+1] <- max(components(g.rand)$csize)
+          tmp[j + 1L] <- max(components(g.rand)$csize)
         }
         tmp
       }
@@ -98,9 +98,9 @@ robustness <- function(g, type=c('vertex', 'edge'),
     } else {
       ord <- order(E(g)$btwn, decreasing=TRUE)
       el <- as_edgelist(g, names=FALSE)[ord, ]
-      for (j in seq_len(n - 1)) {
+      for (j in seq_len(n - 1L)) {
         g <- graph_from_edgelist(el[-seq_len(j), , drop=FALSE], directed=FALSE)
-        max.comp.removed[j+1] <- max(components(g)$csize)
+        max.comp.removed[j + 1L] <- max(components(g)$csize)
       }
     }
 

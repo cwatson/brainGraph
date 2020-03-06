@@ -33,13 +33,13 @@ small.world <- function(g.list, rand) {
     stop('Input should be a list, igraph, brainGraph, or brainGraphList object.')
   }
 
-  Lp <- vapply(g.list, graph_attr, numeric(1), 'Lp')
-  Cp <- vapply(g.list, graph_attr, numeric(1), 'Cp')
-  densities <- vapply(g.list, graph_attr, numeric(1), 'density')
+  Lp <- vapply(g.list, graph_attr, numeric(1L), 'Lp')
+  Cp <- vapply(g.list, graph_attr, numeric(1L), 'Cp')
+  densities <- vapply(g.list, graph_attr, numeric(1L), 'density')
 
   N <- lengths(rand)
-  Lp.rand <- colMeans(vapply(rand, vapply, numeric(N[1]), graph_attr, numeric(1), 'Lp'))
-  Cp.rand <- colMeans(vapply(rand, vapply, numeric(N[1]), graph_attr, numeric(1), 'Cp'))
+  Lp.rand <- colMeans(vapply(rand, vapply, numeric(N[1L]), graph_attr, numeric(1L), 'Lp'))
+  Cp.rand <- colMeans(vapply(rand, vapply, numeric(N[1L]), graph_attr, numeric(1L), 'Cp'))
 
   Cp.norm <- Cp / Cp.rand
   Lp.norm <- Lp / Lp.rand

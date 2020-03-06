@@ -117,12 +117,12 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
   A.bin <- A.bin.sums <- A.inds <- NULL
   kNumSubjs <- lengths(inds)
   nz <- sum(kNumSubjs)
-  if (is.list(A.files) || length(A.files) == 1) A.files <- dir2files(A.files)
+  if (is.list(A.files) || length(A.files) == 1L) A.files <- dir2files(A.files)
   stopifnot(all(file.exists(A.files)),
             length(A.files) == nz,
             sub.thresh >= 0 && sub.thresh <= 1)
   if (!is.null(div.files)) {
-    if (is.list(div.files) || length(div.files == 1)) div.files <- dir2files(div.files)
+    if (is.list(div.files) || length(div.files) == 1L) div.files <- dir2files(div.files)
     stopifnot(length(div.files) == length(A.files))
   }
 
@@ -155,14 +155,14 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 
     if (threshold.by == 'density') {
       Asym <- symmetrize_array(A.norm, ...)
-      thrMat <- vapply(mat.thresh, function(x) apply(Asym, 3, get_thresholds, x, emax), numeric(nz))
-      Aperm <- aperm(Asym, c(3, 1, 2))
+      thrMat <- vapply(mat.thresh, function(x) apply(Asym, 3L, get_thresholds, x, emax), numeric(nz))
+      Aperm <- aperm(Asym, c(3L, 1L, 2L))
       for (x in seq_along(mat.thresh)) {
         A.norm.sub[[x]] <- Aperm * (Aperm > thrMat[, x])
-        A.norm.sub[[x]] <- aperm(A.norm.sub[[x]], c(2, 3, 1))
+        A.norm.sub[[x]] <- aperm(A.norm.sub[[x]], c(2L, 3L, 1L))
       }
     } else if (threshold.by == 'consistency') {
-      all.cv <- apply(A.norm, 1:2, coeff_var)
+      all.cv <- apply(A.norm, 1L:2L, coeff_var)
       all.cv <- symmetrize_mats(all.cv, 'min')
       threshes <- get_thresholds(all.cv, mat.thresh, emax, decreasing=TRUE)
       A.inds <- lapply(threshes, function(x) ifelse(all.cv < x, 1L, 0L))
@@ -179,7 +179,7 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       A.bin <- lapply(mat.thresh, function(x) {A.norm > x} + 0L)
       A.bin.sums <- lapply(seq_along(mat.thresh), function(x)
                            abind(lapply(inds, function(z)
-                                        rowSums(A.bin[[x]][, , z], dims=2)), along=3))
+                                        rowSums(A.bin[[x]][, , z], dims=2L)), along=3L))
 
       # For deterministic, threshold by size *after* binarizing
       if (modality == 'dti' && algo == 'deterministic' && divisor == 'size') {
@@ -194,10 +194,10 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
       } else {
         thresh <- sub.thresh * kNumSubjs
         for (x in seq_along(mat.thresh)) {
-          tmp <- aperm(A.bin.sums[[x]], c(3, 1, 2))
+          tmp <- aperm(A.bin.sums[[x]], c(3L, 1L, 2L))
           A.inds[[x]] <- array(0L, dim=dim(tmp))
           A.inds[[x]][tmp >= thresh] <- 1L
-          A.inds[[x]] <- aperm(A.inds[[x]], c(2, 3, 1))
+          A.inds[[x]] <- aperm(A.inds[[x]], c(2L, 3L, 1L))
         }
       }
 
@@ -216,10 +216,10 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
     } else if (threshold.by == 'mean') {
       # Threshold: mean + 2SD > mat.thresh
       #---------------------------------
-      all.mean <- rowMeans(A.norm, dims=2)
+      all.mean <- rowMeans(A.norm, dims=2L)
       all.means <- replicate(nz, all.mean)
-      all.sums <- rowSums((A.norm - all.means)^2, dims=2)
-      all.sd <- sqrt(all.sums / (nz - 1))
+      all.sums <- rowSums((A.norm - all.means)^2, dims=2L)
+      all.sd <- sqrt(all.sums / (nz - 1L))
       all.thresh <- all.mean + (2 * all.sd)
       all.thresh <- replicate(nz, all.thresh)
 
@@ -232,10 +232,10 @@ create_mats <- function(A.files, modality=c('dti', 'fmri'),
 
   A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
                         abind(lapply(inds, function(y)
-                                     rowMeans(A.norm.sub[[x]][, , y], dims=2)), along=3))
+                                     rowMeans(A.norm.sub[[x]][, , y], dims=2L)), along=3L))
   if (threshold.by == 'density') {
     A.norm.mean <- lapply(seq_along(mat.thresh), function(x)
-                          array(apply(A.norm.mean[[x]], 3, function(y)
+                          array(apply(A.norm.mean[[x]], 3L, function(y)
                                       y * (y > get_thresholds(y, mat.thresh[x], emax))),
                                 dim=dim(A.norm.mean[[x]])))
   }
@@ -283,7 +283,7 @@ symmetrize_mats <- function(A, symm.by=c('max', 'min', 'avg')) {
 #' @rdname symmetrize_mats
 
 symmetrize_array <- function(A, ...) {
-  return(array(apply(A, 3, symmetrize_mats, ...), dim=dim(A)))
+  return(array(apply(A, 3L, symmetrize_mats, ...), dim=dim(A)))
 }
 
 #' Symmetrize a matrix with the mean of off-diagonal elements
@@ -299,7 +299,7 @@ symm_mean <- function(A) {
 }
 
 read.array <- function(infiles, ncols=NULL) {
-  Nv <- length(readLines(infiles[1]))
+  Nv <- length(readLines(infiles[1L]))
   if (is.null(ncols)) ncols <- Nv
   A <- array(sapply(infiles, function(x)
                     matrix(scan(x, what=numeric(), n=Nv*ncols, quiet=TRUE),
@@ -309,21 +309,21 @@ read.array <- function(infiles, ncols=NULL) {
 }
 
 normalize_mats <- function(A, divisor, div.files, P) {
-  div <- read.array(div.files, ncols=1)
+  div <- read.array(div.files, ncols=1L)
 
   if (divisor == 'waytotal') {
     # Control for streamline count by waytotal
     Nv <- dim(A)[1L]
-    W <- array(apply(div, 3, function(x) x[, rep(1, Nv)]), dim=dim(A))
+    W <- array(apply(div, 3L, function(x) x[, rep.int(1L, Nv)]), dim=dim(A))
     A.norm <- A / W
 
   } else if (divisor == 'size') {
     # Control for the size (# voxels) of both regions 'x' and 'y'
-    R <- array(apply(div, 3, function(x) outer(x, x, FUN='+')), dim=dim(A))
+    R <- array(apply(div, 3L, function(x) outer(x, x, FUN='+')), dim=dim(A))
     A.norm <- 2 * A / (P * R)
 
   } else if (divisor == 'rowSums') {
-    A.norm <- array(apply(A, 3, function(x) x / rowSums(x)), dim=dim(A))
+    A.norm <- array(apply(A, 3L, function(x) x / rowSums(x)), dim=dim(A))
   }
   return(A.norm)
 }
@@ -361,8 +361,8 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #' }
 
 apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
-  if (is.list(W.files) || length(W.files) == 1) W.files <- dir2files(W.files)
-  dimA <- dim(sub.mats[[1]])
+  if (is.list(W.files) || length(W.files) == 1L) W.files <- dir2files(W.files)
+  dimA <- dim(sub.mats[[1L]])
   nz <- dimA[3L]
   stopifnot(length(W.files) == nz)
   W <- read.array(W.files)
@@ -372,13 +372,13 @@ apply_thresholds <- function(sub.mats, group.mats, W.files, inds) {
     keep <- sub.mats[[x]] > 0
     W.norm.sub[[x]][keep] <- W[keep]
   }
-  ng <- dim(group.mats[[1]])[3L]
+  ng <- dim(group.mats[[1L]])[3L]
   W.norm.mean <- lapply(seq_along(group.mats), function(x)
                         lapply(seq_len(ng), function(g)
                                ifelse(group.mats[[x]][, , g] > 0,
-                                      rowMeans(W.norm.sub[[x]][, , inds[[g]]], dims=2),
+                                      rowMeans(W.norm.sub[[x]][, , inds[[g]]], dims=2L),
                                       0)))
-  W.norm.mean <- lapply(W.norm.mean, function(x) abind(x, along=3))
+  W.norm.mean <- lapply(W.norm.mean, function(x) abind(x, along=3L))
   return(list(W=W, W.norm.sub=W.norm.sub, W.norm.mean=W.norm.mean))
 }
 

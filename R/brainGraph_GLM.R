@@ -200,8 +200,9 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
       stop('Design matrices are rank-deficient for all regions; please check your data')
     }
 
-    DT.lm <- setNames(vector('list', length(runX)), runX)
-    for (k in intersect(runX, runY)) {
+    runXy <- intersect(runX, runY)
+    DT.lm <- setNames(vector('list', length(runXy)), runXy)
+    for (k in runXy) {
       DT.lm[[k]] <- glm_fit_helper(DT.Xy[region == k], X[, , k],
                                    ctype, contrasts, alt, outcome, 'region', alpha)
     }
@@ -234,8 +235,8 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   dfR <- dimX[1L] - dimX[2L]
   # Different design matrix for each region
   if (length(dimX) == 3L && level == 'vertex') {
-    null.dist <- setNames(vector('list', length(runX)), runX)
-    for (k in intersect(runX, runY)) {
+    null.dist <- setNames(vector('list', length(runXy)), runXy)
+    for (k in runXy) {
       null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
                                   DT.Xy[region == k], outcome, X[, , k], 'region')
     }
@@ -578,7 +579,7 @@ print.summary.bg_GLM <- function(x, ...) {
   }
 
   # Print results for each contrast
-  message('\n', 'Statistics', '\n', rep('-', getOption('width') / 4))
+  message('\n', 'Statistics', '\n', rep.int('-', getOption('width') / 4))
   print_contrast_stats_summary(x)
 
   invisible(x)
@@ -624,7 +625,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   stopifnot(inherits(x, 'bg_GLM'))
   if (!requireNamespace('gridExtra', quietly=TRUE)) stop('Must install the "gridExtra" package.')
   if (!is.numeric(which) || any(which < 1L) || any(which > 6L)) stop("'which' must be in 1:6")
-  show <- rep(FALSE, 6L)
+  show <- rep.int(FALSE, 6L)
   show[which] <- TRUE
   prows <- 1L + (length(which) > 1L)
 
@@ -680,7 +681,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     if (show[5L]) {
       r.hat <- dat[, range(leverage, na.rm=TRUE)]
       hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1L, length.out=101L)
-      dt.cook <- data.table(hh=rep(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
+      dt.cook <- data.table(hh=rep.int(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
       dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
 
       diagPlots[[5L]] <- ggplot(dat, aes(x=leverage, y=resid.std)) +
@@ -704,7 +705,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       diagPlots[[6L]] <- ggplot(dat, aes(x=leverage.tr, y=cook)) +
         geom_point(aes(shape=mark)) +
         geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
-        geom_abline(slope=seq(0, 3, 0.5), lty=2, col='gray50') +
+        geom_abline(slope=seq.int(0, 3, 0.5), lty=2, col='gray50') +
         xlim(c(0, dat[, max(leverage.tr)])) +
         ylim(c(0, dat[, max(cook) * 1.025])) +
         mytheme +

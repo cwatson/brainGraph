@@ -42,14 +42,14 @@ write_brainnet <- function(g, vcolor='none', vsize='constant', edge.wt=NULL, fil
 
   vnames <- vertex_attr_names(g)
   if (vcolor == 'none') {
-    cols <- rep(1, vcount(g))
+    cols <- rep.int(1L, vcount(g))
   } else {
     stopifnot(vcolor %in% vnames)
-    cols <- as.numeric(factor(vertex_attr(g, vcolor)))
+    cols <- as.integer(factor(vertex_attr(g, vcolor)))
   }
 
   if (vsize == 'constant') {
-    size <- 5
+    size <- 5L
   } else {
     stopifnot(vsize %in% vnames)
     size <- vertex_attr(g, vsize)

@@ -32,7 +32,7 @@ contract_brainGraph <- function(g, vgroup='lobe.hemi') {
 
   # Simplify coordinate- and color-related vertex and edge attributes
   for (nam in c('x', 'y', 'z')) {
-    val <- vapply(vertex_attr(g.sub, nam), mean, numeric(1))
+    val <- vapply(vertex_attr(g.sub, nam), mean, numeric(1L))
     g.sub <- delete_vertex_attr(g.sub, nam)
     g.sub <- set_vertex_attr(g.sub, nam, value=val)
   }
@@ -49,7 +49,7 @@ contract_brainGraph <- function(g, vgroup='lobe.hemi') {
     }
   }
 
-  V(g.sub)$size <- vapply(V(g.sub), function(v) sum(E(g.sub)[v %--% V(g.sub)]$count), numeric(1))
+  V(g.sub)$size <- vapply(V(g.sub), function(v) sum(E(g.sub)[v %--% V(g.sub)]$count), numeric(1L))
 
   class(g.sub) <- c('brainGraph', class(g.sub))
   return(g.sub)
