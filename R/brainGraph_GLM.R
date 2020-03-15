@@ -304,7 +304,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
       X[[rgn]] <- brainGraph_GLM_design(DT.Xy[region == rgn, !c('region', outcome), with=FALSE], ...)
     }
     attrs <- attributes(X[[rgn]])[-c(1L, 2L)]  # Don't include "dim" and "dimnames"
-    X <- drop(abind::abind(X, along=3))
+    X <- drop(abind::abind(X, along=3L))
     attributes(X) <- c(attributes(X), attrs)
   } else {
     if (is.null(X)) X <- brainGraph_GLM_design(DT.Xy[region == regions[1L], !c('region', measure), with=FALSE], ...)
@@ -353,7 +353,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
   }
   for (i in seq_len(nC)) dimnames(contrasts[[i]])[[2L]] <- dimnames(X)[[2L]]
 
-  if (con.type == 't') contrasts <- abind::abind(contrasts, along=1)
+  if (con.type == 't') contrasts <- abind::abind(contrasts, along=1L)
 
   return(list(contrasts=contrasts, con.name=con.name, nC=nC))
 }
@@ -365,7 +365,7 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
 #' @rdname glm_helpers
 
 check_if_singular <- function(X) {
-  names(which(apply(X, 3L, function(x) qr(x)$rank) == dim(X)[2L]))
+  names(which(apply(X, 3L, function(x) qr.default(x)$rank) == dim(X)[2L]))
 }
 
 ################################################################################
@@ -384,23 +384,21 @@ check_if_singular <- function(X) {
 #' @rdname glm_helpers
 
 glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alpha=NULL) {
-  ESS <- numer <- stat <- se <- p <- contrast <- ci.low <- ci.high <- NULL
+  ESS <- stat <- se <- p <- ci.low <- ci.high <- NULL
   dimX <- dim(X)
   dfR <- dimX[1L] - dimX[2L]
 
-  XtX <- solve(crossprod(X))
+  XtX <- chol2inv(chol.default(crossprod(X)))
   if (con.type == 'f') {
-    DT.lm <- vector('list', length(contrasts))
-    CXtX <- lapply(contrasts, function(x) solve(x %*% tcrossprod(XtX, x)))
-    rkC <- unlist(lapply(contrasts, function(x) qr(x)$rank))
+    DT.lm <- CXtX <- rkC <- vector('list', length(contrasts))
     for (i in seq_along(contrasts)) {
-      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_f(X, get(outcome), dfR, contrasts[[i]], rkC[i], CXtX[[i]]), by=mykey]
+      CXtX[[i]] <- chol2inv(chol.default(contrasts[[i]] %*% tcrossprod(XtX, contrasts[[i]])))
+      rkC[[i]] <- qr.default(contrasts[[i]])$rank
+      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_f(X, get(outcome), contrasts[[i]], CXtX[[i]]), by=mykey]
+      DT.lm[[i]][, stat := (ESS / rkC[[i]]) / (se / dfR)]
+      DT.lm[[i]][, p := pf(stat, rkC[[i]], dfR, lower.tail=FALSE)]
     }
     DT.lm <- rbindlist(DT.lm, idcol='contrast')
-    DT.lm[, ESS := numer * rkC]
-    DT.lm[, stat := (numer / (se / dfR))]
-    DT.lm[, numer := NULL]
-    DT.lm[, p := pf(stat, rkC, dfR, lower.tail=FALSE)]
   } else if (con.type == 't') {
     pfun <- switch(alt,
                    two.sided=function(stat, df) 2 * pt(abs(stat), df, lower.tail=FALSE),
@@ -466,27 +464,23 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
 #' to the full model, the sum of squared errors of the full model, the
 #' F-statistic, and associated P-value.
 #'
-#' @param dfR Integer; residual degrees of freedom
-#' @param rkC Integer; rank of the contrast matrix
 #' @param CXtX Numeric matrix
 #' @importFrom RcppEigen fastLmPure
 #'
 #' @return \code{brainGraph_GLM_fit_f} - A list containing:
-#'   \item{numer}{The extra sum of squares due to the full model divided by the
-#'     rank of the contrast matrix}
+#'   \item{ESS}{The extra sum of squares due to the full model}
 #'   \item{se}{The sum of squared errors of the full model}
-#'   \item{contrast}{The contrast number; defaults to \code{1}}
 #'
 #' @rdname glm_fit
 
-brainGraph_GLM_fit_f <- function(X, y, dfR, contrast, rkC, CXtX) {
+brainGraph_GLM_fit_f <- function(X, y, contrast, CXtX) {
   est <- fastLmPure(X, y, method=2L)
-  b <- as.matrix(est$coefficients)
+  b <- est$coefficients
   gamma <- contrast %*% b
   SSEF <- as.numeric(crossprod(est$residuals))
 
-  numer <- as.numeric(crossprod(gamma, CXtX) %*% gamma / rkC)
-  list(numer=numer, se=SSEF)
+  ESS <- as.numeric(crossprod(gamma, CXtX) %*% gamma)
+  list(ESS=ESS, se=SSEF)
 }
 
 ################################################################################
@@ -720,7 +714,7 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   }
 
   dimX <- dim(x$X)
-  p <- if (length(dimX) == 3L) qr(x$X[, , 1L])$rank else qr(x$X)$rank
+  p <- if (length(dimX) == 3L) qr.default(x$X[, , 1L])$rank else qr.default(x$X)$rank
   rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(dimX[1L]))
   outcome <- x$outcome
 

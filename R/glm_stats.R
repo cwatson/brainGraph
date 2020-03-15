@@ -194,7 +194,7 @@ vcov.bg_GLM <- function(object, ...) {
   namesV <- dimnames(X)[c(2L, 2L, 3L)]
   runX <- if (is.null(object$runX)) namesV[[3L]] else object$runX
   XtX <- array(NaN, dim=dimV, dimnames=namesV)
-  XtX[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x) solve(crossprod(x)))
+  XtX[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x) chol2inv(chol.default(crossprod(x))))
   sig <- sigma(object)^2
   XtX <- aperm(XtX, c(3L, 1L, 2L))
   aperm(sig * XtX, c(2L, 3L, 1L))

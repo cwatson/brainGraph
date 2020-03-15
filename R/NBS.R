@@ -128,7 +128,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
     null.dist <- null.dist[statfun(stat, dfR), list(contrast, Var1, Var2, stat, perm)]
   } else {
     statfun <- function(stat, dfN, dfD) stat > qf(p.init / 2, dfN, dfD, lower.tail=FALSE)
-    rkC <- vapply(contrasts, function(x) qr(x)$rank, integer(1L))
+    rkC <- vapply(contrasts, function(x) qr.default(x)$rank, integer(1L))
     null.dist <- split(null.dist, by='contrast')
     for (j in setdiff(seq_len(nC), skip)) {
       null.dist[[j]] <- null.dist[[j]][statfun(stat, rkC[j], dfR), list(Var1, Var2, stat, perm)]

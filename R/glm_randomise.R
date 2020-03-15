@@ -34,18 +34,18 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
     eCm <- cbind(con.mat[, idx, drop=FALSE], con.mat[, -idx, drop=FALSE])
 
   } else if (part.method == 'beckmann') {
-    Q <- solve(crossprod(M))
-    cdc <- solve(con.mat %*% tcrossprod(Q, con.mat))
+    Q <- chol2inv(chol.default(crossprod(M)))
+    cdc <- chol2inv(chol.default(con.mat %*% tcrossprod(Q, con.mat)))
     X <- M %*% tcrossprod(Q, con.mat) %*% cdc
 
     Cu <- MASS::Null(t(con.mat))
     Cv <- Cu - (crossprod(con.mat, cdc) %*% con.mat %*% Q %*% Cu)
-    Z <- M %*% Q %*% Cv %*% solve(crossprod(Cv, Q) %*% Cv)
+    Z <- M %*% Q %*% Cv %*% chol2inv(chol.default(crossprod(Cv, Q) %*% Cv))
     px <- dim(X)[2L]
     eCm <- cbind(diag(px), matrix(0, nrow=px, ncol=dim(Z)[2L]))
 
   } else if (part.method == 'ridgway') {
-    rZ <- qr(M)$rank - qr(con.mat)$rank
+    rZ <- qr.default(M)$rank - qr.default(con.mat)$rank
     pinvC <- MASS::ginv(con.mat)
     C0 <- diag(dim(M)[2L]) - crossprod(con.mat, MASS::ginv(t(con.mat)))
     tmpX <- M %*% pinvC
@@ -71,7 +71,7 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'     \code{\link{partition}}.
 #'   \item Calculate the new contrast(s) based on this new design matrix (also
 #'     through \code{\link{partition}}
-#'   \item Calculate the inverse of the cross produce of the full model
+#'   \item Calculate the inverse of the cross product of the full model
 #'   \item Calculate the \dQuote{hat} and residual-forming matrices due to nuisance
 #'     alone
 #'   \item For F contrasts, return an inverse of the cross product between the
@@ -104,11 +104,11 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
   for (j in seq_len(nC)) {
     parts <- partition(X, contrasts[[j]], part.method)
     Mp[[j]] <- with(parts, cbind(X, Z))
-    MtM[[j]] <- solve(crossprod(Mp[[j]]))
+    MtM[[j]] <- chol2inv(chol.default(crossprod(Mp[[j]])))
 
     # The hat and residual-forming matrices are different for diff. methods
     if (perm.method == 'freedmanLane') {
-      Hz <- with(parts, Z %*% tcrossprod(solve(crossprod(Z)), Z))
+      Hz <- with(parts, Z %*% tcrossprod(chol2inv(chol.default(crossprod(Z))), Z))
 
     } else if (perm.method == 'terBraak') {
       # NOTE: this is really "Hm", and "Rz" is really "Rm"
@@ -116,17 +116,17 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 
     } else if (perm.method == 'smith') {
       Xp[[j]] <- parts$X; Zp[[j]] <- parts$Z
-      Hz <- Zp[[j]] %*% tcrossprod(solve(crossprod(Zp[[j]])), Zp[[j]])
+      Hz <- Zp[[j]] %*% tcrossprod(chol2inv(chol.default(crossprod(Zp[[j]]))), Zp[[j]])
     }
 
     Rz[[j]] <- diag(n) - Hz
     eC[[j]] <- parts$eCm
     if (con.type == 'f') {
-      CMtM[[j]] <- solve(eC[[j]] %*% tcrossprod(MtM[[j]], eC[[j]]))
-      rkC[j] <- qr(eC[[j]])$rank
+      CMtM[[j]] <- chol2inv(chol.default(eC[[j]] %*% tcrossprod(MtM[[j]], eC[[j]])))
+      rkC[j] <- qr.default(eC[[j]])$rank
     }
   }
-  dfR <- dim(Mp[[1L]])[1L] - qr(Mp[[1L]])$rank
+  dfR <- dim(Mp[[1L]])[1L] - qr.default(Mp[[1L]])$rank
 
   out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC, dfR=dfR)
   if (con.type == 'f') out <- c(out, list(CMtM=CMtM, rkC=rkC))
@@ -190,7 +190,7 @@ randomise <- function(perm.method, part.method, N, perms,
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
-          MtM <- solve(crossprod(M))
+          MtM <- chol2inv(chol.default(crossprod(M)))
           DT[, brainGraph_GLM_fit_t(M, outcome, MtM, eC[[j]]), by=eval(mykey)]
         }
       } else {
@@ -205,15 +205,17 @@ randomise <- function(perm.method, part.method, N, perms,
       if (perm.method == 'smith') {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
           M <- cbind(Mp[[j]][perms[i, ], ], randMats$Zp[[j]])
-          MtM <- solve(crossprod(M))
-          CMtM <- solve(eC[[j]] %*% tcrossprod(MtM, eC[[j]]))
-          DT[, brainGraph_GLM_fit_f(M, outcome, dfR, eC[[j]], rkC[j], CMtM), by=eval(mykey)]
+          MtM <- chol2inv(chol.default(crossprod(M)))
+          CMtM <- chol2inv(chol.default(eC[[j]] %*% tcrossprod(MtM, eC[[j]])))
+          DT[, brainGraph_GLM_fit_f(M, outcome, eC[[j]], CMtM), by=eval(mykey)]
         }
       } else {
         null.dist[[j]] <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
-          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% outcome, dfR, eC[[j]], rkC[j], CMtM[[j]]), by=eval(mykey)]
+          DT[, brainGraph_GLM_fit_f(Mp[[j]], Rz[[j]][perms[i, ], ] %*% outcome, eC[[j]], CMtM[[j]]), by=eval(mykey)]
         }
       }
+      null.dist[[j]][, numer := ESS / rkC[j]]
+      null.dist[[j]][, ESS := NULL]
     }
     null.dist[[j]] <- cbind(null.dist[[j]], data.table(perm=perm.order))
   }
