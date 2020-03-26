@@ -6,7 +6,7 @@
 \title{Matrix utility functions}
 \usage{
 get_thresholds(mat, densities, emax = dim(mat)[1L] * (dim(mat)[1L] -
-  1)/2, ...)
+  1L)/2, ...)
 
 is_binary(mat)
 }

@@ -4,26 +4,42 @@
 \alias{make_intersection_brainGraph}
 \title{Create the intersection of graphs based on a logical condition}
 \usage{
-make_intersection_brainGraph(..., subgraph)
+make_intersection_brainGraph(..., subgraph, keep.all.vertices = FALSE)
 }
 \arguments{
 \item{...}{Graph objects or lists of graph objects}
 
 \item{subgraph}{Character string specifying an equation (logical condition)
 for the vertices to subset}
+
+\item{keep.all.vertices}{Logical indicating whether to keep all vertices that
+meet the criteria in at least 1 input graph. Default: \code{FALSE}}
 }
 \value{
 An \code{igraph} graph object
 }
 \description{
-Create the intersection of graphs based on a logical condition
+Returns a graph object with vertices that meet certain criteria. By default,
+only vertices that meet these criteria for \emph{all} input graphs will be
+retained.
+}
+\details{
+If no vertices meet criteria for all input graphs, then an \code{igraph}
+graph object with 0 vertices is returned. If \code{keep.all.vertices=TRUE},
+this is essentially performing a \emph{union} of vertex sets that meet the
+criteria. In any case, the return graph will have 0 edges.
 }
 \examples{
 \dontrun{
 res.mtpc <- mtpc(g, covars, ...)
 g.mtpc <- make_glm_brainGraph(res.mtpc, atlas)
-g.mtpc.int <- make_intersection_brainGraph(g.mtpc,
-  subgraph='sig == 1')
+
+## All vertices with a significant MTPC result for all contrasts:
+g.mtpc.int <- make_intersection_brainGraph(g.mtpc, subgraph='sig == 1')
+
+## Return graphs with vertices with degree > 0 for each group separately
+tapply(g.list, groups(g.list), make_intersection_brainGraph,
+       subgraph='degree > 0')
 }
 }
 \author{

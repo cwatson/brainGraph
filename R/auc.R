@@ -4,16 +4,20 @@
 #' the area under the curve (AUC) across all thresholds/densities for each
 #' subject or group.
 #'
+#' If the elements of the input list do not have a \code{threshold} element (or
+#' if it is \code{NULL}) then the AUC will be calculated on the interval
+#' \eqn{[0, 1]} (inclusive). This has the same effect as specifying
+#' \code{norm=TRUE} in the function call.
+#'
 #' @param g.list A list of \code{brainGraphList} objects
 #' @param g.attr A character vector of graph attribute name(s). Default:
 #'   \code{NULL}
 #' @param v.attr A character vector of vertex attribute name(s). Default:
 #'   \code{NULL}
-#' @param norm Logical indicating whether to normalize threshold values to
-#'   between 0 and 1. Default: \code{FALSE}
+#' @param norm Logical indicating whether to normalize threshold values to be
+#'   between 0 and 1 (inclusive). Default: \code{FALSE}
 #' @export
-#' @return A \code{brainGraphList} object in which the graphs are for each
-#'   subject
+#' @return A \code{brainGraphList} object with one graph for each subject
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach getDoParRegistered
 #'
@@ -23,7 +27,7 @@
 #' }
 
 make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
-  threshold <- i <- NULL
+  i <- NULL
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
@@ -34,11 +38,11 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   for (a in attrs) out[[a]] <- g.list[[1L]][[a]]
 
   if (!is.null(g.list[[1L]]$threshold)) {
-    thresholds <- vapply(g.list, with, numeric(1L), threshold)
+    thresholds <- vapply(g.list, `[[`, numeric(1L), 'threshold')
+    if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   } else {
     thresholds <- seq.int(from=0, to=1, length.out=length(g.list))
   }
-  if (isTRUE(norm)) thresholds <- vec.transform(thresholds)
   subjects <- names(g.list[[1L]]$graphs)
   grps <- groups(g.list[[1L]])
 
@@ -49,8 +53,8 @@ make_auc_brainGraph <- function(g.list, g.attr=NULL, v.attr=NULL, norm=FALSE) {
   g.auc <- foreach(i=seq_along(subjects)) %dopar% {
     g.subj <- lapply(g.list, `[`, i)
     g.tmp <- with(out,
-        make_empty_brainGraph(atlas, type=type, level=level, modality=modality,
-                              weighting=weighting, name=subjects[i], Group=grps[i]))
+        make_empty_brainGraph(atlas, type, level, modality, weighting,
+                              name=subjects[i], Group=grps[i], subnet=g.subj[[1L]]$subnet))
     if (!is.null(g.attr)) {
       for (k in g.attr) {
         y <- sapply(g.subj, graph_attr, k)

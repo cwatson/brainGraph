@@ -16,17 +16,22 @@ make_auc_brainGraph(g.list, g.attr = NULL, v.attr = NULL,
 \item{v.attr}{A character vector of vertex attribute name(s). Default:
 \code{NULL}}
 
-\item{norm}{Logical indicating whether to normalize threshold values to
-between 0 and 1. Default: \code{FALSE}}
+\item{norm}{Logical indicating whether to normalize threshold values to be
+between 0 and 1 (inclusive). Default: \code{FALSE}}
 }
 \value{
-A \code{brainGraphList} object in which the graphs are for each
-  subject
+A \code{brainGraphList} object with one graph for each subject
 }
 \description{
 Given a list of \code{brainGraphList} objects, this function will calculate
 the area under the curve (AUC) across all thresholds/densities for each
 subject or group.
+}
+\details{
+If the elements of the input list do not have a \code{threshold} element (or
+if it is \code{NULL}) then the AUC will be calculated on the interval
+\eqn{[0, 1]} (inclusive). This has the same effect as specifying
+\code{norm=TRUE} in the function call.
 }
 \examples{
 \dontrun{

@@ -69,7 +69,7 @@ make_brainGraphList <- function(x, atlas, type=c('observed', 'random'),
 #'   \code{getOption('bg.progress')}
 #' @export
 #' @importFrom doParallel registerDoParallel
-#' @importFrom foreach getDoParRegistered
+#' @importFrom foreach getDoParRegistered getDoParWorkers
 #' @rdname brainGraphList
 
 make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
@@ -116,7 +116,7 @@ make_brainGraphList.array <- function(x, atlas, type=c('observed', 'random'),
   }
   loopfun <- make_brainGraph
   if (isTRUE(.progress)) {
-    ncpu <- getOption('bg.ncpus')
+    ncpu <- getDoParWorkers()
     print(paste('Start time:', format(as.POSIXct(Sys.time()), '%Y-%m-%d %H:%M:%OS0')))
     progbar <- txtProgressBar(min=0, max=kNumGraphs, style=3)
     loopfun <- function(...) {
@@ -386,7 +386,7 @@ make_brainGraphList.NBS <- function(x, atlas, type='observed', level='contrast',
       g <- g[seq_len(kNumGroups)]
     }
     g <- switch(class(g),
-                numeric=, logical=grpNames[g],
+                numeric=, integer=, logical=which(group.vec %in% grpNames[g]),
                 factor=which(group.vec %in% as.character(g)),
                 character=which(group.vec %in% g))
     x$graphs <- x$graphs[g]

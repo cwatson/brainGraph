@@ -65,8 +65,8 @@ Default: \code{NULL}}
 \item{weighting}{Character string indicating how the edges are weighted
 (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}}
 
-\item{threshold}{Numeric indicating the threshold used when sparsifying the
-connectivity matrix (if any). Default: \code{NULL}}
+\item{threshold}{Integer or number indicating the threshold used when
+\dQuote{sparsifying} the connectivity matrix (if any). Default: \code{NULL}}
 
 \item{gnames}{Character vector of graph names (e.g., study IDs if
 \code{level='subject'}). Default: \code{NULL}}

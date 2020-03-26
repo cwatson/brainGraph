@@ -62,8 +62,8 @@ Default: \code{NULL}}
 \item{weighting}{Character string indicating how the edges are weighted
 (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}}
 
-\item{threshold}{Numeric indicating the threshold used when sparsifying the
-connectivity matrix (if any). Default: \code{NULL}}
+\item{threshold}{Integer or number indicating the threshold used when
+\dQuote{sparsifying} the connectivity matrix (if any). Default: \code{NULL}}
 
 \item{...}{Arguments passed to \code{\link{set_brainGraph_attr}}}
 
@@ -91,23 +91,8 @@ connectivity matrix. Default: \code{FALSE}}
 object's attributes (default: \code{all})}
 }
 \value{
-A \code{brainGraph} graph object with additional attributes:
-  \item{Graph-level}{\code{version} (the current versions of R,
-    \emph{brainGraph}, and \emph{igraph}); \code{date}; \code{atlas};
-    \code{type}; \code{modality}; \code{weighting}; \code{threshold};
-    \code{name} (the subject ID, group name, or contrast name depending on
-    the value of \code{level}); \code{Group} (only if \code{group} is
-    specified)}
-  \item{Vertex-level}{\code{lobe} (character vector of lobe names);
-    \code{hemi} (character vector of hemispheres: \code{'L'}, \code{'R'}, or
-    \code{'B'}); \code{lobe.hemi} (integer vector indicating the lobe and
-    hemisphere); \code{class} (character vector of class names, if
-    applicable); \code{network} (character vector of network names, if
-    applicable); spatial coordinates \code{x, y, z} and \code{x.mni, y.mni,
-    z.mni}; \code{color.lobe} (vertex and edge: colors based on \emph{lobe});
-    \code{color.class,color.network} (vertex and edge: only if applicable);
-    and \code{circle.layout} (integer vector for ordering the vertices for
-    plots with circular layout)}
+A \code{brainGraph} graph object with additional graph-, vertex-, and
+  edge-level attributes (see below).
 
 The method for \code{bg_mediate} returns a \code{brainGraph_mediate}
   object, which has extra attributes:
@@ -155,8 +140,9 @@ Graph-level attributes added are:
     connectivity matrix (if any)}
   \item{name}{Character string specifying the study ID or group/contrast
     name, depending on the \code{level} argument}
-  \item{Group}{Character string specifying the experimental group the given
-    subject belongs to, or if it is a group-level graph}
+  \item{Group}{Character string specifying the experimental group that the
+    given subject belongs to, or if it is a group-level graph}
+  \item{subnet}{Integer vector, if \code{subnet} was specified in the call}
 }
 }
 
@@ -166,12 +152,15 @@ Vertex-level attributes added are:
 \describe{
   \item{name}{The names of the brain regions in the network}
   \item{lobe}{The names of the major brain lobes for each vertex}
-  \item{hemi}{The names of the hemisphere for each vertex}
-  \item{lobe.hemi}{The lobe-hemisphere combination}
+  \item{hemi}{The names of the hemisphere for each vertex (either \code{'L'},
+    \code{'R'}, or \code{'B'})}
+  \item{lobe.hemi}{The lobe-hemisphere combination (represented as an
+    \emph{integer} vector)}
   \item{class}{The tissue class (if applicable)}
   \item{network}{The network (if the atlas is \code{dosenbach160})}
-  \item{x,y,z}{The coordinates of the (centers-of-mass) brain regions in MNI
-    space}
+  \item{x,y,z}{The spatial coordinates of the (centers-of-mass) brain regions
+    in MNI space}
+  \item{x.mni,y.mni,z.mni}{Same as above}
   \item{color.lobe,color.class,color.network}{Colors for vertices of their
     respective membership}
   \item{circle.layout}{Integer vector indicating the order (going
@@ -184,7 +173,8 @@ Vertex-level attributes added are:
 Edge-level attributes added are:
 \describe{
   \item{color.lobe,color.class,color.network}{Correspond to the vertex
-  attribute of the same name. Inter-group edges will be colored \emph{gray}}
+    attribute of the same name. Inter-group edges will be colored
+    \emph{gray}}
 }
 }
 
@@ -198,8 +188,5 @@ bg <- make_brainGraph(A, 'dkt', modality='dti', weighting='fa',
 Other Graph creation functions: \code{\link{Creating_Graphs_GLM}},
   \code{\link{brainGraphList}},
   \code{\link{make_ego_brainGraph}}
-}
-\author{
-Christopher G. Watson, \email{cgwatson@bu.edu}
 }
 \concept{Graph creation functions}

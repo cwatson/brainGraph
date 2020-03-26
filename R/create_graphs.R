@@ -30,8 +30,9 @@
 #'     connectivity matrix (if any)}
 #'   \item{name}{Character string specifying the study ID or group/contrast
 #'     name, depending on the \code{level} argument}
-#'   \item{Group}{Character string specifying the experimental group the given
-#'     subject belongs to, or if it is a group-level graph}
+#'   \item{Group}{Character string specifying the experimental group that the
+#'     given subject belongs to, or if it is a group-level graph}
+#'   \item{subnet}{Integer vector, if \code{subnet} was specified in the call}
 #' }
 #'
 #' @section Vertex attributes:
@@ -39,12 +40,15 @@
 #' \describe{
 #'   \item{name}{The names of the brain regions in the network}
 #'   \item{lobe}{The names of the major brain lobes for each vertex}
-#'   \item{hemi}{The names of the hemisphere for each vertex}
-#'   \item{lobe.hemi}{The lobe-hemisphere combination}
+#'   \item{hemi}{The names of the hemisphere for each vertex (either \code{'L'},
+#'     \code{'R'}, or \code{'B'})}
+#'   \item{lobe.hemi}{The lobe-hemisphere combination (represented as an
+#'     \emph{integer} vector)}
 #'   \item{class}{The tissue class (if applicable)}
 #'   \item{network}{The network (if the atlas is \code{dosenbach160})}
-#'   \item{x,y,z}{The coordinates of the (centers-of-mass) brain regions in MNI
-#'     space}
+#'   \item{x,y,z}{The spatial coordinates of the (centers-of-mass) brain regions
+#'     in MNI space}
+#'   \item{x.mni,y.mni,z.mni}{Same as above}
 #'   \item{color.lobe,color.class,color.network}{Colors for vertices of their
 #'     respective membership}
 #'   \item{circle.layout}{Integer vector indicating the order (going
@@ -55,8 +59,18 @@
 #' Edge-level attributes added are:
 #' \describe{
 #'   \item{color.lobe,color.class,color.network}{Correspond to the vertex
-#'   attribute of the same name. Inter-group edges will be colored \emph{gray}}
+#'     attribute of the same name. Inter-group edges will be colored
+#'     \emph{gray}}
 #' }
+#'
+#' @section Specifying a subnetwork
+#' You can create a graph for a subset of an atlas's regions with the
+#' \code{subnet} argument. This can either be a numeric or character vector. If
+#' the input object (either a matrix or an \code{igraph} graph) has fewer
+#' rows/columns or vertices, respectively, than the atlas then the \code{subnet}
+#' graph attribute will also be added to the return object. This may occur if,
+#' for example, you use \code{\link{make_auc_brainGraph}} on graphs that were
+#' initially created from subnetworks.
 #'
 #' @param x An \code{igraph} graph object, numeric matrix, or \code{bg_mediate}
 #'   object
@@ -72,32 +86,16 @@
 #'   Default: \code{NULL}
 #' @param weighting Character string indicating how the edges are weighted
 #'   (e.g., 'fa', 'pearson', etc.). Default: \code{NULL}
-#' @param threshold Numeric indicating the threshold used when sparsifying the
-#'   connectivity matrix (if any). Default: \code{NULL}
+#' @param threshold Integer or number indicating the threshold used when
+#'   \dQuote{sparsifying} the connectivity matrix (if any). Default: \code{NULL}
 #' @param ... Arguments passed to \code{\link{set_brainGraph_attr}}
 #' @export
 #'
-#' @return A \code{brainGraph} graph object with additional attributes:
-#'   \item{Graph-level}{\code{version} (the current versions of R,
-#'     \emph{brainGraph}, and \emph{igraph}); \code{date}; \code{atlas};
-#'     \code{type}; \code{modality}; \code{weighting}; \code{threshold};
-#'     \code{name} (the subject ID, group name, or contrast name depending on
-#'     the value of \code{level}); \code{Group} (only if \code{group} is
-#'     specified)}
-#'   \item{Vertex-level}{\code{lobe} (character vector of lobe names);
-#'     \code{hemi} (character vector of hemispheres: \code{'L'}, \code{'R'}, or
-#'     \code{'B'}); \code{lobe.hemi} (integer vector indicating the lobe and
-#'     hemisphere); \code{class} (character vector of class names, if
-#'     applicable); \code{network} (character vector of network names, if
-#'     applicable); spatial coordinates \code{x, y, z} and \code{x.mni, y.mni,
-#'     z.mni}; \code{color.lobe} (vertex and edge: colors based on \emph{lobe});
-#'     \code{color.class,color.network} (vertex and edge: only if applicable);
-#'     and \code{circle.layout} (integer vector for ordering the vertices for
-#'     plots with circular layout)}
+#' @return A \code{brainGraph} graph object with additional graph-, vertex-, and
+#'   edge-level attributes (see below).
 #' @name Creating_Graphs
 #' @rdname make_brainGraph
 #' @family Graph creation functions
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 make_brainGraph <- function(x, atlas, type=c('observed', 'random'),
                             level=c('subject', 'group', 'contrast'), set.attrs=TRUE,
@@ -126,10 +124,13 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   x <- get_metadata(x)
   x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas
   DT <- get(x$atlas)
+
+  if (is.null(subnet) && vcount(x) < dim(DT)[1L]) subnet <- V(x)$name
   if (!is.null(subnet)) {
     if (is.character(subnet)) subnet <- DT[name %in% subnet, which=TRUE]
     DT <- DT[subnet]
-    x <- induced_subgraph(x, subnet)
+    if (vcount(x) != length(subnet)) x <- induced_subgraph(x, subnet)
+    x$subnet <- subnet
   }
   if (!is_named(x)) {
     V(x)$name <- DT$name
@@ -216,7 +217,6 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
                                    set.attrs=TRUE, modality=NULL, weighting=NULL,
                                    threshold=NULL, name=NULL, Group=NULL, subnet=NULL,
                                    mode='undirected', weighted=NULL, diag=FALSE, ...) {
-  g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
   type <- match.arg(type)
   level <- match.arg(level)
   if (!is.null(subnet)) {
@@ -226,6 +226,7 @@ make_brainGraph.matrix <- function(x, atlas, type=c('observed', 'random'),
     }
     x <- x[subnet, subnet, drop=FALSE]
   }
+  g <- graph_from_adjacency_matrix(x, mode, weighted, diag)
   g <- make_brainGraph(g, atlas, type, level, set.attrs, modality, weighting,
                        threshold, name, Group, subnet, A=x, ...)
   return(g)
@@ -419,9 +420,20 @@ make_ego_brainGraph <- function(g, vs) {
 
 #' Create the intersection of graphs based on a logical condition
 #'
+#' Returns a graph object with vertices that meet certain criteria. By default,
+#' only vertices that meet these criteria for \emph{all} input graphs will be
+#' retained.
+#'
+#' If no vertices meet criteria for all input graphs, then an \code{igraph}
+#' graph object with 0 vertices is returned. If \code{keep.all.vertices=TRUE},
+#' this is essentially performing a \emph{union} of vertex sets that meet the
+#' criteria. In any case, the return graph will have 0 edges.
+#'
 #' @param ... Graph objects or lists of graph objects
 #' @param subgraph Character string specifying an equation (logical condition)
 #'   for the vertices to subset
+#' @param keep.all.vertices Logical indicating whether to keep all vertices that
+#'   meet the criteria in at least 1 input graph. Default: \code{FALSE}
 #' @export
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @return An \code{igraph} graph object
@@ -429,33 +441,30 @@ make_ego_brainGraph <- function(g, vs) {
 #' \dontrun{
 #' res.mtpc <- mtpc(g, covars, ...)
 #' g.mtpc <- make_glm_brainGraph(res.mtpc, atlas)
-#' g.mtpc.int <- make_intersection_brainGraph(g.mtpc,
-#'   subgraph='sig == 1')
+#'
+#' ## All vertices with a significant MTPC result for all contrasts:
+#' g.mtpc.int <- make_intersection_brainGraph(g.mtpc, subgraph='sig == 1')
+#'
+#' ## Return graphs with vertices with degree > 0 for each group separately
+#' tapply(g.list, groups(g.list), make_intersection_brainGraph,
+#'        subgraph='degree > 0')
 #' }
 
-make_intersection_brainGraph <- function(..., subgraph) {
-  g <- inds <- NULL
+make_intersection_brainGraph <- function(..., subgraph, keep.all.vertices=FALSE) {
   graphs <- args_as_list(...)
   stopifnot(all(vapply(graphs, is.brainGraph, logical(1L))))
-  Nv <- vcount(graphs[[1L]])
 
   subs <- lapply(graphs, subset_graph, subgraph)
-  graphs.sub <- lapply(subs, with, g)
-  inds.sub <- lapply(subs, with, inds)
-  graphs.valid <- graphs.sub[which(vapply(graphs.sub, function(x) !is.null(x), logical(1L)))]
+  inds.sub <- lapply(subs, `[[`, 'inds')
 
-  if (length(graphs.valid) == 0L) {
-    return(make_empty_brainGraph(graphs[[1L]]$atlas))
-  } else if (length(graphs.valid) == 1L) {
-    return(graphs.valid[[1L]])
+  combFun <- if (isTRUE(keep.all.vertices)) union else intersect
+  inds.int <- Reduce(combFun, inds.sub)
+  if (length(inds.int) == 0L) {
+    g.int <- make_empty_graph(directed=FALSE)
   } else {
-    g.int <- do.call(intersection, c(graphs.valid, keep.all.vertices=FALSE))
-    memb <- which(V(graphs[[1L]])$name %in% V(g.int)$name)
-    g.int <- delete_all_attr(g.int)
-    V(g.int)$name <- V(graphs[[1L]])$name[memb]
-    g.int <- graphs[[1L]] %s% g.int
-    g.int <- graphs[[1L]] - vertices(setdiff(seq_len(Nv), memb))
-    class(g.int) <- class(graphs[[1L]])
-    return(g.int)
+    names.int <- V(graphs[[1L]])[inds.int]$name
+    g.int <- make_empty_brainGraph(graphs[[1L]]$atlas, graphs[[1L]]$type, graphs[[1L]]$level,
+                                   graphs[[1L]]$modality, graphs[[1L]]$weighting, subnet=names.int)
   }
+  return(g.int)
 }
