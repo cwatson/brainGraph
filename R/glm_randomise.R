@@ -88,7 +88,6 @@ partition <- function(M, con.mat, part.method=c('beckmann', 'guttman', 'ridgway'
 #'   \item{MtM}{The inverse of the cross product of the full model}
 #'   \item{eC}{The \emph{effective contrast}, equivalent to the original, for
 #'     the partitioned model \code{[X, Z]} and considering all covariates}
-#'   \item{dfR}{The residual degrees of freedom of the full partitioned model}
 #'   \item{CMtM}{(only for F-contrasts) The effective contrast multiplied by the
 #'     inverse of the cross-product of the full model.}
 #'   \item{rkC}{(only for F-contrasts) Rank of the effective contrast matrix.}
@@ -126,9 +125,8 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
       rkC[j] <- qr.default(eC[[j]])$rank
     }
   }
-  dfR <- dim(Mp[[1L]])[1L] - qr.default(Mp[[1L]])$rank
 
-  out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC, dfR=dfR)
+  out <- list(Mp=Mp, Rz=Rz, MtM=MtM, eC=eC)
   if (con.type == 'f') out <- c(out, list(CMtM=CMtM, rkC=rkC))
   if (perm.method == 'smith') out <- c(out, list(Xp=Xp, Zp=Zp))
   return(out)
@@ -157,9 +155,9 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 
 randomise <- function(perm.method, part.method, N, perms,
                       contrasts, con.type, nC, skip, DT, outcome, X, mykey) {
-  i <- NULL
+  i <- numer <- ESS <- NULL
   randMats <- setup_randomise(perm.method, part.method, X, contrasts, con.type, nC)
-  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC; dfR <- randMats$dfR
+  Mp <- randMats$Mp; Rz <- randMats$Rz; MtM <- randMats$MtM; eC <- randMats$eC
   if (con.type == 'f') {CMtM <- randMats$CMtM; rkC <- randMats$rkC}
 
   null.dist <- vector('list', length=nC)

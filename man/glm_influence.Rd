@@ -23,7 +23,7 @@
 
 dffits.bg_GLM(model)
 
-\method{dfbeta}{bg_GLM}(model, ...)
+\method{dfbeta}{bg_GLM}(model, QR = NULL)
 
 \method{dfbetas}{bg_GLM}(model, ...)
 
@@ -37,6 +37,9 @@ covratio.bg_GLM(model)
 \item{type}{The type of standardized residuals. Default: \code{'sd.1'}}
 
 \item{...}{Unused}
+
+\item{QR}{List of \code{qr} objects, with one element for each design matrix
+in the model}
 
 \item{do.coef}{Logical indicating whether to calculate \code{dfbeta}}
 }

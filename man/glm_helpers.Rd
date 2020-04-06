@@ -13,7 +13,7 @@
 \title{Helper functions to set-up for GLM analyses}
 \usage{
 setup_glm(covars, X, contrasts, con.type, con.name, measure, outcome,
-  DT.y.m, regions, ...)
+  DT.y.m, ...)
 
 contrast_names(contrasts, con.type, con.name, X)
 

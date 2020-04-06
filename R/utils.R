@@ -151,7 +151,8 @@ cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater
   z1 <- 0.5 * log((1 + r1) / (1 - r1))
   z2 <- 0.5 * log((1 + r2) / (1 - r2))
 
-  SEdiff <- sqrt((1 / (n[1L] - 3L)) + (1 / (n[2L] - 3L)))
+  n <- n - 3L
+  SEdiff <- sqrt((1 / n[1L]) + (1 / n[2L]))
   diff.z <- (z1 - z2) / SEdiff
 
   alt <- match.arg(alternative)

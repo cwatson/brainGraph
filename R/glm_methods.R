@@ -146,14 +146,22 @@ variable.names.bg_GLM <- function(object, ...) dimnames(object$X)[[2L]]
 #' @rdname glm_info
 
 region.names.bg_GLM <- function(object) {
-  region <- NULL
-  object$DT[, levels(region)]
+  if (object$level == 'graph') {
+    rgn <- 'graph'
+  } else {
+    rgn <- if (length(dim(object$X)) == 3L) dimnames(object$X)[[3L]] else dimnames(object$y)[[2L]]
+  }
+  rgn
 }
 
 #' @export
 #' @rdname glm_info
 
 nregions.bg_GLM <- function(object) {
-  region <- NULL
-  object$DT[, nlevels(region)]
+  if (object$level == 'graph') {
+    n <- 1L
+  } else {
+    n <- if (length(dim(object$X)) == 3L) dim(object$X)[3L] else dim(object$y)[2L]
+  }
+  n
 }

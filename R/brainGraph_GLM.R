@@ -173,13 +173,12 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   level <- match.arg(level)
   DT.y <- glm_data_table(g.list, level, measure)
   DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
-  regions <- DT.y.m[, levels(region)]
 
   # Initial GLM setup
   ctype <- match.arg(con.type)
   alt <- match.arg(alternative)
   if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, regions, ...)
+  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, ...)
   X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.Xy <- glmSetup$DT.Xy
   if (is.null(outcome)) outcome <- measure
   y <- as.matrix(dcast(DT.Xy, paste(sID, '~ region'), value.var=outcome), rownames=sID)
@@ -283,7 +282,7 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 #' @name GLM helpers
 #' @rdname glm_helpers
 
-setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, regions, ...) {
+setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, ...) {
   region <- NULL
   sID <- getOption('bg.subject_id')
   covars <- droplevels(copy(covars))
@@ -294,6 +293,7 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
   DT.Xy <- DT.y.m[covars, on=sID]
   if (length(incomp) > 0L) DT.Xy <- DT.Xy[!get(sID) %in% names(incomp)]
 
+  regions <- DT.y.m[, levels(region)]
   # Swap the outcome and measure variables, if outcome is not a network metric
   if (!is.null(outcome)) {
     setcolorder(DT.Xy, c(sID, 'region', setdiff(names(covars), c(sID, outcome)), measure, outcome))
@@ -448,13 +448,11 @@ glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alph
 
 brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
   est <- fastLmPure(X, y, method=2L)
-  b <- est$coefficients
-  gamma <- contrast %*% b
-  sigma.squared <- est$s^2
-  var.covar <- sigma.squared * XtX
-  se <- sqrt(diag(contrast %*% tcrossprod(var.covar, contrast)))
+  gamma <- as.numeric(contrast %*% est$coefficients)
+  var.covar <- est$s^2 * XtX
+  se <- sqrt(as.numeric(contrast %*% tcrossprod(var.covar, contrast)))
 
-  list(gamma=as.numeric(gamma), se=se)
+  list(gamma=gamma, se=se)
 }
 
 #' Fit linear models for F contrasts
@@ -475,11 +473,10 @@ brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
 
 brainGraph_GLM_fit_f <- function(X, y, contrast, CXtX) {
   est <- fastLmPure(X, y, method=2L)
-  b <- est$coefficients
-  gamma <- contrast %*% b
-  SSEF <- as.numeric(crossprod(est$residuals))
+  gamma <- contrast %*% est$coefficients
+  ESS <- c(crossprod(gamma, CXtX) %*% gamma)
+  SSEF <- sum(est$residuals^2)
 
-  ESS <- as.numeric(crossprod(gamma, CXtX) %*% gamma)
   list(ESS=ESS, se=SSEF)
 }
 

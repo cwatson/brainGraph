@@ -8,7 +8,7 @@
 \usage{
 brainGraph_GLM_fit_t(X, y, XtX, contrast)
 
-brainGraph_GLM_fit_f(X, y, dfR, contrast, rkC, CXtX)
+brainGraph_GLM_fit_f(X, y, contrast, CXtX)
 }
 \arguments{
 \item{X}{Numeric matrix, if you wish to supply your own design matrix.
@@ -20,10 +20,6 @@ Ignored if \code{outcome != measure}.}
 
 \item{contrast}{A numeric matrix (1 row) for a single contrast}
 
-\item{dfR}{Integer; residual degrees of freedom}
-
-\item{rkC}{Integer; rank of the contrast matrix}
-
 \item{CXtX}{Numeric matrix}
 }
 \value{
@@ -32,10 +28,8 @@ Ignored if \code{outcome != measure}.}
   \item{se}{The standard error}
 
 \code{brainGraph_GLM_fit_f} - A list containing:
-  \item{numer}{The extra sum of squares due to the full model divided by the
-    rank of the contrast matrix}
+  \item{ESS}{The extra sum of squares due to the full model}
   \item{se}{The sum of squared errors of the full model}
-  \item{contrast}{The contrast number; defaults to \code{1}}
 }
 \description{
 \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,

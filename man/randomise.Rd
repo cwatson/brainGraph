@@ -79,7 +79,7 @@ The tasks performed by this function are:
     \code{\link{partition}}.
   \item Calculate the new contrast(s) based on this new design matrix (also
     through \code{\link{partition}}
-  \item Calculate the inverse of the cross produce of the full model
+  \item Calculate the inverse of the cross product of the full model
   \item Calculate the \dQuote{hat} and residual-forming matrices due to nuisance
     alone
   \item For F contrasts, return an inverse of the cross product between the
