@@ -8,10 +8,9 @@
 \title{Mediation analysis with brain graph measures as mediator variables}
 \usage{
 brainGraph_mediate(g.list, covars, mediator, treat, outcome, covar.names,
-  level = c("graph", "vertex"), boot = TRUE, boot.ci.type = c("perc",
-  "bca"), N = 1000, conf.level = 0.95, control.value = 0,
-  treat.value = 1, long = TRUE, int = FALSE,
-  .progress = getOption("bg.progress"), ...)
+  level = c("graph", "vertex"), control.value = 0, treat.value = 1,
+  int = FALSE, boot = TRUE, boot.ci.type = c("perc", "bca"),
+  N = 1000, conf.level = 0.95, long = FALSE, ...)
 
 \method{summary}{bg_mediate}(object, mediate = FALSE, region = NULL,
   digits = max(3L, getOption("digits") - 2L), ...)
@@ -22,8 +21,8 @@ bg_to_mediate(x, region = NULL)
 \item{g.list}{A \code{brainGraphList} object}
 
 \item{covars}{A data table containing covariates of interest. It must include
-columns for \emph{Study.ID}, the treatment variable, \code{covar.names},
-and the outcome variable.}
+columns for \code{getOption('bg.subject_id')}, \code{treat},
+\code{outcome}, and \code{covar.names}.}
 
 \item{mediator}{Character string; the name of the graph measure acting as
 the \emph{mediating} variable}
@@ -31,41 +30,37 @@ the \emph{mediating} variable}
 \item{treat}{Character string; the \emph{treatment} variable (e.g.,
 \emph{Group})}
 
-\item{outcome}{Character string; the name of the outcome variable of interest
-(e.g., full-scale IQ, memory, etc.)}
+\item{outcome}{Character string; the name of the outcome variable of interest}
 
-\item{covar.names}{Character vector of the column names in \code{covars} to
-include in the models as pre-treatment covariates.}
+\item{covar.names}{Character vector of the column name(s) in \code{covars} to
+include in the models as pre-treatment covariate(s).}
 
 \item{level}{Character string; either \code{vertex} (default) or
 \code{graph}}
 
-\item{boot}{Logical indicating whether or not to perform bootstrapping
-(default: \code{TRUE})}
-
-\item{boot.ci.type}{Character string; which type of CI's to calculate
-(default: \code{perc})}
-
-\item{N}{Integer; the number of bootstrap samples to run (default:
-\code{1e3})}
-
-\item{conf.level}{Numeric; the level of the CI's to calculate (default:
-\code{0.95} for the 2.5 and 97.5 percentiles)}
-
 \item{control.value}{Value of \code{treat} to be used as the control
-condition (default: \code{0})}
+condition. Default: \code{0}}
 
 \item{treat.value}{Value of \code{treat} to be used as the treatment
-condition (default: \code{1})}
-
-\item{long}{Logical indicating whether or not to return all bootstrap samples
-(default: \code{TRUE})}
+condition. Default: \code{1}}
 
 \item{int}{Logical indicating whether or not to include an interaction of the
-mediator and treatment (default: \code{FALSE})}
+mediator and treatment. Default: \code{FALSE}}
 
-\item{.progress}{Logical indicating whether to print a progress bar. Default:
-\code{getOption('bg.progress')}}
+\item{boot}{Logical indicating whether or not to perform bootstrapping. This
+should always be done. Default: \code{TRUE}}
+
+\item{boot.ci.type}{Character string; which type of CI's to calculate.
+Default: \code{perc}}
+
+\item{N}{Integer; the number of bootstrap samples to run. Default:
+\code{1e3}}
+
+\item{conf.level}{Numeric between 0 and 1; the level of the CI's to
+calculate. Default: \code{0.95} for the 2.5 and 97.5 percentiles)}
+
+\item{long}{Logical indicating whether or not to return all bootstrap
+samples. Default: \code{FALSE}}
 
 \item{...}{Other arguments passed to \code{\link{brainGraph_GLM_design}}
 (e.g., \code{binarize}) (unused in the \code{summary} method)}
@@ -88,9 +83,9 @@ An object of class \code{bg_mediate} with elements:
   \item{level}{Either \code{graph} or \code{vertex}.}
   \item{removed.subs}{A character vector of Study.ID's removed due to
     incomplete data}
-  \item{X.m, X.y}{Design matrices for the model with the mediator as the
-    outcome variable (\code{X.m}) and for the model with the mediator as an
-    additional predictor (\code{X.y})}
+  \item{X.m, X.y}{Design matrix and numeric array for the model with the
+    mediator as the outcome variable (\code{X.m}) and for the model with the
+    mediator as an additional predictor (\code{X.y}), respectively}
   \item{y.m, y.y}{Outcome variables for the associated design matrices above.
     \code{y.m} will be a matrix of size \emph{# subj. X # regions}}
   \item{res.obs}{A \code{data.table} of the observed values of the point
@@ -123,11 +118,10 @@ An object of class \code{bg_mediate} with elements:
 }
 \description{
 \code{brainGraph_mediate} performs simple mediation analyses in which a given
-graph- or vertex-level measure (e.g., \emph{weighted global efficiency})
-is the mediator \emph{M}. The outcome (or dependent/response) variable
-\emph{Y} can be a neuropsychological measure (e.g., \emph{IQ}) or
-can be a disease-specific metric (e.g., recovery time). The treatment
-variable should be a \code{factor}.
+graph- or vertex-level measure (e.g., \emph{weighted global efficiency}) is
+the mediator \emph{M}. The outcome (or dependent/response) variable \emph{Y}
+can be a neuropsychological measure (e.g., \emph{IQ}) or can be a
+disease-specific metric (e.g., recovery time).
 
 \code{\link{bg_to_mediate}} converts the results into an object of class
 \code{\link[mediation]{mediate}}. In \code{brainGraph}, it is only used for
@@ -137,12 +131,19 @@ use its output for the \code{\link[mediation]{plot.mediate}} method.
 \details{
 This code was adapted closely from \code{\link[mediation]{mediate}} in the
 \code{mediation} package, and the procedure is exactly the same as theirs
-(see the references listed below). So, if you use this function, please cite
+(see the references listed below). If you use this function, please cite
 their work.
-
-As of \code{brainGraph v2.0.0}, this function has been tested only for a
-treatment (independent) variable \emph{X} being a 2-level factor (e.g.,
-disease group, old vs. young, etc.).
+}
+\note{
+As of \code{brainGraph v2.0.0}, this function has been tested only for
+a treatment (independent) variable \emph{X} being a \emph{factor} (e.g.,
+disease group, old vs. young, etc.). If your treatment variable has more
+than 2 levels, then you must explicitly specify the levels you would like to
+compare; otherwise, the baseline and first levels are taken to be the
+control and treatment values, respectively. Be aware that these are \emph{0}
+indexed; that is, if you have 3 groups and you would like the treatment
+group to be the 3rd, you should specify as either the group's character
+string or as \code{treat.value=2}.
 
 Allowing for treatment-mediator interaction (setting \code{int=TRUE})
 currently will only work properly if the mediator is a continuous variable;

@@ -9,6 +9,7 @@
 \alias{plot.brainGraph_resids}
 \alias{nobs.brainGraph_resids}
 \alias{case.names.brainGraph_resids}
+\alias{groups.brainGraph_resids}
 \alias{region.names.brainGraph_resids}
 \alias{nregions.brainGraph_resids}
 \title{Linear model residuals in structural covariance networks}
@@ -18,14 +19,17 @@ get.resid(dt.vol, covars, method = c("comb.groups", "sep.groups"),
 
 \method{[}{brainGraph_resids}(x, i, g = NULL)
 
-\method{summary}{brainGraph_resids}(object, region = NULL, ...)
+\method{summary}{brainGraph_resids}(object, region = NULL,
+  outlier.thresh = 2, ...)
 
-\method{plot}{brainGraph_resids}(x, region = NULL, cols = FALSE,
-  ids = TRUE, ...)
+\method{plot}{brainGraph_resids}(x, region = NULL, outlier.thresh = 2,
+  cols = FALSE, ids = TRUE, ...)
 
 \method{nobs}{brainGraph_resids}(object, ...)
 
 \method{case.names}{brainGraph_resids}(object, ...)
+
+\method{groups}{brainGraph_resids}(x)
 
 \method{region.names}{brainGraph_resids}(object)
 
@@ -60,6 +64,9 @@ value (e.g. mean LH/RH cortical thickness). Default: \code{FALSE}}
 \item{region}{Character vector of region(s) to focus on; default behavior is
 to show summary for all regions}
 
+\item{outlier.thresh}{Number indicating how many standard deviations
+above/below the mean indicate an outlier. Default: \code{2}}
+
 \item{cols}{Logical indicating whether to color by group. Default:
 \code{FALSE}}
 
@@ -69,15 +76,14 @@ Otherwise plots the integer index}
 \value{
 \code{get.resid} - an object of class \code{brainGraph_resids} with
   elements:
+  \item{data}{A data.table with the input volume/thickness/etc. data as well
+    as the covariates used in creating the design matrix.}
   \item{X}{The \emph{design matrix}, if using default arguments. If
   \code{use.mean=TRUE} then it will be a \emph{named list} with a separate
   matrix for the left and right hemispheres. If \code{method='sep.groups'}, a
   nested named list for each group and hemisphere.}
   \item{method}{The input argument \code{method}}
   \item{use.mean}{The input argument \code{use.mean}}
-  \item{all.dat.long}{A \code{data.table} in \dQuote{long} format of the
-    input structural data merged with the covariates, and a \emph{resids}
-    column added}
   \item{resids.all}{The \dQuote{wide} \code{data.table} of residuals}
   \item{Group}{Group names}
   \item{atlas}{The atlas name}
@@ -108,14 +114,23 @@ studentized residuals, as output from \code{\link{get.resid}}.
 \details{
 You can choose to run models for each of your subject groups separately or
 combined (the default) via the \code{method} argument. You may also choose
-whether or not to include the mean, per-hemisphere structural measure in the
+whether to include the mean, per-hemisphere structural measure in the
 models. Finally, you can specify variables that are present in \code{covars}
-but you would like to exclude from the models.
+which you would like to exclude from the models. Optional arguments can be
+provided that get passed to \code{\link{brainGraph_GLM_design}}.
 
 If you do not explicitly specify the atlas name, then it will be guessed from
 the size of your data. This could cause problems if you are using a custom
 atlas, with or without the same number of regions as a dataset in the
 package.
+}
+\note{
+It is assumed that \code{dt.vol} was created using
+\code{\link{import_scn}}. In older versions, there were issues when the Study
+ID was specified as an integer and was not \dQuote{zero-padded}. This is done
+automatically by \code{\link{import_scn}}, so if you are using an external
+program, please be sure that the Study ID column is matched in both
+\code{dt.vol} and \code{covars}.
 }
 \examples{
 \dontrun{

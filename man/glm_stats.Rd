@@ -11,6 +11,7 @@
 \alias{df.residual.bg_GLM}
 \alias{sigma.bg_GLM}
 \alias{vcov.bg_GLM}
+\alias{coeff_table}
 \alias{anova.bg_GLM}
 \title{Extract model fit statistics from a bg_GLM object}
 \usage{
@@ -32,6 +33,8 @@ coeff_determ(object, adjusted = FALSE)
 
 \method{vcov}{bg_GLM}(object, ...)
 
+coeff_table(object, CI = FALSE, level = 0.95)
+
 \method{anova}{bg_GLM}(object, region = NULL, ...)
 }
 \arguments{
@@ -50,6 +53,9 @@ Default: \code{'response'}}
 \item{adjusted}{Logical indicating whether to calculate the adjusted
 R-squared. Default: \code{FALSE}}
 
+\item{CI}{Logical indicating whether to include confidence intervals of
+parameter estimates in the coefficient summary table. Default: \code{FALSE}}
+
 \item{region}{Character vector indicating the region(s) to calculate ANOVA
 statistics for. Default: \code{NULL} (use all regions)}
 }
@@ -60,10 +66,11 @@ A named numeric vector, matrix, or array, depending on the function:
   \item{fitted,residuals}{Matrix in which rownames are Study ID's and column
     names are regions. If \code{type='partial'}, an array is returned in
     which columns are \emph{terms} and the 3rd dimension are regions}
-  \item{deviance,coeff_determ,df.residual,sigma}{Numeric vector with elements
-    for each region}
-  \item{confint,vcov}{Numeric array; the extent of the third dimension equals
-    the number of regions}
+  \item{deviance,coeff_determ,sigma}{Numeric vector with elements for each
+    region}
+  \item{df.residual}{Single integer; the degrees of freedom}
+  \item{confint,vcov,coeff_table}{Numeric array; the extent of the third
+    dimension equals the number of regions}
 
 \code{anova} returns a \emph{list} of tables of class \code{anova}
 }
@@ -71,9 +78,6 @@ A named numeric vector, matrix, or array, depending on the function:
 These functions extract or calculate model fit statistics of a
 \code{bg_GLM} object. These can be found in the output from
 \code{\link[stats]{summary.lm}}.
-
-\code{anova} calculates ANOVA tables for a \code{bg_GLM} object. The tests
-performed are so-called \emph{Type III} tests.
 }
 \details{
 These mimic the same functions that operate on \code{\link{lm}} objects, and
@@ -95,10 +99,9 @@ include:
   \item{vcov}{Variance-covariance matrix of the model parameters}
 }
 
-In addition to the standard ANOVA statistics (sum of squares, mean squares,
-degrees of freedom, F statistics, and P-values), the output tables include:
-\eqn{\eta^2}, partial \eqn{\eta^2}, \eqn{\omega^2}, and partial
-\eqn{\omega^2} as measures of \emph{effect size}.
+\code{coeff_table} returns model coefficients, standard errors, T-statistics,
+and P-values for all model terms and regions in a \code{bg_GLM} object. This
+is the same as running \code{summary(x)$coefficients} for a \code{lm} object.
 }
 \note{
 \code{sigma} -- The denominator is \emph{not} the number of
@@ -107,6 +110,16 @@ degrees of freedom, F statistics, and P-values), the output tables include:
 When calculating \emph{partial residuals}, the parameter estimates are
   \emph{not} re-calculated after removing one of the model terms.
 }
+\section{ANOVA tables}{
+
+The \code{anova} method calculates the so-called \emph{Type III} test
+statistics for a \code{bg_GLM} object. These standard ANOVA statistics
+include: sum of squares, mean squares, degrees of freedom, F statistics, and
+P-values. Additional statistics calculated are: \eqn{\eta^2}, partial
+\eqn{\eta^2}, \eqn{\omega^2}, and partial \eqn{\omega^2} as measures of
+\emph{effect size}.
+}
+
 \seealso{
 \code{\link{GLM}}, \code{\link[car]{Anova}}
 }

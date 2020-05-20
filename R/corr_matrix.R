@@ -81,7 +81,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
   if (what == 'resids') {
     res.all <- resids$resids.all[, !sID, with=FALSE]
   } else if (what == 'raw') {
-    res.all <- dcast(resids$all.dat.long, paste(sID, '+', gID, '~ Region'))
+    res.all <- resids$data[, c(sID, gID, regions), with=FALSE]
     setkeyv(res.all, c(gID, sID))
     res.all <- res.all[, !sID, with=FALSE]
   }

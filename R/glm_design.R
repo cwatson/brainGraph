@@ -65,6 +65,16 @@
 #' @rdname glm_design
 #' @family GLM functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @examples
+#' \dontrun{
+#' # Recreate design matrix when "outcome == measure"
+#' DT <- res.glm$DT.Xy[region == levels(region)[1L],
+#'                     !c('region', res.glm$outcome),
+#'                     with=FALSE]
+#' X <- do.call(brainGraph_GLM_design, c(list(covars=DT),
+#'                                       attributes(res.glm$X)[-c(1L, 2L)]))
+#' all.equal(X, res.glm$X)
+#' }
 
 brainGraph_GLM_design <- function(covars, coding=c('dummy', 'effects', 'cell.means'),
                                   factorize=TRUE, binarize=NULL, int=NULL,

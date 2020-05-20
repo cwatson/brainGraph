@@ -178,6 +178,17 @@ Edge-level attributes added are:
 }
 }
 
+\section{Specifying a subnetwork}{
+
+You can create a graph for a subset of an atlas's regions with the
+\code{subnet} argument. This can either be a numeric or character vector. If
+the input object (either a matrix or an \code{igraph} graph) has fewer
+rows/columns or vertices, respectively, than the atlas then the \code{subnet}
+graph attribute will also be added to the return object. This may occur if,
+for example, you use \code{\link{make_auc_brainGraph}} on graphs that were
+initially created from subnetworks.
+}
+
 \examples{
 \dontrun{
 bg <- make_brainGraph(A, 'dkt', modality='dti', weighting='fa',

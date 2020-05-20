@@ -140,8 +140,8 @@ print_subs_summary <- function(x) {
 # Print per-contrast statistics
 #-------------------------------------------------------------------------------
 print_contrast_stats_summary <- function(x, ...) {
-  contrast <- csize <- p.perm <- `p-value` <- NULL
-  printCon <- if (is.null(x$printCon)) x$DT[, unique(contrast)] else x$printCon
+  Contrast <- csize <- p.perm <- `p-value` <- NULL
+  printCon <- if (is.null(x$printCon)) x$DT[, unique(Contrast)] else x$printCon
 
   cls <- class(x)
   if ('summary.NBS' %in% cls) {
@@ -150,7 +150,7 @@ print_contrast_stats_summary <- function(x, ...) {
     DT[, `p-value` := signif(p.perm)]
     DT[, c('alt', 'N', 'p.perm') := NULL]
   } else {
-    DT <- x$DT.sum[, !c(intersect(names(x$DT.sum), c('Contrast', 'Outcome'))), with=FALSE]
+    DT <- x$DT.sum[, !c(intersect(names(x$DT.sum), 'Outcome')), with=FALSE]
     oldnames <- grep('p-value', names(x$DT.sum), value=TRUE)
     newname <- if (x$con.type == 'f') 'Pr(>F)' else 'Pr(>|t|)'
     newnames <- sub('p-value', newname, oldnames)
@@ -158,17 +158,17 @@ print_contrast_stats_summary <- function(x, ...) {
   }
 
   for (i in printCon) {
-    message('Contrast ', i, ': ', x$con.name[i])
-    if (dim(DT[contrast == i])[1L] == 0L) {
+    message(i, ': ')
+    if (dim(DT[Contrast == i])[1L] == 0L) {
       message('\tNo signficant results!\n')
     } else {
       if ('summary.NBS' %in% cls) {
-        printCoefmat(DT[contrast == i, !'contrast'], tst.ind=2L, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)
+        printCoefmat(DT[Contrast == i, !'Contrast'], tst.ind=2L, P.values=TRUE, has.Pvalue=TRUE, digits=x$digits, ...)
       } else {
         if (isTRUE(x$print.head)) {
-          print(DT[contrast == i, !'contrast'], topn=5L, nrows=10L, digits=x$digits)
+          print(DT[Contrast == i, !'Contrast'], topn=5L, nrows=10L, digits=x$digits)
         } else {
-          print(DT[contrast == i, !'contrast'], digits=x$digits)
+          print(DT[Contrast == i, !'Contrast'], digits=x$digits)
         }
       }
       cat('\n')

@@ -51,13 +51,14 @@
 #' complex designs, the design matrix must be \emph{partitioned} into covariates
 #' of interest and nuisance; the default method is the \emph{Beckmann} method.
 #' The default permutation strategy is that of Freedman & Lane (1983), and is
-#' the same as that in FSL's \emph{randomise}.
+#' the same as that in FSL's \emph{randomise}. See \code{\link{randomise}}.
 #'
 #' @param g.list A \code{brainGraphList} object
 #' @param covars A \code{data.table} of covariates
 #' @param measure Character string of the graph measure of interest
-#' @param contrasts Numeric matrix specifying the contrast(s) of interest; if
-#'   only one contrast is desired, you can supply a vector
+#' @param contrasts Numeric matrix (for T statistics) or list of matrices (for F
+#'   statistics) specifying the contrast(s) of interest; if only one contrast is
+#'   desired, you can supply a vector (for T statistics)
 #' @param con.type Character string; either \code{'t'} or \code{'f'} (for t or
 #'   F-statistics). Default: \code{'t'}
 #' @param outcome Character string specifying the name of the outcome variable,
@@ -125,28 +126,6 @@
 #' @family GLM functions
 #' @family Group analysis functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Beckmann, C.F. and Jenkinson, M. and Smith, S.M. (2001) General
-#'   multi-level linear mdoelling for group analysis in FMRI. Tech Rep.
-#'   University of Oxford, Oxford.
-#' @references Guttman, I. (1982) \emph{Linear Models: An Introduction}. Wiley,
-#'   New York.
-#' @references Ridgway, G.R. (2009) Statistical analysis for longitudinal MR
-#'   imaging of dementia. PhD thesis.
-#' @references Freedman, D. and Lane, D. (1983) A nonstochastic interpretation
-#'   of reported significance levels. \emph{J Bus Econ Stat}, \bold{1(4)},
-#'   292--298. \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
-#' @references Smith, S.M. and Jenkinson, M. and Beckmann, C. and Miller, K. and
-#'   Woolrich, M. (2007) Meaningful design and contrast estimability in fMRI.
-#'   \emph{NeuroImage}. \bold{34(1)}, 127--36.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
-#' @references Nichols, T.E. and Holmes, A.P. (2001) Nonparametric permutation
-#'   tests for functional neuroimaging: A primer with examples. \emph{Human
-#'   Brain Mapping}. \bold{15(1)}, 1--25.
-#'   \url{https://dx.doi.org/10.1002/hbm.1058}
-#' @references Winkler, A.M. and Ridgway, G.R. and Webster, M.A. and Smith, S.M.
-#'   and Nichols, T.E. (2014) Permutation inference for the general linear
-#'   model. \emph{NeuroImage}. \bold{92}, 381--397.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
 #'
 #' @examples
 #' \dontrun{
@@ -160,64 +139,66 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
                            outcome=NULL, X=NULL, con.name=NULL,
                            alternative=c('two.sided', 'less', 'greater'),
                            alpha=0.05, level=c('vertex', 'graph'),
-                           permute=FALSE, perm.method=c('freedmanLane', 'terBraak', 'smith'),
+                           permute=FALSE,
+                           perm.method=c('freedmanLane', 'terBraak', 'smith',
+                                         'draperStoneman', 'manly', 'stillWhite'),
                            part.method=c('beckmann', 'guttman', 'ridgway'),
                            N=5e3, perms=NULL, long=FALSE, ...) {
-  region <- runX <- Outcome <- p.fdr <- p <- contrast <- Contrast <- perm <- V1 <- p.perm <- stat <- NULL
-
-  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
-  g.list <- g.list[]
-
-  # Get the outcome variable(s) into a data.table
-  sID <- getOption('bg.subject_id')
   level <- match.arg(level)
-  DT.y <- glm_data_table(g.list, level, measure)
-  DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
+  ctype <- match.arg(con.type)
+  alt <- if (ctype == 'f') 'two.sided' else match.arg(alternative)
 
   # Initial GLM setup
-  ctype <- match.arg(con.type)
-  alt <- match.arg(alternative)
-  if (ctype == 'f') alt <- 'two.sided'
-  glmSetup <- setup_glm(covars, X, contrasts, ctype, con.name, measure, outcome, DT.y.m, ...)
-  X <- glmSetup$X; contrasts <- glmSetup$contrasts; con.name <- glmSetup$con.name; DT.Xy <- glmSetup$DT.Xy
-  if (is.null(outcome)) outcome <- measure
-  y <- as.matrix(dcast(DT.Xy, paste(sID, '~ region'), value.var=outcome), rownames=sID)
-  if (level == 'graph' || outcome != measure) {
-    y <- y[, 1L, drop=FALSE]
-    dimnames(y)[[2L]] <- outcome
-  }
+  glmSetup <- setup_glm(g.list, level, covars, X, contrasts, ctype, con.name, measure, outcome, ...)
+  X <- glmSetup$X; y <- glmSetup$y; DT.Xy <- glmSetup$DT.Xy; outcome <- glmSetup$outcome
+  contrasts <- glmSetup$contrasts; nC <- glmSetup$nC
 
   #-------------------------------------
   # Do the model fitting/estimation
   #-------------------------------------
-  runY <- DT.Xy[, which(diff(range(get(outcome))) != 0), by=region][, as.character(region)]
+  dimX <- dim(X)
+  namesX <- dimnames(X)
   # Handle the case when there is a different design matrix for each region
-  if (level == 'vertex' && outcome != measure) {
-    runX <- check_if_singular(X)  # Don't fit a model for regions where the design is rank-deficient
+  if (length(dimX) == 3L) {
+    QR <- qr(X)
+    runX <- check_if_singular(QR)  # Don't fit a model for regions w/ a rank-deficient design
+    runY <- namesX[[3L]]
     if (length(runX) == 0L) {
       print(head(X[, , 1L]), digits=3L)
       stop('Design matrices are rank-deficient for all regions; please check your data')
     }
 
-    runXy <- intersect(runX, runY)
-    DT.lm <- setNames(vector('list', length(runXy)), runXy)
-    for (k in runXy) {
-      DT.lm[[k]] <- glm_fit_helper(DT.Xy[region == k], X[, , k],
-                                   ctype, contrasts, alt, outcome, 'region', alpha)
-    }
-    DT.lm <- rbindlist(DT.lm)
-  } else {
-    DT.lm <- glm_fit_helper(DT.Xy[region %in% runY], X, ctype, contrasts, alt, outcome, 'region', alpha)
-  }
-  DT.lm[, Outcome := outcome]
-  DT.lm[, p.fdr :=  p.adjust(p, 'fdr'), by=contrast]
-  for (i in seq_along(con.name)) DT.lm[contrast == i, Contrast := con.name[i]]
-  setkey(DT.lm, contrast, region)
+    fits <- fastLmBG_3d(X, y, runX, QR[runX])
+    names(fits$sigma) <- colnames(fits$coefficients) <- colnames(fits$fitted.values) <- runX
+    rownames(fits$fitted.values) <- rownames(fits$residuals) <- namesX[[1L]]
+    XtX <- aperm(fits$cov.unscaled, c(3L, 1L, 2L))
+    fits$var.covar <- aperm(fits$sigma^2 * XtX, c(2L, 3L, 1L))
+    fits$se <- sqrt(apply(fits$var.covar, 3L, diag_sq, fits$rank))
+    rownames(fits$coefficients) <- rownames(fits$se) <- namesX[[2L]]
 
-  out <- list(level=level, DT.Xy=DT.Xy, X=X, y=y, outcome=outcome, measure=measure, con.type=ctype,
-              contrasts=contrasts, con.name=con.name, alt=alt, alpha=alpha, DT=DT.lm,
-              removed.subs=glmSetup$incomp, permute=permute, runX=runX, runY=runY)
-  out$atlas <- guess_atlas(g.list[[1L]])
+    # If any regions were skipped, add NaN/NA into the correct spot in the stats
+    if (length(runX) < dimX[3L]) fits <- add_nans(fits, dimX, namesX, runX)
+
+  # Single design matrix for all regions
+  } else {
+    runY <- names(which(apply(y, 2L, function(r) diff(range(r))) != 0))
+    runX <- dimnames(y)[[2L]]
+    fits <- fastLmBG(X, y)
+    names(fits$sigma) <- colnames(fits$coefficients) <- colnames(fits$fitted.values) <- runX
+    fits$var.covar <- aperm(outer(fits$sigma^2, fits$cov.unscaled), c(2L, 3L, 1L))
+    fits$se <- sqrt(apply(fits$var.covar, 3L, diag_sq, fits$rank))
+    rownames(fits$coefficients) <- rownames(fits$se) <- namesX[[2L]]
+  }
+  obs_stats <- if (ctype == 't') fastLmBG_t(fits, contrasts, alt, alpha)
+    else fastLmBG_f(fits, contrasts)
+
+  DT.lm <- rbindlist(apply(obs_stats, 3L, as.data.table, keep.rownames='region'), idcol='Contrast')
+
+  out <- list(level=level, X=X, y=y, outcome=outcome, measure=measure, DT.Xy=DT.Xy,
+              con.type=ctype, contrasts=contrasts, con.name=glmSetup$con.name, alt=alt, alpha=alpha,
+              DT=DT.lm, removed.subs=glmSetup$incomp, permute=permute, runX=runX, runY=runY)
+  out$atlas <- guess_atlas(g.list$graphs[[1L]])
+  out <- c(out, fits)
   class(out) <- c('bg_GLM', class(out))
   if (isFALSE(permute)) return(out)
 
@@ -226,38 +207,33 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
   #-------------------------------------
   perm.method <- match.arg(perm.method)
   part.method <- match.arg(part.method)
-  dimX <- dim(X)
   if (is.null(perms) || dim(perms)[2L] != dimX[1L]) perms <- shuffleSet(n=dimX[1L], nset=N)
 
-  myMax <- maxfun(alt)
-  eqn <- if (ctype == 't') 'myMax(gamma / se)' else 'myMax(numer / (se / dfR))'
-  dfR <- dimX[1L] - dimX[2L]
-  # Different design matrix for each region
-  if (length(dimX) == 3L && level == 'vertex') {
-    null.dist <- setNames(vector('list', length(runXy)), runXy)
-    for (k in runXy) {
-      null.dist[[k]] <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
-                                  DT.Xy[region == k], outcome, X[, , k], 'region')
-    }
-    null.dist <- rbindlist(null.dist)
-  } else {
-    null.dist <- randomise(perm.method, part.method, N, perms, contrasts, ctype, glmSetup$nC, skip=NULL,
-                           DT.Xy[region %in% runY], outcome, X, 'region')
-  }
-  null.dist <- null.dist[, eval(parse(text=eqn)), by=list(perm, contrast)][, !'perm']
+  n <- dimX[1L]; p <- fits$rank; dfR <- n - p; ny <- length(runX)
+  null.dist <- if (length(dimX) == 3L) randomise_3d(perm.method, part.method, N, perms, X, y,
+                                                    contrasts, ctype, nC, runX, n, p, ny, dfR)
+    else randomise(perm.method, part.method, N, perms, X, y,
+                   contrasts, ctype, nC, n=n, p=p, ny=ny, dfR=dfR)
+
+  myMax <- switch(alt, two.sided=colMaxAbs, less=colMin, greater=colMax)
+  null.max <- apply(null.dist, 3L, myMax, ny)
   mySort <- sortfun(alt)
-  null.thresh <- null.dist[, mySort(V1)[floor((1 - alpha) * N) + 1L], by=contrast]
+  index <- floor((1 - alpha) * N) + 1L
+  null.thresh <- apply(null.max, 2L, mySort, index)
+  names(null.thresh) <- glmSetup$con.name
   compfun <- switch(alt,
-                    two.sided=function(x, y) sum(abs(x) >= abs(y), na.rm=TRUE),
-                    less=function(x, y) sum(x <= y, na.rm=TRUE),
-                    greater=function(x, y) sum(x >= y, na.rm=TRUE))
-  for (i in seq_along(con.name)) {
-    DT.lm[list(i), p.perm := (compfun(null.dist[contrast == i, V1], stat) + 1L) / (N + 1L), by=region]
-  }
+                    two.sided=function(x, y) (rowSums(abs(x) >= abs(y), na.rm=TRUE) + 1L),
+                    less=function(x, y) (rowSums(x <= y, na.rm=TRUE) + 1L),
+                    greater=function(x, y) (rowSums(x >= y, na.rm=TRUE) + 1L))
+  p.perm <- vapply(seq_len(nC), function(x) compfun(t(matrix(null.max[, x], N, ny)), obs_stats[runX, 3L, x]),
+                   numeric(ny)) / (N + 1L)
+  dim(p.perm) <- c(ny, nC)
+  dimnames(p.perm) <- list(runX, glmSetup$con.name)
+  DT.lm[!is.nan(p), p.perm := c(p.perm[intersect(runX, runY), ])]
 
   perm <- list(thresh=null.thresh)
-  if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist))
-  out <- c(out, list(perm.method=perm.method, part.method=part.method, N=N, perm=perm))
+  if (isTRUE(long)) perm <- c(perm, list(null.dist=null.dist, null.max=null.max))
+  out <- c(out, list(perm.order=perms, perm.method=perm.method, part.method=part.method, N=N, perm=perm))
   class(out) <- c('bg_GLM', class(out))
   return(out)
 }
@@ -275,16 +251,22 @@ brainGraph_GLM <- function(g.list, covars, measure, contrasts, con.type=c('t', '
 #' removes subjects with incomplete data, creates a design matrix (if not
 #' supplied), and supplies names to the contrast matrix.
 #'
-#' @param DT.y.m A \code{data.table} containing the outcome variable and a
-#'   column of subject ID's
 #' @inheritParams GLM
 #' @keywords internal
 #' @name GLM helpers
 #' @rdname glm_helpers
 
-setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome, DT.y.m, ...) {
+setup_glm <- function(g.list, level, covars, X, contrasts, con.type, con.name, measure, outcome, ...) {
   region <- NULL
   sID <- getOption('bg.subject_id')
+
+  # Get the outcome variable(s) into a data.table
+  if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
+  g.list <- g.list[]
+
+  DT.y <- glm_data_table(g.list, level, measure)
+  DT.y.m <- melt(DT.y, id.vars=sID, variable.name='region', value.name=measure)
+
   covars <- droplevels(copy(covars))
   if (!hasName(covars, sID)) covars[, eval(sID) := seq_len(dim(covars)[1L])]
   covars[, eval(sID) := check_sID(get(sID))]
@@ -308,10 +290,21 @@ setup_glm <- function(covars, X, contrasts, con.type, con.name, measure, outcome
     attributes(X) <- c(attributes(X), attrs)
   } else {
     if (is.null(X)) X <- brainGraph_GLM_design(DT.Xy[region == regions[1L], !c('region', measure), with=FALSE], ...)
+    outcome <- measure
+  }
+
+  # Create a matrix of outcome variables
+  y <- as.matrix(dcast(DT.Xy, paste(sID, '~ region'), value.var=outcome), rownames=sID)
+  y <- y[dimnames(X)[[1L]], , drop=FALSE]  # Since dcast changes the row order if input is out of order
+  if (level == 'graph' || outcome != measure) {
+    y <- y[, 1L, drop=FALSE]
+    if (outcome != measure) dimnames(y)[[2L]] <- outcome
   }
 
   tmp <- contrast_names(contrasts, con.type, con.name, X)
-  out <- list(incomp=incomp, X=X, contrasts=tmp$contrasts, con.name=tmp$con.name, nC=tmp$nC, DT.Xy=DT.Xy)
+  out <- list(incomp=incomp, X=X, y=y, contrasts=tmp$contrasts, con.name=tmp$con.name,
+              nC=tmp$nC, DT.Xy=DT.Xy, outcome=outcome)
+
   return(out)
 }
 
@@ -361,123 +354,15 @@ contrast_names <- function(contrasts, con.type, con.name, X) {
 #' \code{check_if_singular} returns the names of the regions in which the design
 #' matrix is of full rank (i.e., non-singular) and therefore is invertible.
 #'
+#' @param QR List of QR decompositions for each design matrix
 #' @keywords internal
 #' @rdname glm_helpers
 
-check_if_singular <- function(X) {
-  names(which(apply(X, 3L, function(x) qr.default(x)$rank) == dim(X)[2L]))
-}
-
-################################################################################
-# MODEL FITTING FUNCTIONS
-################################################################################
-
-#' Helper function for GLM fitting
-#'
-#' @param DT A data.table with all the necessary data; namely \code{region}
-#'   (equals \code{graph} if \code{level='graph'}), and the outcome measure(s)
-#' @param mykey The \code{key} to key by (to differentiate NBS and other GLM
-#'   analyses). For GLM, it is \code{'region'}; for NBS, it is
-#'   \code{'Var1,Var2'}.
-#' @inheritParams GLM
-#' @keywords internal
-#' @rdname glm_helpers
-
-glm_fit_helper <- function(DT, X, con.type, contrasts, alt, outcome, mykey, alpha=NULL) {
-  ESS <- stat <- se <- p <- ci.low <- ci.high <- NULL
-  dimX <- dim(X)
-  dfR <- dimX[1L] - dimX[2L]
-
-  XtX <- chol2inv(chol.default(crossprod(X)))
-  if (con.type == 'f') {
-    DT.lm <- CXtX <- rkC <- vector('list', length(contrasts))
-    for (i in seq_along(contrasts)) {
-      CXtX[[i]] <- chol2inv(chol.default(contrasts[[i]] %*% tcrossprod(XtX, contrasts[[i]])))
-      rkC[[i]] <- qr.default(contrasts[[i]])$rank
-      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_f(X, get(outcome), contrasts[[i]], CXtX[[i]]), by=mykey]
-      DT.lm[[i]][, stat := (ESS / rkC[[i]]) / (se / dfR)]
-      DT.lm[[i]][, p := pf(stat, rkC[[i]], dfR, lower.tail=FALSE)]
-    }
-    DT.lm <- rbindlist(DT.lm, idcol='contrast')
-  } else if (con.type == 't') {
-    pfun <- switch(alt,
-                   two.sided=function(stat, df) 2 * pt(abs(stat), df, lower.tail=FALSE),
-                   less=function(stat, df) pt(stat, df),
-                   greater=function(stat, df) pt(stat, df, lower.tail=FALSE))
-
-    DT.lm <- vector('list', dim(contrasts)[1L])
-    for (i in seq_along(DT.lm)) {
-      DT.lm[[i]] <- DT[, brainGraph_GLM_fit_t(X, get(outcome), XtX, contrasts[i, , drop=FALSE]), by=mykey]
-    }
-    DT.lm <- rbindlist(DT.lm, idcol='contrast')
-    DT.lm[, stat := gamma / se]
-    DT.lm[, p := pfun(stat, dfR)]
-    if (!is.null(alpha)) {
-      DT.lm[, ci.low := gamma + qt(alpha / 2, dfR) * se]
-      DT.lm[, ci.high := gamma + qt(1 - (alpha / 2), dfR) * se]
-    }
-  }
-  return(DT.lm)
-}
-
-#' Fit linear models for t and F contrasts
-#'
-#' \code{brainGraph_GLM_fit_t} fits a linear model for t-contrasts (i.e.,
-#' uni-dimensional contrasts) and returns the contrasts of parameter estimates,
-#' standard errors, t-statistics, and P-values. If a contrast matrix is
-#' supplied, it will return the above values for each row of the matrix.
-#'
-#' For speed purposes (if it is called from \code{\link{brainGraph_GLM}} and
-#' permutation testing is done), this function does not do argument checking.
-#'
-#' @param y Numeric vector; the outcome variable
-#' @param XtX Numeric matrix
-#' @param contrast A numeric matrix (1 row) for a single contrast
-#' @inheritParams GLM
-#' @importFrom RcppEigen fastLmPure
-#'
-#' @name GLM fits
-#' @rdname glm_fit
-#'
-#' @return \code{brainGraph_GLM_fit_t} - A list containing:
-#'   \item{gamma}{The contrast of parameter estimates}
-#'   \item{se}{The standard error}
-#'
-#' @family GLM functions
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-
-brainGraph_GLM_fit_t <- function(X, y, XtX, contrast) {
-  est <- fastLmPure(X, y, method=2L)
-  gamma <- as.numeric(contrast %*% est$coefficients)
-  var.covar <- est$s^2 * XtX
-  se <- sqrt(as.numeric(contrast %*% tcrossprod(var.covar, contrast)))
-
-  list(gamma=gamma, se=se)
-}
-
-#' Fit linear models for F contrasts
-#'
-#' \code{brainGraph_GLM_fit_f} fits a linear model for F contrasts (i.e.,
-#' multi-dimensional contrasts) and returns the \emph{extra sum of squares} due
-#' to the full model, the sum of squared errors of the full model, the
-#' F-statistic, and associated P-value.
-#'
-#' @param CXtX Numeric matrix
-#' @importFrom RcppEigen fastLmPure
-#'
-#' @return \code{brainGraph_GLM_fit_f} - A list containing:
-#'   \item{ESS}{The extra sum of squares due to the full model}
-#'   \item{se}{The sum of squared errors of the full model}
-#'
-#' @rdname glm_fit
-
-brainGraph_GLM_fit_f <- function(X, y, contrast, CXtX) {
-  est <- fastLmPure(X, y, method=2L)
-  gamma <- contrast %*% est$coefficients
-  ESS <- c(crossprod(gamma, CXtX) %*% gamma)
-  SSEF <- sum(est$residuals^2)
-
-  list(ESS=ESS, se=SSEF)
+check_if_singular <- function(QR) {
+  stopifnot(is.list(QR), all(lapply(QR, is.qr)))
+  p <- vapply(QR, function(x) dim(x$qr)[2L], integer(1L))
+  rk <- vapply(QR, function(x) x$rank, integer(1L))
+  names(which(p == rk))
 }
 
 ################################################################################
@@ -516,18 +401,17 @@ print.bg_GLM <- function(x, ...) {
 summary.bg_GLM <- function(object, p.sig=c('p', 'p.fdr', 'p.perm'), contrast=NULL, alpha=object$alpha,
                            digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
   stopifnot(inherits(object, 'bg_GLM'))
-  Outcome <- threshold <- NULL
+  threshold <- NULL
   object$p.sig <- match.arg(p.sig)
   object$printCon <- contrast
   object$digits <- digits
   object$print.head <- print.head
   DT.sum <- object$DT[get(object$p.sig) < alpha]
-  if (object$outcome == object$measure) DT.sum[, Outcome := NULL]
   if (hasName(DT.sum, 'threshold')) DT.sum[, threshold := NULL]
 
   # Change column order and names for `DT.sum`
-  newcols <- c('Contrast', 'region', 'gamma', 'ci.low', 'ci.high', 'se',
-               'stat', 'p', 'p.fdr', 'p.perm', 'contrast')
+  newcols <- c('Contrast', 'region', 'gamma', 'ci.low', 'ci.high',
+               'se', 'stat', 'p', 'p.fdr', 'p.perm')
   oldnames <- c('region', 'gamma', 'se', 'stat', 'p', 'p.fdr', 'p.perm', 'ci.low', 'ci.high')
   newnames <- c('Region', 'Estimate', 'Std. error', 't value', 'p-value', 'p-value (FDR)', 'p-value (perm.)')
   if (isFALSE(object$permute)) {

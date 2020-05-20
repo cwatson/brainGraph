@@ -23,13 +23,13 @@
 
 dffits.bg_GLM(model)
 
-\method{dfbeta}{bg_GLM}(model, QR = NULL)
+\method{dfbeta}{bg_GLM}(model, ...)
 
 \method{dfbetas}{bg_GLM}(model, ...)
 
 covratio.bg_GLM(model)
 
-\method{influence}{bg_GLM}(model, do.coef = TRUE, ...)
+\method{influence}{bg_GLM}(model, do.coef = TRUE, region = NULL, ...)
 }
 \arguments{
 \item{model}{A \code{bg_GLM} object}
@@ -38,10 +38,10 @@ covratio.bg_GLM(model)
 
 \item{...}{Unused}
 
-\item{QR}{List of \code{qr} objects, with one element for each design matrix
-in the model}
-
 \item{do.coef}{Logical indicating whether to calculate \code{dfbeta}}
+
+\item{region}{Character string of the region(s) to return results for.
+Default is to calculate for all regions}
 }
 \value{
 Most influence functions return a numeric matrix in which rownames

@@ -1,9 +1,26 @@
-#' Guess the atlas based on the data
+#' Atlas helper functions
 #'
 #' \code{guess_atlas} tries to determine which atlas is being used based on the
 #' data; i.e., the number of vertices/regions.
 #'
-#' @param x,object An object to test or convert to an atlas table
+#' @section Guessing the atlas from an object:
+#' There are several valid inputs to \code{guess_atlas}:
+#' \describe{
+#'   \item{data.table}{The atlas will be guessed based on the number of columns
+#'     (subtracting by 1 if a \dQuote{Study ID} column is present). This is the
+#'     same behavior as for \code{data.frame} objects, as well.}
+#'   \item{igraph}{The vertex count}
+#'   \item{brainGraph}{If there is a \code{atlas} graph-level attribute, it will
+#'     return that. Otherwise, the vertex count.}
+#'   \item{matrix,array}{The number of rows, which should equal the number of
+#'     columns if the input is a connectivity matrix.}
+#' }
+#'
+#' Note that this will only work properly for atlases that are currently in the
+#' package. If you are using a custom atlas and you receive errors, please open
+#' an issue on \emph{GitHub}.
+#'
+#' @param x,object An object to test or convert to an atlas data.table
 #' @export
 #' @return \code{guess_atlas} - Character string; either the matched atlas or
 #'   \code{NA}
@@ -32,9 +49,11 @@ guess_atlas <- function(x) {
 
 #' Check if an object is a valid atlas, and convert if it isn't
 #'
-#' \code{as_atlas} and \code{create_atlas} converts an object to or creates a
-#' \code{data.table} that is compatible with \code{brainGraph}.
+#' \code{as_atlas} and \code{create_atlas} converts/coerces an object to a
+#' a \code{data.table}, or creates one, that is compatible with
+#' \code{brainGraph}.
 #'
+#' @section Coercing to an atlas:
 #' There are several things \code{as_atlas} tries to do to make it work without
 #' error:
 #' \itemize{
@@ -53,8 +72,9 @@ guess_atlas <- function(x) {
 #'   y.mni=rnorm(10), z.mni=rnorm(10),
 #'   lobe=rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2),
 #'   hemi=c(rep('L', 5), rep('R', 5)))
-#' my_atlas <- as_atlas(my_atlas)
+#' my_atlas2 <- as_atlas(my_atlas)
 #' str(my_atlas)
+#' str(my_atlas2)
 
 as_atlas <- function(object) {
   index <- NULL
@@ -86,8 +106,6 @@ as_atlas <- function(object) {
   return(object)
 }
 
-#' Create an atlas compatible with brainGraph
-#'
 #' @param regions Character vector of region names
 #' @param coords Numeric matrix of spatial coordinates; must have 3 columns
 #' @param lobes Character or factor vector of lobe membership

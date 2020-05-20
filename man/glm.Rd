@@ -13,9 +13,9 @@ brainGraph_GLM(g.list, covars, measure, contrasts, con.type = c("t",
   "f"), outcome = NULL, X = NULL, con.name = NULL,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   level = c("vertex", "graph"), permute = FALSE,
-  perm.method = c("freedmanLane", "terBraak", "smith"),
-  part.method = c("beckmann", "guttman", "ridgway"), N = 5000,
-  perms = NULL, long = FALSE, ...)
+  perm.method = c("freedmanLane", "terBraak", "smith", "draperStoneman",
+  "manly", "stillWhite"), part.method = c("beckmann", "guttman",
+  "ridgway"), N = 5000, perms = NULL, long = FALSE, ...)
 
 \method{print}{bg_GLM}(x, ...)
 
@@ -35,8 +35,9 @@ brainGraph_GLM(g.list, covars, measure, contrasts, con.type = c("t",
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
-only one contrast is desired, you can supply a vector}
+\item{contrasts}{Numeric matrix (for T statistics) or list of matrices (for F
+statistics) specifying the contrast(s) of interest; if only one contrast is
+desired, you can supply a vector (for T statistics)}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
@@ -225,7 +226,7 @@ the maximum statistic which corrects for multiple testing. To account for
 complex designs, the design matrix must be \emph{partitioned} into covariates
 of interest and nuisance; the default method is the \emph{Beckmann} method.
 The default permutation strategy is that of Freedman & Lane (1983), and is
-the same as that in FSL's \emph{randomise}.
+the same as that in FSL's \emph{randomise}. See \code{\link{randomise}}.
 }
 
 \examples{
@@ -247,36 +248,6 @@ glmPlots <- lapply(res.mtpc$res.glm, plot, which=1:6)
 ml <- marrangeGrob(glmPlots, nrow=1, ncol=1)
 ggsave('glmPlots.pdf', ml, width=8.5, height=11)
 }
-}
-\references{
-Beckmann, C.F. and Jenkinson, M. and Smith, S.M. (2001) General
-  multi-level linear mdoelling for group analysis in FMRI. Tech Rep.
-  University of Oxford, Oxford.
-
-Guttman, I. (1982) \emph{Linear Models: An Introduction}. Wiley,
-  New York.
-
-Ridgway, G.R. (2009) Statistical analysis for longitudinal MR
-  imaging of dementia. PhD thesis.
-
-Freedman, D. and Lane, D. (1983) A nonstochastic interpretation
-  of reported significance levels. \emph{J Bus Econ Stat}, \bold{1(4)},
-  292--298. \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
-
-Smith, S.M. and Jenkinson, M. and Beckmann, C. and Miller, K. and
-  Woolrich, M. (2007) Meaningful design and contrast estimability in fMRI.
-  \emph{NeuroImage}. \bold{34(1)}, 127--36.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
-
-Nichols, T.E. and Holmes, A.P. (2001) Nonparametric permutation
-  tests for functional neuroimaging: A primer with examples. \emph{Human
-  Brain Mapping}. \bold{15(1)}, 1--25.
-  \url{https://dx.doi.org/10.1002/hbm.1058}
-
-Winkler, A.M. and Ridgway, G.R. and Webster, M.A. and Smith, S.M.
-  and Nichols, T.E. (2014) Permutation inference for the general linear
-  model. \emph{NeuroImage}. \bold{92}, 381--397.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
 }
 \seealso{
 \code{\link[stats]{plot.lm}}

@@ -10,9 +10,10 @@
 #' attributes common to those graphs.
 #'
 #' In addition to creating the initial \code{igraph} graphs from the
-#' connectivity matrices, \code{\link{set_brainGraph_attr}} will be called on
-#' each graph if \code{set.attrs=TRUE}; other arguments will be passed to that
-#' function. You may display a progress bar by setting \code{.progress=TRUE}.
+#' connectivity matrices, then attributes will be calculated and assigned for
+#' each graph via \code{\link{set_brainGraph_attr}} if \code{set.attrs=TRUE}.
+#' Other arguments can be passed to that function. You may display a progress
+#' bar by setting \code{.progress=TRUE}.
 #'
 #' This object can be considered comparable to a 4-D \emph{NIfTI} file,
 #' particularly that returned by FSL's \emph{TBSS} \dQuote{prestats} step since

@@ -87,6 +87,17 @@ is otherwise ignored. It is generally recommended that centering be performed
 when including interaction terms.
 }
 
+\examples{
+\dontrun{
+# Recreate design matrix when "outcome == measure"
+DT <- res.glm$DT.Xy[region == levels(region)[1L],
+                    !c('region', res.glm$outcome),
+                    with=FALSE]
+X <- do.call(brainGraph_GLM_design, c(list(covars=DT),
+                                      attributes(res.glm$X)[-c(1L, 2L)]))
+all.equal(X, res.glm$X)
+}
+}
 \seealso{
 Other GLM functions: \code{\link{GLM fits}},
   \code{\link{GLM}}, \code{\link{mtpc}}

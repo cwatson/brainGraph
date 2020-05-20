@@ -41,11 +41,6 @@ The argument \code{W.files} accepts the same formats as \code{A.files}; see
   W.mats <- apply_thresholds(A.norm.sub, A.norm.mean, f.W, inds)
 }
 }
-\seealso{
-Other Matrix functions: \code{\link{cor.diff.test}},
-  \code{\link{create_mats}}, \code{\link{symmetrize_mats}}
-}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Matrix functions}

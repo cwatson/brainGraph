@@ -41,7 +41,7 @@ element should be a vector of length equal to the group sizes}
 
 \item{P}{Integer; number of samples per seed voxel (default: 5000)}
 
-\item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
+\item{...}{Arguments passed to \code{\link{symmetrize}}}
 }
 \value{
 A list containing:
@@ -130,12 +130,6 @@ Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
   connectome. \emph{NeuroImage}. \bold{145}, 118--129.
   \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
 }
-\seealso{
-Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}},
-  \code{\link{symmetrize_mats}}
-}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Matrix functions}

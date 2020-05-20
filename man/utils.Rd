@@ -3,11 +3,14 @@
 \name{Utility functions}
 \alias{Utility functions}
 \alias{get_metadata}
+\alias{outer_vec}
 \alias{split_string}
 \alias{vec.transform}
 \title{Utility functions}
 \usage{
 get_metadata(object)
+
+outer_vec(x, y)
 
 split_string(x, max_len = 80L, delim = "\\\\+", sep = "\\n")
 
@@ -38,6 +41,9 @@ A vector of the transformed input.
 }
 \description{
 \code{get_metadata} adds metadata to a list-like object.
+
+\code{outer_vec} simply performs the cross-product, specifically \code{x %*%
+t(y)}, and assigns dimnames to the resulting matrix.
 
 \code{split_string} inserts separator characters in a character string to
 truncate strings for printing.

@@ -40,6 +40,13 @@
 #'
 #' @return An object of class \code{mtpc} with some input arguments plus the
 #'   following elements:
+#'   \item{X,qr,cov.unscaled}{Design matrix, QR decomposition, and unscaled
+#'     covariance matrix, if the design is the same across thresholds}
+#'   \item{contrasts}{The contrast matrix or list of matrices}
+#'   \item{con.name}{Contrast names}
+#'   \item{removed.subs}{Named integer vector of subjects with incomplete data}
+#'   \item{atlas}{The atlas of the input graphs}
+#'   \item{rank,df.residual}{The model rank and residual degrees of freedom}
 #'   \item{res.glm}{List with length equal to the number of thresholds; each
 #'     list element is the output from \code{\link{brainGraph_GLM}}}
 #'   \item{DT}{A \code{data.table} for all thresholds, combined from the outputs
@@ -48,9 +55,10 @@
 #'     statistic), \code{tau.mtpc} (the threshold of the max. observed
 #'     statistic), \code{S.crit} (the critical statistic value), and
 #'     \code{A.crit} (the critical AUC)}
-#'   \item{null.dist}{Numeric matrix with \code{N} rows and number of columns
-#'     equal to the number of thresholds. Each element is the maximum statistic
-#'     for that permutation and threshold.}
+#'   \item{null.dist}{Numeric array with \code{N} columns and number of rows
+#'     equal to the number of thresholds. The 3rd dimension is for each
+#'     contrast. Each element of the array is the maximum statistic
+#'     for that permutation, threshold, and contrast combination.}
 #'   \item{perm.order}{Numeric matrix; the permutation set applied for all
 #'     thresholds (each row is a separate permutation)}
 #'
@@ -73,19 +81,25 @@
 
 mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t', 'f'),
                  outcome=NULL, con.name=NULL, level=c('vertex', 'graph'),
-                 clust.size=3L, perm.method=c('freedmanLane', 'terBraak', 'smith'),
+                 clust.size=3L, perm.method=c('freedmanLane', 'terBraak', 'smith',
+                                              'draperStoneman', 'manly', 'stillWhite'),
                  part.method=c('beckmann', 'guttman', 'ridgway'), N=500L, perms=NULL,
                  alpha=0.05, res.glm=NULL, long=TRUE, ...) {
-  A.crit <- A.mtpc <- contrast <- V1 <- S.crit <- DT <- region <- stat <- threshold <- values <- null.out <- NULL
+  S.mtpc <- tau.mtpc <- A.crit <- A.mtpc <- Contrast <- S.crit <- region <- stat <-
+    threshold <- values <- null.out <- NULL
 
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
   stopifnot(length(g.list) == length(thresholds))
 
-  if (is.null(perms)) perms <- shuffleSet(n=length(g.list[[1L]]$graphs), nset=N)
-
   if (is.null(res.glm)) {
+    # If 'outcome != measure' make sure the same perm order is used throughout
+    if (is.null(perms)) perms <- shuffleSet(n=length(g.list[[1L]]$graphs), nset=N)
+    if (!is.null(outcome) && (outcome != measure)) {
+      n <- sum(complete.cases(covars))
+      if (dim(perms)[1L] != n) perms <- shuffleSet(n=n, nset=N)
+    }
     res.glm <- lapply(g.list, function(z)
       brainGraph_GLM(z, covars, measure, contrasts, con.type, outcome, con.name=con.name, N=N,
                      level=level, permute=TRUE, perm.method=perm.method, part.method=part.method,
@@ -93,63 +107,84 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   }
   alt <- res.glm[[1L]]$alt
   for (i in seq_along(thresholds)) res.glm[[i]]$DT[, threshold := thresholds[i]]
-  mtpc.all <- rbindlist(lapply(res.glm, with, DT))
-  setkey(mtpc.all, contrast, region)
+  mtpc.all <- rbindlist(lapply(res.glm, function(x) x$DT))
+  setkey(mtpc.all, Contrast, region)
   mtpc.all[, c('S.crit', 'A.mtpc', 'A.crit') := 0]
 
-  con.type <- match.arg(con.type)
-  kNumContrasts <- length(res.glm[[1L]]$con.name)
-  null.dist.all <- null.dist.max <- vector('list', length=kNumContrasts)
-  Scrit <- Acrit <- rep.int(0, kNumContrasts)
-  myMax <- maxfun(alt)
+  conNames <- res.glm[[1L]]$con.name
+  myMax <- switch(alt, two.sided=colMaxAbs, less=colMin, greater=colMax)
   mySort <- sortfun(alt)
-  for (i in seq_len(kNumContrasts)) {
-    null.dist.all[[i]] <- vapply(res.glm, function(x) x$perm$null.dist[contrast == i, V1], numeric(N))
-    null.dist.max[[i]] <- apply(null.dist.all[[i]], 1L, myMax)
-    Scrit[i] <- mySort(null.dist.max[[i]])[floor(N * (1 - alpha)) + 1]
-    mtpc.all[contrast == i, S.crit := Scrit[i]]
-  }
+  index <- floor((1 - alpha) * N) + 1L
+  # Dimensions will be "thresholds X Nperms X contrasts"
+  null.max.all <- aperm(sapply(res.glm, function(x) x$perm$null.max, simplify='array'),
+                        c(3L, 1L, 2L))
+  dimnames(null.max.all)[[3L]] <- conNames
+  null.max.perms <- apply(null.max.all, 3L, myMax)
+  Scrit <- structure(apply(null.max.perms, 2L, mySort, index), names=conNames)
+  for (x in conNames) mtpc.all[Contrast == x, S.crit := Scrit[x]]
 
-  rlefun <- switch(alt,
-                   two.sided=function(x, y) rle(abs(x) > abs(y)),
-                   less=function(x, y) rle(x < y),
-                   greater=function(x, y) rle(x > y))
-  crit.regions <- mtpc.all[, rlefun(stat, S.crit), by=key(mtpc.all)][values == TRUE & lengths >= clust.size, list(region=unique(region)), by=contrast]
-  setkey(crit.regions, contrast, region)
+  rlefun <- rle_comp(alt)
+  rle_obs <- mtpc.all[, rlefun(stat, S.crit), by=key(mtpc.all)]
+  crit.regions <- rle_obs[(values)][lengths >= clust.size, list(region=unique(region)), by=Contrast]
+  setkeyv(crit.regions, key(mtpc.all))
   mtpc.all[crit.regions,
            A.mtpc := auc_rle(stat, S.crit, thresholds, alt, clust.size),
-           by=list(contrast, region)]
+           by=key(mtpc.all)]
+
+  null.crit <- setNames(vector('list', length(conNames)), conNames)
+  Acrit <- setNames(rep.int(0, length(conNames)), conNames)
+  for (x in conNames) {
+    null.crit[[x]] <- which(apply(null.max.all[, , x], 2L, function(y)
+                                  any(with(rlefun(y, Scrit[x]), values == TRUE & lengths >= clust.size))))
+    if (length(null.crit) > 0L) {
+      null.crits <- abind::adrop(null.max.all[, null.crit[[x]], x, drop=FALSE], drop=3L)
+      Acrit[x] <- mean(apply(null.crits, 2L, auc_rle, Scrit[x], thresholds, alt, clust.size))
+      mtpc.all[Contrast == x, A.crit := Acrit[x]]
+    }
+  }
 
   maxobsfun <- switch(alt,
                       two.sided=function(x) max(is.finite(abs(x)) * abs(x), na.rm=TRUE),
                       less=function(x) min(is.finite(x) * x, na.rm=TRUE),
                       greater=function(x) max(is.finite(x) * x, na.rm=TRUE))
-  S.mtpc <- mtpc.all[, maxobsfun(stat), by=contrast]
-  S.mtpc <- S.mtpc[, unique(V1), by=contrast]
-  tau.mtpc <- mtpc.all[stat %in% S.mtpc$V1, threshold, by=contrast]
-  tau.mtpc <- tau.mtpc[, .SD[1L], by=contrast]
-
-  for (i in seq_len(kNumContrasts)) {
-    null.crit <- which(apply(null.dist.all[[i]], 1L, function(x)
-                             any(with(rlefun(x, Scrit[i]), values == TRUE & lengths >= clust.size))))
-    if (length(null.crit) > 0L) {
-      null.crits <- null.dist.all[[i]][null.crit, , drop=FALSE]
-      Acrit[i] <- mean(apply(null.crits, 1L, auc_rle, Scrit[i], thresholds, alt, clust.size))
-      mtpc.all[contrast == i, A.crit := Acrit[i]]
-    }
-  }
+  mtpc.stats <- mtpc.all[, list(S.mtpc=unique(maxobsfun(stat))), by=Contrast]
+  mtpc.stats[, tau.mtpc := mtpc.all[mtpc.stats, .SD[S.mtpc == stat, threshold]]]
+  mtpc.stats[, S.crit := Scrit]
+  mtpc.stats[, A.crit := Acrit]
+  setcolorder(mtpc.stats, c('Contrast', 'tau.mtpc', 'S.mtpc', 'S.crit', 'A.crit'))
 
   glm.attr <- res.glm[[1L]]
-  glm.attr[c('y', 'DT', 'permute', 'perm')] <- NULL
-  for (i in seq_along(thresholds)) res.glm[[i]]$perm$null.dist <- NULL
-  mtpc.stats <- data.table(contrast=seq_len(kNumContrasts), tau.mtpc=tau.mtpc$threshold,
-                           S.mtpc=S.mtpc$V1, S.crit=Scrit, A.crit=Acrit)
+  glm.attr[c('y', 'DT.Xy', 'DT', 'permute', 'runX', 'runY', 'coefficients', 'residuals',
+             'sigma', 'fitted.values', 'se', 'perm', 'perm.order')] <- NULL
+  if (glm.attr$outcome != glm.attr$measure) glm.attr[c('X', 'qr', 'cov.unscaled')] <- NULL
+  for (i in seq_along(thresholds)) {
+    res.glm[[i]]$perm[c('null.dist', 'null.max')] <- NULL
+    res.glm[[i]]$perm.order <- NULL
+  }
 
-  if (isTRUE(long)) null.out <- null.dist.all
-  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats, null.dist=null.out, perm.order=perms))
+  if (isTRUE(long)) null.out <- null.max.all
+  out <- c(glm.attr, list(res.glm=res.glm, clust.size=clust.size, DT=mtpc.all, stats=mtpc.stats,
+                          null.dist=null.out, perm.order=perms))
   class(out) <- c('mtpc', class(out))
   return(out)
 }
+
+#' Run length encoding of the comparison of 2 vectors
+#'
+#' Returns a function that will compare 2 vectors and return the run length
+#' encoding (RLE) of the logical vector from that comparison.
+#' @noRd
+
+rle_comp <- function(alt) {
+  switch(alt,
+         two.sided=function(x, y) rle(abs(x) > abs(y)),
+         less=function(x, y) rle(x < y),
+         greater=function(x, y) rle(x > y))
+}
+
+#' Calculate the AUC for the observed T- or F-statistic
+#'
+#' @noRd
 
 auc_rle <- function(t.stat, S.crit, thresholds, alt, clust.size) {
   inds <- get_rle_inds(clust.size, alt, t.stat, S.crit, thresholds)
@@ -159,19 +194,23 @@ auc_rle <- function(t.stat, S.crit, thresholds, alt, clust.size) {
   return(sum(abs(auc) * is.finite(auc), na.rm=TRUE))
 }
 
+#' Get the starting and ending points for significant runs
+#'
+#' Given a vector of observed statistics and a critical value, calculate the
+#' \dQuote{runs} (using \code{\link{rle}}) based on comparing these values. Then
+#' return the starting and ending points of the runs.
+#' @noRd
+
 get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
-  compfun <- switch(alt,
-                    two.sided=function(x, y) rle(abs(x) > abs(y)),
-                    less=function(x, y) rle(x < y),
-                    greater=function(x, y) rle(x > y))
+  compfun <- rle_comp(alt)
   runs <- compfun(t.stat, S.crit)
-  myruns <- which(runs$values == TRUE & runs$lengths >= clust.size)
-  runs.len.cumsum <- cumsum(runs$lengths)
-  ends <- runs.len.cumsum[myruns]
-  newindex <- ifelse(myruns > 1L, myruns - 1L, 0L)
-  starts <- runs.len.cumsum[newindex] + 1L
-  if (0L %in% newindex) starts <- c(1L, starts)
-  return(list(starts=starts, ends=ends))
+  sigruns <- which(runs$values == TRUE & runs$lengths >= clust.size)
+  ends <- cumsum(runs$lengths)
+  starts <- c(1L, head(ends, -1L) + 1L)
+#  ends <- runs.len.cumsum[myruns]
+#  newindex <- ifelse(sigruns > 1L, sigruns - 1L, 0L)
+#  if (0L %in% newindex) starts <- c(1L, starts)
+  return(list(starts=starts[sigruns], ends=ends[sigruns]))
 }
 
 ################################################################################
@@ -186,18 +225,18 @@ get_rle_inds <- function(clust.size, alt, t.stat, S.crit, thresholds) {
 #' @rdname mtpc
 
 summary.mtpc <- function(object, contrast=NULL, digits=max(3L, getOption('digits') - 2L), print.head=TRUE, ...) {
-  A.mtpc <- A.crit <- stat <- region <- S.mtpc <- NULL
+  Contrast <- A.mtpc <- A.crit <- stat <- region <- S.mtpc <- NULL
   object$printCon <- contrast
   object$digits <- digits
   object$print.head <- print.head
 
   # Summary table
   whichmaxfun <- switch(object$alt, two.sided=function(x) which.max(abs(x)), less=which.min, greater=which.max)
-  DT.sum <- object$DT[A.mtpc > A.crit, .SD[whichmaxfun(is.finite(stat) * stat)], by=list(contrast, region)]
-  DT.sum <- DT.sum[, c('region', 'contrast', 'stat', 'Outcome', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
-  setcolorder(DT.sum, c('Outcome', 'Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit', 'contrast'))
+  DT.sum <- object$DT[A.mtpc > A.crit, .SD[whichmaxfun(is.finite(stat) * stat)], by=list(Contrast, region)]
+  DT.sum <- DT.sum[, c('region', 'stat', 'Contrast', 'threshold', 'S.crit', 'A.mtpc', 'A.crit'), with=FALSE]
+  setcolorder(DT.sum, c('Contrast', 'region', 'threshold', 'stat', 'S.crit', 'A.mtpc', 'A.crit'))
   setnames(DT.sum, c('region', 'stat', 'threshold'), c('Region', 'S.mtpc', 'tau.mtpc'))
-  setorder(DT.sum, contrast, -S.mtpc)
+  setorder(DT.sum, Contrast, -S.mtpc)
   object$DT.sum <- DT.sum
 
   class(object) <- c('summary.mtpc', class(object))
@@ -212,14 +251,13 @@ print.summary.mtpc <- function(x, ...) {
   print_title_summary('MTPC results (', x$level, '-level)')
 
   print_model_summary(x)
-  print_permutation_summary(x)
-
-  cat('# of thresholds: ', length(x$res.glm), '\n')
-  cat('Cluster size (across thresholds): ', x$clust.size, '\n\n')
-
   print_contrast_type_summary(x)
   print_subs_summary(x)
 
+  cat('# of thresholds: ', length(x$res.glm), '\n')
+  cat('Cluster size (across thresholds): ', x$clust.size, '\n')
+
+  print_permutation_summary(x)
   message('\n', 'Statistics', '\n', rep.int('-', getOption('width') / 4))
   clp <- 100 * (1 - x$alpha)
   cat('tau.mtpc: threshold of the maximum observed statistic\n')
@@ -263,18 +301,19 @@ print.summary.mtpc <- function(x, ...) {
 
 plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
                       show.null=TRUE, caption.stats=FALSE, ...) {
-  stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- NULL
+  Contrast <- stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- NULL
 
   stopifnot(inherits(x, 'mtpc'))
-  mycontrast <- contrast
-  DT <- x$DT[contrast == mycontrast, !'p.fdr']
+  conNames <- x$con.name
+  mycontrast <- conNames[contrast]
+  DT <- x$DT[Contrast == mycontrast, !'p.fdr']
   DT[, stat_ribbon := stat]  # For filling in supra-threshold areas
   thresholds <- DT[, unique(threshold)]
-  DT$nullthresh <- x$stats[contrast == mycontrast, unique(S.crit)]
+  DT$nullthresh <- x$stats[Contrast == mycontrast, unique(S.crit)]
   whichmaxfun <- switch(x$alt, two.sided=function(y) which.max(abs(y)), less=which.min, greater=which.max)
-  myMax <- maxfun(x$alt)
-  thr <- apply(x$null.dist[[mycontrast]], 1L, whichmaxfun)
-  thr.y <- apply(x$null.dist[[mycontrast]], 1L, myMax)
+  myMax <- switch(x$alt, two.sided=colMaxAbs, less=colMin, greater=colMax)
+  thr <- apply(x$null.dist[, , mycontrast], 2L, whichmaxfun)
+  thr.y <- myMax(x$null.dist[, , mycontrast])
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
 
   # Local function to plot for a single region
@@ -365,7 +404,7 @@ nobs.mtpc <- function(object, ...) nobs(object$res.glm[[1L]])
 
 #' @export
 #' @rdname mtpc
-terms.mtpc <- terms.bg_GLM
+terms.mtpc <- function(x, ...) terms(x$res.glm[[1]])
 
 #' @export
 #' @rdname mtpc
@@ -378,12 +417,12 @@ labels.mtpc <- labels.bg_GLM
 #' @method case.names mtpc
 #' @export
 #' @rdname mtpc
-case.names.mtpc <- case.names.bg_GLM
+case.names.mtpc <- function(object, ...) case.names(object$res.glm[[1]])
 
 #' @method variable.names mtpc
 #' @export
 #' @rdname mtpc
-variable.names.mtpc <- variable.names.bg_GLM
+variable.names.mtpc <- function(object, ...) variable.names(object$res.glm[[1]])
 
 #' @method df.residual mtpc
 #' @export

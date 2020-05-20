@@ -1,59 +1,60 @@
 #' Mediation analysis with brain graph measures as mediator variables
 #'
 #' \code{brainGraph_mediate} performs simple mediation analyses in which a given
-#' graph- or vertex-level measure (e.g., \emph{weighted global efficiency})
-#' is the mediator \emph{M}. The outcome (or dependent/response) variable
-#' \emph{Y} can be a neuropsychological measure (e.g., \emph{IQ}) or
-#' can be a disease-specific metric (e.g., recovery time). The treatment
-#' variable should be a \code{factor}.
+#' graph- or vertex-level measure (e.g., \emph{weighted global efficiency}) is
+#' the mediator \emph{M}. The outcome (or dependent/response) variable \emph{Y}
+#' can be a neuropsychological measure (e.g., \emph{IQ}) or can be a
+#' disease-specific metric (e.g., recovery time).
 #'
 #' This code was adapted closely from \code{\link[mediation]{mediate}} in the
 #' \code{mediation} package, and the procedure is exactly the same as theirs
-#' (see the references listed below). So, if you use this function, please cite
+#' (see the references listed below). If you use this function, please cite
 #' their work.
 #'
-#' As of \code{brainGraph v2.0.0}, this function has been tested only for a
-#' treatment (independent) variable \emph{X} being a 2-level factor (e.g.,
-#' disease group, old vs. young, etc.).
+#' @note As of \code{brainGraph v2.0.0}, this function has been tested only for
+#' a treatment (independent) variable \emph{X} being a \emph{factor} (e.g.,
+#' disease group, old vs. young, etc.). If your treatment variable has more
+#' than 2 levels, then you must explicitly specify the levels you would like to
+#' compare; otherwise, the baseline and first levels are taken to be the
+#' control and treatment values, respectively. Be aware that these are \emph{0}
+#' indexed; that is, if you have 3 groups and you would like the treatment
+#' group to be the 3rd, you should specify as either the group's character
+#' string or as \code{treat.value=2}.
 #'
-#' Allowing for treatment-mediator interaction (setting \code{int=TRUE})
+#' @note Allowing for treatment-mediator interaction (setting \code{int=TRUE})
 #' currently will only work properly if the mediator is a continuous variable;
 #' since the mediator is always a graph metric, this should always be the case.
 #'
 #' @param covars A data table containing covariates of interest. It must include
-#'   columns for \emph{Study.ID}, the treatment variable, \code{covar.names},
-#'   and the outcome variable.
+#'   columns for \code{getOption('bg.subject_id')}, \code{treat},
+#'   \code{outcome}, and \code{covar.names}.
 #' @param mediator Character string; the name of the graph measure acting as
 #'   the \emph{mediating} variable
 #' @param treat Character string; the \emph{treatment} variable (e.g.,
 #'   \emph{Group})
 #' @param outcome Character string; the name of the outcome variable of interest
-#'   (e.g., full-scale IQ, memory, etc.)
-#' @param covar.names Character vector of the column names in \code{covars} to
-#'   include in the models as pre-treatment covariates.
-#' @param boot Logical indicating whether or not to perform bootstrapping
-#'   (default: \code{TRUE})
-#' @param boot.ci.type Character string; which type of CI's to calculate
-#'   (default: \code{perc})
-#' @param N Integer; the number of bootstrap samples to run (default:
-#'   \code{1e3})
-#' @param conf.level Numeric; the level of the CI's to calculate (default:
-#'   \code{0.95} for the 2.5 and 97.5 percentiles)
+#' @param covar.names Character vector of the column name(s) in \code{covars} to
+#'   include in the models as pre-treatment covariate(s).
 #' @param control.value Value of \code{treat} to be used as the control
-#'   condition (default: \code{0})
+#'   condition. Default: \code{0}
 #' @param treat.value Value of \code{treat} to be used as the treatment
-#'   condition (default: \code{1})
-#' @param long Logical indicating whether or not to return all bootstrap samples
-#'   (default: \code{TRUE})
+#'   condition. Default: \code{1}
 #' @param int Logical indicating whether or not to include an interaction of the
-#'   mediator and treatment (default: \code{FALSE})
-#' @param .progress Logical indicating whether to print a progress bar. Default:
-#'   \code{getOption('bg.progress')}
+#'   mediator and treatment. Default: \code{FALSE}
+#' @param boot Logical indicating whether or not to perform bootstrapping. This
+#'   should always be done. Default: \code{TRUE}
+#' @param boot.ci.type Character string; which type of CI's to calculate.
+#'   Default: \code{perc}
+#' @param N Integer; the number of bootstrap samples to run. Default:
+#'   \code{1e3}
+#' @param conf.level Numeric between 0 and 1; the level of the CI's to
+#'   calculate. Default: \code{0.95} for the 2.5 and 97.5 percentiles)
+#' @param long Logical indicating whether or not to return all bootstrap
+#'   samples. Default: \code{FALSE}
 #' @param ... Other arguments passed to \code{\link{brainGraph_GLM_design}}
 #'   (e.g., \code{binarize}) (unused in the \code{summary} method)
 #' @inheritParams GLM
 #' @export
-#' @importFrom RcppEigen fastLmPure
 #' @importFrom foreach getDoParRegistered
 #' @importFrom doParallel registerDoParallel
 #'
@@ -61,9 +62,9 @@
 #'   \item{level}{Either \code{graph} or \code{vertex}.}
 #'   \item{removed.subs}{A character vector of Study.ID's removed due to
 #'     incomplete data}
-#'   \item{X.m, X.y}{Design matrices for the model with the mediator as the
-#'     outcome variable (\code{X.m}) and for the model with the mediator as an
-#'     additional predictor (\code{X.y})}
+#'   \item{X.m, X.y}{Design matrix and numeric array for the model with the
+#'     mediator as the outcome variable (\code{X.m}) and for the model with the
+#'     mediator as an additional predictor (\code{X.y}), respectively}
 #'   \item{y.m, y.y}{Outcome variables for the associated design matrices above.
 #'     \code{y.m} will be a matrix of size \emph{# subj. X # regions}}
 #'   \item{res.obs}{A \code{data.table} of the observed values of the point
@@ -126,10 +127,10 @@
 
 brainGraph_mediate <- function(g.list, covars, mediator, treat,
                                outcome, covar.names, level=c('graph', 'vertex'),
+                               control.value=0, treat.value=1, int=FALSE,
                                boot=TRUE, boot.ci.type=c('perc', 'bca'), N=1e3,
-                               conf.level=0.95, control.value=0, treat.value=1,
-                               long=TRUE, int=FALSE, .progress=getOption('bg.progress'), ...) {
-  region <- treatintstr <- NULL
+                               conf.level=0.95, long=FALSE, ...) {
+  region <- NULL
   if (!is.brainGraphList(g.list)) try(g.list <- as_brainGraphList(g.list))
   g.list <- g.list[]
 
@@ -140,66 +141,61 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
   covars <- droplevels(covars[, c(sID, treat, covar.names, outcome), with=FALSE])
   incomp <- covars[!complete.cases(covars), which=TRUE]
   names(incomp) <- covars[incomp, get(sID)]
-  covars <- covars[!get(sID) %in% incomp]
-  setkeyv(covars, sID)
 
   level <- match.arg(level)
   dt.graph <- glm_data_table(g.list, level, mediator)
   DT <- covars[dt.graph, on=sID]
   if (length(incomp) > 0L) DT <- DT[-incomp]
-  DT[, eval(treat) := as.factor(get(treat))]
-  DT.m <- melt(DT, id.vars=names(covars), variable.name='region', value.name=mediator)
 
+  DT[, eval(treat) := as.factor(get(treat))]
   t.levels <- DT[, levels(get(treat))]
   if (all(c(treat.value, control.value) %in% t.levels)) {
     cat.0 <- control.value
     cat.1 <- treat.value
   } else {
-    cat.0 <- t.levels[1L]
-    cat.1 <- t.levels[2L]
+    stopifnot(is.numeric(c(control.value, treat.value)))
+    cat.0 <- t.levels[control.value + 1L]
+    cat.1 <- t.levels[treat.value + 1L]
   }
 
-  X.m <- brainGraph_GLM_design(DT[, c(treat, covar.names), with=FALSE], ...)
-  n <- dim(X.m)[1L]
+  cols <- c(sID, treat, covar.names)
+  X.m <- brainGraph_GLM_design(DT[, cols, with=FALSE], ...)
   y.y <- DT[, get(outcome)]
   treatstr <- paste0(treat, cat.1)
-  if (isTRUE(int)) treatintstr <- paste0(treatstr, ':', mediator)
 
   # Different across regions
-  regions <- DT.m[, levels(region)]
-  X.y <- res_boot <- setNames(vector('list', length(regions)), regions)
-  y.m <- matrix(0, n, length(regions), dimnames=list(DT.m[region == regions[1L], get(sID)], regions))
-  cols <- c(mediator, treat, covar.names)
+  DT.m <- melt(DT, id.vars=names(covars), variable.name='region', value.name=mediator)
+  regions <- names(dt.graph)[-1L]
+  y.m <- as.matrix(DT[, c(sID, regions), with=FALSE], rownames=sID)
+  des_args <- list(...)
+  if (isTRUE(int)) des_args <- c(des_args, list(int=c(treat, mediator)))
+  cols <- append(cols, mediator, after=1L)
+  X.y <- lapply(regions, function(r)
+                do.call(brainGraph_GLM_design,
+                        c(list(covars=DT.m[region == r, cols, with=FALSE]), des_args)))
+  names(X.y) <- regions
+  attrs <- attributes(X.y[[1L]])[-c(1L, 2L)]
+  X.y <- abind::abind(X.y, along=3L)
+  attributes(X.y) <- c(attributes(X.y), attrs)
+
+  # Calculate the resampled statistics for each region
   if (!getDoParRegistered()) {
     cl <- makeCluster(getOption('bg.ncpus'))
     registerDoParallel(cl)
   }
-  if (level == 'graph') .progress <- FALSE
-  if (isTRUE(.progress)) progbar <- txtProgressBar(min=0L, max=length(regions), style=3)
-  for (i in regions) {
-    y.m[, i] <- DT.m[region == i, get(mediator)]
-    if (isTRUE(int)) {
-      X.y[[i]] <- brainGraph_GLM_design(DT.m[region == i, cols, with=FALSE], int=c(treat, mediator), ...)
-    } else {
-      X.y[[i]] <- brainGraph_GLM_design(DT.m[region == i, cols, with=FALSE], ...)
-    }
-    res_boot[[i]] <- boot_mediate(N, n, X.m, y.m[, i], treat, cat.1, X.y[[i]],
-                                  y.y, mediator, treatstr, int, treatintstr)
-    if (isTRUE(.progress)) setTxtProgressBar(progbar, getTxtProgressBar(progbar) + 1L)
-  }
-  if (isTRUE(.progress)) close(progbar)
-  res_boot <- rbindlist(res_boot, idcol='region')
+  res_boot <- boot_mediate(X.m, y.m, X.y, y.y, mediator, treat, treatstr, int, N)
+
+  res_p <- as.data.table(pvalArray(res_boot, N, dim(y.m)[2L]), keep.rownames='region')
+  res_boot <- rbindlist(apply(res_boot, 3L, as.data.table), idcol='region')
   res_obs <- res_boot[, .SD[.N], by=region]
-  res_p <- res_boot[, lapply(.SD, function(x) pval(x[seq_len(N)], x[N + 1L])), by=region]
   res_boot <- res_boot[, .SD[-.N], by=region]
 
-  low <- (1 - conf.level) / 2
-  high <- 1 - low
-  boot.ci.type <- match.arg(boot.ci.type)
-  if (isTRUE(boot) && boot.ci.type == 'perc') {
-    res_ci <- res_boot[, lapply(.SD, quantile, c(low, high), na.rm=TRUE), by=region]
-  } else {
-    res_ci <- res_boot[, lapply(.SD, BC.CI, low, high), by=region]
+  conf.limits <- (1 + c(-1, 1) * conf.level) / 2
+  if (isTRUE(boot)) {
+    boot.ci.type <- match.arg(boot.ci.type)
+    bootFun <- switch(boot.ci.type, perc=fastquant, bca=BC.CI2)
+    if (boot.ci.type == 'bca') conf.limits <- qnorm(conf.limits)
+    res_ci <- res_boot[, lapply(.SD, bootFun, conf.limits, N), by=region]
   }
 
   if (isFALSE(long)) res_boot <- NULL
@@ -208,85 +204,227 @@ brainGraph_mediate <- function(g.list, covars, mediator, treat,
               boot=boot, boot.ci.type=boot.ci.type, res.boot=res_boot,
               treat=treat, mediator=mediator, outcome=outcome, covariates=NULL, INT=int,
               conf.level=conf.level, control.value=cat.0, treat.value=cat.1,
-              nobs=n, sims=N, covar.names=covar.names)
+              nobs=dim(X.m)[1L], sims=N, covar.names=covar.names)
   out$atlas <- guess_atlas(g.list[[1L]])
   class(out) <- c('bg_mediate', class(out))
   return(out)
 }
 
-boot_mediate <- function(N, n, X.m, y.m, treat, cat.1, X.y,
-                         y.y, mediator, treatstr, int, treatintstr) {
-  b <- tau <- d1 <- d0 <- z1 <- z0 <- n0 <- n1 <- d.avg <- z.avg <- n.avg <- NULL
+#' Calculate bootstrapped estimates of direct, indirect, and total effects
+#'
+#' @param X.m,X.y Design matrices for the mediation variable as outcome
+#'   (\code{X.m}) and the mediation as a covariate predicting the specified
+#'   outcome variable (\code{X.y})
+#' @param y.m,y.y Numeric matrix and vector, respectively, containing the
+#'   outcome variable data of the above designs
+#' @param treatstr Character string denoting the column of the design matrix for
+#'   the treatment variable
+#' @inheritParams brainGraph_mediate
+#' @noRd
+
+boot_mediate <- function(X.m, y.m, X.y, y.y, mediator, treat, treatstr, int, N) {
+  b <- NULL
+
+  regions <- dimnames(y.m)[[2L]]
+  dimXm <- dim(X.m)
+  n <- dimXm[1L]
+  pm <- dimXm[2L]
+  dfRm <- n - pm
+  py <- dim(X.y)[2L]
+  ny <- dim(y.m)[2L]
 
   # Randomization/resampling matrix
-  A <- matrix(rep.int(seq_len(n), N), byrow=TRUE, nrow=N)
-  index <- t(apply(A, 1L, sample, replace=TRUE))
+  index <- t(replicate(N, sample.int(n, replace=TRUE)))
   index <- rbind(index, seq_len(n))
 
+  # Don't use "drop" when it isn't needed (i.e., vertex-level). It is much slower.
+  if (ny == 1L) {
+    Xyperm <- function(X, porder) X[porder, , , drop=FALSE]
+    Xyfun <- f_beta_3d_g
+  } else {
+    Xyperm <- function(X, porder) X[porder, , ]
+    Xyfun <- f_beta_3d
+  }
+  # For faster calculation of the "Q" matrix for both "fits.m" and "beta.y"
+  diagIndsY <- diag(1, n, py)
+  diagIndsM <- diag(1, n, pm)
+
+  # These are used in the loop calculating "effects.tmp"
+  # The last 2 columns are (1 - tt[3]) and (1 - tt[4])
+  ttMat <- matrix(c(1, 1, 1, 0, 0, 1,
+                    0, 0, 1, 0, 0, 1,
+                    1, 0, 1, 1, 0, 0,
+                    1, 0, 0, 0, 1, 1),
+                   nrow=6L)
+  effects.tmp <- array(NA, dim=c(n, 4L, ny))
+
+  vnames <- dimnames(X.y)[[2L]]
+  treatstrOther <- setdiff(grep(treat, dimnames(X.m)[[2L]], value=TRUE), treatstr)
+  Xcols <- c(mediator, treatstr)
+  if (isTRUE(int)) {
+    treatintstr <- paste0(treatstr, ':', mediator)
+    Xcols <- c(Xcols, treatintstr)
+    ecols <- 1L:4L
+  } else {
+    ecols <- c(1L, 3L)  # "d1" == "d0", and "z1" == "z0", so don't recalculate
+  }
+  bcols <- which(vnames %in% Xcols)
+
+  # When "int=FALSE", reduces to the "Baron & Kenny" approach (for "d1", at least)
+  fun_effects <- function(Xy.diff, beta.y, Xcols, bcols, regions) {
+    X <- Xy.diff[, Xcols, ]
+    b <- beta.y[bcols, ]
+    vapply(regions, function(r) X[, , r] %*% b[, r], numeric(n))
+  }
+
   # Loop through the resamples
-  res <- foreach(b=seq_len(N + 1L), .combine='rbind') %dopar% {
+  #-----------------------------------------------------------------------------
+  res <- foreach(b=seq_len(N + 1L), .combine=rbind) %dopar% {
     neworder <- index[b, ]
 
     # Mediator predictions
-    est.m <- fastLmPure(X.m[neworder, ], y.m[neworder], method=2L)
-    error <- rnorm(n, mean=0, sd=est.m$s)
+    fits.m <- f_beta_m(X.m[neworder, ], y.m[neworder, ], diagIndsM, n, pm, ny, dfRm)
+    error <- vapply(fits.m$sigma, function(r) rnorm(n, mean=0, sd=r), numeric(n))
 
     X.m.t <- X.m.c <- X.m
     X.m.t[, treatstr] <- 1
     X.m.c[, treatstr] <- 0
-    PredictM1 <- X.m.t %*% est.m$coefficients + error
-    PredictM0 <- X.m.c %*% est.m$coefficients + error
+    X.m.t[, treatstrOther] <- X.m.c[, treatstrOther] <- 0
+    PredictM1 <- X.m.t %*% fits.m$coefficients + error
+    PredictM0 <- X.m.c %*% fits.m$coefficients + error
 
     # Outcome predictions
-    est.y <- fastLmPure(X.y[neworder, ], y.y[neworder], method=2L)
-    effects.tmp <- matrix(NA, nrow=n, ncol=4L)
-    for (e in 1L:4L) { # These calculate d1, d0, z1, z0 (respectively) for each "sim")
-      tt <- switch(e, c(1L, 1L, 1L, 0L), c(0L, 0L, 1L, 0L), c(1L, 0L, 1L, 1L), c(1L, 0L, 0L, 0L))
+    beta.y <- Xyfun(Xyperm(X.y, neworder), y.y[neworder], regions, diagIndsY, n, py, ny)
+
+    # e1: Mediation(1); e2: Mediation(0); e3: Direct(1); e4: Direct(0)
+    # AKA: d1, d0, z1, z0 (respectively) for each "sim")
+    for (e in ecols) {
       X.y.t <- X.y.c <- X.y
-      X.y.t[, treatstr] <- tt[1L]
-      X.y.c[, treatstr] <- tt[2L]
-      X.y.t[, mediator] <- PredictM1 * tt[3L] + PredictM0 * (1L - tt[3L])  #PredictMt
-      X.y.c[, mediator] <- PredictM1 * tt[4L] + PredictM0 * (1L - tt[4L])  #PredictMc
+      X.y.t[, treatstr, ] <- ttMat[1L, e]
+      X.y.c[, treatstr, ] <- ttMat[2L, e]
+      X.y.t[, mediator, ] <- PredictM1 * ttMat[3L, e] + PredictM0 * ttMat[5L, e]  #PredictMt
+      X.y.c[, mediator, ] <- PredictM1 * ttMat[4L, e] + PredictM0 * ttMat[6L, e]  #PredictMc
       if (isTRUE(int)) {
-        X.y.t[, treatintstr] <- X.y.t[, treatstr] * X.y.t[, mediator]
-        X.y.c[, treatintstr] <- X.y.c[, treatstr] * X.y.c[, mediator]
+        #X.y.t[, treatstrOther, ] <- X.y.c[, treatstrOther, ] <- 0
+        X.y.t[, treatintstr, ] <- X.y.t[, treatstr, ] * X.y.t[, mediator, ]
+        X.y.c[, treatintstr, ] <- X.y.c[, treatstr, ] * X.y.c[, mediator, ]
       }
-      pr.1 <- X.y.t %*% est.y$coefficients
-      pr.0 <- X.y.c %*% est.y$coefficients
-      pr.mat <- as.matrix(cbind(pr.1, pr.0))
-      effects.tmp[, e] <- pr.mat[, 1L] - pr.mat[, 2L]
+      Xy.diff <- X.y.t - X.y.c
+      effects.tmp[, e, ] <- fun_effects(Xy.diff, beta.y, Xcols, bcols, regions)
     }
 
-    return(t(colMeans(effects.tmp)))
+    return(colMeans(effects.tmp))
   }
-  res <- as.data.table(res)
-  setnames(res, c('d1', 'd0', 'z1', 'z0'))
-  res[, tau := (d1 + d0 + z1 + z0) / 2]
-  res[, n0 := d0 / tau]
-  res[, n1 := d1 / tau]
-  res[, d.avg := (d1 + d0) / 2]
-  res[, z.avg := (z1 + z0) / 2]
-  res[, n.avg := (n1 + n0) / 2]
-  return(res)
+  res <- array(res, dim=c(4L, N + 1L, ny))
+  if (isFALSE(int)) res[c(2L, 4L), , ] <- res[ecols, , ]
+  res2 <- array(dim=c(10L, N + 1L, ny))
+  res2[1L:4L, , ] <- res
+  res2 <- aperm(res2, c(2L, 1L, 3L))
+  dimnames(res2)[2L:3L] <- list(c('d1', 'd0', 'z1', 'z0', 'tau', 'n0', 'n1', 'd.avg', 'z.avg', 'n.avg'), regions)
+  res2[, 'd.avg', ] <- (res2[, 'd1', ] + res2[, 'd0', ]) / 2
+  res2[, 'z.avg', ] <- (res2[, 'z1', ] + res2[, 'z0', ]) / 2
+  res2[, 'tau', ] <- res2[, 'd.avg', ] + res2[, 'z.avg', ]    # i.e., (d1 + d0 + z1 + z0) / 2
+  res2[, 'n0', ] <- res2[, 'd0', ] / res2[, 'tau', ]
+  res2[, 'n1', ] <- res2[, 'd1', ] / res2[, 'tau', ]
+  res2[, 'n.avg', ] <- (res2[, 'n1', ] + res2[, 'n0', ]) / 2
+  return(res2)
 }
 
-pval <- function(x, xhat) {
-  out <- if (xhat == 0) 1 else 2 * min(sum(x > 0), sum(x < 0)) / length(x)
-  return(min(out, 1))
+# Only calculate coefficients and sigma for "y.m ~ X.m"
+f_beta_m <- function(X, Y, diagMat, n, p, ny, dfR) {
+  QR <- qr.default(X, LAPACK=TRUE)
+  Q <- qr_Q2(QR, diagMat, n, p)
+  R <- qr_R2(QR, p)
+  beta <- backsolve(R, crossprod(Q, Y), p)
+  beta[QR$pivot, ] <- beta
+  ehat <- Y - X %*% beta
+  s <- if (ny == 1L) sum(ehat^2) else .colSums(ehat^2, n, ny)
+  list(coefficients=beta, sigma=sqrt(s / dfR))
 }
 
-BC.CI <- function(theta, low, high) {
-  z.inv <- length(theta[theta < mean(theta)]) / length(theta)
+# Functions to calculate coefficients for "y.y ~ X.y"; i.e., multiple designs, 1 outcome
+f_beta_3d <- function(X, Y, regions, diagMat, n, p, ny) {
+  QR <- qr(X, LAPACK=TRUE)
+  Q <- lapply(QR, qr_Q2, diagMat, n, p)
+  R <- lapply(QR, qr_R2, p)
+  beta <- matrix(NaN, p, ny, dimnames=list(NULL, regions))
+  for (r in regions) {
+    beta[QR[[r]]$pivot, r] <- backsolve(R[[r]], crossprod(Q[[r]], Y), p)
+  }
+  beta
+}
+
+# If "level='graph'", this avoids using "drop=FALSE" above
+f_beta_3d_g <- function(X, Y, regions, diagMat, n, p, ny=1L) {
+  QR <- qr.default(X[, , 1L], LAPACK=TRUE)
+  Q <- qr_Q2(QR, diagMat, n, p)
+  R <- qr_R2(QR, p)
+  beta <- backsolve(R, crossprod(Q, Y), p)
+  beta[QR$pivot, ] <- beta
+  dimnames(beta) <- list(NULL, 'graph')
+  beta
+}
+
+#' Calculate P-values in an array for mediation analysis
+#'
+#' @param res_boot Numeric array with \eqn{(N+1) \times 10 \times N_y} dimensions,
+#'   where \eqn{N} is the number of resamples and \eqn{N_y} is the number of regions
+#' @noRd
+
+pvalArray <- function(res_boot, N=dim(res_boot)[1L] - 1L, ny=dim(res_boot)[3L]) {
+  seqN <- seq_len(N)
+  gt0 <- colSums(res_boot[seqN, , ] > 0)
+  lt0 <- N - gt0  # Only differs if there are "x == 0" exactly
+  #lt0 <- colSums(res_boot[seqN, , ] < 0)
+  pMat <- 2 * pmin.int(gt0, lt0) / N
+  zeros <- which(res_boot[N + 1L, , ] == 0)
+  if (length(zeros) > 0L) pMat[zeros] <- 1
+  dim(pMat) <- c(10L, ny)
+  dimnames(pMat) <- dimnames(res_boot)[2L:3L]
+  t(pMat)
+}
+
+#' Bias-corrected and accelerated confidence intervals
+#'
+#' @param theta Numeric vector with the bootstrap-resampled statistics
+#' @param quants Numeric vector with 2 elements: the confidence limits; i.e.,
+#'   \code{qnorm(c((1 - alpha) / 2, (1 + alpha) / 2))}
+#' @param N Integer; the number of resamples
+#' @noRd
+
+BC.CI2 <- function(theta, quants, N) {
+  avg <- sum(theta) / N
+  z.inv <- sum(theta < avg) / N
   z <- qnorm(z.inv)
-  U <- (length(theta) - 1L) * (mean(theta) - theta)
-  top <- sum(U^3)
-  under <- 6 * (sum(U^2))^{3/2}
+  U <- (N - 1L) * (avg - theta)
+  U2 <- U^2
+  top <- sum(U * U2)
+  under <- 6 * (sum(U2))^1.5
   a <- top / under
-  lower.inv <-  pnorm(z + (z + qnorm(low)) / (1 - a * (z + qnorm(low))))
-  lower2 <- lower <- quantile(theta, lower.inv)
-  upper.inv <-  pnorm(z + (z + qnorm(high)) / (1 - a * (z + qnorm(high))))
-  upper2 <- upper <- quantile(theta, upper.inv)
-  return(c(lower, upper))
+  lower.upper <-  pnorm(z + (z + quants) / (1 - a * (z + quants)))
+  fastquant(theta, lower.upper, N)
+}
+
+#' A pared down "quantile" function with no argument checking
+#'
+#' This function uses the default \code{type=7} from
+#' \code{\link[stats]{quantile}}.
+#'
+#' @param x Numeric vector of bootstrap-resampled statistics
+#' @param probs Numeric vector of probabilities
+#' @param N Integer; the number of resamples
+#' @noRd
+
+fastquant <- function(x, probs, N) {
+  index <- 1 + (N - 1) * probs
+  lo <- floor(index)
+  hi <- ceiling(index)
+  x <- sort(x, partial=unique(c(lo, hi)))
+  qs <- x[lo]
+  i <- which(index > lo & x[hi] != qs)
+  h <- (index - lo)[i]
+  qs[i] <- (1 - h) * qs[i] + h * x[hi[i]]
+  qs
 }
 
 ################################################################################

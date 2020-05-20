@@ -63,7 +63,7 @@
 #'     \emph{gray}}
 #' }
 #'
-#' @section Specifying a subnetwork
+#' @section Specifying a subnetwork:
 #' You can create a graph for a subset of an atlas's regions with the
 #' \code{subnet} argument. This can either be a numeric or character vector. If
 #' the input object (either a matrix or an \code{igraph} graph) has fewer

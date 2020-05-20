@@ -15,10 +15,10 @@
 \usage{
 NBS(A, covars, contrasts, con.type = c("t", "f"), X = NULL,
   con.name = NULL, p.init = 0.001, perm.method = c("freedmanLane",
-  "terBraak", "smith"), part.method = c("beckmann", "guttman",
-  "ridgway"), N = 1000, perms = NULL, symm.by = c("max", "min",
-  "avg"), alternative = c("two.sided", "less", "greater"),
-  long = FALSE, ...)
+  "terBraak", "smith", "draperStoneman", "manly", "stillWhite"),
+  part.method = c("beckmann", "guttman", "ridgway"), N = 1000,
+  perms = NULL, symm.by = c("max", "min", "avg"),
+  alternative = c("two.sided", "less", "greater"), long = FALSE, ...)
 
 \method{summary}{NBS}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), ...)
@@ -44,8 +44,9 @@ NBS(A, covars, contrasts, con.type = c("t", "f"), X = NULL,
 
 \item{covars}{A \code{data.table} of covariates}
 
-\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
-only one contrast is desired, you can supply a vector}
+\item{contrasts}{Numeric matrix (for T statistics) or list of matrices (for F
+statistics) specifying the contrast(s) of interest; if only one contrast is
+desired, you can supply a vector (for T statistics)}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
@@ -99,6 +100,9 @@ An object of class \code{NBS} with some input arguments in addition
     P-values}
   \item{components}{List containing data tables of the observed and permuted
     connected component sizes and P-values}
+  \item{rank,df.residual,qr,cov.unscaled}{The rank, residual degrees of
+    freedom, QR decomposition, and unscaled covariance matrix of the design
+    matrix}
 }
 \description{
 Calculates the \emph{network-based statistic (NBS)}, which allows for
@@ -113,6 +117,12 @@ component size is created by fitting a GLM to permuted data. For details, see
 When printing a \code{summary}, you can include arguments to
 \code{\link[stats]{printCoefmat}}.
 }
+\note{
+It is assumed that the order of the subjects in \code{covars} matches
+that of the input array \code{A}. You will need to ensure that this is the
+case. Prior to \code{v3.0.0}, the \code{covars} table was sorted by
+\code{Study.ID} before creating the design matrix.
+}
 \examples{
 \dontrun{
 max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)
@@ -125,8 +135,6 @@ Zalesky, A. and Fornito,  A. and Bullmore, E.T. (2010)
   \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
 }
 \seealso{
-\code{\link{brainGraph_GLM_design}, \link{brainGraph_GLM_fit_t}}
-
 Other Group analysis functions: \code{\link{Bootstrapping}},
   \code{\link{GLM}}, \code{\link{Mediation}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}

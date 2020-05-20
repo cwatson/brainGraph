@@ -56,21 +56,21 @@ coef.bg_GLM <- function(object, ...) {
   if (!is.null(object$coefficients)) return(object$coefficients)
 
   X <- object$X
-  # outcome != measure && level == 'vertex' (multiple design matrices)
+  if (is.null(p <- object$rank)) p <- dim(X)[2L]
   if (length(dim(X)) == 3L) {
     dimX <- dim(X)
     runX <- object$runX
+    if (is.null(QR <- object$qr)) QR <- qr(X[, , runX])
+    Q <- lapply(QR, qr_Q2, n=dimX[1L], p=p)
+    R <- lapply(QR, qr_R2, p=p)
     coeffs <- matrix(NaN, dimX[2L], dimX[3L], dimnames=dimnames(X)[c(2L, 3L)])
-    coeffs[, runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x)
-#                            qr.coef(qr.default(x, LAPACK=TRUE), object$y))
-                            solve.default(crossprod(x), crossprod(x, object$y)))
+    coeffs[, runX] <- vapply(runX, function(r) backsolve(R[[r]], crossprod(Q[[r]], object$y), p),
+                             numeric(p))
   } else {
-    # Solve the system of *semi-normal equations* (with X = QR)
-    # (R^T R) b_hat = X^T y ==> b_hat = (R^T R)^(-1) X^T y
-    # Much faster than "fastLmPure" with single design matrix
-    QR <- qr.default(X)
-    R <- qr.R(QR)
-    coeffs <- solve.default(crossprod(R), crossprod(X, object$y))
+    if (is.null(QR <- object$qr)) QR <- qr.default(X)
+    Q <- qr_Q2(QR, p=p)
+    R <- qr_R2(QR, p)
+    coeffs <- backsolve(R, crossprod(Q, object$y), p)
   }
 
   return(coeffs)
@@ -81,12 +81,12 @@ coef_se <- function(object, pnames=variable.names(object)) {
   if (!is.null(object$se)) return(object$se)
   dimX <- dim(object$X)
   if (length(dimX) == 3L) {
-    std_err <- apply(vcov(object), 3L, function(x) sqrt(diag(x)))
+    std_err <- apply(vcov(object), 3L, function(x) sqrt(diag(x)))[pnames, , drop=FALSE]
   } else {
-    XtX <- chol2inv(chol.default(crossprod(object$X)), dimX[2L])
-    names(XtX) <- pnames
-    sig <- deviance(object) / dfR
-    std_err <- sqrt(outer(diag(XtX), sig))
+    XtX <- object$cov.unscaled
+    if (is.null(XtX)) XtX <- inv(object$X)[pnames, pnames, drop=FALSE]
+    sig <- sigma(object)^2
+    std_err <- sqrt(outer_vec(diag(XtX), sig))
   }
   std_err
 }
@@ -144,10 +144,10 @@ fitted.bg_GLM <- function(object, ...) {
 #' @rdname glm_stats
 
 residuals.bg_GLM <- function(object, type=c('response', 'partial'), ...) {
-  if (!is.null(object$residuals)) return(object$residuals)
   cf <- object$coefficients <- coef(object)
   type <- match.arg(type)
   if (type == 'partial') {
+    object$residuals <- object$fitted.values <- NULL
     regions <- region.names(object)
     tm <- terms(object)
     if (any(grepl('Intercept', names(tm)))) tm <- tm[-grep('Intercept', names(tm))]
@@ -160,6 +160,7 @@ residuals.bg_GLM <- function(object, type=c('response', 'partial'), ...) {
     dimnames(resids) <- list(case.names(object), names(tm), regions)
 
   } else {
+    if (!is.null(object$residuals)) return(object$residuals)
     fits <- fitted(object)
     y <- if (dim(object$y)[2L] == 1L) c(object$y) else object$y
     resids <- y - fits
@@ -201,7 +202,11 @@ df.residual.bg_GLM <- function(object, ...) {
 
 #' @export
 #' @rdname glm_stats
-sigma.bg_GLM <- function(object, ...) sqrt(deviance(object) / df.residual(object))
+
+sigma.bg_GLM <- function(object, ...) {
+  if (!is.null(object$sigma)) return(object$sigma)
+  sqrt(deviance(object) / df.residual(object))
+}
 
 #' @export
 #' @rdname glm_stats
@@ -211,25 +216,31 @@ vcov.bg_GLM <- function(object, ...) {
   sig <- sigma(object)^2
   X <- object$X
   dimX <- dim(X)
-  namesX <- dimnames(X)
+
+  XtX <- object$cov.unscaled
+  if (is.null(XtX)) {
+    if (length(dimX) == 3L) {
+      namesX <- dimnames(X)
+      dimV <- dimX[c(2L, 2L, 3L)]
+      namesV <- namesX[c(2L, 2L, 3L)]
+      runX <- object$runX
+      XtX <- array(NaN, dim=dimV, dimnames=namesV)
+      XtX[, , runX] <- inv(X[, , runX, drop=FALSE])
+    } else {
+      XtX <- inv(X)
+    }
+  }
   if (length(dimX) == 3L) {
-    dimV <- dimX[c(2L, 2L, 3L)]
-    namesV <- namesX[c(2L, 2L, 3L)]
-    runX <- object$runX
-    XtX <- array(NaN, dim=dimV, dimnames=namesV)
-    XtX[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x) chol2inv(chol.default(crossprod(x)), dimX[2L]))
     XtX <- aperm(XtX, c(3L, 1L, 2L))
     vcv <- sig * XtX
   } else {
-    XtX <- chol2inv(chol.default(crossprod(X)), dimX[2L])
     vcv <- outer(sig, XtX)
-    dimnames(vcv) <- c(list(region.names(object)), namesX[c(2L, 2L)])
   }
   aperm(vcv, c(2L, 3L, 1L))
 }
 
 #' @param CI Logical indicating whether to include confidence intervals of
-#'   parameter estimates. Default: \code{FALSE}
+#'   parameter estimates in the coefficient summary table. Default: \code{FALSE}
 #' @export
 #' @importFrom abind abind
 #' @rdname glm_stats
@@ -255,7 +266,7 @@ coeff_table <- function(object, CI=FALSE, level=0.95) {
 
 # Convenience function to calculate leave-one-out resid SD
 sigma_loo <- function(model) {
-  if (!is.null(model$sigma)) return(model$sigma)
+  if (!is.null(model$sigma.loo)) return(model$sigma.loo)
   dfR <- df.residual(model)
   resids2 <- residuals(model)^2
   var.hat <- t(colSums(resids2) - t(resids2))
@@ -354,6 +365,20 @@ hatvalues.bg_GLM <- function(model, ...) {
   X <- model$X
   dimX <- dim(X)
   namesX <- dimnames(X)
+  if (!is.null(model$cov.unscaled)) {
+    XtX <- model$cov.unscaled
+    if (length(dimX) == 3L) {
+      hv <- matrix(NaN, dimX[1L], dimX[3L], dimnames=namesX[c(1L, 3L)])
+      for (r in model$runX) {
+        hv[, r] <- colSums(tcrossprod(XtX[, , r], X[, , r]) * t(X[, , r]))
+      }
+    } else {
+      hv <- colSums(tcrossprod(XtX, X) * t(X))
+      rgn <- region.names(model)
+      hv <- matrix(hv, dimX[1L], length(rgn), dimnames=list(namesX[[1L]], rgn))
+    }
+    return(hv)
+  }
   if (length(dimX) == 3L) {
     runX <- model$runX
     A <- U <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
@@ -363,7 +388,7 @@ hatvalues.bg_GLM <- function(model, ...) {
     for (i in seq_len(dimX[3L])) {
       Z[, , i] <- forwardsolve(t(U[, , i]), t(X[, , i]))
     }
-    res <- apply(Z, 3L, function(x) colSums(x^2))
+    res <- colSums(Z^2)
     dimnames(res) <- c(namesX[1L], namesX[3L])
   } else {
     A <- crossprod(X)
@@ -380,11 +405,10 @@ hatvalues.bg_GLM <- function(model, ...) {
 #' @rdname glm_influence
 
 cooks.distance.bg_GLM <- function(model, ...) {
-  p <- if (length(dim(model$X)) == 3L) qr.default(model$X[, , 1L])$rank else qr.default(model$X)$rank
   hat <- hatvalues(model)
   res <- model$residuals <- residuals(model)
   sd <- sigma(model)
-  hat * (res / t(sd * (1 - t(hat))))^2 / p
+  hat * (res / t(sd * (1 - t(hat))))^2 / model$rank
 }
 
 #' @export
@@ -397,12 +421,10 @@ dffits.bg_GLM <- function(model) {
   res * sqrt(hat) / (sig * (1 - hat))
 }
 
-#' @param QR List of \code{qr} objects, with one element for each design matrix
-#'   in the model
 #' @export
 #' @rdname glm_influence
 
-dfbeta.bg_GLM <- function(model, QR=NULL) {
+dfbeta.bg_GLM <- function(model, ...) {
   X <- model$X
   dimX <- dim(X)
   namesX <- dimnames(X)
@@ -416,23 +438,22 @@ dfbeta.bg_GLM <- function(model, QR=NULL) {
   multArr <- aperm(multArr, c(1L, 3L, 2L))
 
   if (length(dimX) == 3L) {
-#    if (is.null(QR)) QR <- apply(X, 3L, qr.default)
-#    Q <- array(sapply(QR, qr.Q), dim=dimX, dimnames=namesX)
-#    R <- array(sapply(QR, qr.R), dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
-    RtQ <- array(NaN, dim=dimX, dimnames=namesX)
-#    for (i in model$runX) RtQ[, , i] <- t(backsolve(R[, , i], t(Q[, , i])))
-    XtX <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
-    XtX[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, crossprod)
-    RtQ[, , runX] <- vapply(runX, function(r) t(solve.default(XtX[, , r], t(X[, , r]))),
-                            numeric(dimX[1L] * dimX[2L]))
+    runX <- model$runX
+    numer <- array(NaN, dim=dimX, dimnames=namesX)
+    XtX <- model$cov.unscaled
+    if (is.null(XtX)) {
+      XtX <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
+      XtX[, , runX] <- inv(X[, , runX, drop=FALSE])
+    }
+    numer[, , runX] <- vapply(runX, function(r) t(tcrossprod(XtX[, , r], X[, , r])),
+                              numeric(dimX[1L] * dimX[2L]))
   } else {
-    if (is.null(QR)) QR <- qr.default(X)
-    Q <- qr.Q(QR)
-    R <- qr.R(QR)
-    RtQ <- t(backsolve(R, t(Q)))
-    RtQ <- array(RtQ, dim=c(dimX, Nv), dimnames=c(namesX, list(regions)))
+    XtX <- model$cov.unscaled
+    if (is.null(XtX)) XtX <- inv(X)
+    numer <- t(tcrossprod(XtX, X))
+    numer <- array(numer, dim=c(dimX, Nv), dimnames=c(namesX, list(regions)))
   }
-  RtQ * multArr
+  numer * multArr
 }
 
 #' @export
@@ -444,22 +465,26 @@ dfbetas.bg_GLM <- function(model, ...) {
 
   X <- model$X
   dimX <- dim(X)
+  XtX <- model$cov.unscaled
   if (length(dimX) == 3L) {
     namesX <- dimnames(X)
     runX <- model$runX
-    QR <- apply(X, 3L, qr.default)
-    xxi <- matrix(NaN, dimX[2L], dimX[3L], dimnames=namesX[c(2L, 3L)])
-    xxi[, runX] <- vapply(QR[runX], function(x) sqrt(diag(chol2inv(x$qr, x$rank))), numeric(dimX[2L]))
-    dfb <- if (is.null(model$dfbeta)) dfbeta(model, QR) else model$dfbeta
+    if (is.null(XtX)) {
+      XtX <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
+      XtX[, , runX] <- inv(model$X[, , runX, drop=FALSE])
+      model$cov.unscaled <- XtX
+    }
+    xxi <- apply(XtX, 3L, function(x) sqrt(diag(x)))
+    dfb <- if (is.null(model$dfbeta)) dfbeta(model) else model$dfbeta
 
     dfbs <- array(NaN, dim=dimX, dimnames=dimnames(dfb))
     for (i in runX) {
       dfbs[, , i] <- dfb[, , i] / tcrossprod(sig[, i], xxi[, i])
     }
   } else {
-    QR <- qr.default(X)
-    xxi <- sqrt(diag(chol2inv(QR$qr, QR$rank)))
-    dfb <- if (is.null(model$dfbeta)) dfbeta(model, QR) else model$dfbeta
+    if (is.null(XtX)) XtX <- model$cov.unscaled <- inv(X)
+    xxi <- sqrt(diag(XtX))
+    dfb <- if (is.null(model$dfbeta)) dfbeta(model) else model$dfbeta
     dfbs <- dfb / aperm(outer(sig, xxi), c(1L, 3L, 2L))
   }
   return(dfbs)
@@ -470,7 +495,8 @@ dfbetas.bg_GLM <- function(model, ...) {
 
 covratio.bg_GLM <- function(model) {
   dfR <- model$df.residual <- df.residual(model)
-  p <- dim(model$X)[2L]
+  p <- model$rank
+  if (is.null(p)) p <- dim(model$X)[2L]
   omh <- 1 - hatvalues(model)
   res <- model$residuals <- residuals(model)
   sig <- sigma_loo(model)
@@ -479,15 +505,17 @@ covratio.bg_GLM <- function(model) {
 }
 
 #' @param do.coef Logical indicating whether to calculate \code{dfbeta}
+#' @param region Character string of the region(s) to return results for.
+#'   Default is to calculate for all regions
 #' @export
 #' @rdname glm_influence
 #' @importFrom abind abind
 
-influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
+influence.bg_GLM <- function(model, do.coef=TRUE, region=NULL, ...) {
   n <- nobs(model)
   hat <- model$hatvalues <- hatvalues(model)
   model$residuals <- residuals(model)
-  sig <- model$sigma <- sigma_loo(model)
+  sig <- model$sigma.loo <- sigma_loo(model)
   dff <- dffits.bg_GLM(model)
   covr <- covratio.bg_GLM(model)
   cook <- cooks.distance(model)
@@ -511,6 +539,12 @@ influence.bg_GLM <- function(model, do.coef=TRUE, ...) {
     infl <- abind(abs(coeffs) > 1, infl, along=2L)
   }
   dimnames(infmat)[[2L]] <- dimnames(infl)[[2L]] <- cnames
+  if (!is.null(region)) {
+    infmat <- infmat[, , region, drop=FALSE]
+    infl <- infl[, , region, drop=FALSE]
+    sig <- sig[, region, drop=FALSE]
+    model$residuals <- model$residuals[, region, drop=FALSE]
+  }
   ans <- list(infmat=infmat, is.inf=infl, f=formula(model), sigma=sig, wt.res=model$residuals)
   class(ans) <- c('infl.bg_GLM', class(ans))
   return(ans)
@@ -561,7 +595,7 @@ vif.bg_GLM <- function(mod, ...) {
   dimX <- dim(X)
   cols <- terms(mod)
   tlabels <- names(cols)
-  if (any(grepl('Intercept', tlabels))) {
+  if ((hasInt <- any(grepl('Intercept', tlabels)))) {
     int <- grep('Intercept', tlabels)
     cols <- lapply(cols[-int], `-`, 1L)
   } else {
@@ -575,21 +609,23 @@ vif.bg_GLM <- function(mod, ...) {
   df <- lengths(cols, use.names=FALSE)
   terms_single <- which(df == 1L)
   terms_mult <- which(df > 1L)
+  v <- mod$cov.unscaled
   if (length(dimX) == 3L) {
-    namesX <- dimnames(X)
     runX <- mod$runX
-    v <- R <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=namesX[c(2L, 2L, 3L)])
-    v[, , runX] <- apply(X[, , runX, drop=FALSE], 3L, function(x)
-                         chol2inv(chol.default(crossprod(x)), dimX[2L]))
-    if (exists('int')) {
+    #TODO: to remove
+    if (is.null(v)) {
+      v <- array(NaN, dim=dimX[c(2L, 2L, 3L)], dimnames=dimnames(X)[c(2L, 2L, 3L)])
+      v[, , runX] <- inv(X[, , runX, drop=FALSE])
+    }
+    R <- array(NaN, dim=dim(v), dimnames=dimnames(v))
+    if (isTRUE(hasInt)) {
       v <- v[-int, -int, , drop=FALSE]
       R <- R[-int, -int, , drop=FALSE]
     }
     R[, , runX] <- apply(v[, , runX, drop=FALSE], 3L, cov2cor)
-    detR <- setNames(rep.int(0, kNumRegions), regions)
+    detR <- setNames(rep(NaN, kNumRegions), regions)
     detR[runX] <- apply(R[, , runX, drop=FALSE], 3L, det)
-    res <- array(NaN, dim=c(n.terms, 3L, kNumRegions))
-    dimnames(res)[[3L]] <- regions
+    res <- array(NaN, dim=c(n.terms, 3L, kNumRegions), dimnames=list(NULL, NULL, regions))
 
     if (length(terms_single) > 0L) {
       for (rgn in runX) {
@@ -605,10 +641,10 @@ vif.bg_GLM <- function(mod, ...) {
                                            numeric(1L))
       }
     }
-    res[, 1L, runX] <- t(t(res[, 1L, runX]) / detR[runX])
+    res[, 1L, ] <- t(t(res[, 1L, ]) / detR)
   } else {
-    v <- chol2inv(chol.default(crossprod(X)), dimX[2L])
-    if (exists('int')) v <- v[-int, -int, drop=FALSE]
+    if (is.null(v)) v <- inv(X)
+    if (hasInt) v <- v[-int, -int, drop=FALSE]
     R <- cov2cor(v)
     detR <- det(R)
     res <- matrix(0, nrow=n.terms, ncol=3L)
@@ -629,7 +665,7 @@ vif.bg_GLM <- function(mod, ...) {
   return(res)
 }
 
-#' @section ANOVA tables
+#' @section ANOVA tables:
 #' The \code{anova} method calculates the so-called \emph{Type III} test
 #' statistics for a \code{bg_GLM} object. These standard ANOVA statistics
 #' include: sum of squares, mean squares, degrees of freedom, F statistics, and
@@ -649,6 +685,7 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
   RSS <- deviance(object)[regions]
 
   cols <- terms(object)
+  object$coefficients <- object$fitted.values <- object$residuals <- NULL
   SSt <- vapply(cols, function(x) deviance(object[, -x])[regions], numeric(kNumRegions))
   ss <- cbind(SSt - RSS, Residuals=RSS)
   df <- c(lengths(cols), df.residual(object))
@@ -670,7 +707,7 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
   dfMat <- matrix(df, kNumRegions, nrows, byrow=TRUE)
   arr <- abind(ss, ms, dfMat, f, eta2, eta2.part, omega2, omega2.part, p, along=1.5)
   arr <- aperm(arr, c(3L, 2L, 1L))
-  dimnames(arr)[[2L]] <- c('Sum Sq', 'Mean Sq', 'Df', 'F value', 'eta^2','Partial eta^2',
+  dimnames(arr)[[2L]] <- c('Sum Sq', 'Mean Sq', 'Df', 'F value', 'eta^2', 'Partial eta^2',
                            'omega^2', 'Partial omega^2', 'Pr(>F)')
   arr[nrows, 4L:8L, ] <- NA
   tab <- apply(arr, 3L, as.data.frame)
@@ -707,19 +744,19 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
 
 logLik.bg_GLM <- function(object, REML=FALSE, ...) {
   X <- object$X
-  ndims <- length(dim(X))
-  p <- if (ndims == 3L) qr.default(X[, , 1L])$rank else qr.default(X)$rank
+  p <- object$rank
   N0 <- N <- nobs(object)
 
   if (isTRUE(REML)) {
+    dimX <- dim(X)
     N <- N - p
-    if (ndims == 3L) {
+    if (length(dimX) == 3L) {
       runX <- object$runX
-      QR <- setNames(rep(NaN, dim(X)[3L]), dimnames(X)[[3L]])
-      QR[runX] <- colSums(apply(X[, , runX, drop=FALSE], 3L, function(x)
-                                log(abs(diag(chol.default(crossprod(x)))[1L:p]))))
+      QR <- setNames(rep(NaN, dimX[3L]), dimnames(X)[[3L]])
+      QR[runX] <- colSums(vapply(object$qr[runX], function(x)
+                                 log(abs(diag(x$qr))), numeric(dimX[2L])))
     } else {
-      QR <- sum(log(abs(diag(chol.default(crossprod(X)))[1L:p])))
+      QR <- sum(log(abs(diag(object$qr$qr))))
     }
   }
   val <- -0.5 * N * (log(2 * pi) + 1 - log(N) + log(deviance(object)))

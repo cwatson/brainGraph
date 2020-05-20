@@ -18,9 +18,9 @@
 mtpc(g.list, thresholds, covars, measure, contrasts, con.type = c("t",
   "f"), outcome = NULL, con.name = NULL, level = c("vertex",
   "graph"), clust.size = 3L, perm.method = c("freedmanLane",
-  "terBraak", "smith"), part.method = c("beckmann", "guttman",
-  "ridgway"), N = 500L, perms = NULL, alpha = 0.05, res.glm = NULL,
-  long = TRUE, ...)
+  "terBraak", "smith", "draperStoneman", "manly", "stillWhite"),
+  part.method = c("beckmann", "guttman", "ridgway"), N = 500L,
+  perms = NULL, alpha = 0.05, res.glm = NULL, long = TRUE, ...)
 
 \method{summary}{mtpc}(object, contrast = NULL, digits = max(3L,
   getOption("digits") - 2L), print.head = TRUE, ...)
@@ -57,8 +57,9 @@ connectivity matrices.}
 
 \item{measure}{Character string of the graph measure of interest}
 
-\item{contrasts}{Numeric matrix specifying the contrast(s) of interest; if
-only one contrast is desired, you can supply a vector}
+\item{contrasts}{Numeric matrix (for T statistics) or list of matrices (for F
+statistics) specifying the contrast(s) of interest; if only one contrast is
+desired, you can supply a vector (for T statistics)}
 
 \item{con.type}{Character string; either \code{'t'} or \code{'f'} (for t or
 F-statistics). Default: \code{'t'}}
@@ -124,6 +125,13 @@ in the caption of the plot (default: \code{FALSE})}
 \value{
 An object of class \code{mtpc} with some input arguments plus the
   following elements:
+  \item{X,qr,cov.unscaled}{Design matrix, QR decomposition, and unscaled
+    covariance matrix, if the design is the same across thresholds}
+  \item{contrasts}{The contrast matrix or list of matrices}
+  \item{con.name}{Contrast names}
+  \item{removed.subs}{Named integer vector of subjects with incomplete data}
+  \item{atlas}{The atlas of the input graphs}
+  \item{rank,df.residual}{The model rank and residual degrees of freedom}
   \item{res.glm}{List with length equal to the number of thresholds; each
     list element is the output from \code{\link{brainGraph_GLM}}}
   \item{DT}{A \code{data.table} for all thresholds, combined from the outputs
@@ -132,9 +140,10 @@ An object of class \code{mtpc} with some input arguments plus the
     statistic), \code{tau.mtpc} (the threshold of the max. observed
     statistic), \code{S.crit} (the critical statistic value), and
     \code{A.crit} (the critical AUC)}
-  \item{null.dist}{Numeric matrix with \code{N} rows and number of columns
-    equal to the number of thresholds. Each element is the maximum statistic
-    for that permutation and threshold.}
+  \item{null.dist}{Numeric array with \code{N} columns and number of rows
+    equal to the number of thresholds. The 3rd dimension is for each
+    contrast. Each element of the array is the maximum statistic
+    for that permutation, threshold, and contrast combination.}
   \item{perm.order}{Numeric matrix; the permutation set applied for all
     thresholds (each row is a separate permutation)}
 

@@ -1,3 +1,10 @@
+#' Check if all elements in a list are identical
+#'
+#' @param l A list
+#' @noRd
+
+all.identical <- function(l) all(mapply(identical, head(l, 1L), tail(l, -1L)))
+
 #' Convert arguments into a single list
 #'
 #' \code{args_as_list} converts its arguments into a single list. If the
@@ -8,16 +15,8 @@
 #' @noRd
 
 args_as_list <- function(...) {
-  graphs <- unlist(recursive=FALSE,
-    lapply(list(...), function(l) {
-             if (is_igraph(l)) {
-               list(l)
-             } else {
-               l
-             }}
-    )
-  )
-  return(graphs)
+  ll <- lapply(list(...), function(l) if (is_igraph(l)) list(l) else l)
+  unlist(ll, recursive=FALSE)
 }
 
 #' Check for vertex or edge attributes
@@ -41,7 +40,7 @@ check_weights <- function(g, weights) {
       weights <- NA
     }
   }
-  return(weights)
+  weights
 }
 
 #' Check for presence of a degree attribute
@@ -53,8 +52,7 @@ check_weights <- function(g, weights) {
 #' @rdname check_attributes
 
 check_degree <- function(g) {
-  x <- if ('degree' %in% vertex_attr_names(g)) V(g)$degree else degree(g)
-  return(x)
+  if ('degree' %in% vertex_attr_names(g)) V(g)$degree else degree(g)
 }
 
 #' Check for presence of a strength attribute
@@ -66,8 +64,7 @@ check_degree <- function(g) {
 #' @rdname check_attributes
 
 check_strength <- function(g) {
-  x <- if ('strength' %in% vertex_attr_names(g)) V(g)$strength else strength(g)
-  return(x)
+  if ('strength' %in% vertex_attr_names(g)) V(g)$strength else strength(g)
 }
 
 #' Test if an object is a character vector of numbers
@@ -101,22 +98,6 @@ check_sID <- function(x) {
   return(x)
 }
 
-#' Calculate coefficient of variation
-#'
-#' Calculates the \emph{coefficient of variation}, defined as
-#' \deqn{CV(x) = \frac{sd(x)}{mean(x)}}
-#'
-#' @param x Numeric vector
-#' @param na.rm Logical indicating whether \code{NA} values should be stripped
-#'   when calculating sums. Default: \code{FALSE}
-#' @export
-
-coeff_var <- function(x, na.rm=FALSE) {
-  N <- sum(!is.na(x))
-  mu <- sum(x, na.rm=na.rm) / N
-  return(sqrt(1 / (N - 1L) * (sum((x - mu)^2, na.rm=na.rm))) / mu)
-}
-
 #' Calculate the p-value for differences in correlation coefficients
 #'
 #' Given two sets of correlation coefficients and sample sizes, this function
@@ -133,7 +114,6 @@ coeff_var <- function(x, na.rm=FALSE) {
 #' @return A list with elements \code{p} and \code{z}, the p-values
 #'   and z-scores for the difference in correlations.
 #'
-#' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
@@ -192,27 +172,6 @@ get_metadata <- function(object) {
   return(object)
 }
 
-#' Matrix utility functions
-#'
-#' \code{get_thresholds} calculates the threshold values to result in a specific
-#' density
-#'
-#' Given a vector of densities, \code{get_thresholds} returns the numeric values
-#' that will result in graphs of the given densities after thresholding by those
-#' values. It is assumed that the density values are all between 0 and 1.
-#'
-#' @param mat Numeric matrix
-#' @param densities Numeric vector of densities
-#' @param emax Integer; the maximum number of edges
-#' @param ... Arguments passed to \code{\link{sort}}
-#' @return Numeric vector of thresholds
-#' @keywords internal
-#' @rdname matrix_utils
-
-get_thresholds <- function(mat, densities, emax=dim(mat)[1L] * (dim(mat)[1L] - 1L) / 2, ...) {
-  sort(mat[lower.tri(mat)], ...)[emax - densities * emax]
-}
-
 #' Create a data.table with a single graph metric
 #'
 #' \code{glm_data_table} is used in \code{brainGraph_GLM} and
@@ -240,17 +199,6 @@ glm_data_table <- function(g.list, level, measure) {
   return(DT.y)
 }
 
-#' Check if a matrix is binary
-#'
-#' @return Logical of length 1
-#' @keywords internal
-#' @rdname matrix_utils
-
-is_binary <- function(mat) {
-  x <- identical(sum(abs(mat)) - sum(mat == 1), 0)
-  return(x)
-}
-
 #' Convert a matrix to a list of rows
 #'
 #' \code{matrix2list} makes working with different contrast types (i.e., t or F)
@@ -274,11 +222,10 @@ matrix2list <- function(mat) {
 #' @keywords internal
 #' @rdname glm_helpers
 maxfun <- function(alternative) {
-  fun <- switch(alternative,
-                two.sided=function(x) max(abs(x), na.rm=TRUE),
-                less=function(x) min(x, na.rm=TRUE),
-                greater=function(x) max(x, na.rm=TRUE))
-  return(fun)
+  switch(alternative,
+         two.sided=function(x) max(abs(x), na.rm=TRUE),
+         less=function(x) min(x, na.rm=TRUE),
+         greater=function(x) max(x, na.rm=TRUE))
 }
 
 #' Helper function to sort values
@@ -286,11 +233,23 @@ maxfun <- function(alternative) {
 #' @keywords internal
 #' @rdname glm_helpers
 sortfun <- function(alternative) {
-  fun <- switch(alternative,
-                two.sided=function(x) sort(abs(x)),
-                less=function(x) sort(x, decreasing=TRUE),
-                greater=sort)
-  return(fun)
+  switch(alternative,
+         two.sided=function(x, ind) sort(abs(x), partial=ind)[ind],
+         less=function(x, ind) sort(x, decreasing=TRUE)[ind],
+         greater=function(x, ind) sort(x, partial=ind)[ind])
+}
+
+#' Faster version of outer for 2 vectors
+#'
+#' \code{outer_vec} simply performs the cross-product, specifically \code{x %*%
+#' t(y)}, and assigns dimnames to the resulting matrix.
+#' @keywords internal
+#' @rdname utils
+
+outer_vec <- function(x, y) {
+  robj <- tcrossprod(x, y)
+  dimnames(robj) <- list(names(x), names(y))
+  robj
 }
 
 #' Pad the front of a numeric or character vector with zeros
@@ -343,13 +302,12 @@ pad_zeros <- function(x) {
 
 rotation <- function(x, theta) {
   R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow=2L)
-  x.rot <- x %*% R
-  return(x.rot)
+  x %*% R
 }
 
 #' Capitalize the first letter of a character string
+#'
 #' @noRd
-
 simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 
 #' Add newlines to a character string for printing
@@ -434,15 +392,15 @@ subset_graph <- function(g, condition) {
   cond <- eval(parse(text=cond.string))
   if (sum(cond, na.rm=TRUE) == 0L) {
     warning('No vertices meet criteria! No graph created')
-    return(list(g=NULL, inds=NULL))
+    g <- inds <- NULL
   } else {
     inds <- which(cond)
-    cond <- setdiff(seq_len(vcount(g)), which(cond))
+    cond <- setdiff(seq_len(vcount(g)), inds)
     orig.class <- class(g)
     g <- delete.vertices(g, cond)
     class(g) <- orig.class
   }
-  return(list(g=g, inds=inds))
+  list(g=g, inds=inds)
 }
 
 #' Transform a vector to have a different range
