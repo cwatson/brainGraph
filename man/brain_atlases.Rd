@@ -18,12 +18,16 @@
 \alias{dosenbach160}
 \alias{hoa112}
 \alias{lpba40}
+\alias{hcp_mmp1.0}
+\alias{power264}
+\alias{brainnetome}
+\alias{gordon333}
 \title{Coordinates for data from brain atlases}
 \format{A data frame with 90 or 116 (for the original AAL atlases), 94 or 120
 (for the newer AAL2 atlases), 148 or 162 (for Destrieux), 68 or 82 (for DK),
 62 or 76 (for DKT), 74 (Brainsuite), 200 (Craddock), 160 (Dosenbach), 112
-(Harvard-Oxford), or 40 (LONI) observations on (some of) the following 10
-variables:
+(Harvard-Oxford), 40 (LONI), 246 (Brainnetome), 360 (HCP), 264 (Power), or
+333 (Gordon) observations on (some of) the following 19 variables:
 \describe{
   \item{\code{name}}{a character vector of region names}
   \item{\code{x.mni}}{a numeric vector of x-coordinates (in MNI space)}
@@ -44,7 +48,24 @@ variables:
   \item{\code{network}}{(dosenbach160) a factor with levels \code{default}
     \code{fronto-parietal} \code{cingulo-opercular} \code{sensorimotor}
     \code{cerebellum} \code{occipital}}
+  \item{\code{gyrus}}{(brainnetome) Abbreviated names of gyri/regions
+    (including subcortical), with 24 unique values}
+  \item{\code{gyrus.full}}{(brainnetome) Full names of \code{gyrus}}
+  \item{\code{subregion}}{(brainnetome) Abbreviated names of subregions
+    (including subdivisions of subcortical gray matter)}
+  \item{\code{subregion.full}}{(brainnetome) Full names of \code{subregion}}
+  \item{\code{Yeo_7network}}{(brainnetome) Factor with 8 levels consisting of
+    SCGM plus the 7 networks from Yeo et al.}
+  \item{\code{Yeo_17network}}{(brainnetome) Factor with 18 levels consisting
+    of SCGM plus the 17 networks from Yeo et al.}
+  \item{\code{area}}{(HCP) a factor with 23 cortical areas}
+  \item{\code{Anatomy}}{(power264) Full region/gyrus names for the Power
+    atlas; contains 53 unique regions}
+  \item{\code{Brodmann}}{(power264) Integer values for Brodmann areas}
 }}
+\source{
+\url{https://neuroimaging-core-docs.readthedocs.io/en/latest/pages/atlases.html}
+}
 \usage{
 aal116
 
@@ -75,14 +96,35 @@ dosenbach160
 hoa112
 
 lpba40
+
+hcp_mmp1.0
+
+power264
+
+brainnetome
+
+gordon333
 }
 \description{
 Datasets containing spatial coordinates for: the original AAL atlases, the
 newer AAL2 atlases, Freesurfer atlases, Brainsuite, Craddock200,
 Dosenbach160, Harvard-Oxford, and LONI probabilistic brain atlas. In addition
 to coordinates, there are indices for the major lobes and hemispheres of the
-brain, the \emph{class} variable (for Destrieux atlases), and functional
-networks (for Dosenbach).
+brain, the \emph{class} variable (for Destrieux atlases), functional networks
+(for Dosenbach, Power, and Gordon atlases; plus the Yeo network labels for
+the Brainnetome atlas).
+}
+\note{
+Use of the HCP parcellation is subject to the terms at
+  \url{https://balsa.wustl.edu/WN56}. In particular: "I will acknowledge the
+  use of WU-Minn HCP data and data derived from WU-Minn HCP data when
+  publicly presenting any results or algorithms that benefitted from their
+  use."
+
+Region names in the \code{gordon333} atlas were chosen to match those
+  of the \code{hcp_mmp1.0} atlas. Many were determined from the coordinates
+  (using FSL's \code{atlasquery}), while the rest were entered manually by
+  me. The \code{lobe} values were matched to the HCP atlas, as well.
 }
 \references{
 Tzourio-Mazoyer, N. and Landeau, B. and Papathanassiou, D. and
@@ -90,26 +132,26 @@ Tzourio-Mazoyer, N. and Landeau, B. and Papathanassiou, D. and
   (2002) Automated anatomical labeling of activations in SPM using a
   macroscopic anatomical parcellation of the MNI MRI single-subject brain.
   \emph{NeuroImage}, \bold{15(1)}, 273--289.
-  \url{https://dx.doi.org/10.1006/nimg.2001.0978}
+  \url{https://doi.org/10.1006/nimg.2001.0978}
 
 Rolls, E.T. and Joliot, M. and Tzourio-Mazoyer, N. (2015)
   Implementation of a new parcellation of the orbitofrontal cortex in the
   automated anatomical labelling atlas. \emph{NeuroImage}, \bold{122}, 1--5.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.075}
+  \url{https://doi.org/10.1016/j.neuroimage.2015.07.075}
 
 Destrieux, C. and Fischl, B. and Dale, A. and Halgren E. (2010)
   Automatic parcellation of human cortical gyri and sulci using standard
   anatomic nomenclature. \emph{NeuroImage}, \bold{53(1)}, 1--15.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.010}
+  \url{https://doi.org/10.1016/j.neuroimage.2010.06.010}
 
 Desikan, R.S. and Segonne, F. and Fischl, B. et al. (2006) An
   automated labeling system for subdividing the human cerebral cortex on MRI
   scans into gyral based regions of interest. \emph{NeuroImage}, \bold{31},
-  968--980. \url{https://dx.doi.org/10.1016/j.neuroimage.2006.01.021}
+  968--980. \url{https://doi.org/10.1016/j.neuroimage.2006.01.021}
 
 Klein, A. and Tourville, J. (2012) 101 labeled brain images
   and a consistent human cortical labeling protocol. \emph{Front Neurosci},
-  6. \url{https://dx.doi.org/10.3389/fnins.2012.00171}
+  6. \url{https://doi.org/10.3389/fnins.2012.00171}
 
 Shattuck, D.W. and Leahy, R.M. (2002) BrainSuite: an automated
   cortical surface identification tool. \emph{Medical Image Analysis},
@@ -123,7 +165,7 @@ Pantazis, D. and Joshi, A.A. and Jintao, J. and Shattuck, D.W.
 Craddock, R.C. and James, G.A. and Holtzheimer, P.E. and Hu, X.P.
   and Mayberg, H.S. (2012) A whole brain fMRI atlas generated via spatially
   constrained spectral clustering. \emph{Human Brain Mapping}, \bold{33},
-  1914--1928. \url{https://dx.doi.org/10.1002/hbm.21333}
+  1914--1928. \url{https://doi.org/10.1002/hbm.21333}
 
 Dosenbach, N.U. and Nardos, B. and Cohen, A.L. and Fair, D.A. and
   Power, J.D. and Church, J.A. and Nelson, S.M. and Wig, G.S. and Vogel, A.C.
@@ -138,6 +180,32 @@ Shattuck, D.W. and Mirza, M. and Adisetiyo, V. and Hojatkashani,
   C. and Salamon, G. and Narr, K.L. and Poldrack, R.A. and Bilder, R.M. and
   Toga, A.W. (2008) Construction of a 3D probabilistic atlas of human
   cortical structures. \emph{NeuroImage}, \bold{39(3)}, 1064--1080.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2007.09.031}
+  \url{https://doi.org/10.1016/j.neuroimage.2007.09.031}
+
+Glasser, M.F. and Coalson, T.S. and Robinson, E.C. and Hacker,
+  C.D. and Harwell, J. and Yacoub, E. and Ugurbil, K. and Andersson, J. and
+  Beckmann, C.F. and Jenkinson, M. and Smith, S.M. and van Essen, D.C.
+  (2016) A multi-modal parcellation of human cerebral cortex. \emph{Nature},
+  \bold{536}, 171--178. \url{https://doi.org/10.1038/nature18933}. PMID:
+  27437579.
+
+Power, J.D. and Cohen, A.L. and Nelson, S.M. and Wig, G.S. and
+  Barnes, K.A. and Church, J.A. and Vogel, A.C. and Laumann, T.O. and Miezin,
+  F.M. and Schlaggar, B.L. and Petersen, S.E. (2011) Functional network
+  organization of the human brain. \emph{Neuron}, \bold{72(4)}, 665--678.
+  \url{https://doi.org/10.1016/j.neuron.2011.09.006}
+
+Fan, L. and Li, H. and Zhuo, J. and Zhang, Y. and Wang, J. and
+  Chen, L. and Yang, Z. and Chu, C. and Xie, S. and Laird, A.R. and Fox,
+  P.T. and Eickhoff, S.B. and Yu, C. and Jiang, T (2016) The Human
+  Brainnetome Atlas: A New Brain Atlas Based on Connectional Architecture.
+  \emph{Cerebral Cortex}, \bold{26(8)}, 3508--3526.
+  \url{https://doi.org/10.1093/cercor/bhw157}
+
+Gordon, E.M. and Laumann, T.O. and Adeyemo, B. and Huckins, J.F.
+  and Kelley, W.M. and Petersen, S.E. (2014) Generation and Evaluation of a
+  Cortical Area Parcellation from Resting-State Correlations. \emph{Cerebral
+  Cortex}, \bold{26(1)}, 288--303.
+  \url{https://doi.org/10.1093/cercor/bhu239}
 }
 \keyword{datasets}

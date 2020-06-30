@@ -11,7 +11,7 @@ guess_atlas(x)
 
 as_atlas(object)
 
-create_atlas(regions, coords, lobes, hemis)
+create_atlas(regions, coords, lobes, hemis, other = NULL)
 }
 \arguments{
 \item{x, object}{An object to test or convert to an atlas data.table}
@@ -25,6 +25,9 @@ create_atlas(regions, coords, lobes, hemis)
 \item{hemis}{Character or factor vector of hemisphere membership. There
 should probably not be more than 3 unique elements (for left, right, and
 bi-hemispheric regions)}
+
+\item{other}{A \emph{named list} of vectors with other data. The names of the
+list will become column names in the return object.}
 }
 \value{
 \code{guess_atlas} - Character string; either the matched atlas or
@@ -69,6 +72,7 @@ error:
   \item Add a column of integers named \code{index}
   \item Change columns named \code{'x'}, \code{'y'}, or \code{'z'} to have
     \code{.mni} at the end
+  \item Convert the \code{lobe} and \code{hemi} columns to be \emph{factors}
 }
 }
 
@@ -84,6 +88,7 @@ regions <- paste('Region', 1:10)
 xyz <- matrix(rnorm(30), nrow=10, ncol=3)
 lobe <- rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2)
 hemi <- c(rep('L', 5), rep('R', 5))
-my_atlas <- create_atlas(regions, xyz, lobe, hemi)
+other <- list(network=rep(c('Default mode', 'Task positive'), 5))
+my_atlas <- create_atlas(regions, xyz, lobe, hemi, other)
 str(my_atlas)
 }

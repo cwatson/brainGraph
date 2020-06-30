@@ -7,7 +7,7 @@
 \usage{
 coeff_var(x, na.rm = FALSE, ...)
 
-\method{coeff_var}{default}(x, na.rm = FALSE)
+\method{coeff_var}{default}(x, na.rm = FALSE, ...)
 }
 \arguments{
 \item{x}{Numeric vector, matrix, or array}

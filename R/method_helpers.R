@@ -14,7 +14,8 @@ print_bg_summary <- function(object) {
            dk='Desikan-Killiany', dk.scgm='Desikan-Killiany + SCGM',
            dkt='Desikan-Killiany-Tourville', dkt.scgm='Desikan-Killiany-Tourville + SCGM',
            dosenbach160='Dosenbach-160', hoa112='Harvard-Oxford cortical and subcortical',
-           lpba40='LONI probabilistic brain atlas', object$atlas)
+           lpba40='LONI probabilistic brain atlas', hcp_mmp1.0='HCP MMP',
+           brainnetome='Brainnetome', power264='Power-264', gordon333='Gordon-333', object$atlas)
   if (!is.null(object$modality)) {
     modality <-
       switch(object$modality, dti='DTI', fmri='fMRI', thickness='Cortical thickness',
