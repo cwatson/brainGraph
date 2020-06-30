@@ -77,12 +77,17 @@ get.resid <- function(dt.vol, covars, method=c('comb.groups', 'sep.groups'),
   }
   if (isTRUE(use.mean)) {
     idvars <- c(idvars, 'mean.lh', 'mean.rh')
-    if (any(grepl('.*\\.L[0-9]*$', names(dt.vol)))) {
-      lh <- '.*\\.L[0-9]*$'
-      rh <- '.*\\.R[0-9]*$'
+    if (any(grepl('(\\.|_)L[0-9]*', names(dt.vol)))) {
+      if (!dim(dt.vol) %in% c(148L, 162L)) {  # Hack to exclude "destrieux" atlases
+        lh <- '(\\.|_)L[0-9]*'
+        rh <- '(\\.|_)R[0-9]*'
+      } else {
+        lh <- '^l'
+        rh <- '^r'
+      }
     } else {
-      lh <- '^l.*'
-      rh <- '^r.*'
+      lh <- '^l'
+      rh <- '^r'
     }
     DT.cov[, mean.lh := rowMeans(.SD), .SDcols=patterns(lh)]
     DT.cov[, mean.rh := rowMeans(.SD), .SDcols=patterns(rh)]

@@ -15,9 +15,9 @@
 count_homologous <- function(g) {
   V1 <- V2 <- NULL
   stopifnot(is.brainGraph(g))
-  if (isTRUE(any(grepl('\\.L[0-9]*$', V(g)$name)))) {
-    lh <- '\\.L[0-9]*$'
-    rh <- '\\.R[0-9]*$'
+  if (any(grepl('(\\.|_)L[0-9]*', V(g)$name)) && !grepl('destrieux', g$atlas)) {
+    lh <- '(\\.|_)L[0-9]*'
+    rh <- '(\\.|_)R[0-9]*'
   } else {
     lh <- '^l'
     rh <- '^r'
@@ -32,7 +32,7 @@ count_homologous <- function(g) {
 #' Count number of inter-group edges
 #'
 #' \code{count_inter} counts the number of edges between and within all vertices
-#' in one group (e.g. \emph{lobe}, \emph{hemi}, or \emph{network}).
+#' in one group (e.g. \emph{lobe}, \emph{hemi}, \emph{network}, etc.).
 #'
 #' @param group Character string specifying which grouping to calculate edge
 #'   counts for. Default: \code{'lobe'}
@@ -46,7 +46,9 @@ count_homologous <- function(g) {
 #' g1.lobecounts <- count_inter(g[[1]][[N]], 'lobe')
 #' }
 
-count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class')) {
+count_inter <- function(g, group=c('lobe', 'hemi', 'network', 'class',
+                                   'gyrus', 'Yeo_7network', 'Yeo_17network',
+                                   'area', 'Brodmann')) {
   total <- intra <- inter <- NULL
   group <- match.arg(group)
   stopifnot(is.brainGraph(g), group %in% vertex_attr_names(g))

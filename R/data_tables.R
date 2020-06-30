@@ -75,7 +75,9 @@ vertex_attr_dt <- function(bg.list) {
 
   dt.V <- rbindlist(lapply(bg.list, as_data_frame, what='vertices'))
   cols.char <- names(which(vapply(vertex_attr(bg.list[[1L]]), is.character, logical(1L))))
-  cols.rem <- setdiff(cols.char, c('name', 'lobe', 'hemi', 'class', 'network'))
+  cols.keep <- c('name', 'lobe', 'hemi', 'class', 'network', 'area',
+                 'Anatomy', 'gyrus', 'subregion', 'Yeo_7network', 'Yeo_17network')
+  cols.rem <- setdiff(cols.char, cols.keep)
   cols.rem <- c(cols.rem, 'x', 'y', 'z', 'x.mni', 'y.mni', 'z.mni',
                 'lobe.hemi', 'circle.layout', 'circle.layout.comm')
   dt.V[, eval(cols.rem) := NULL]
@@ -89,7 +91,6 @@ vertex_attr_dt <- function(bg.list) {
     if (x %in% g.attrs) dt.V[, eval(x) := rep(sapply(bg.list, graph_attr, x), each=Nv)]
   }
   if (level == 'subject') {
-  
     setnames(dt.V, 'name', getOption('bg.subject_id'))
   } else if (level == 'group') {
     dt.V[, name := NULL]

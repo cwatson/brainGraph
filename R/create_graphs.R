@@ -119,7 +119,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
                                    level=c('subject', 'group', 'contrast'),
                                    set.attrs=TRUE, modality=NULL, weighting=NULL,
                                    threshold=NULL, name=NULL, Group=NULL, subnet=NULL, ...) {
-  lobe <- hemi <- index <- class <- network <- x.mni <- y.mni <- z.mni <- NULL
+  lobe <- hemi <- index <- x.mni <- y.mni <- z.mni <- NULL
 
   x <- get_metadata(x)
   x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas
@@ -147,8 +147,11 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
   V(x)$lobe.hemi <- as.numeric(DT[vorder, interaction(lobe, hemi)])
   V(x)$hemi <- DT[vorder, as.character(hemi)]
 
-  if (isTRUE(grepl('destr', x$atlas))) V(x)$class <- DT[vorder, as.numeric(class)]
-  if (x$atlas == 'dosenbach160') V(x)$network <- DT[vorder, as.character(network)]
+  cols <- c('class', 'network', 'area', 'gyrus', 'Yeo_7network', 'Yeo_17network')
+  for (col in cols[hasName(DT, cols)]) {
+    x <- set_vertex_attr(x, col, value=DT[vorder, as.character(get(col))])
+  }
+  if (hasName(DT, 'Brodmann')) V(x)$Brodmann <- DT[vorder, Brodmann]
 
   level <- match.arg(level)
   type <- match.arg(type)
@@ -166,11 +169,9 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
     V(x)$y <- V(x)$y.mni <- DT[vorder, y.mni]
     V(x)$z <- V(x)$z.mni <- DT[vorder, z.mni]
     x <- set_graph_colors(x, 'color.lobe', DT[vorder, as.numeric(lobe)])
-    if (x$atlas %in% c('destrieux', 'destrieux.scgm')) {
-      x <- set_graph_colors(x, 'color.class', DT[vorder, as.numeric(class)])
-    } else if (x$atlas == 'dosenbach160') {
-      x <- set_graph_colors(x, 'color.network', DT[vorder, as.numeric(network)])
-      l.cir <- c(l.cir, which(V(x)$hemi == 'B'))
+    if (x$atlas == 'dosenbach160') l.cir <- c(l.cir, which(V(x)$hemi == 'B'))
+    for (col in cols[hasName(DT, cols)]) {
+      x <- set_graph_colors(x, paste0('color.', col), DT[vorder, as.numeric(get(col))])
     }
 
     lobeorder <- list('Frontal', c('Insula', 'Central'), c('Limbic', 'Cingulate'),

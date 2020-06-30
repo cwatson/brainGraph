@@ -156,11 +156,11 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
 
       # Avoid errors when there are negative weights
       if (any(E(g)$weight < 0)) {
+        warning('Negative weights present. Skipping distance-based functions.')
         if (!clust.method %in% c('spinglass', 'walktrap')) {
           warning('Invalid clustering method for negative edge weights; using "walktrap".')
           clust.method <- 'walktrap'
         }
-        warning('Negative weights present. Skipping distance-based functions.')
       } else {
         # Need to convert weights for distance measures
         xfm.type <- match.arg(xfm.type)
@@ -219,9 +219,12 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       V(g)$dist <- vertex_spatial_dist(g)
       V(g)$dist.strength <- V(g)$dist * V(g)$degree
 
-      if (isTRUE(grepl('destr', g$atlas))) g$assort.class <- assortativity_nominal(g, V(g)$class)
-      if (g$atlas == 'dosenbach160') {
-        g$assort.network <- assortativity_nominal(g, as.integer(factor(V(g)$network)))
+      vattrs <- vertex_attr_names(g)
+      cols <- c('class', 'network', 'area', 'gyrus', 'Yeo_7network', 'Yeo_17network')
+      doAssort <- cols[cols %in% vattrs]
+      for (col in doAssort) {
+        g <- set_graph_attr(g, paste0('assort.', col),
+                            assortativity_nominal(g, factor(vertex_attr(g, col))))
       }
     }
 
@@ -300,7 +303,7 @@ delete_all_attr <- function(g, keep.names=FALSE) {
 set_graph_colors <- function(g, name, memb) {
   stopifnot(length(memb) == vcount(g))
   colname <- strsplit(name, '.', fixed=TRUE)[[1L]][2L]
-  if (colname %in% c('lobe', 'class', 'network')) {
+  if (colname %in% c('lobe', 'class', 'network', 'area', 'gyrus', 'Yeo_7network', 'Yeo_17network')) {
     atlas.dt <- get(g$atlas)
     memb <- atlas.dt[name %in% V(g)$name, as.integer(get(colname))] # Preserve order
   } else {

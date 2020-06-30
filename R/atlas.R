@@ -61,6 +61,7 @@ guess_atlas <- function(x) {
 #'   \item Add a column of integers named \code{index}
 #'   \item Change columns named \code{'x'}, \code{'y'}, or \code{'z'} to have
 #'     \code{.mni} at the end
+#'   \item Convert the \code{lobe} and \code{hemi} columns to be \emph{factors}
 #' }
 #'
 #' @export
@@ -95,7 +96,7 @@ as_atlas <- function(object) {
     stop(paste('Atlas is invalid. Required columns are:\n', paste(atlas_cols, collapse=' ')))
   }
 
-  for (col in c('lobe', 'hemi', 'name')) {
+  for (col in c('lobe', 'hemi')) {
     if (!is.factor(object[[col]])) {
       warning('Coercing "', col, '" column to factor')
       object[, eval(col) := as.factor(get(col))]
@@ -112,6 +113,8 @@ as_atlas <- function(object) {
 #' @param hemis Character or factor vector of hemisphere membership. There
 #'   should probably not be more than 3 unique elements (for left, right, and
 #'   bi-hemispheric regions)
+#' @param other A \emph{named list} of vectors with other data. The names of the
+#'   list will become column names in the return object.
 #' @export
 #' @rdname atlas_helpers
 #' @examples
@@ -119,10 +122,11 @@ as_atlas <- function(object) {
 #' xyz <- matrix(rnorm(30), nrow=10, ncol=3)
 #' lobe <- rep(c('Frontal', 'Parietal', 'Temporal', 'Occipital', 'Limbic'), 2)
 #' hemi <- c(rep('L', 5), rep('R', 5))
-#' my_atlas <- create_atlas(regions, xyz, lobe, hemi)
+#' other <- list(network=rep(c('Default mode', 'Task positive'), 5))
+#' my_atlas <- create_atlas(regions, xyz, lobe, hemi, other)
 #' str(my_atlas)
 
-create_atlas <- function(regions, coords, lobes, hemis) {
+create_atlas <- function(regions, coords, lobes, hemis, other=NULL) {
   if (is.list(coords)) {
     warning("'coords' is a list; using only the first element.")
     coords <- coords[[1L]]
@@ -153,5 +157,13 @@ create_atlas <- function(regions, coords, lobes, hemis) {
                     lobe=as.factor(lobes),
                     hemi=as.factor(hemis),
                     index=seq_len(kNumCoords))
+
+  # Add extra columns, if given
+  if (!is.null(other)) {
+    nms <- names(other)
+    stopifnot(!is.null(nms))
+    stopifnot(all(lengths(other) == kNumRegions))
+    for (x in nms) out[, eval(x) := other[[x]]]
+  }
   return(out)
 }

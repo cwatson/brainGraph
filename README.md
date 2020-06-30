@@ -88,17 +88,16 @@ Atlases containing `.scgm` in the name contain both cortical and *SubCortical Gr
 8. `dosenbach160`: [Dosenbach-160](https://dx.doi.org/10.1126/science.1194144)
 9. `hoa112`: [Harvard-Oxford atlas](https://dx.doi.org/10.1016/j.schres.2005.11.020)
 10. `lpba40`: [LONI Probabilistic Brain Atlas](https://dx.doi.org/10.1016/j.neuroimage.2007.09.031)
+11. `hcp_mmp1.0`: [HCP-1mm](https://doi.org/10.1038/nature18933)
+12. `power264`: [Power-264](https://dx.doi.org/10.1016%2Fj.neuron.2011.09.006)
+13. `gordon333`: [Gordon-333](https://doi.org/10.1093/cercor/bhu239)
+14. `brainnetome`: [Brainnetome](https://doi.org/10.1093/cercor/bhw157)
 
 ### Other atlases
 Some functions accept a `custom.atlas` argument, so that you can analyze data that is from an atlas not present in `brainGraph`.
 Other atlases to be added in the future include the following (I would need specific coordinate, region name, and lobe and hemisphere information):
-* [HCP-1mm](https://figshare.com/articles/HCP-MMP1_0_projected_on_fsaverage/3498446)
-    (see [Glasser et al., 2016](https://doi.org/10.1038/nature18933))
-* [Power-264](https://dx.doi.org/10.1016%2Fj.neuron.2011.09.006)
-* [Gordon-333](https://doi.org/10.1093/cercor/bhu239)
 * [Shen-268](https://doi.org/10.1016/j.neuroimage.2013.05.081)
 * [Von Economo-Koskinas](https://doi.org/10.1016/j.neuroimage.2016.12.069)
-* [Brainnetome](https://doi.org/10.1093/cercor/bhw157)
 * [Willard-499](https://findlab.stanford.edu/functional_ROIs.html) (see [Richiardi et al., 2015](https://doi.org/10.1126/science.1255905))
 * [Schaefer-400](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal)
     (see [Schaefer et al., 2018](https://doi.org/10.1093/cercor/bhx179))
@@ -146,7 +145,7 @@ registerDoMC(detectCores())
 ```
 
 ## GUI
-On some systems (e.g., *macOS* and *Windows*) it might be very difficult to
+On some systems (e.g., *macOS* and *Windows*) it might be difficult to
 install the necessary packages/dependencies for the GUI functions. Since `v2.2.0` (released 2018-05-28),
 the R packages [RGtk2](https://cran.r-project.org/web/packages/RGtk2/index.html)
 and [cairoDevice](https://cran.r-project.org/web/packages/cairoDevice/index.html)

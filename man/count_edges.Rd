@@ -8,7 +8,8 @@
 \usage{
 count_homologous(g)
 
-count_inter(g, group = c("lobe", "hemi", "network", "class"))
+count_inter(g, group = c("lobe", "hemi", "network", "class", "gyrus",
+  "Yeo_7network", "Yeo_17network", "area", "Brodmann"))
 }
 \arguments{
 \item{g}{A \code{brainGraph} graph object}
@@ -28,7 +29,7 @@ counts for. Default: \code{'lobe'}}
 in a brain graph (e.g. between L and R superior frontal).
 
 \code{count_inter} counts the number of edges between and within all vertices
-in one group (e.g. \emph{lobe}, \emph{hemi}, or \emph{network}).
+in one group (e.g. \emph{lobe}, \emph{hemi}, \emph{network}, etc.).
 }
 \examples{
 \dontrun{

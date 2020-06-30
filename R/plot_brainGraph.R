@@ -122,7 +122,9 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
     V(x)$y <- V(x)$z.mni
     xlim.g <- switch(atlas,
                      destrieux=, destrieux.scgm=, dosenbach160=c(-85, 120),
-                     hoa112=c(-85, 125), lpba40=c(-75, 120), c(-85, 110))
+                     hcp_mmp1.0=c(-90, 125), hoa112=c(-85, 125), lpba40=c(-75, 120),
+                     brainnetome=, gordon333=, power264=c(-90, 120),
+                     c(-85, 110))
     ylim.g <- switch(atlas,
                      destrieux=, destrieux.scgm=, dosenbach160=c(-85, 120),
                      hoa112=c(-85, 130), lpba40=c(-80, 100), c(-85, 125))
@@ -134,12 +136,12 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   } else if (plane == 'axial') {
     xlim.g <- switch(atlas,
                      dk=, dk.scgm=, dkt=, dkt.scgm=c(-105, 105),
-                     hoa112=, lpba40=c(-100, 100),
+                     brainnetome=, hcp_mmp1.0=, hoa112=, lpba40=, power264=c(-100, 100),
                      dosenbach160=c(-95, 95), c(-92, 95))
     ylim.g <- switch(atlas,
                      aal90=, aal116=, aal2.94=, aal2.120=c(-110, 70),
                      brainsuite=, dosenbach160=c(-115, 85),
-                     destrieux=, destrieux.scgm=c(-120, 83),
+                     destrieux=, destrieux.scgm=, hcp_mmp1.0=c(-120, 83),
                      hoa112=c(-122, 77), lpba40=c(-115, 70), c(-125, 85))
   } else if (plane == 'circular') {
     par(new=TRUE, bg='black', mar=c(5, 0, 2, 0)+0.1)
@@ -234,7 +236,7 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
   if (isTRUE(show.legend) && hasArg('vertex.color')) {
     atlas.dt <- get(atlas)
     vattr <- strsplit(fargs$vertex.color, '.', fixed=TRUE)[[1L]][2L]
-    if (vattr %in% c('lobe', 'network', 'class')) {
+    if (vattr %in% c('lobe', 'network', 'class', 'area', 'Yeo_7network', 'Yeo_17network')) {
       vattr_all <- vertex_attr(x, vattr)
       vattr_graph <- unique(vattr_all)
       atlas_vals <- atlas.dt[, get(vattr)]
@@ -251,7 +253,8 @@ plot.brainGraph <- function(x, plane=c('axial', 'sagittal', 'circular'),
       group.nums <- as.integer(which(table(vertex_attr(x, vattr)) > 2))
       cnames <- paste0(simpleCap(vattr), '. ', group.nums)
     }
-    cex <- if (length(group.nums) > 4L) 1 else 1.25
+    nGroups <- length(group.nums)
+    cex <- ifelse(nGroups > 10L, 0.75, ifelse(nGroups > 5L, 0.85, 1))
     cols <- group.cols[group.nums]
     l.inset <- c(-0.01, 0)  # Increasing 1st moves it toward the center (L-R), 2nd toward center (U-D)
     loc <- 'topleft'
