@@ -27,12 +27,12 @@
 #'   variables
 #' @export
 #'
-#' @return A \code{\link[ggplot2]{ggplot}} object
+#' @return Either a \code{trellis} or \code{ggplot} object
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
                         level.names='default', exclude=NULL, perms=NULL, alt='two.sided') {
-  sig <- trend <- yloc <- value <- variable <- threshold <- NULL
+  sig <- trend <- yloc <- value <- variable <- threshold <- panel.num <- NULL
 
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, is.brainGraphList, logical(1L))
@@ -69,24 +69,69 @@ plot_global <- function(g.list, xvar=c('density', 'threshold'), vline=NULL,
   }
 
   xvar <- match.arg(xvar)
-  p <- switch(xvar,
-              density=ggplot(DT.m, aes(x=density, y=value, col=get(gID))),
-              threshold=ggplot(DT.m, aes(x=threshold, y=value, col=get(gID))) + scale_x_reverse())
+  # 'base' plotting
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    grps <- DT.m[, levels(as.factor(get(gID)))]
+    DT.m[, panel.num := as.numeric(variable)]
+    if (!is.null(vline)) {
+      if (is.null(perms)) {
+        panelfun <- function(x, y, groups, ...) {
+          panel.abline(v=vline, lty=2, col='grey60')
+          panel.xyplot(x, y, groups, ...)
+        }
+      } else {
+        panelfun <- function(x, y, groups, ...) {
+          panel.num <- NULL
+          panel.abline(v=vline, lty=2, col='grey60')
+          panel.xyplot(x, y, groups, ...)
+          DT.m[panel.num == panel.number() & sig == '*',
+               panel.text(density, yloc, labels='*', col=plot.cols[1L])]
+          DT.m[panel.num == panel.number() & trend == '*',
+               panel.text(density, yloc, labels='*', col=plot.cols[2L])]
+        }
+      }
+    } else {
+      if (is.null(perms)) {
+        panelfun <- function(x, y, groups, ...) {
+          panel.xyplot(x, y, groups, ...)
+        }
+      } else {
+        panelfun <- function(x, y, groups, ...) {
+          panel.num <- NULL
+          panel.xyplot(x, y, groups, ...)
+          DT.m[panel.num == panel.number() & sig == '*',
+               panel.text(density, yloc, labels='*', col=plot.cols[1L])]
+          DT.m[panel.num == panel.number() & trend == '*',
+               panel.text(density, yloc, labels='*', col=plot.cols[2L])]
+        }
+      }
+    }
+    p <- xyplot(value ~ get(xvar) | variable, data=DT.m, groups=get(gID), type='l',
+                xlab=xvar, panel=panelfun, scales=list(y=list(relation='free')),
+                auto.key=list(space='bottom', title=gID, cex.title=1, columns=length(grps),
+                              lines=TRUE, points=FALSE))
 
-  if (hasName(DT.m, sID)) {
-    p <- p + stat_smooth(method='gam', formula=y~s(x))
+  # 'ggplot2' plotting
   } else {
-    p <- p + geom_line()
-  }
-  p <- p +
-    facet_wrap(~ variable, scales='free_y') +
-    theme(legend.position='bottom', axis.text.x=element_text(angle=45, hjust=1))
+    p <- switch(xvar,
+                density=ggplot2::ggplot(DT.m, ggplot2::aes(x=density, y=value, col=get(gID))),
+                threshold=ggplot2::ggplot(DT.m, ggplot2::aes(x=threshold, y=value, col=get(gID))) + ggplot2::scale_x_reverse())
 
-  if (!is.null(vline)) p <- p + geom_vline(xintercept=vline, lty=2, col='grey60')
-  if (!is.null(perms)) {
+    if (hasName(DT.m, sID)) {
+      p <- p + ggplot2::stat_smooth(method='gam', formula=y~s(x))
+    } else {
+      p <- p + ggplot2::geom_line()
+    }
     p <- p +
-      geom_text(aes(y=yloc, label=sig), col='red', size=3) +
-      geom_text(aes(y=yloc, label=trend), col='blue', size=3)
+      ggplot2::facet_wrap(~ variable, scales='free_y') +
+      ggplot2::theme(legend.position='bottom', axis.text.x=ggplot2::element_text(angle=45, hjust=1))
+
+    if (!is.null(vline)) p <- p + ggplot2::geom_vline(xintercept=vline, lty=2, col='grey60')
+    if (!is.null(perms)) {
+      p <- p +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=sig), col='red', size=3) +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=trend), col='blue', size=3)
+    }
   }
   return(p)
 }

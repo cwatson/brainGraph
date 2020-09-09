@@ -481,14 +481,14 @@ as_brainGraphList <- function(g.list, type=c('observed', 'random'),
 
   type <- match.arg(type)
   level <- match.arg(level)
-  if (type == 'observed' || level == 'group') {
-    stopifnot(all(vapply(g.list, is.brainGraph, logical(1L))))
-    g1 <- g.list[[1L]]
-    ids <- vapply(g.list, graph_attr, character(1L), 'name')
-  } else {
+  if (type == 'random') {
     stopifnot(all(vapply(g.list, function(x) is_igraph(x[[1L]]), logical(1L))))
     g1 <- g.list[[1L]][[1L]]
     ids <- vapply(g.list, function(x) graph_attr(x[[1L]], 'name'), character(1L))
+  } else {
+    stopifnot(all(vapply(g.list, is.brainGraph, logical(1L))))
+    g1 <- g.list[[1L]]
+    ids <- vapply(g.list, graph_attr, character(1L), 'name')
   }
 
   attrnames <- graph_attr_names(g1)

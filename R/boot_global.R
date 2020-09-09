@@ -165,8 +165,7 @@ print.summary.brainGraph_boot <- function(x, ...) {
 #' intervals (calculated using the normal approximation).
 #'
 #' @param ... Unused
-#' @param alpha A numeric indicating the opacity for
-#'   \code{\link[ggplot2]{geom_ribbon}}
+#' @param alpha A numeric indicating the opacity for the confidence bands
 #' @export
 #' @rdname Bootstrapping
 #'
@@ -180,11 +179,54 @@ plot.brainGraph_boot <- function(x, ..., alpha=0.4) {
 
   boot.sum <- summary(x)
   boot.dt <- boot.sum$DT.sum
-  b <- ggplot(boot.dt, aes(x=density, y=Observed, col=get(gID))) +
-    geom_line() +
-    labs(y=boot.sum$meas.full)
 
-  se <- b + geom_ribbon(aes(ymin=Observed-se, ymax=Observed+se, fill=get(gID)), alpha=alpha)
-  ci <- b + geom_ribbon(aes(ymin=ci.low, ymax=ci.high, fill=get(gID)), alpha=alpha)
-  return(list(se=se, ci=ci))
+  # 'base' plotting
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    grps <- boot.dt[, unique(get(gID))]
+
+    par(mfrow=c(2L, 1L))
+    # 1. SE plot
+    ymin <- boot.dt[, min(Observed - se)]
+    ymax <- boot.dt[, max(Observed + se)]
+    boot.dt[get(gID) == grps[1L],
+            plot(density, Observed, type='l', col=plot.cols[1L],
+                 ylim=c(ymin, ymax), ylab=boot.sum$meas.full)]
+    boot.dt[get(gID) == grps[2L],
+            lines(density, Observed, col=plot.cols[2L])]
+    for (i in 1L:2L) {
+      boot.dt[get(gID) == grps[i],
+              polygon(x=c(density, rev(density)),
+                      y=c(Observed + se, rev(Observed - se)),
+                      col=adjustcolor(plot.cols[i], alpha.f=alpha),
+                      border=plot.cols[i])]
+    }
+    legend('topright', title=gID, grps, fill=plot.cols[1L:2L])
+
+    # 2. CI plot
+    ymin <- boot.dt[, min(ci.low)]
+    ymax <- boot.dt[, max(ci.high)]
+    boot.dt[get(gID) == grps[1L],
+            plot(density, Observed, type='l', col=plot.cols[1L],
+                 ylim=c(ymin, ymax), ylab=boot.sum$meas.full)]
+    boot.dt[get(gID) == grps[2L],
+            lines(density, Observed, col=plot.cols[2L])]
+    for (i in 1L:2L) {
+      boot.dt[get(gID) == grps[i],
+              polygon(x=c(density, rev(density)),
+                      y=c(ci.high, rev(ci.low)),
+                      col=adjustcolor(plot.cols[i], alpha.f=alpha),
+                      border=plot.cols[i])]
+    }
+    legend('topright', title=gID, grps, fill=plot.cols[1L:2L])
+    return(invisible(x))
+
+  # 'ggplot2' plotting
+  } else {
+    b <- ggplot2::ggplot(boot.dt, ggplot2::aes(x=density, y=Observed, col=get(gID))) +
+      ggplot2::geom_line() +
+      ggplot2::labs(y=boot.sum$meas.full)
+    se <- b + ggplot2::geom_ribbon(ggplot2::aes(ymin=Observed-se, ymax=Observed+se, fill=get(gID)), alpha=alpha)
+    ci <- b + ggplot2::geom_ribbon(ggplot2::aes(ymin=ci.low, ymax=ci.high, fill=get(gID)), alpha=alpha)
+    return(list(se=se, ci=ci))
+  }
 }

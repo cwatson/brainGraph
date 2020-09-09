@@ -283,13 +283,13 @@ print.summary.mtpc <- function(x, ...) {
 #' @param show.null Logical indicating whether to plot points of the maximum
 #'   null statistics (per permutation)
 #' @param caption.stats Logical indicating whether to print the MTPC statistics
-#'   in the caption of the plot (default: \code{FALSE})
+#'   in the caption of the plot. Default: \code{FALSE}
 #' @inheritParams plot.bg_GLM
 #' @export
 #' @rdname mtpc
 #'
-#' @return The \code{plot} method returns a \emph{list} of
-#'   \code{\link[ggplot2]{ggplot}} objects
+#' @return The \code{plot} method returns a \code{trellis} object or a list of
+#'   \code{ggplot} objects
 #' @examples
 #' \dontrun{
 #' mtpcPlots <- plot(mtpc.diffs)
@@ -301,7 +301,8 @@ print.summary.mtpc <- function(x, ...) {
 
 plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
                       show.null=TRUE, caption.stats=FALSE, ...) {
-  Contrast <- stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- NULL
+  Contrast <- stat_ribbon <- stat <- threshold <- S.crit <- A.mtpc <- A.crit <- panel.num <-
+    xstart <- starts <- xend <- NULL
 
   stopifnot(inherits(x, 'mtpc'))
   conNames <- x$con.name
@@ -316,10 +317,11 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
   thr.y <- myMax(x$null.dist[, , mycontrast])
   nullcoords <- data.table(threshold=thresholds[thr], y=thr.y)
 
-  # Local function to plot for a single region
+  # 'ggplot2'; Local function to plot for a single region
   plot_single <- function(x, DT, nullcoords, show.null) {
     stat <- S.crit <- threshold <- stat_ribbon <- nullthresh <- y <- A.mtpc <- A.crit <- NULL
 
+    myMax <- switch(x$alt, two.sided=function(y) max(abs(y)), less=min, greater=max)
     inds <- DT[, get_rle_inds(x$clust.size, x$alt, stat, S.crit, threshold)]
     n <- dim(inds)[1L]
     if (n == 0L) {
@@ -335,27 +337,27 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
       DT[-all.inds, stat_ribbon := NA]
     }
 
-    lineplot <- ggplot(data=DT, mapping=aes(x=threshold)) +
-      geom_line(aes(y=stat), col='red4', size=1.25, na.rm=TRUE) +
-      geom_hline(aes(yintercept=nullthresh), lty=2)
+    lineplot <- ggplot2::ggplot(data=DT, mapping=ggplot2::aes(x=threshold)) +
+      ggplot2::geom_line(ggplot2::aes(y=stat), col='red4', size=1.25, na.rm=TRUE) +
+      ggplot2::geom_hline(ggplot2::aes(yintercept=nullthresh), lty=2)
     if (n > 0L) {
       if (x$alt == 'less') {
         lineplot <- lineplot +
-          geom_ribbon(aes(ymax=stat_ribbon, ymin=nullthresh), fill='red4', alpha=0.3)
+          ggplot2::geom_ribbon(ggplot2::aes(ymax=stat_ribbon, ymin=nullthresh), fill='red4', alpha=0.3)
       } else {
         lineplot <- lineplot +
-          geom_ribbon(aes(ymin=stat_ribbon, ymax=nullthresh), fill='red4', alpha=0.3)
+          ggplot2::geom_ribbon(ggplot2::aes(ymin=stat_ribbon, ymax=nullthresh), fill='red4', alpha=0.3)
       }
-      lineplot <- lineplot + geom_point(aes(y=stat_ribbon), col='red4', size=2, na.rm=TRUE)
+      lineplot <- lineplot + ggplot2::geom_point(ggplot2::aes(y=stat_ribbon), col='red4', size=2, na.rm=TRUE)
     }
 
-    if (isTRUE(all(diff(thresholds) < 0))) lineplot <- lineplot + scale_x_reverse()
+    if (isTRUE(all(diff(thresholds) < 0))) lineplot <- lineplot + ggplot2::scale_x_reverse()
     p.region <- if (x$level == 'graph') 'graph-level' else DT[, as.character(unique(region))]
     p.title <- paste0('Region: ', p.region)
     p.subtitle <- paste0('Outcome: ', x$outcome)
 
     if (isTRUE(show.null)) {
-      lineplot <- lineplot + geom_point(data=nullcoords, aes(y=y), col='darkgreen', alpha=0.4, na.rm=TRUE)
+      lineplot <- lineplot + ggplot2::geom_point(data=nullcoords, ggplot2::aes(y=y), col='darkgreen', alpha=0.4, na.rm=TRUE)
     }
     if (isTRUE(caption.stats)) {
       Smtpc <- bquote('S'['mtpc']*' = '~ .(DT[, format(myMax(stat))]))
@@ -367,34 +369,90 @@ plot.mtpc <- function(x, contrast=1L, region=NULL, only.sig.regions=TRUE,
 
       if (DT[, unique(A.mtpc) > unique(A.crit)]) statslabel <- bquote(.(statslabel)~ .(paste0('\t(p < ', x$alpha, ')')))
       lineplot <- lineplot +
-        labs(caption=statslabel) +
-        theme(plot.caption=element_text(hjust=0))
+        ggplot2::labs(caption=statslabel) +
+        ggplot2::theme(plot.caption=ggplot2::element_text(hjust=0))
     }
     lineplot <- lineplot +
-      labs(title=p.title, subtitle=p.subtitle, x='Threshold', y=paste0(toupper(x$con.type), '-statistic')) +
-      theme(plot.title=element_text(hjust=0.5, face='bold'),
-            plot.subtitle=element_text(hjust=0.5))
+      ggplot2::labs(title=p.title, subtitle=p.subtitle, x='Threshold', y=paste0(toupper(x$con.type), '-statistic')) +
+      ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'),
+            plot.subtitle=ggplot2::element_text(hjust=0.5))
 
     return(lineplot)
   }
 
-  if (x$level == 'graph') {
-    lineplot <- plot_single(x, DT, nullcoords, show.null)
-    return(lineplot)
-  } else if (x$level == 'vertex') {
-    if (is.null(region)) {
-      if (isFALSE(only.sig.regions)) {
-        region <- DT[, levels(region)]
+  # 'base' plotting
+  #-------------------------------------------------------
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    if (x$level == 'vertex') {
+      if (is.null(region)) {
+        if (isFALSE(only.sig.regions)) {
+          myregions <- DT[, levels(region)]
+        } else {
+          myregions <- droplevels(DT[A.mtpc > A.crit])[, levels(region)]
+        }
       } else {
-        region <- droplevels(DT[A.mtpc > A.crit])[, levels(region)]
+        myregions <- region
       }
     }
 
-    lineplots <- setNames(vector('list', length(region)), region)
-    for (z in region) {
-      lineplots[[z]] <- plot_single(x, DT[region == z], nullcoords, show.null)
+    DT <- droplevels(DT[region %in% myregions])
+    DT[, panel.num := as.numeric(region)]
+    inds <- droplevels(DT[, get_rle_inds(x$clust.size, x$alt, stat, S.crit, threshold), by=region])
+    inds[, panel.num := as.numeric(region)]
+    inds[, xstart := thresholds[starts]]
+    inds[, xend := thresholds[ends]]
+    if (isTRUE(show.null)) {
+      panelfun <- function(x, y, ...) {
+        panel.num <- starts <- nullthresh <- NULL
+        panel.points(-nullcoords$threshold, nullcoords$y, pch=19, fill='darkgreen')
+        for (i in seq_len(inds[panel.num == panel.number(), .N])) {
+          xcoords <- -thresholds[inds[panel.num == panel.number()][i, seq(starts, ends)]]
+          ycoords <- DT[panel.num == panel.number() & threshold %in% -xcoords, c(stat, nullthresh)]
+          panel.polygon(x=c(xcoords, rev(xcoords)), y=ycoords, col='lightgrey', border=NULL)
+        }
+        panel.abline(h=DT[, nullthresh], lty=2)
+        panel.xyplot(x, y, ..., col='red', lwd=2)
+      }
+    } else {
+      panelfun <- function(x, y, ...) {
+        panel.num <- starts <- nullthresh <- NULL
+        for (i in seq_len(inds[panel.num == panel.number(), .N])) {
+          xcoords <- thresholds[inds[panel.num == panel.number()][i, seq(starts, ends)]]
+          ycoords <- DT[panel.num == panel.number() & threshold %in% xcoords, c(stat, nullthresh)]
+          panel.polygon(x=c(xcoords, rev(xcoords)), y=ycoords, col='lightgrey', border=NULL)
+        }
+        panel.abline(h=DT[, nullthresh], lty=2)
+        panel.xyplot(x, y, ..., col='red', lwd=2)
+      }
     }
-    return(lineplots)
+
+    lineplot <- xyplot(stat ~ -threshold | region, data=DT, type=c('l', 'p'), pch=19,
+                       xlab='Threshold', ylab=paste0(toupper(x$con.type), '-statistic'),
+                       main=paste0('Outcome: ', x$outcome),
+                       scales=list(y=list(relation='free')),
+                       panel=panelfun)
+    return(lineplot)
+
+  # 'ggplot2' plotting
+  #-------------------------------------------------------
+  } else {
+    if (x$level == 'graph') {
+      lineplot <- plot_single(x, DT, nullcoords, show.null)
+      return(lineplot)
+    } else if (x$level == 'vertex') {
+      if (is.null(region)) {
+        if (isFALSE(only.sig.regions)) {
+          region <- DT[, levels(region)]
+        } else {
+          region <- droplevels(DT[A.mtpc > A.crit])[, levels(region)]
+        }
+      }
+      lineplots <- setNames(vector('list', length(region)), region)
+      for (z in region) {
+        lineplots[[z]] <- plot_single(x, DT[region == z], nullcoords, show.null)
+      }
+      return(lineplots)
+    }
   }
 }
 

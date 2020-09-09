@@ -48,6 +48,11 @@ bg.options <- list(
 # See https://github.com/Rdatatable/data.table/issues/4171
 patterns <- function(...) NULL
 
+# Appease Rcheck for a couple GUI-related variables
+# See https://stackoverflow.com/a/57755406/3357706
+if (getRversion() >= '2.15.1') utils::globalVariables(c('graphObj', 'plotdev'))
+graphObj <- plotdev <- list()
+
 .onLoad <- function(libname, pkgname) {
   op <- options()
   toset <- !(hasName(op, names(bg.options)))

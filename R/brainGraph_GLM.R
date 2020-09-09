@@ -474,12 +474,12 @@ print.summary.bg_GLM <- function(x, ...) {
 #' @param ids Logical indicating whether to plot subject ID's for outliers.
 #'   Otherwise plots the integer index
 #' @export
-#' @importFrom ggrepel geom_text_repel
 #' @importFrom grid gpar grid.draw grid.newpage textGrob
 #' @rdname glm
 #'
-#' @return The \code{plot} method returns a \emph{list} of
-#'   \code{\link[ggplot2]{ggplot}} objects
+#' @return The \code{plot} method returns a \emph{list} of \code{ggplot} objects
+#'   (if installed) or writes the plots to a PDF in the current directory named
+#'   \code{bg_GLM_diagnostics.pdf}
 #' @seealso \code{\link[stats]{plot.lm}}
 #'
 #' @examples
@@ -498,58 +498,74 @@ print.summary.bg_GLM <- function(x, ...) {
 plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
   cl.h <- ind <- level <- mark <- resid <- NULL
   stopifnot(inherits(x, 'bg_GLM'))
-  if (!requireNamespace('gridExtra', quietly=TRUE)) stop('Must install the "gridExtra" package.')
   if (!is.numeric(which) || any(which < 1L) || any(which > 6L)) stop("'which' must be in 1:6")
   show <- rep.int(FALSE, 6L)
   show[which] <- TRUE
-  prows <- 1L + (length(which) > 1L)
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    mfrow <- switch(length(which),
+                    c(1, 1), c(1, 2), c(1, 3),
+                    c(2, 2), c(2, 3), c(2, 3))
+    pdf('bg_GLM_diagnostics.pdf')
+    par(mfrow=mfrow)
+  } else {
+    if (!requireNamespace('gridExtra', quietly=TRUE)) stop('Must install the "gridExtra" package.')
+    textfun <- if (!requireNamespace('ggrepel', quietly=TRUE)) ggplot2::geom_text else ggrepel::geom_text_repel
+    prows <- 1L + (length(which) > 1L)
+    mytheme <- ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5),
+                              legend.position='none',
+                              axis.text.y=ggplot2::element_text(hjust=0.5, angle=90))
+    model_formula <- split_string(formula(x))
+  }
 
-  model_formula <- split_string(formula(x))
-  mytheme <- theme(plot.title=element_text(hjust=0.5),
-                   legend.position='none',
-                   axis.text.y=element_text(hjust=0.5, angle=90))
+  xlabs <- c('Fitted values', 'Theoretical Quantiles', 'Fitted values', 'Obs. number',
+             'Leverage', expression(Leverage~h[ii]))
+  ylabs <- c('Residuals', 'Sample Quantiles', expression(sqrt(Standardized~residuals)),
+             'Cook\'s distance', 'Standardized residuals', 'Cook\'s distance')
+  mains <- c('Residuals vs Fitted', 'Normal Q-Q', 'Scale-Location', 'Cook\'s distance',
+             'Residuals vs Leverage', expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])))
 
-  # Local function to plot for a single region
+  # Local function to plot for a single region ('ggplot2')
+  #-----------------------------------------------------------------------------
   plot_single <- function(dat, region) {
     leverage <- resid.std <- cook <- ind <- mark <- fit <- leverage.tr <- NULL
 
     diagPlots <- vector('list', length=6L)
     # 1. Resids vs fitted
     if (show[1L]) {
-      diagPlots[[1L]] <- ggplot(dat, aes(x=fit, y=resid)) +
-        geom_point(aes(shape=mark)) +
-        geom_text_repel(aes(x=fit, y=resid, label=ind), size=3) +
-        stat_smooth(method='loess', se=FALSE, span=1, col='red') +
-        geom_hline(yintercept=0, lty=3) +
-        mytheme + labs(title='Residuals vs Fitted', x='Fitted values', y='Residuals')
+      diagPlots[[1L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=fit, y=resid)) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark)) +
+        textfun(ggplot2::aes(x=fit, y=resid, label=ind), size=3) +
+        ggplot2::stat_smooth(method='loess', se=FALSE, span=1, col='red') +
+        ggplot2::geom_hline(yintercept=0, lty=3) +
+        mytheme + ggplot2::labs(title=mains[1L], xlab=xlabs[1L], ylab=ylabs[1L])
     }
 
     # 2. QQ-plot
     if (show[2L]) {
       dat[order(resid.std), x := qnorm(ppoints(resid.std))]
-      diagPlots[[2L]] <- ggplot(dat, aes(x=x, y=resid.std)) +
-        geom_text_repel(aes(x=x, y=resid.std, label=ind), size=3) +
-        geom_line(aes(x=x, y=x), col='gray50', lty=3) +
-        geom_point(aes(shape=mark)) +
-        mytheme + labs(title='Normal Q-Q', x='Theoretical Quantiles', y='Sample Quantiles')
+      diagPlots[[2L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=x, y=resid.std)) +
+        textfun(ggplot2::aes(x=x, y=resid.std, label=ind), size=3) +
+        ggplot2::geom_line(ggplot2::aes(x=x, y=x), col='gray50', lty=3) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark)) +
+        mytheme + ggplot2::labs(title=mains[2L], x=xlabs[2L], y=ylabs[2L])
     }
 
     # 3. Scale-Location plot
     if (show[3L]) {
-      diagPlots[[3L]] <- ggplot(dat, aes(x=fit, y=sqrt(abs(resid.std)))) +
-        geom_point(aes(shape=mark)) +
-        geom_text_repel(aes(x=fit, y=sqrt(abs(resid.std)), label=ind), size=3) +
-        stat_smooth(method='loess', se=FALSE, col='red') +
-        ylim(c(0, NA)) +
-        mytheme + labs(title='Scale-Location', x='Fitted values', y=expression(sqrt(Standardized~residuals)))
+      diagPlots[[3L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=fit, y=sqrt(abs(resid.std)))) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark)) +
+        textfun(ggplot2::aes(x=fit, y=sqrt(abs(resid.std)), label=ind), size=3) +
+        ggplot2::stat_smooth(method='loess', se=FALSE, col='red') +
+        ggplot2::ylim(c(0, NA)) +
+        mytheme + ggplot2::labs(title=mains[3L], x=xlabs[3L], y=ylabs[3L])
     }
 
     # 4. Cook's distance
     if (show[4L]) {
-      diagPlots[[4L]] <- ggplot(dat, aes(x=seq_len(dimX[1L]), y=cook)) +
-        geom_bar(stat='identity', position='identity') +
-        geom_text(aes(y=cook, label=ind), size=3, vjust='outward') +
-        mytheme + labs(title='Cook\'s distance', x='Obs. number', y='Cook\'s distance')
+      diagPlots[[4L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=seq_len(dimX[1L]), y=cook)) +
+        ggplot2::geom_bar(stat='identity', position='identity') +
+        ggplot2::geom_text(ggplot2::aes(y=cook, label=ind), size=3, vjust='outward') +
+        mytheme + ggplot2::labs(title=mains[4L], x=xlabs[4L], y=ylabs[4L])
     }
 
     # 5. Residual vs Leverage plot
@@ -559,39 +575,138 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
       dt.cook <- data.table(hh=rep.int(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
       dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
 
-      diagPlots[[5L]] <- ggplot(dat, aes(x=leverage, y=resid.std)) +
-        geom_point(aes(shape=mark)) +
-        geom_text_repel(aes(x=leverage, y=resid.std, label=ind), size=3) +
-        stat_smooth(method='loess', se=FALSE, col='red') +
-        geom_vline(xintercept=0, lty=3, col='gray50') +
-        geom_hline(yintercept=0, lty=3, col='gray50') +
-        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
-        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
-        geom_line(data=dt.cook[level == 0.5], aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
-        geom_line(data=dt.cook[level == 1.0], aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
-        xlim(extendrange(c(0, r.hat[2L]))) +
-        ylim(dat[, extendrange(range(resid.std), f=0.09)]) +
-        mytheme + labs(title='Residuals vs Leverage', x='Leverage', y='Standardized residuals')
+      diagPlots[[5L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=leverage, y=resid.std)) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark)) +
+        textfun(ggplot2::aes(x=leverage, y=resid.std, label=ind), size=3) +
+        ggplot2::stat_smooth(method='loess', se=FALSE, col='red') +
+        ggplot2::geom_vline(xintercept=0, lty=3, col='gray50') +
+        ggplot2::geom_hline(yintercept=0, lty=3, col='gray50') +
+        ggplot2::geom_line(data=dt.cook[level == 0.5], ggplot2::aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
+        ggplot2::geom_line(data=dt.cook[level == 1.0], ggplot2::aes(x=hh, y=cl.h), col='red', lty=2, na.rm=TRUE) +
+        ggplot2::geom_line(data=dt.cook[level == 0.5], ggplot2::aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
+        ggplot2::geom_line(data=dt.cook[level == 1.0], ggplot2::aes(x=hh, y=-cl.h), col='red', lty=2, na.rm=TRUE) +
+        ggplot2::xlim(extendrange(c(0, r.hat[2L]))) +
+        ggplot2::ylim(dat[, extendrange(range(resid.std), f=0.09)]) +
+        mytheme + ggplot2::labs(title=mains[5L], x=xlabs[5L], y=ylabs[5L])
     }
 
     # 6. Cook's dist vs leverage
     if (show[6L]) {
       mytheme$plot.title$size <- 9
-      diagPlots[[6L]] <- ggplot(dat, aes(x=leverage.tr, y=cook)) +
-        geom_point(aes(shape=mark)) +
-        geom_text_repel(aes(x=leverage.tr, y=cook, label=ind), size=3) +
-        geom_abline(slope=seq.int(0, 3, 0.5), lty=2, col='gray50') +
-        xlim(c(0, dat[, max(leverage.tr)])) +
-        ylim(c(0, dat[, max(cook) * 1.025])) +
+      diagPlots[[6L]] <- ggplot2::ggplot(dat, ggplot2::aes(x=leverage.tr, y=cook)) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark)) +
+        textfun(ggplot2::aes(x=leverage.tr, y=cook, label=ind), size=3) +
+        ggplot2::geom_abline(slope=seq.int(0, 3, 0.5), lty=2, col='gray50') +
+        ggplot2::xlim(c(0, dat[, max(leverage.tr)])) +
+        ggplot2::ylim(c(0, dat[, max(cook) * 1.025])) +
         mytheme +
-        labs(title=expression("Cook's dist vs Leverage "*h[ii] / (1 - h[ii])),
-             x=expression(Leverage~h[ii]), y='Cook\'s distance')
+        ggplot2::labs(title=mains[6L], x=xlabs[6L], y=ylabs[6L])
     }
 
     top_title <- textGrob(paste0('Outcome: ', outcome, '    Region: ', region),
                           gp=gpar(fontface='bold', cex=1.0))
     p.all <- gridExtra::arrangeGrob(grobs=diagPlots[which], nrow=prows, top=top_title, bottom=model_formula)
     return(p.all)
+  }
+
+  # Local function to plot for a single region ('base')
+  #-----------------------------------------------------------------------------
+  plot_single_base <- function(dat, region) {
+    leverage <- fit <- leverage.tr <- NULL
+    label.pos <- c(4, 2)  # Default value in 'plot.lm'
+    text.id <- function(x, y, label, adj.x=TRUE) {
+      labpos <- if (adj.x) label.pos[1 + as.numeric(x > mean(range(x)))] else 3
+      text(x, y, label, cex=0.75, xpd=TRUE, pos=labpos, offset=0.25)
+    }
+
+    # 1. Resids vs. fitted
+    if (show[1L]) {
+      ylim <- dat[, extendrange(resid, f=0.08)]
+      dat[mark == 0, plot(fit, resid, pch=19, ylim=ylim,
+                          main=mains[1L], xlab=xlabs[1L], ylab=ylabs[1L])]
+      dat[mark == 1, points(fit, resid, pch=17)]
+      dat[, panel.smooth(fit, resid, iter=3, lwd=2, pch=NA)]
+      dat[, abline(h=0, lty=3)]
+      dat[mark == 1, text.id(fit, resid, ind)]
+    }
+
+    # 2. QQ-plot
+    if (show[2L]) {
+      ylim <- dat[, range(resid.std, na.rm=TRUE)]
+      ylim[2L] <- extendrange(ylim, f=0.075)[2L]
+      #dat[order(resid.std), x := qnorm(ppoints(resid.std))]
+      qq <- dat[, qqnorm(resid.std, main=mains[2L], ylab=ylabs[2L], ylim=ylim)]
+      dat[, qqline(resid.std, lty=3, col='gray50')]
+      dat[mark == 1, text.id(x, resid.std, ind)]
+    }
+
+    # 3. Scale-Location plot
+    if (show[3L]) {
+      ylim <- dat[, c(0, max(sqrt(abs(resid.std)), na.rm=TRUE))]
+      dat[mark == 0, plot(fit, sqrt(abs(resid.std)), pch=19, ylim=ylim,
+                          main=mains[3L], xlab=xlabs[3L], ylab=ylabs[3L])]
+      dat[mark == 1, points(fit, sqrt(abs(resid.std)), pch=17)]
+      dat[, panel.smooth(fit, sqrt(abs(resid.std)), iter=3, lwd=2, pch=NA)]
+      dat[mark == 1, text.id(fit, sqrt(abs(resid.std)), ind)]
+    }
+
+    # 4. Cook's distance
+    if (show[4L]) {
+      ylim <- dat[, c(0, max(cook, na.rm=TRUE) * 1.075)]
+      dat[, plot(cook, type='h', ylim=ylim, main=mains[4L], xlab=xlabs[4L], ylab=ylabs[4L])]
+      xpos <- dat[mark == 1, which=TRUE]
+      dat[mark == 1, text.id(xpos, cook, ind, adj.x=FALSE)]
+    }
+
+    # 5. Residual vs Leverage plot
+    if (show[5L]) {
+      xlim <- dat[, c(0, max(leverage, na.rm=TRUE))]
+      ylim <- dat[, extendrange(resid.std, f=0.08)]
+      r.hat <- dat[, range(leverage, na.rm=TRUE)]
+      hh <- seq.int(min(r.hat[1L], r.hat[2L] / 100), 1L, length.out=101L)
+      dt.cook <- data.table(hh=rep.int(hh, 2L), level=rep(c(0.5, 1.0), each=101L))
+      dt.cook[, cl.h := sqrt(level * p * (1 - hh) / hh), by=level]
+
+      dat[mark == 0, plot(leverage, resid.std, xlim=xlim, ylim=ylim, main=mains[5L],
+                          xlab=xlabs[5L], ylab=ylabs[5L], pch=19)]
+      dat[mark == 1, points(leverage, resid.std, pch=17)]
+      dat[, panel.smooth(leverage, resid.std, iter=3, lwd=2, pch=NA)]
+      abline(h=0, v=0, lty=3, col='gray')
+      dt.cook[, lines(hh, cl.h, lty=2, col=2), by=level]
+      dt.cook[, lines(hh, -cl.h, lty=2, col=2), by=level]
+      dat[mark == 1, text.id(leverage, resid.std, ind)]
+    }
+
+    # 6. Cook's dist vs leverage
+    if (show[6L]) {
+      xlim <- dat[, c(0, max(leverage.tr, na.rm=TRUE))]
+      ylim <- dat[, c(0, max(cook, na.rm=TRUE) * 1.025)]
+      dat[mark == 0, plot(leverage.tr, cook, xlim=xlim, ylim=ylim, main=mains[6L],
+                          xlab=xlabs[6L], ylab=ylabs[6L], pch=19)]
+      dat[mark == 1, points(leverage.tr, cook, pch=17)]
+      dat[, panel.smooth(leverage.tr, cook, iter=3, lwd=2, pch=NA)]
+      dat[mark == 1, text.id(leverage.tr, cook, ind)]
+      bval <- dat[, pretty(sqrt(p * cook / leverage.tr), 5)]
+      bi2 <- bval^2
+      usr <- par("usr")
+      xmax <- usr[2L]
+      ymax <- usr[4L]
+      for (i in seq_along(bval)) {
+        if (p * ymax > bi2[i] * xmax) {
+          xi <- xmax + strwidth(" ") / 3
+          yi <- bi2[i] * xi / p
+          abline(0, bi2[i], lty=2)
+          text(xi, yi, paste(bval[i]), adj=0, xpd=TRUE)
+        } else {
+          yi <- ymax - 1.5 * strheight(" ")
+          xi <- p * yi / bi2[i]
+          lines(c(0, xi), c(0, yi), lty=2)
+          text(xi, ymax - 0.8 * strheight(" "), paste(bval[i]), adj=0.5, xpd=TRUE)
+        }
+      }
+    }
+
+    title(paste0('Outcome: ', outcome, '    Region: ', region), line=-1, outer=TRUE)
   }
 
   dimX <- dim(x$X)
@@ -616,17 +731,32 @@ plot.bg_GLM <- function(x, region=NULL, which=c(1L:3L, 5L), ids=TRUE, ...) {
     DT[[i]][mark == 0, ind := '']
     DT[[i]][, mark := as.factor(mark)]
   }
+
   if (x$level == 'graph') {
-    p.all <- plot_single(DT[['graph']], region='graph-level')
-    grid.newpage()
-    grid.draw(p.all)
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      plot_single_base(DT[['graph']], region='graph-level')
+      return(invisible(x))
+    } else {
+      p.all <- plot_single(DT[['graph']], region='graph-level')
+      grid.newpage()
+      grid.draw(p.all)
+    }
 
   } else if (x$level == 'vertex') {
     if (length(x$runY) == 0) return(NULL)
     run <- if (is.null(region)) run <- intersect(intersect(x$runX, x$runY), regions) else region
-    p.all <- setNames(vector('list', length(run)), run)
-    for (z in run) p.all[[z]] <- plot_single(DT[[z]], z)
-    p.all[vapply(p.all, is.null, logical(1L))] <- NULL
+
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      for (z in run) plot_single_base(DT[[z]], z)
+      return(invisible(x))
+
+    # 'ggplot2' plotting
+    } else {
+      p.all <- setNames(vector('list', length(run)), run)
+      for (z in run) p.all[[z]] <- plot_single(DT[[z]], z)
+      p.all[vapply(p.all, is.null, logical(1L))] <- NULL
+    }
   }
   return(p.all)
 }

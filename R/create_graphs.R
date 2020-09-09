@@ -119,7 +119,7 @@ make_brainGraph.igraph <- function(x, atlas, type=c('observed', 'random'),
                                    level=c('subject', 'group', 'contrast'),
                                    set.attrs=TRUE, modality=NULL, weighting=NULL,
                                    threshold=NULL, name=NULL, Group=NULL, subnet=NULL, ...) {
-  lobe <- hemi <- index <- x.mni <- y.mni <- z.mni <- NULL
+  Brodmann <- lobe <- hemi <- index <- x.mni <- y.mni <- z.mni <- NULL
 
   x <- get_metadata(x)
   x$atlas <- if (missing(atlas)) guess_atlas(x) else atlas

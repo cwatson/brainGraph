@@ -346,7 +346,7 @@ plot.brainGraph_permute <- function(x, measure=x$measure,
                                     alternative=c('two.sided', 'less', 'greater'),
                                     alpha=0.05, p.sig=c('p', 'p.fdr'), ptitle=NULL, ...) {
   densities <- Group <- sig <- trend <- yloc <- obs <- mylty <- ci.low <- ci.high <-
-    variable <- value <- reg.num <- region <- perm.diff <- obs.diff <- plot2 <- NULL
+    variable <- value <- reg.num <- region <- perm.diff <- obs.diff <- plot2 <- reg.num2 <- NULL
   p.sig <- match.arg(p.sig)
   perm.sum <- summary(x, measure=measure, alternative=alternative, alpha=alpha)
   measure <- perm.sum$measure
@@ -371,49 +371,120 @@ plot.brainGraph_permute <- function(x, measure=x$measure,
     plot.dt[variable == 'obs.diff', mylty := 1]
     plot.dt[variable %in% c('ci.low', 'ci.high'), mylty := 2]
     plot.dt[variable == 'perm.diff', mylty := 3]
-    # Line plot of observed group values
-    p <- ggplot(plot.dt, aes(x=densities))
-    plot1 <- p +
-      geom_line(aes(y=obs, col=Group)) +
-      geom_text(aes(y=yloc, label=sig), col='red', size=8) +
-      geom_text(aes(y=yloc, label=trend), col='blue', size=8) +
-      theme(legend.position='bottom')
 
-    # Line plot of observed difference and CI's
-    plot2 <- p +
-      geom_line(data=plot.dt[variable =='obs.diff'], aes(y=value, lty=factor(mylty)), col='red') +
-      geom_point(data=plot.dt[variable == 'obs.diff'], aes(y=value), col='red', size=3) +
-      geom_line(data=plot.dt[variable == 'perm.diff'], aes(y=value, lty=factor(mylty))) +
-      geom_line(data=plot.dt[variable == 'ci.low'], aes(y=value, lty=factor(mylty))) +
-      geom_line(data=plot.dt[variable == 'ci.high'], aes(y=value, lty=factor(mylty))) +
-      scale_linetype_manual(name='',
-                            labels=c('Observed diff.', '95% CI', 'Mean permutation diff.'),
-                            values=1:3) +
-      theme(legend.position='bottom', legend.spacing.x=unit(9, 'pt'),
-            legend.key=element_rect(fill='white'), legend.background=element_rect(fill='gray79'))
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      # 1. Line plot of observed group values
+      gID <- getOption('bg.group')
+      grps <- paste(perm.sum$measure, x$Group, sep='.')
+      ymin <- plot.dt[1L, yloc]
+      ymax <- plot.dt[, max(obs)]
 
-    ylabel1 <- 'Observed values'
-    plot1 <- plot1 +
-      labs(title=ptitle, y=ylabel1, x='Density') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
-    plot2 <- plot2 +
-      labs(title=ptitle, y=ylabel2, x='Density') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
+      par(mar=c(8.6, 4.1, 4.1, 2.1), xpd=TRUE)
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              plot(densities, obs, type='l', col=plot.cols[1L],
+                   main=perm.sum$meas.full, xlab='Density', ylab='Observed values')]
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[2L],
+              lines(densities, obs, col=plot.cols[2L])]
+      plot.dt[variable == 'obs.diff' & sig == '*',
+              text(densities, yloc, sig, cex=1.75, col='red')]
+      plot.dt[variable == 'obs.diff' & trend == '*',
+              text(densities, yloc, trend, cex=1.75, col='blue')]
+      legend('bottom', title=gID, sub(paste0(perm.sum$measure, '.'), '', grps),
+             fill=plot.cols[1L:2L], inset=c(0, -0.35), horiz=TRUE)
+
+      # 2. Line plot of observed difference and CI's
+      ymin <- plot.dt[variable == 'ci.low', min(value)]
+      ymax <- plot.dt[variable == 'ci.high', max(value)]
+
+      par(mar=c(9.1, 4.1, 4.1, 2.1), xpd=TRUE)
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              plot(densities, value, type='l', col='red', ylim=c(ymin, ymax),
+                   main=perm.sum$meas.full, xlab='Density', ylab=ylabel2)]
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              points(densities, value, col='red', pch=19)]
+      plot.dt[variable == 'ci.high' & get(gID) == grps[1L],
+              lines(densities, value, lty=2)]
+      plot.dt[variable == 'ci.low' & get(gID) == grps[1L],
+              lines(densities, value, lty=2)]
+      plot.dt[variable == 'perm.diff' & get(gID) == grps[1L],
+              lines(densities, value, lty=3)]
+      legend('bottom', c('Observed diff.', '95% CI', 'Mean permutation diff.'),
+             lty=1L:3L, inset=c(0, -0.4))
+      return(invisible(x))
+
+    # 'ggplot2' plotting
+    } else {
+      # 1. Line plot of observed group values
+      p <- ggplot2::ggplot(plot.dt, ggplot2::aes(x=densities))
+      plot1 <- p +
+        ggplot2::geom_line(ggplot2::aes(y=obs, col=Group)) +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=sig), col='red', size=8) +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=trend), col='blue', size=8) +
+        ggplot2::theme(legend.position='bottom')
+
+      # 2. Line plot of observed difference and CI's
+      plot2 <- p +
+        ggplot2::geom_line(data=plot.dt[variable =='obs.diff'], ggplot2::aes(y=value, lty=factor(mylty)), col='red') +
+        ggplot2::geom_point(data=plot.dt[variable == 'obs.diff'], ggplot2::aes(y=value), col='red', size=3) +
+        ggplot2::geom_line(data=plot.dt[variable == 'perm.diff'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::geom_line(data=plot.dt[variable == 'ci.low'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::geom_line(data=plot.dt[variable == 'ci.high'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::scale_linetype_manual(name='',
+                                       labels=c('Observed diff.', '95% CI', 'Mean permutation diff.'),
+                                       values=1:3) +
+        ggplot2::theme(legend.position='bottom', legend.spacing.x=ggplot2::unit(9, 'pt'),
+                       legend.key=ggplot2::element_rect(fill='white'),
+                       legend.background=ggplot2::element_rect(fill='gray79'))
+
+      ylabel1 <- 'Observed values'
+      plot1 <- plot1 +
+        ggplot2::labs(title=ptitle, y=ylabel1, x='Density') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      plot2 <- plot2 +
+        ggplot2::labs(title=ptitle, y=ylabel2, x='Density') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      return(list(plot1, plot2))
+    }
 
   # VERTEX LEVEL
   #-------------------------------------
   } else {
     plot.dt <- droplevels(sum.dt[get(p.sig) < alpha])
     if (dim(plot.dt)[1L] == 0L) stop('No significant results!')
-    plot.dt[, reg.num := seq_len(.N), by=densities]
-    plot1 <- ggplot(plot.dt, aes(x=region))
-      geom_point(aes(y=perm.diff)) +
-      geom_errorbar(aes(ymin=ci.low, ymax=ci.high)) +
-      geom_segment(aes(x=reg.num - .25, xend=reg.num + .25, y=obs.diff, yend=obs.diff),
-                   col='red', size=1.25) +
-      facet_wrap(~ densities, scales='free') +
-      labs(title=ptitle, y=ylabel2, x='Region') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
+
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      ymin <- plot.dt[, min(c(obs.diff, ci.low))]
+      ymax <- plot.dt[, max(c(obs.diff, ci.high))]
+      plot.dt[, reg.num2 := as.numeric(as.factor(region))]
+      dotplot(perm.diff ~ region | as.factor(densities),
+              xlab='Region', ylab=ylabel2, main=perm.sum$meas.full,
+              data=plot.dt, ylim=extendrange(c(ymin, ymax)),
+              x0=plot.dt$reg.num2, y0=plot.dt$ci.low, y1=plot.dt$ci.high, yobs=plot.dt$obs.diff,
+              scales=list(x=list(relation='free')),
+              panel=function(x, y, x0, y0, y1, yobs, subscripts) {
+                lpoints(x, y, pch=19)
+                panel.abline(h=0, lty=3)
+                larrows(x0=x0[subscripts], y0=y0[subscripts], x1=x0[subscripts], y1=y1[subscripts],
+                        code=3, angle=90, length=0.1)
+                lsegments(x0[subscripts] - 0.1, yobs[subscripts],
+                          x0[subscripts] + 0.1, yobs[subscripts],
+                          col='red', lwd=3)
+              })
+
+    # 'ggplot2' plotting
+    } else {
+      plot.dt[, reg.num := seq_len(.N), by=densities]
+      plot1 <- ggplot2::ggplot(plot.dt, ggplot2::aes(x=region)) +
+        ggplot2::geom_point(ggplot2::aes(y=perm.diff)) +
+        ggplot2::geom_errorbar(ggplot2::aes(ymin=ci.low, ymax=ci.high)) +
+        ggplot2::geom_segment(ggplot2::aes(x=reg.num - .25, xend=reg.num + .25, y=obs.diff, yend=obs.diff),
+                              col='red', size=1.25) +
+        ggplot2::facet_wrap(~ densities, scales='free') +
+        ggplot2::labs(title=ptitle, y=ylabel2, x='Region') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      return(list(plot1, plot2))
+    }
   }
-  return(list(plot1, plot2))
 }

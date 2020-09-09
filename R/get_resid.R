@@ -272,8 +272,8 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' @inheritParams plot.bg_GLM
 #' @export
 #'
-#' @return The \code{plot} method returns a \emph{list} of
-#'   \code{\link[ggplot2]{ggplot}} objects
+#' @return The \code{plot} method returns a \code{trellis} object or a list of
+#'   \code{ggplot} objects
 #'
 #' @rdname residuals
 #' @examples
@@ -294,40 +294,61 @@ plot.brainGraph_resids <- function(x, region=NULL, outlier.thresh=2, cols=FALSE,
   regions <- DT[, levels(Region)]
   setkeyv(DT, c(gID, sID))
 
-  rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(nobs(x)))
-  DT[, ind := rnames, by=Region]
-  setkey(DT, Region, resids)
-  DT[, x := qnorm(ppoints(resids)), by=Region]
-  DT[mark == 0, ind := '']
-  DT[, mark := as.factor(mark)]
-
-  #TODO: write a solution that avoids requiring "ggplot2"
-  textfun <- if (!requireNamespace('ggrepel', quietly=TRUE)) geom_text else ggrepel::geom_text_repel
-  # Local function to plot for a single region
-  plot_single <- function(DT.resids, cols) {
-    Region <- resids <- NULL
-    p <- ggplot(DT.resids, aes(x=x, y=resids, col=get(gID))) +
-      textfun(aes(label=ind), size=3) +
-      geom_point(aes(shape=mark, size=mark)) +
-      geom_line(aes(x=x, y=x), col='gray50') +
-      scale_shape_manual(values=c(20, 17)) +
-      scale_size_manual(values=c(2, 3)) +
-      theme(plot.title=element_text(hjust=0.5, size=10, face='bold'),
-            legend.position='none',
-            axis.text.y=element_text(hjust=0.5, angle=90)) +
-      labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(Region)]),
-           x='Theoretical Quantiles', y='Sample Quantiles')
-    if (isFALSE(cols)) {
-      p <- p + scale_color_manual(values=rep.int('black', DT.resids[, length(unique(get(gID)))]))
+  # 'base' plotting
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    xylabs <- paste(c('Theoretical', 'Sample'), 'Quantiles')
+    if (isTRUE(cols)) {
+      DT[Region %in% regions,
+         qqmath(~ resids | Region, xlab=xylabs[1L], ylab=xylabs[2L], col=c('red', 'blue')[get(gID)],
+                panel=function(x, ...) {
+                  panel.qqmathline(x, ...)
+                  panel.qqmath(x, ...)
+                })]
+    } else {
+      DT[Region %in% regions,
+         qqmath(~ resids | Region, xlab=xylabs[1L], ylab=xylabs[2L],
+                panel=function(x, ...) {
+                  panel.qqmathline(x, ...)
+                  panel.qqmath(x, ...)
+                })]
     }
-    return(p)
-  }
 
-  p.all <- setNames(vector('list', length(regions)), regions)
-  for (z in regions) {
-    p.all[[z]] <- plot_single(DT[Region == z], cols)
+  # 'ggplot2' plotting
+  } else {
+    rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(nobs(x)))
+    DT[, ind := rnames, by=Region]
+    setkey(DT, Region, resids)
+    DT[, x := qnorm(ppoints(resids)), by=Region]
+    DT[mark == 0, ind := '']
+    DT[, mark := as.factor(mark)]
+
+    textfun <- if (!requireNamespace('ggrepel', quietly=TRUE)) ggplot2::geom_text else ggrepel::geom_text_repel
+    # Local function to plot for a single region
+    plot_single <- function(DT.resids, cols) {
+      Region <- resids <- NULL
+      p <- ggplot2::ggplot(DT.resids, ggplot2::aes(x=x, y=resids, col=get(gID))) +
+        textfun(ggplot2::aes(label=ind), size=3) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark, size=mark)) +
+        ggplot2::geom_line(ggplot2::aes(x=x, y=x), col='gray50') +
+        ggplot2::scale_shape_manual(values=c(20, 17)) +
+        ggplot2::scale_size_manual(values=c(2, 3)) +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=10, face='bold'),
+              legend.position='none',
+              axis.text.y=ggplot2::element_text(hjust=0.5, angle=90)) +
+        ggplot2::labs(title=paste0('Normal Q-Q: ', DT.resids[, unique(Region)]),
+             x='Theoretical Quantiles', y='Sample Quantiles')
+      if (isFALSE(cols)) {
+        p <- p + ggplot2::scale_color_manual(values=rep.int('black', DT.resids[, length(unique(get(gID)))]))
+      }
+      return(p)
+    }
+
+    p.all <- setNames(vector('list', length(regions)), regions)
+    for (z in regions) {
+      p.all[[z]] <- plot_single(DT[Region == z], cols)
+    }
+    return(p.all)
   }
-  return(p.all)
 }
 
 #' @export

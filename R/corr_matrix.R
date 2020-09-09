@@ -157,7 +157,7 @@ corr.matrix <- function(resids, densities, thresholds=NULL, what=c('resids', 'ra
       g <- g[seq_len(kNumGroups)]
     }
     g <- switch(class(g),
-                numeric=, logical=grps[g],
+                integer=, numeric=, logical=grps[g],
                 character=which(grps %in% g))
     x$R <- x$R[, , g, drop=FALSE]
     x$P <- x$P[, , g, drop=FALSE]
@@ -225,12 +225,15 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
   }
 
   type <- match.arg(mat.type)
-  legend.pos <- if (type == 'raw' || isTRUE(ordered)) 'right' else 'none'
-  mytheme <- theme(legend.position=legend.pos,
-    axis.text.x=element_text(size=0.7*base_size, angle=45),
-    axis.text.y=element_text(size=0.7*base_size),
-    axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-    plot.title=element_text(hjust=0.5, face='bold'))
+  # 'ggplot2'
+  if (requireNamespace('ggplot2', quietly=TRUE)) {
+    legend.pos <- if (type == 'raw' || isTRUE(ordered)) 'right' else 'none'
+    mytheme <- ggplot2::theme(legend.position=legend.pos,
+      axis.text.x=ggplot2::element_text(size=0.7*base_size, angle=45),
+      axis.text.y=ggplot2::element_text(size=0.7*base_size),
+      axis.ticks=ggplot2::element_blank(), axis.title.x=ggplot2::element_blank(),
+      axis.title.y=ggplot2::element_blank(), plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+  }
   matplots <- setNames(vector('list', length(grps)), grps)
   if (type == 'raw') {
     legend.title <- paste0('Corr. coeff.\n(', simpleCap(x$type), ')')
@@ -239,11 +242,16 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
     mats[, Var1 := factor(Var1, levels=regions)]
     mats[, Var2 := factor(Var2, levels=regions)]
     for (g in grps) {
-      mats.m <- mats[Group == g]
-      matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=value)) +
-        geom_tile() +
-        scale_fill_gradient2(low='white', high='red') + mytheme +
-        labs(title=g, fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+      if (!requireNamespace('ggplot2', quietly=TRUE)) {
+        matplots[[g]] <- levelplot(t(x$R[rev(seq_along(regions)), , g]), main=g, xlab=NULL, ylab=NULL,
+                                   col.regions=colorRampPalette(c('white', 'red')))
+      } else {
+        mats.m <- mats[Group == g]
+        matplots[[g]] <- ggplot2::ggplot(mats.m, ggplot2::aes(Var1, Var2, fill=value)) +
+          ggplot2::geom_tile() +
+          ggplot2::scale_fill_gradient2(low='white', high='red') + mytheme +
+          ggplot2::labs(title=g, fill=legend.title) + ggplot2::ylim(rev(levels(mats.m$Var2)))
+      }
     }
     return(matplots)
   } else {
@@ -268,6 +276,7 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
       grp.names <- levels(tmp)
     }
 
+    dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)
     kNumCols <- apply(order.mat, 2L, max)
     cols.new <- lapply(kNumCols, function(y) c(group.cols[seq_len(y)], 'gray50', 'white'))
     if (order.by == 'comp') cols.new <- lapply(cols.new, function(y) setdiff(y, 'gray50'))
@@ -276,9 +285,9 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
 
   } else {
     new.order <- order.mat <- matrix(rep.int(seq_len(kNumVertices), 2L), ncol=2L)
+    dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)
     cols.new <- lapply(grps, function(y) c('white', 'gray50'))
   }
-  dimnames(order.mat) <- dimnames(new.order) <- list(regions, grps)
   names(cols.new) <- grps
 
   mats.ord <- lapply(grps, function(y) array(mats[new.order[, y], new.order[, y], y],
@@ -303,14 +312,26 @@ plot.corr_mats <- function(x, mat.type=c('thresholded', 'raw'), thresh.num=1L,
       mats.m[, col.text := 'black']
     }
 
-    mytheme$axis.text.x <- element_text(size=0.7*base_size, angle=45,
-                                        color=mats.m[seq_len(kNumVertices), col.text])
-    mytheme$axis.text.y <- element_text(size=0.7*base_size,
-                                        color=mats.m[rev(seq_len(kNumVertices)), col.text])
-    matplots[[g]] <- ggplot(mats.m, aes(Var1, Var2, fill=memb)) +
-      geom_tile() +
-      scale_fill_manual(values=cols.new[[g]]) + mytheme +
-      labs(title=g, fill=legend.title) + ylim(rev(levels(mats.m$Var2)))
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      mats.m[, memb := as.numeric(memb)]
+      mat <- as.matrix(dcast(mats.m, Var1 ~ Var2, value.var='memb'), rownames='Var1')
+      matplots[[g]] <- levelplot(t(mat[rev(seq_along(regions)), ]), col.regions=cols.new[[g]],
+                                 main=g, xlab=NULL, ylab=NULL,
+                                 colorkey=list(at=seq_len(kNumCols[g] + 2L),
+                                               labels=list(at=seq_len(kNumCols[g] + 2L), labels=grp.names)))
+
+    # 'ggplot2' plotting
+    } else {
+      mytheme$axis.text.x <- ggplot2::element_text(size=0.7*base_size, angle=45,
+                                          color=mats.m[seq_len(kNumVertices), col.text])
+      mytheme$axis.text.y <- ggplot2::element_text(size=0.7*base_size,
+                                          color=mats.m[rev(seq_len(kNumVertices)), col.text])
+      matplots[[g]] <- ggplot2::ggplot(mats.m, ggplot2::aes(Var1, Var2, fill=memb)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_fill_manual(values=cols.new[[g]]) + mytheme +
+        ggplot2::labs(title=g, fill=legend.title) + ggplot2::ylim(rev(levels(mats.m$Var2)))
+    }
   }
   return(matplots)
 }

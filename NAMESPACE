@@ -212,7 +212,6 @@ importFrom(MASS,Null,fractions,ginv)
 importFrom(Matrix,colSums,rowSums)
 importFrom(abind,abind,adrop)
 importFrom(doParallel,registerDoParallel)
-importFrom(ggrepel,geom_text_repel)
 importFrom(grid,gpar,grid.draw,grid.newpage,textGrob)
 importFrom(methods,hasArg)
 importFrom(parallel, clusterEvalQ, makeCluster)
@@ -220,14 +219,15 @@ importFrom(permute,shuffleSet)
 import(igraph)
 import(data.table)
 import(foreach)
-import(ggplot2)
-importFrom(graphics, image, legend, mtext, par, plot, title, layout)
-importFrom(grDevices, adjustcolor, dev.copy, dev.cur,
+import(lattice)
+importFrom(graphics, abline, image, legend, lines, mtext, panel.smooth, par, plot,
+  points, polygon, strheight, strwidth, text, title, layout)
+importFrom(grDevices, adjustcolor, colorRampPalette, dev.copy, dev.cur,
   dev.off, dev.set, extendrange, nclass.FD, png, pdf, gray)
 importFrom(stats, anova, as.dist, as.formula, case.names, coef, complete.cases, confint,
   cooks.distance, cov2cor, covratio, density, deviance, df.residual, dfbeta, dfbetas, dffits,
   extractAIC, fitted, formula, hatvalues, influence, lm, logLik, median, nobs, p.adjust, pf,
-  pnorm, ppoints, printCoefmat, pt, qf, qnorm, qt, quantile, residuals, rnorm, rstandard,
+  pnorm, ppoints, printCoefmat, pt, qf, qnorm, qqline, qqnorm, qt, quantile, residuals, rnorm, rstandard,
   rstudent, runif, sd, setNames, sigma, t.test, terms, var, variable.names, vcov)
 importFrom(utils, combn, data, file_test, flush.console, getTxtProgressBar, hasName, head, packageVersion,
   setTxtProgressBar, tail, txtProgressBar)

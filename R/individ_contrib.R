@@ -263,7 +263,6 @@ print.summary.IC <- function(x, ...) {
 #' @param ids Logical indicating whether to plot Study ID's for outliers.
 #'   Otherwise plots the integer index
 #' @export
-#' @importFrom ggrepel geom_text_repel
 #' @rdname individ_contrib
 
 plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, ids=TRUE, ...) {
@@ -281,21 +280,45 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     regions <- if (is.null(region)) region.names(DT) else region
     txtsize <- if (length(regions) > 50) 6 else 9
 
-    plot.type <- match.arg(plot.type)
-    if (plot.type == 'boxplot') {
-      p <- ggplot(DT[region %in% regions], aes(x=region, y=RC)) +
-        geom_boxplot(aes(fill=get(gID), group=interaction(get(gID), region)))
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      DT2 <- DT[region %in% regions, .SD[1L], by=c(gID, 'region')]
+      ymin <- DT2[, min(avg - se)]
+      ymax <- DT2[, max(avg + se)]
+      if (kNumGroups > 1L) par(mar=c(8.6, 4.1, 2.1, 0.4), xpd=TRUE)
+      plot(0, type='n', xlim=c(0, length(regions)), ylim=extendrange(c(ymin, ymax)),
+           xlab=xlabel, ylab=ylabel, xaxt='n')
+      for (i in seq_len(kNumGroups)) {
+        DT2[get(gID) == grps[i], lines(avg, col=plot.cols[i])]
+        DT2[get(gID) == grps[i],
+            polygon(x=c(region, rev(region)), y=c(avg + se, rev(avg - se)),
+                    col=adjustcolor(plot.cols[i], alpha.f=0.4), border=plot.cols[i])]
+      }
+      text(x=seq_along(regions), par('usr')[3L], labels=DT2$region,
+           srt=45, pos=1, offset=0.8, cex=0.5, xpd=TRUE)
+      if (kNumGroups > 1L) {
+        legend('bottom', title=gID, grps, fill=plot.cols[1L:kNumGroups],
+               inset=c(0, -0.35), horiz=TRUE)
+      }
 
+    # 'ggplot2' plotting
     } else {
-      p <- ggplot(DT[region %in% regions], aes(x=region, col=get(gID), group=get(gID)))
-      if (plot.type == 'smooth') {
-        p <- p + stat_smooth(method='loess', aes(y=RC))
+      plot.type <- match.arg(plot.type)
+      if (plot.type == 'boxplot') {
+        p <- ggplot2::ggplot(DT[region %in% regions], ggplot2::aes(x=region, y=RC)) +
+          ggplot2::geom_boxplot(ggplot2::aes(fill=get(gID), group=interaction(get(gID), region)))
 
-      } else if (plot.type == 'mean') {
-        DT[, avg := mean(RC), by=list(get(gID), region)]
-        DT[, se := sd(RC) / sqrt(.N), by=list(get(gID), region)]
-        p <- p + geom_line(aes(y=avg)) +
-          geom_ribbon(aes(ymin=avg-se, ymax=avg+se, fill=get(gID)), alpha=0.5)
+      } else {
+        p <- ggplot2::ggplot(DT[region %in% regions], ggplot2::aes(x=region, col=get(gID), group=get(gID)))
+        if (plot.type == 'smooth') {
+          p <- p + ggplot2::stat_smooth(method='loess', ggplot2::aes(y=RC))
+
+        } else if (plot.type == 'mean') {
+          DT[, avg := mean(RC), by=list(get(gID), region)]
+          DT[, se := sd(RC) / sqrt(.N), by=list(get(gID), region)]
+          p <- p + ggplot2::geom_line(ggplot2::aes(y=avg)) +
+            ggplot2::geom_ribbon(ggplot2::aes(ymin=avg-se, ymax=avg+se, fill=get(gID)), alpha=0.5)
+        }
       }
     }
 
@@ -313,22 +336,43 @@ plot.IC <- function(x, plot.type=c('mean', 'smooth', 'boxplot'), region=NULL, id
     DT[, mark := ifelse(IC > mean(IC) + 2*sd(IC), 1, 0)]
     DT[mark == 0, ind := '']
     DT[, mark := as.factor(mark)]
-    # From "ggsci"; the "npg" palette
-    cols <- c('#E64B35', '#4DBBD5', '#00A087', '#3C5488', '#F39B7F',
-              '#8491B4', '#91D1C2', '#DC0000', '#7E6148', '#B09C85')
-    p <- ggplot(DT, aes(x=get(sID), y=IC, col=get(gID))) +
-      geom_text_repel(aes(label=ind), size=3) +
-      geom_point(aes(shape=mark, size=mark)) +
-      scale_color_manual(name=gID, labels=grps, values=cols[1L:kNumGroups]) +
-      scale_shape_manual(name=gID, labels=grps, values=c(20, 17)) +
-      scale_size_manual(name=gID, labels=grps, values=c(2, 3))
+
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      if (kNumGroups > 1L) par(mar=c(8.6, 4.1, 2.1, 0.4), xpd=TRUE, xaxt='n')
+      plot(0, type='n', xlim=c(0, n), ylim=extendrange(DT$IC),
+           xlab=xlabel, ylab=ylabel, xaxt='n')
+      DT[, plot(IC, type='p', pch=19, col=plot.cols[get(gID)])]
+      text(x=seq_len(n), par('usr')[3L], labels=DT[, get(sID)],
+           srt=45, pos=1, offset=0.8, cex=0.5, xpd=TRUE)
+      if (kNumGroups > 1L) {
+        legend('bottom', title=gID, grps, fill=plot.cols[1L:kNumGroups],
+               inset=c(0, -0.35), horiz=TRUE)
+      }
+
+    # 'ggplot2' plotting
+    } else {
+      textfun <- if (!requireNamespace('ggrepel', quietly=TRUE)) ggplot2::geom_text
+        else ggrepel::geom_text_repel
+      p <- ggplot2::ggplot(DT, ggplot2::aes(x=get(sID), y=IC, col=get(gID))) +
+        textfun(ggplot2::aes(label=ind), size=3) +
+        ggplot2::geom_point(ggplot2::aes(shape=mark, size=mark)) +
+        ggplot2::scale_color_manual(name=gID, labels=grps, values=plot.cols[1L:kNumGroups]) +
+        ggplot2::scale_shape_manual(name=gID, labels=grps, values=c(20, 17)) +
+        ggplot2::scale_size_manual(name=gID, labels=grps, values=c(2, 3))
+    }
   }
+
   ptitle <- paste0(ylabel, 's, ', tolower(x$method), ' method')
-  p <- p +
-    labs(x=xlabel, y=ylabel, title=ptitle, fill=gID, col=gID) +
-    theme(legend.position=leg.pos,
-          panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-          axis.text.x=element_text(size=txtsize, angle=45, vjust=0.5),
-          plot.title=element_text(hjust=0.5, face='bold'))
-  return(p)
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    title(ptitle)
+  } else {
+    p <- p +
+      ggplot2::labs(x=xlabel, y=ylabel, title=ptitle, fill=gID, col=gID) +
+      ggplot2::theme(legend.position=leg.pos,
+                     panel.grid.major=ggplot2::element_blank(), panel.grid.minor=ggplot2::element_blank(),
+                     axis.text.x=ggplot2::element_text(size=txtsize, angle=45, vjust=0.5),
+                     plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+    return(p)
+  }
 }

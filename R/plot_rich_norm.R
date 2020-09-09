@@ -1,9 +1,8 @@
 #' Plot normalized rich club coefficients against degree threshold
 #'
-#' Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the
-#' normalized rich club coefficient. Optionally will include a shaded region
-#' demarcating the \code{\link{rich_core}} cutoff (if you supply a list of graph
-#' objects to the \code{g} argument).
+#' Returns a line plot of the normalized rich club coefficient. Optionally, can
+#' include a shaded region demarcating the \code{\link{rich_core}} cutoff (if
+#' you supply a list of graph objects to the \code{g} argument).
 #'
 #' @param rich.dt A \code{data.table} with rich-club coefficients
 #' @param facet.by A character string indicating whether the variable of
@@ -12,14 +11,14 @@
 #' @param alpha The significance level. Default: \code{0.05}
 #' @param fdr A logical, indicating whether or not to use the FDR-adjusted
 #'   p-value for determining significance. Default: \code{TRUE}
-#' @param g.list A list \code{brainGraphList} objects; required if you
-#'   want to plot a shaded region demarcating the \code{\link{rich_core}}
-#' @param smooth Logical indicating whether or not to use
-#'   \code{\link[ggplot2]{geom_smooth}} when data from multiple subjects (per
-#'   group) are present. Default: \code{TRUE}. Ignored for group-level data.
+#' @param g.list A list \code{brainGraphList} objects; required if you want to
+#'   plot a shaded region demarcating the \code{\link{rich_core}}
+#' @param smooth Logical indicating whether or not to plot a smooth curve when
+#'   data from multiple subjects (per group) are present. Default: \code{TRUE}.
+#'   Ignored for group-level data.
 #' @export
 #'
-#' @return A \code{\link[ggplot2]{ggplot}} object
+#' @return A \code{trellis} or \code{ggplot} object
 #'
 #' @family Rich-club functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
@@ -30,7 +29,7 @@
 
 plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
                            densities, alpha=0.05, fdr=TRUE, g.list=NULL, smooth=TRUE) {
-  yloc <- norm <- xstart <- xend <- NULL
+  yloc <- norm <- xstart <- xend <- panel.num <- NULL
   gID <- getOption('bg.group')
 
   facet.by <- match.arg(facet.by)
@@ -59,7 +58,7 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
     densities.g <- round(vapply(g.list, function(x) graph_attr(x[1L], 'density'), numeric(1L)),  2L)
     densities.g <- which(densities.g %in% round(densities, 2L))
     g.list <- g.list[densities.g]
-    k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1L)), integer(length(g.list)))
+    k <- vapply(g.list, function(y) vapply(y[], function(x) rich_core(x)$k.r, integer(1L)), integer(nobs(g.list[[1L]])))
     max.k <- apply(as.matrix(k), 1L, max)
 
     rects[, xstart := rep(max.k, each=length(densities))]
@@ -71,32 +70,75 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
   subDT[, eval(facet.by) := factor(get(facet.by), labels=densities)]
   setkeyv(subDT, c(facet.by, gID))
   setkeyv(rects, c(facet.by, gID))
+  rects <- subDT[rects]
 
   sID <- getOption('bg.subject_id')
-  if (hasName(subDT, sID)) {
-    rects <- subDT[rects]
-    p <- ggplot(data=rects, aes(x=k, y=norm, group=get(sID)))
-  } else {
-    p <- ggplot(data=subDT[rects], aes(x=k, y=norm))
-    smooth <- FALSE
+  smooth <- FALSE
+  if (hasName(subDT, sID) && subDT[, !all.equal(as.character(get(gID)), get(sID))]) {
+    smooth <- TRUE
   }
-  p <- p +
-    geom_hline(yintercept=1, size=0.5, lty=2) +
-    geom_text(aes(y=yloc, col=get(gID), label=star), size=6, show.legend=FALSE)
 
-  if (isTRUE(smooth)) {
-    p <- p + stat_smooth(aes(col=get(gID), group=get(gID)))
+  # 'base' plotting
+  #-----------------------------------------------------------------------------
+  if (!requireNamespace('ggplot2', quietly=TRUE)) {
+    ymin <- rects[, min(yloc)]
+    ymax <- rects[, max(norm)]
+    ylimit <- extendrange(c(ymin, ymax))
+    ylabel <- expression(phi[norm])
+    rects[, panel.num := as.numeric(get(facet.by))]
+    if (isTRUE(smooth)) {
+      plot.type <- 'smooth'
+      panelfun <- function(x, y, groups, xleft, xright, ...) {
+        panel.num <- NULL
+        panel.abline(h=1, lty=2)
+        panel.xyplot(x, y, groups, ...)
+        rects[panel.num == panel.number() & get(gID) == grps[1L] & star == '*',
+              panel.text(k, yloc, labels='*', col=plot.cols[1L])]
+        rects[panel.num == panel.number() & get(gID) == grps[2L] & star == '*',
+              panel.text(k, yloc, labels='*', col=plot.cols[2L])]
+      }
+      p <- xyplot(norm ~ k | get(facet.by), groups=get(gID), data=rects,
+                  ylim=ylimit, xlab='Degree (k)', ylab=ylabel,
+                  type=plot.type, panel=panelfun)
+    } else {
+      plot.type <- 'l'
+      panelfun <- function(x, y, groups, xleft, xright, ...) {
+        panel.num <- NULL
+        panel.rect(xleft, ybottom=-999, xright, ytop=999, col='lightgrey', border=NULL)
+        panel.abline(h=1, lty=2)
+        panel.xyplot(x, y, groups, ...)
+        rects[panel.num == panel.number() & get(gID) == grps[1L] & star == '*',
+              panel.text(k, yloc, labels='*', col=plot.cols[1L])]
+        rects[panel.num == panel.number() & get(gID) == grps[2L] & star == '*',
+              panel.text(k, yloc, labels='*', col=plot.cols[2L])]
+      }
+      p <- xyplot(norm ~ k | get(facet.by), groups=get(gID), data=rects,
+                  ylim=ylimit, xlab=list(label='Degree (k)', cex=0.8), ylab=ylabel,
+                  xleft=rects$xstart, xright=rects$xend, type=plot.type, panel=panelfun,
+                  auto.key=list(space='bottom', title=gID, cex.title=1, columns=length(grps),
+                                lines=TRUE, points=FALSE))
+    }
+
+  # 'ggplot2' plotting
+  #-----------------------------------------------------------------------------
   } else {
+    if (isTRUE(smooth)) {
+      p <- ggplot2::ggplot(data=rects, ggplot2::aes(x=k, y=norm, group=get(sID))) +
+        ggplot2::stat_smooth(ggplot2::aes(col=get(gID), group=get(gID)))
+    } else {
+      p <- ggplot2::ggplot(data=rects, ggplot2::aes(x=k, y=norm)) +
+        ggplot2::geom_line(ggplot2::aes(col=get(gID))) +
+        ggplot2::geom_rect(data=rects,
+                  ggplot2::aes(x=NULL, y=NULL, xmin=xstart, xmax=xend, ymin=-Inf, ymax=Inf),
+                  alpha=0.08, fill='red')
+    }
     p <- p +
-      geom_line(aes(col=get(gID))) +
-      geom_rect(data=rects,
-                aes(x=NULL, y=NULL, xmin=xstart, xmax=xend, ymin=-Inf, ymax=Inf),
-                alpha=0.08, fill='red')
+      ggplot2::geom_hline(yintercept=1, size=0.5, lty=2) +
+      ggplot2::geom_text(ggplot2::aes(y=yloc, col=get(gID), label=star), size=6, show.legend=FALSE) +
+      ggplot2::facet_wrap(as.formula(paste('~', facet.by)), scales='free') +
+      ggplot2::labs(x='Degree (k)', y=expression(phi[norm])) +
+      ggplot2::theme(legend.position='bottom')
   }
-  p <- p +
-    facet_wrap(as.formula(paste('~', facet.by)), scales='free') +
-    labs(x='Degree (k)', y=expression(phi[norm])) +
-    theme(legend.position='bottom')
 
   return(p)
 }

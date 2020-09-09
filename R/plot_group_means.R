@@ -17,9 +17,8 @@
 #' ('thickness', 'volume', 'lgi', or 'area')
 #' @export
 #'
-#' @return A ggplot object
+#' @return A \code{trellis} or \code{ggplot} object
 #' @family Structural covariance network functions
-#' @seealso \code{\link[ggplot2]{geom_histogram}, \link[ggplot2]{geom_abline}}
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
@@ -40,7 +39,9 @@ plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
   subDT <- dat[region %in% regions]
   type <- match.arg(type)
   if (type == 'histogram') {
-    if (!requireNamespace('scales', quietly=TRUE)) stop('Must install the "scales" package to plot with histograms.')
+    if (!all(vapply(c('scales', 'ggplot2'), requireNamespace, logical(1L), quietly=TRUE))) {
+      stop('Please install the "scales" and "ggplot2" packages to plot with histograms.')
+    }
     # Allow for variable bin widths
     groups <- subDT[, levels(Group)]
     setkey(subDT, region, Group)
@@ -71,31 +72,39 @@ plot_volumetric <- function(dat, regions, type=c('violin', 'histogram'),
     my.df <- subDT[, create_bins(value, unique(bwidth)), by=list(Group, region)]
 
     meandt <- subDT[, list(avg=mean(value)), by=list(Group, region)]
-    vol.plot <- ggplot(my.df) +
-      geom_histogram(aes(x, y=density, width=width, fill=Group),
+    vol.plot <- ggplot2::ggplot(my.df) +
+      ggplot2::geom_histogram(ggplot2::aes(x, y=density, width=width, fill=Group),
                      alpha=0.6, position='dodge', stat='identity') +
-      geom_vline(data=meandt, aes(xintercept=avg, col=Group), lty=2, size=0.5) +
-      geom_density(data=subDT, aes(x=value, col=Group), size=0.8) +
-      facet_wrap(~ region, scales='free') +
-      theme(legend.position=c(1, 1), legend.justification=c(1, 1),
-            legend.background=element_rect(size=0.5)) +
-      xlab(ax.lab)
+      ggplot2::geom_vline(data=meandt, ggplot2::aes(xintercept=avg, col=Group), lty=2, size=0.5) +
+      ggplot2::geom_density(data=subDT, ggplot2::aes(x=value, col=Group), size=0.8) +
+      ggplot2::facet_wrap(~ region, scales='free') +
+      ggplot2::theme(legend.position=c(1, 1), legend.justification=c(1, 1),
+            legend.background=ggplot2::element_rect(size=0.5)) +
+      ggplot2::xlab(ax.lab)
 
   } else if (type == 'violin') {
-    vol.plot <- ggplot(subDT, aes(x=Group, y=value, fill=Group)) +
-      geom_violin(trim=FALSE) +
-      facet_wrap(~ region, scales='free_y') +
-      theme(legend.position='none') +
-      ylab(ax.lab)
-    if (isTRUE(all.vals)) {
-      subDT[, group.mean := mean(value), by=list(Group, region)]
-      vol.plot <- vol.plot +
-        geom_segment(aes(x=as.numeric(Group)-0.1, xend=as.numeric(Group)+0.1,
-                         y=value, yend=value), col='black') +
-        geom_segment(aes(x=as.numeric(Group)-0.3, xend=as.numeric(Group)+0.3,
-                         y=group.mean, yend=group.mean), col='black')
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      gID <- getOption('bg.group')
+      vol.plot <- bwplot(value ~ get(gID) | region, data=subDT, panel=panel.violin, xlab=gID, ylab=ax.lab)
+
+    # 'ggplot2' plotting
     } else {
-      vol.plot <- vol.plot + geom_boxplot(width=0.1)
+      vol.plot <- ggplot2::ggplot(subDT, ggplot2::aes(x=Group, y=value, fill=Group)) +
+        ggplot2::geom_violin(trim=FALSE) +
+        ggplot2::facet_wrap(~ region, scales='free_y') +
+        ggplot2::theme(legend.position='none') +
+        ggplot2::ylab(ax.lab)
+      if (isTRUE(all.vals)) {
+        subDT[, group.mean := mean(value), by=list(Group, region)]
+        vol.plot <- vol.plot +
+          ggplot2::geom_segment(ggplot2::aes(x=as.numeric(Group)-0.1, xend=as.numeric(Group)+0.1,
+                                             y=value, yend=value), col='black') +
+          ggplot2::geom_segment(ggplot2::aes(x=as.numeric(Group)-0.3, xend=as.numeric(Group)+0.3,
+                                             y=group.mean, yend=group.mean), col='black')
+      } else {
+        vol.plot <- vol.plot + ggplot2::geom_boxplot(width=0.1)
+      }
     }
   }
   return(vol.plot)

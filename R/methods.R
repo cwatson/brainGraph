@@ -25,7 +25,7 @@ groups.brainGraphList <- function(x) {
     }
   } else if (x$type == 'random') {
     subs <- x$graphs
-    if ('Group' %in% graph_attr_names(subs[[1L]])) {
+    if ('Group' %in% graph_attr_names(subs[[1L]][[1L]])) {
       out <- vapply(subs, function(g) graph_attr(g[[1L]], 'Group'), character(1L))
     }
   }
