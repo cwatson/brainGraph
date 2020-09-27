@@ -23,11 +23,14 @@
 #' @param weights Numeric vector of edge weights; if \code{NULL} (the default),
 #'   and if the graph has edge attribute \code{weight}, then that will be used.
 #'   To avoid using weights, this should be \code{NA}.
+#' @param xfm Logical indicating whether to transform the edge weights. Default:
+#' \code{FALSE}
 #' @param use.parallel Logical indicating whether or not to use \code{foreach}.
 #'   Default: \code{TRUE}
 #' @param A Numeric matrix; the adjacency matrix of the input graph. Default:
 #'   \code{NULL}
 #' @param D Numeric matrix; the graph's \dQuote{distance matrix}
+#' @inheritParams xfm.weights
 #' @export
 #' @importFrom Matrix rowSums
 #' @importFrom foreach getDoParRegistered
@@ -46,9 +49,15 @@
 #'   \url{https://dx.doi.org/10.1140/epjb/e2003-00095-5}
 
 efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
-                       use.parallel=TRUE, A=NULL, D=NULL) {
+                       xfm=FALSE, xfm.type=NULL, use.parallel=TRUE, A=NULL, D=NULL) {
   stopifnot(is_igraph(g))
   i <- NULL
+  if (isTRUE(xfm)) {
+    if (is.null(xfm.type)) {
+      xfm.type <- if ('xfm.type' %in% graph_attr_names(g)) g$xfm.type else '1/w'
+    }
+    g <- xfm.weights(g, xfm.type)
+  }
   weights <- check_weights(g, weights)
 
   type <- match.arg(type)

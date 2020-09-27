@@ -13,8 +13,6 @@
 #'
 #' @param level Character string indicating whether to calculate vertex- or
 #'   graph-level shortest path length. Default: \code{'graph'}
-#' @param xfm Logical indicating whether to transform the edge weights. Default:
-#' \code{FALSE}
 #' @inheritParams efficiency
 #' @inheritParams xfm.weights
 #' @export
@@ -23,13 +21,13 @@
 
 mean_distance_wt <- function(g, level=c('graph', 'vertex'), weights=NULL,
                              xfm=FALSE, xfm.type=NULL, D=NULL) {
-  weights <- check_weights(g, weights)
   if (isTRUE(xfm)) {
     if (is.null(xfm.type)) {
       xfm.type <- if ('xfm.type' %in% graph_attr_names(g)) g$xfm.type else '1/w'
     }
     g <- xfm.weights(g, xfm.type)
   }
+  weights <- check_weights(g, weights)
   level <- match.arg(level)
   if (is.null(D)) D <- distances(g, weights=weights)
   D[is.infinite(D)] <- diag(D) <- NA
