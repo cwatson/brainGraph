@@ -32,7 +32,7 @@ default, they are changed to pre-set values.}
 variables}
 }
 \value{
-A \code{\link[ggplot2]{ggplot}} object
+Either a \code{trellis} or \code{ggplot} object
 }
 \description{
 Create a faceted line plot of global graph measures across a range of graph

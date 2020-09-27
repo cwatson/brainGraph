@@ -141,8 +141,9 @@ An object of class \code{bg_GLM} containing some input-specific
     to the \eqn{100 \times (1 - \alpha)}th\% percentile of the null
     distribution)}
 
-The \code{plot} method returns a \emph{list} of
-  \code{\link[ggplot2]{ggplot}} objects
+The \code{plot} method returns a \emph{list} of \code{ggplot} objects
+  (if installed) or writes the plots to a PDF in the current directory named
+  \code{bg_GLM_diagnostics.pdf}
 
 A \code{bg_GLM} object with the specified row(s) selected or removed
   from both \code{X} and \code{y}, and column(s) selected/removed from

@@ -40,8 +40,7 @@ Default: \code{1/w}}
 
 \item{...}{Unused}
 
-\item{alpha}{A numeric indicating the opacity for
-\code{\link[ggplot2]{geom_ribbon}}}
+\item{alpha}{A numeric indicating the opacity for the confidence bands}
 }
 \value{
 \code{brainGraph_boot} -- an object of class \code{brainGraph_boot}

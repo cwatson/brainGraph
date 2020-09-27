@@ -20,21 +20,20 @@ interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 \item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
 p-value for determining significance. Default: \code{TRUE}}
 
-\item{g.list}{A list \code{brainGraphList} objects; required if you
-want to plot a shaded region demarcating the \code{\link{rich_core}}}
+\item{g.list}{A list \code{brainGraphList} objects; required if you want to
+plot a shaded region demarcating the \code{\link{rich_core}}}
 
-\item{smooth}{Logical indicating whether or not to use
-\code{\link[ggplot2]{geom_smooth}} when data from multiple subjects (per
-group) are present. Default: \code{TRUE}. Ignored for group-level data.}
+\item{smooth}{Logical indicating whether or not to plot a smooth curve when
+data from multiple subjects (per group) are present. Default: \code{TRUE}.
+Ignored for group-level data.}
 }
 \value{
-A \code{\link[ggplot2]{ggplot}} object
+A \code{trellis} or \code{ggplot} object
 }
 \description{
-Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the
-normalized rich club coefficient. Optionally will include a shaded region
-demarcating the \code{\link{rich_core}} cutoff (if you supply a list of graph
-objects to the \code{g} argument).
+Returns a line plot of the normalized rich club coefficient. Optionally, can
+include a shaded region demarcating the \code{\link{rich_core}} cutoff (if
+you supply a list of graph objects to the \code{g} argument).
 }
 \examples{
 \dontrun{

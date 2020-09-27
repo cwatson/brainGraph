@@ -18,7 +18,7 @@ sim.rand.graph.par(g, level = c("subject", "group"), N = 100L,
 sim.rand.graph.clust(g, rewire.iters = 10000, cl = g$transitivity,
   max.iters = 100)
 
-sim.rand.graph.hqs(A, level = c("subject", "group"), N = 100L,
+sim.rand.graph.hqs(resids, level = c("subject", "group"), N = 100L,
   weighted = TRUE, r.thresh = NULL, ...)
 }
 \arguments{
@@ -49,7 +49,8 @@ graph randomization. Default: 1e4}
 lower number may result in clustering that is further away from the
 observed graph's. Default: 100}
 
-\item{A}{Observed covariance matrix}
+\item{resids}{A \code{brainGraph_resids} object, a \code{data.table} of
+residuals, or a numeric matrix}
 
 \item{weighted}{Logical indicating whether to create weighted graphs. If
 true, a threshold must be provided.}
@@ -111,9 +112,13 @@ If you do not want to match by clustering, then simple rewiring of the input
 graph is performed (the number of rewire's equaling the larger of \code{1e4}
 and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
 
-\code{sim.rand.graph.hqs} - By default, weighted graphs will be created in
-which the edge weights represent correlation values. If you want binary
-matrices, you must provide a correlation threshold.
+\code{sim.rand.graph.hqs} - The first step is to create the observed
+covariance of residuals (or whatever matrix/data.table is provided). Then
+random covariance matrices are created with the same distributional
+properties as the observed matrix, they are converted to correlation
+matrices, and finally graphs from these matrices. By default, weighted graphs
+will be created in which the edge weights represent correlation values. If
+you want binary matrices, you must provide a correlation threshold.
 }
 \examples{
 \dontrun{

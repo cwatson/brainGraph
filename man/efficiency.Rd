@@ -5,7 +5,8 @@
 \title{Calculate graph global, local, or nodal efficiency}
 \usage{
 efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
-  use.parallel = TRUE, A = NULL, D = NULL)
+  xfm = FALSE, xfm.type = NULL, use.parallel = TRUE, A = NULL,
+  D = NULL)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -16,6 +17,12 @@ efficiency(g, type = c("local", "nodal", "global"), weights = NULL,
 \item{weights}{Numeric vector of edge weights; if \code{NULL} (the default),
 and if the graph has edge attribute \code{weight}, then that will be used.
 To avoid using weights, this should be \code{NA}.}
+
+\item{xfm}{Logical indicating whether to transform the edge weights. Default:
+\code{FALSE}}
+
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
 \item{use.parallel}{Logical indicating whether or not to use \code{foreach}.
 Default: \code{TRUE}}

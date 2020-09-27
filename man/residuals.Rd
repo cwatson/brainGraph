@@ -91,8 +91,8 @@ Otherwise plots the integer index}
 \code{\link{summary.brainGraph_resids}} returns a list with two
   data tables, one of the residuals, and one of only the outlier regions
 
-The \code{plot} method returns a \emph{list} of
-  \code{\link[ggplot2]{ggplot}} objects
+The \code{plot} method returns a \code{trellis} object or a list of
+  \code{ggplot} objects
 }
 \description{
 \code{get.resid} runs linear models across brain regions listed in a

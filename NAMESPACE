@@ -220,8 +220,8 @@ import(igraph)
 import(data.table)
 import(foreach)
 import(lattice)
-importFrom(graphics, abline, image, legend, lines, mtext, panel.smooth, par, plot,
-  points, polygon, strheight, strwidth, text, title, layout)
+importFrom(graphics, abline, image, layout, legend, lines, mtext, panel.smooth, par, plot,
+  points, polygon, strheight, strwidth, text, title)
 importFrom(grDevices, adjustcolor, colorRampPalette, dev.copy, dev.cur,
   dev.off, dev.set, extendrange, nclass.FD, png, pdf, gray)
 importFrom(stats, anova, as.dist, as.formula, case.names, coef, complete.cases, confint,

@@ -120,7 +120,7 @@ regions (default: \code{TRUE})}
 null statistics (per permutation)}
 
 \item{caption.stats}{Logical indicating whether to print the MTPC statistics
-in the caption of the plot (default: \code{FALSE})}
+in the caption of the plot. Default: \code{FALSE}}
 }
 \value{
 An object of class \code{mtpc} with some input arguments plus the
@@ -147,8 +147,8 @@ An object of class \code{mtpc} with some input arguments plus the
   \item{perm.order}{Numeric matrix; the permutation set applied for all
     thresholds (each row is a separate permutation)}
 
-The \code{plot} method returns a \emph{list} of
-  \code{\link[ggplot2]{ggplot}} objects
+The \code{plot} method returns a \code{trellis} object or a list of
+  \code{ggplot} objects
 }
 \description{
 Applies the \emph{multi-threshold permutation correction (MTPC)} method to

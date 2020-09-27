@@ -27,11 +27,10 @@ points (default: FALSE)}
 
 \item{ylabel}{A character string for the y-axis label}
 
-\item{...}{Other arguments passed to \code{\link[ggplot2]{geom_boxplot}} or
-\code{\link[ggplot2]{geom_violin}}}
+\item{...}{Arguments passed to \code{geom_boxplot} or \code{geom_violin}}
 }
 \value{
-A \code{ggplot} object
+A \code{trellis} or \code{ggplot} object
 }
 \description{
 Creates boxplots of a single vertex-level graph measure at a single density
