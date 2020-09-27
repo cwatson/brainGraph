@@ -88,8 +88,16 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
       }
     }
   } else {
-    if (is.null(D)) D <- distances(g, weights=weights)
-    Nv <- dim(D)[1L]
+    Nv <- vcount(g)
+    if (is.null(D)) {
+      if (Nv > 650) {
+        D <- foreach(i=seq_len(Nv), .combine=rbind) %dopar% {
+          distances(g, from=i, weights=weights)
+        }
+      } else {
+        D <- distances(g, weights=weights)
+      }
+    }
     Dinv <- 1 / D
     eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1L)
     if (type == 'global') eff <- sum(eff) / length(eff)
