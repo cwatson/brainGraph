@@ -46,8 +46,8 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
   stopifnot(is_igraph(g))
   level <- match.arg(level)
   if (!getDoParRegistered()) {
-    cl <- makeCluster(getOption('bg.ncpus'))
-    registerDoParallel(cl)
+    clust <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(clust)
   }
   if (isTRUE(clustering)) {
     r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
@@ -142,7 +142,8 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
 choose.edges <- function(A, degs.large) {
-  # Uniformly select both a random node with degree > 1 (x), and 2 of its neighbors (y1 & y2)
+  # Uniformly select a random vertex with degree > 1 (x),
+  # and 2 of its neighbors (y1 & y2)
   #-----------------------------------------------------------------------------
   get_random_v <- function(A, degs.large) {
     repeat {
@@ -181,11 +182,16 @@ choose.edges <- function(A, degs.large) {
 #' using the Hirschberger-Qi-Steuer (HQS) algorithm, and create graphs from
 #' those matrices.
 #'
-#' \code{sim.rand.graph.hqs} - By default, weighted graphs will be created in
-#' which the edge weights represent correlation values. If you want binary
-#' matrices, you must provide a correlation threshold.
+#' \code{sim.rand.graph.hqs} - The first step is to create the observed
+#' covariance of residuals (or whatever matrix/data.table is provided). Then
+#' random covariance matrices are created with the same distributional
+#' properties as the observed matrix, they are converted to correlation
+#' matrices, and finally graphs from these matrices. By default, weighted graphs
+#' will be created in which the edge weights represent correlation values. If
+#' you want binary matrices, you must provide a correlation threshold.
 #'
-#' @param A Observed covariance matrix
+#' @param resids A \code{brainGraph_resids} object, a \code{data.table} of
+#'   residuals, or a numeric matrix
 #' @param weighted Logical indicating whether to create weighted graphs. If
 #'   true, a threshold must be provided.
 #' @param r.thresh Numeric value for the correlation threshold, if
@@ -203,9 +209,17 @@ choose.edges <- function(A, degs.large) {
 #'   characteristics. \emph{European Journal of Operational Research}.
 #'   \bold{177}, 1610--1625. \url{https://dx.doi.org/10.1016/j.ejor.2005.10.014}
 
-sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
+sim.rand.graph.hqs <- function(resids, level=c('subject', 'group'), N=100L,
                                weighted=TRUE, r.thresh=NULL, ...) {
   level <- match.arg(level)
+  if (inherits(resids, 'brainGraph_resids')) {
+    sID <- getOption('bg.subject_id')
+    gID <- getOption('bg.group')
+    resids <- resids$resids.all[, !c(sID, gID), with=FALSE]
+  }
+  A <- cov.wt(resids)$cov
+  a <- 1 / sqrt(diag(A))
+
   e <- mean(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
   v <- var(c(A[upper.tri(A)], A[lower.tri(A)]), na.rm=TRUE)
   ebar <- mean(diag(A), na.rm=TRUE)
@@ -234,14 +248,16 @@ sim.rand.graph.hqs <- function(A, level=c('subject', 'group'), N=100L,
   if (isTRUE(weighted)) {
     g <- foreach(i=seq_len(N)) %dopar% {
       S <- hqs(ehat, vhat, n, m)
-      make_brainGraph(S, type='random', level=level, set.attrs=TRUE, weighted=TRUE, ...)
+      R <- outer(a, a) * S  # Convert to a correlation matrix
+      make_brainGraph(R, type='random', level=level, set.attrs=TRUE, weighted=TRUE, ...)
     }
   } else {
     if (is.null(r.thresh)) stop('Please provide a value for thresholding')
     g <- foreach(i=seq_len(N)) %dopar% {
       S <- hqs(ehat, vhat, n, m)
-      S.thresh <- ifelse(S > r.thresh, 1, 0)
-      make_brainGraph(S.thresh, type='random', level=level, set.attrs=TRUE, ...)
+      R <- outer(a, a) * S  # Convert to a correlation matrix
+      R.thresh <- ifelse(R > r.thresh, 1, 0)
+      make_brainGraph(R.thresh, type='random', level=level, set.attrs=TRUE, ...)
     }
   }
   return(g)
