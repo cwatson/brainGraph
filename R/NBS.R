@@ -56,7 +56,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                 part.method=c('beckmann', 'guttman', 'ridgway'), N=1e3,
                 perms=NULL, symm.by=c('max', 'min', 'avg'),
                 alternative=c('two.sided', 'less', 'greater'), long=FALSE, ...) {
-  contrast <- p.perm <- csize <- NULL
+  Contrast <- contrast <- p.perm <- csize <- NULL
   dimA <- dim(A)
   stopifnot(dimA[3L] == dim(covars)[1L])
 

@@ -92,7 +92,7 @@ efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
     if (is.null(D)) {
       if (Nv > 650) {
         D <- foreach(i=seq_len(Nv), .combine=rbind) %dopar% {
-          distances(g, from=i, weights=weights)
+          distances(g, v=i, weights=weights)
         }
       } else {
         D <- distances(g, weights=weights)

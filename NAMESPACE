@@ -225,7 +225,7 @@ importFrom(graphics, abline, image, layout, legend, lines, mtext, panel.smooth, 
 importFrom(grDevices, adjustcolor, colorRampPalette, dev.copy, dev.cur,
   dev.off, dev.set, extendrange, nclass.FD, png, pdf, gray)
 importFrom(stats, anova, as.dist, as.formula, case.names, coef, complete.cases, confint,
-  cooks.distance, cov2cor, covratio, density, deviance, df.residual, dfbeta, dfbetas, dffits,
+  cooks.distance, cov.wt, cov2cor, covratio, density, deviance, df.residual, dfbeta, dfbetas, dffits,
   extractAIC, fitted, formula, hatvalues, influence, lm, logLik, median, nobs, p.adjust, pf,
   pnorm, ppoints, printCoefmat, pt, qf, qnorm, qqline, qqnorm, qt, quantile, residuals, rnorm, rstandard,
   rstudent, runif, sd, setNames, sigma, t.test, terms, var, variable.names, vcov)
