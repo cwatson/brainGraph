@@ -218,17 +218,18 @@ make_brainGraphList.bg_GLM <- function(x, atlas=x$atlas, type='observed',
       g.diffs[[i]] <- set_graph_attr(g.diffs[[i]], a, x[[a]])
     }
 
-    V(g.diffs[[i]])$p <- 1 - x$DT[contrast == i, p]
-    V(g.diffs[[i]])$p.fdr <- 1 - x$DT[contrast == i, p.fdr]
+    DT <- x$DT[Contrast == gnames[i]]
+    V(g.diffs[[i]])$p <- 1 - DT$p
+    V(g.diffs[[i]])$p.fdr <- 1 - DT$p.fdr
     if (x$con.type == 't') {
-      V(g.diffs[[i]])$effect.size <- x$DT[contrast == i, gamma]
+      V(g.diffs[[i]])$effect.size <- DT$gamma
     } else {
-      V(g.diffs[[i]])$effect.size <- x$DT[contrast == i, ESS]
+      V(g.diffs[[i]])$effect.size <- DT$ESS
     }
-    V(g.diffs[[i]])$se <- x$DT[contrast == i, se]
-    V(g.diffs[[i]])$size2 <- x$DT[contrast == i, stat]
+    V(g.diffs[[i]])$se <- DT$se
+    V(g.diffs[[i]])$size2 <- DT$stat
     V(g.diffs[[i]])$size <- vec.transform(V(g.diffs[[i]])$size2, 0, 20)
-    if (isTRUE(x$permute)) V(g.diffs[[i]])$p.perm <- 1 - x$DT[contrast == i, p.perm]
+    if (isTRUE(x$permute)) V(g.diffs[[i]])$p.perm <- 1 - DT$p.perm
     class(g.diffs[[i]]) <- c('brainGraph_GLM', class(g.diffs[[i]]))
   }
   out$graphs <- g.diffs
@@ -429,6 +430,7 @@ print.brainGraphList <- function(x, ...) {
   message(paste(simpleCap(x$level), msg))
   if (kNumGraphs < 10L) {
     print(gnames)
+    cat('\n')
   } else {
     attrs.df <- print_text_vector(gnames, 6L)
     print(attrs.df, row.names=FALSE)
@@ -437,6 +439,12 @@ print.brainGraphList <- function(x, ...) {
   if (x$level == 'subject' && 'Group' %in% graph_attr_names(x$graphs[[1L]])) {
     message('Group membership:')
     print(table(groups(x)))
+    cat('\n')
+  }
+
+  if (x$type == 'random') {
+    message('# of random graphs:')
+    print(lengths(x$graphs))
   }
   invisible(x)
 }
