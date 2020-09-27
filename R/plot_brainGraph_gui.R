@@ -398,7 +398,6 @@ plot_brainGraph_gui <- function() {
 #===============================================================================
 # The graph selector window
 select_graphs <- function(widget, window) {
-  graphObj <<- vector('list', length=2L)
   dialog <- RGtk2::gtkDialogNewWithButtons(title='Choose graph objects',
                                            parent=window, flags='destroy-with-parent',
                                            'gtk-ok', RGtk2::GtkResponseType['ok'],
@@ -416,15 +415,17 @@ select_graphs <- function(widget, window) {
         graphObj[[1L]] <<- graphObjEntry[[1L]]$getText()
         graphObj[[2L]] <<- graphObjEntry[[2L]]$getText()
 
-        if (!exists(graphObj[[1L]]) || !is_igraph(get(graphObj[[1L]]))) {
-          warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
-                                                type='error', buttons='close',
-                                                'Error: Not an igraph object!')
-          response <- warnDialog$run()
+        if (nchar(graphObj[[1L]]) > 0L) {
+          if (!is_igraph(eval(parse(text=graphObj[[1L]])))) {
+            warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                                  type='error', buttons='close',
+                                                  'Error: Not an igraph object!')
+            response <- warnDialog$run()
+          }
           if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
         } else {
           if (nchar(graphObj[[2L]]) > 0L) {
-            if (!exists(graphObj[[2L]]) || !is_igraph(get(graphObj[[2L]]))) {
+            if (!is_igraph(eval(parse(text=graphObj[[2L]])))) {
               warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
                                                     type='error', buttons='close',
                                                     'Error: Not an igraph object!')
@@ -449,7 +450,7 @@ add_orient_hemi <- function(container, graphObj, kNumGroups, vGroupAttr) {
                      'Intra-community', 'Inter-lobar', 'Intra-lobar', 'Inter-network',
                      'Intra-network', 'Inter-area', 'Intra-area',
                      'Inter-Yeo7', 'Intra-Yeo7', 'Inter-Yeo17', 'Intra-Yeo17'), 'only'))
-  frame <- vbox <- comboOrient <- g <- comboHemi <- vector('list', kNumGroups)
+  frame <- vbox <- comboOrient <- myGs <- comboHemi <- vector('list', kNumGroups)
   for (i in seq_len(kNumGroups)) {
     frame[[i]] <- RGtk2::gtkFrameNew(label=sprintf('Graph object: "%s"', graphObj[[i]]))
     container$packStart(frame[[i]])
@@ -459,12 +460,12 @@ add_orient_hemi <- function(container, graphObj, kNumGroups, vGroupAttr) {
     frame[[i]]$add(vbox[[i]])
 
     comboOrient[[i]] <- add_combo(vbox[[i]], orient, 'Orientation', spacing=6)
-    if (nchar(graphObj[[i]]) > 0L) g[[i]] <- get(graphObj[[i]])
+    if (nchar(graphObj[[i]]) > 0L) myGs[[i]] <- eval(parse(text=graphObj[[i]]))
 
     comboHemi[[i]] <- add_combo(vbox[[i]], hemis, 'Hemi/edges', spacing=6)
     if (vGroupAttr == 'neighborhood') comboHemi[[i]]$setSensitive(FALSE)
   }
-  list(graphs=g, orient=comboOrient, hemi=comboHemi)
+  list(graphs=myGs, orient=comboOrient, hemi=comboHemi)
 }
 
 # Function to add an entry
