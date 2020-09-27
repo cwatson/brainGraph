@@ -190,6 +190,7 @@ NBS <- function(A, covars, contrasts, con.type=c('t', 'f'), X=NULL, con.name=NUL
                                  sum(comps.perm[, j] >= x) + 1L, numeric(1L))))
   p.perm <- p.perm / (N + 1L)
   comps.obs[contrast %in% noSkip, p.perm := p.perm]
+  comps.obs[, Contrast := factor(contrast, labels=tmp$con.name)]
 
   comps.out <- list(observed=comps.obs)
   if (isTRUE(long)) comps.out$permuted <- comps.perm

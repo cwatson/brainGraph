@@ -58,7 +58,8 @@ print_bg_summary <- function(object) {
                        contrast='Contrast:',
                        'Subject ID:')
   } else if (is.brainGraphList(object)) {
-    if (!is_weighted(object$graphs[[1L]])) weighting <- 'Unweighted'
+    gg <- if (object$type == 'random') object$graphs[[1L]][[1L]] else object$graphs[[1L]]
+    if (!is_weighted(gg)) weighting <- 'Unweighted'
   }
 
   df <- data.frame(

@@ -43,7 +43,6 @@
 #' }
 
 analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, savedir='.', ...) {
-  grp <- getOption('bg.group')
   # Check if components are 'brainGraphList' objects
   matches <- vapply(g.list, is.brainGraphList, logical(1L))
   if (any(!matches)) stop("Input must be a list of 'brainGraphList' objects.")
@@ -51,6 +50,8 @@ analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, sav
   if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE)
 
   # Generate random graphs and calculate rich club coeff's for all thresholds
+  fname_base <- if (level == 'subject') 'sub' else 'grp'
+
   kNumSubj <- vapply(g.list, nobs, integer(1L))
   phi.norm <- rand.dt <- small.dt <- vector('list', length(g.list))
   for (i in seq_along(g.list)) {
@@ -60,7 +61,7 @@ analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, sav
     progbar <- txtProgressBar(min=0, max=kNumSubj[i], style=3)
     for (j in seq_along(g.list[[i]]$graphs)) {
       rand <- sim.rand.graph.par(g.list[[i]][j], level=level, N=N, atlas=g.list[[i]]$atlas, ...)
-      saveRDS(rand, file=file.path(savedir, sprintf('rand%02i_sub%04i%s', i, j, '.rds')))
+      saveRDS(rand, file=file.path(savedir, sprintf('rand%02i_%s%04i%s', i, fname_base, j, '.rds')))
       phi.norm[[i]][[j]] <- rich_club_norm(g.list[[i]][j], rand=rand)
       rm(list='rand')
       gc()
@@ -72,7 +73,7 @@ analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, sav
   # Get all small-worldness and random measures, all thresholds
   #-----------------------------------------------------------------------------
   for (i in seq_along(g.list)) {
-    fnames <- list.files(savedir, sprintf('rand%02i.*', i), full.names=TRUE)
+    fnames <- list.files(savedir, sprintf('rand%02i_%s.*', i, fname_base), full.names=TRUE)
     rand.all <- lapply(fnames, readRDS)
     rand.all <- as_brainGraphList(rand.all, type='random', level=level)
     saveRDS(rand.all, file=file.path(savedir, sprintf('rand%02i%s', i, '_all.rds')))
@@ -84,8 +85,12 @@ analysis_random_graphs <- function(g.list, level=g.list[[1L]]$level, N=100L, sav
   }
   rand.dt <- rbindlist(rand.dt)
   small.dt <- rbindlist(small.dt)
-  setkeyv(small.dt, c(grp, 'density'))
   rich.dt <- rbindlist(lapply(phi.norm, rbindlist))
+
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+  key1 <- if (level == 'subject') sID else gID
+  setkeyv(small.dt, c(key1, 'density'))
 
   return(list(rich=rich.dt, small=small.dt, rand=rand.dt))
 }

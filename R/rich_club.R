@@ -120,6 +120,9 @@ rich_club_all <- function(g, weighted=FALSE, A=NULL) {
 
 rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   k <- orig <- p <- p.fdr <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+
   stopifnot(is_igraph(g))
   degs <- check_degree(g)
   gnames <- graph_attr_names(g)
@@ -148,9 +151,9 @@ rich_club_norm <- function(g, N=1e2, rand=NULL, ...) {
   if ('threshold' %in% gnames) dt.phi$threshold <- g$threshold
   if ('Group' %in% gnames) dt.phi$Group <- g$Group
   if (!is.null(g$name)) {
-    sID <- getOption('bg.subject_id')
     dt.phi[, eval(sID) := g$name]
   }
+  if (dt.phi[, all(get(sID) == get(gID))]) dt.phi[, eval(sID) := NULL]
   return(dt.phi)
 }
 

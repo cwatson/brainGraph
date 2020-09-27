@@ -154,6 +154,8 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   setcolorder(mtpc.stats, c('Contrast', 'tau.mtpc', 'S.mtpc', 'S.crit', 'A.crit'))
 
   glm.attr <- res.glm[[1L]]
+  #TODO: may have to remove also 'var.covar'
+  #TODO: is it possible for 'removed.subs' and 'df.residual' to be different?
   glm.attr[c('y', 'DT.Xy', 'DT', 'permute', 'runX', 'runY', 'coefficients', 'residuals',
              'sigma', 'fitted.values', 'se', 'perm', 'perm.order')] <- NULL
   if (glm.attr$outcome != glm.attr$measure) glm.attr[c('X', 'qr', 'cov.unscaled')] <- NULL

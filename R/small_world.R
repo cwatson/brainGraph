@@ -24,9 +24,14 @@
 #'   \url{https://dx.doi.org/10.1515/9781400841356.301}
 
 small.world <- function(g.list, rand) {
+  level <- NULL
+  sID <- getOption('bg.subject_id')
+  gID <- getOption('bg.group')
+
   if (is_igraph(g.list) || is.brainGraph(g.list)) {
     g.list <- list(g.list)
   } else if (is.brainGraphList(g.list)) {
+    level <- g.list$level
     g.list <- g.list$graphs
     rand <- rand$graphs
   } else if (!is.list(g.list)) {
@@ -47,7 +52,6 @@ small.world <- function(g.list, rand) {
   DT <- data.table(density=densities, N, Lp, Cp, Lp.rand, Cp.rand,
                    Lp.norm, Cp.norm, sigma)
   if (!is.null(names(g.list))) {
-    sID <- getOption('bg.subject_id')
     DT[, eval(sID) := names(g.list)]
   }
   attrs <- c('Group', 'threshold')
@@ -56,6 +60,7 @@ small.world <- function(g.list, rand) {
       DT[, eval(x) := sapply(g.list, graph_attr, x)]
     }
   }
-  if (hasName(DT, 'Group')) setnames(DT, 'Group', getOption('bg.group'))
+  if (hasName(DT, 'Group')) setnames(DT, 'Group', gID)
+  if (level == 'group' && DT[, all(get(sID) == get(gID))]) DT[, eval(sID) := NULL]
   return(DT)
 }

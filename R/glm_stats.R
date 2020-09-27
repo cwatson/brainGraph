@@ -685,7 +685,7 @@ anova.bg_GLM <- function(object, region=NULL, ...) {
   RSS <- deviance(object)[regions]
 
   cols <- terms(object)
-  object$coefficients <- object$fitted.values <- object$residuals <- NULL
+  object$coefficients <- object$fitted.values <- object$residuals <- object$rank <- object$qr <- NULL
   SSt <- vapply(cols, function(x) deviance(object[, -x])[regions], numeric(kNumRegions))
   ss <- cbind(SSt - RSS, Residuals=RSS)
   df <- c(lengths(cols), df.residual(object))

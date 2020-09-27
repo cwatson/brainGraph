@@ -127,10 +127,10 @@ plot_rich_norm <- function(rich.dt, facet.by=c('density', 'threshold'),
         ggplot2::stat_smooth(ggplot2::aes(col=get(gID), group=get(gID)))
     } else {
       p <- ggplot2::ggplot(data=rects, ggplot2::aes(x=k, y=norm)) +
-        ggplot2::geom_line(ggplot2::aes(col=get(gID))) +
+        ggplot2::geom_line(ggplot2::aes(col=get(gID)), size=1.25) +
         ggplot2::geom_rect(data=rects,
                   ggplot2::aes(x=NULL, y=NULL, xmin=xstart, xmax=xend, ymin=-Inf, ymax=Inf),
-                  alpha=0.08, fill='red')
+                  alpha=0.02, fill='lightpink')
     }
     p <- p +
       ggplot2::geom_hline(yintercept=1, size=0.5, lty=2) +
