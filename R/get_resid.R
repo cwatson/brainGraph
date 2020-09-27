@@ -177,9 +177,25 @@ rstudent_mat <- function(X, Y) {
 #' @rdname residuals
 
 `[.brainGraph_resids` <- function(x, i, g=NULL) {
+  stop_msg <- 'Logical indexing vector must be of the same length as the number of groups.'
+  warn_msg <- 'Indexing vector cannot have length greater than the number of groups.'
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
-  if (!is.null(g)) x$resids.all <- droplevels(x$resids.all[g])
+  if (!is.null(g)) {
+    group.vec <- groups(x)
+    grpNames <- unique(group.vec)
+    kNumGroups <- length(grpNames)
+    if (is.logical(g) && length(g) != kNumGroups) stop(stop_msg)
+    if (length(g) > kNumGroups) {
+      warning(warn_msg)
+      g <- g[seq_len(kNumGroups)]
+    }
+    g <- switch(class(g),
+                numeric=, integer=, logical=which(group.vec %in% grpNames[g]),
+                factor=which(group.vec %in% as.character(g)),
+                character=which(group.vec %in% g))
+    x$resids.all <- droplevels(x$resids.all[g])
+  }
   if (missing(i)) i <- seq_len(dim(x$resids.all)[1L])
   x$resids.all <- x$resids.all[i]
   x$Group <- x$resids.all[, levels(as.factor(get(gID)))]
