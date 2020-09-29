@@ -8,14 +8,16 @@
 \usage{
 brainGraph_permute(densities, resids, N = 5000, perms = NULL,
   auc = FALSE, level = c("graph", "vertex", "other"),
-  measure = c("btwn.cent", "degree", "E.nodal", "ev.cent", "knn",
-  "transitivity", "vulnerability"), atlas = NULL, .function = NULL)
+  measure = c("btwn.cent", "coreness", "degree", "eccentricity",
+  "clo.cent", "communicability", "ev.cent", "lev.cent", "pagerank",
+  "subg.cent", "E.local", "E.nodal", "knn", "Lp", "transitivity",
+  "vulnerability"), .function = NULL)
 
-\method{summary}{brainGraph_permute}(object, measure = NULL,
+\method{summary}{brainGraph_permute}(object, measure = object$measure,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   p.sig = c("p", "p.fdr"), ...)
 
-\method{plot}{brainGraph_permute}(x, measure = NULL,
+\method{plot}{brainGraph_permute}(x, measure = x$measure,
   alternative = c("two.sided", "less", "greater"), alpha = 0.05,
   p.sig = c("p", "p.fdr"), ptitle = NULL, ...)
 }
@@ -33,7 +35,7 @@ your own (default: \code{NULL})}
 \item{auc}{Logical indicating whether or not to calculate differences in the
 area-under-the-curve of metrics (default: \code{FALSE})}
 
-\item{level}{A character string for the attribute "level" to calculate
+\item{level}{A character string for the attribute \dQuote{level} to calculate
 differences (default: \code{graph})}
 
 \item{measure}{A character string specifying the vertex-level metric to
@@ -41,26 +43,20 @@ calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
 For the \code{summary} method, this is to focus on a single
 \emph{graph-level} measure (since multiple are calculated at once).}
 
-\item{atlas}{Character string of the atlas name; required if
-\code{level='graph'} (default: \code{NULL})}
-
 \item{.function}{A custom function you can pass if \code{level='other'}}
 
-\item{object}{A \code{brainGraph_permute} object (output by
+\item{object, x}{A \code{brainGraph_permute} object (output by
 \code{\link{brainGraph_permute}}).}
 
-\item{alternative}{Character string, whether to do a two- or one-sided test
-(default: \code{'two.sided'})}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 
-\item{alpha}{Numeric; the significance level (default: 0.05)}
+\item{alpha}{Numeric; the significance level. Default: 0.05}
 
 \item{p.sig}{Character string specifying which p-value to use for displaying
 significant results (default: \code{p})}
 
 \item{...}{Unused}
-
-\item{x}{A \code{brainGraph_permute} object (output by
-\code{\link{brainGraph_permute}}).}
 
 \item{ptitle}{Character string specifying a title for the plot (default:
 \code{NULL})}
@@ -70,7 +66,7 @@ An object of class \code{brainGraph_permute} with input arguments in
   addition to:
   \item{DT}{A data table with permutation statistics}
   \item{obs.diff}{A data table of the observed group differences}
-  \item{groups}{Group names}
+  \item{Group}{Group names}
 
 The \code{plot} method returns a \emph{list} of \code{ggplot} objects
 }
@@ -85,13 +81,15 @@ types of data.
 If you would like to calculate differences in the area-under-the-curve (AUC)
 across densities, then specify \code{auc=TRUE}.
 
-There are three possible "levels":
+There are three possible \dQuote{levels}:
 \enumerate{
   \item \emph{graph} Calculate modularity (Louvain algorithm), clustering
-  coefficient, characteristic path length, degree assortativity, global
-  efficiency, lobe assortativity, and edge asymmetry.
-  \item \emph{vertex} Choose one of: betweenness centrality, degree, nodal
-  efficiency, k-nearest neighbor degree, transitivity, or vulnerability.
+  coefficient, characteristic path length, degree assortativity, and global
+  efficiency.
+  \item \emph{vertex} Choose one of: centrality metrics (betweenness,
+  closeness, communicability, eigenvector, leverage, pagerank, subgraph);
+  k-core; degree; eccentricity; nodal or local efficiency; k-nearest neighbor
+  degree; shortest path length; transitivity; or vulnerability.
   \item \emph{other} Supply your own function. This is useful if you want to
   calculate something that I haven't hard-coded. It must take as its own
   arguments: \code{g} (a list of lists of \code{igraph} graph objects); and
@@ -102,7 +100,7 @@ There are three possible "levels":
 \dontrun{
 myResids <- get.resid(lhrh, covars)
 myPerms <- shuffleSet(n=nrow(myResids$resids.all), nset=1e3)
-out <- brainGraph_permute(densities, m, perms=myPerms, atlas='dk')
+out <- brainGraph_permute(densities, m, perms=myPerms)
 out <- brainGraph_permute(densities, m, perms=myPerms, level='vertex')
 out <- brainGraph_permute(densities, m, perms=myPerms,
   level='other', .function=myFun)
@@ -110,9 +108,8 @@ out <- brainGraph_permute(densities, m, perms=myPerms,
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
-  \code{\link{mtpc}}
+  \code{\link{GLM}}, \code{\link{Mediation}},
+  \code{\link{NBS}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{IndividualContributions}},

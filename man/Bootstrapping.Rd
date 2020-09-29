@@ -9,8 +9,9 @@
 \usage{
 brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
   "E.global", "Cp", "Lp", "assortativity", "strength", "mod.wt",
-  "E.global.wt"), conf = 0.95, .progress = TRUE, xfm.type = c("1/w",
-  "-log(w)", "1-w"))
+  "E.global.wt"), conf = 0.95, .progress = getOption("bg.progress"),
+  xfm.type = c("1/w", "-log(w)", "1-w", "-log10(w/max(w))",
+  "-log10(w/max(w)+1)"))
 
 \method{summary}{brainGraph_boot}(object, ...)
 
@@ -22,28 +23,24 @@ brainGraph_boot(densities, resids, R = 1000, measure = c("mod",
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
 \code{\link{get.resid}})}
 
-\item{R}{Integer; the number of bootstrap replicates (default: \code{1e3})}
+\item{R}{Integer; the number of bootstrap replicates. Default: \code{1e3}}
 
-\item{measure}{Character string of the measure to test (default: \code{mod})}
+\item{measure}{Character string of the measure to test. Default: \code{mod}}
 
-\item{conf}{Numeric; the confidence level for calculating confidence
-intervals (default: 0.95)}
+\item{conf}{Numeric; the level for calculating confidence intervals. Default:
+\code{0.95}}
 
-\item{.progress}{Logical indicating whether or not to show a progress bar
-(default: \code{TRUE})}
+\item{.progress}{Logical indicating whether or not to show a progress bar.
+Default: \code{getOption('bg.progress')}}
 
-\item{xfm.type}{Character string specifying how to transform the weights
-(default: \code{1/w})}
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
-\item{object}{A \code{brainGraph_boot} object (from
-\code{\link{brainGraph_boot}})}
+\item{object, x}{A \code{brainGraph_boot} object}
 
 \item{...}{Unused}
 
-\item{x}{A \code{\link{brainGraph_boot}} object}
-
-\item{alpha}{A numeric indicating the opacity for
-\code{\link[ggplot2]{geom_ribbon}}}
+\item{alpha}{A numeric indicating the opacity for the confidence bands}
 }
 \value{
 \code{brainGraph_boot} -- an object of class \code{brainGraph_boot}
@@ -56,11 +53,11 @@ intervals (default: 0.95)}
 }
 \description{
 Perform bootstrapping to obtain groupwise standard error estimates of a
-global graph measure (e.g. \emph{modularity}).
+global graph measure.
 
 The \code{plot} method returns two \code{ggplot} objects: one with shaded
 regions based on the standard error, and the other based on confidence
-intervals (calculated using the normal approximation.
+intervals (calculated using the normal approximation).
 }
 \details{
 The confidence intervals are calculated using the \emph{normal approximation}
@@ -79,8 +76,7 @@ boot.E.global <- brainGraph_boot(densities, resids.all, 1e3, 'E.global')
 \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
 
 Other Group analysis functions: \code{\link{GLM}},
-  \code{\link{IndividualContributions}},
-  \code{\link{MediationAnalysis}}, \code{\link{NBS}},
+  \code{\link{Mediation}}, \code{\link{NBS}},
   \code{\link{brainGraph_permute}}, \code{\link{mtpc}}
 
 Other Structural covariance network functions: \code{\link{IndividualContributions}},

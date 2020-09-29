@@ -6,8 +6,8 @@
 \usage{
 create_mats(A.files, modality = c("dti", "fmri"), divisor = c("none",
   "waytotal", "size", "rowSums"), div.files = NULL,
-  threshold.by = c("consensus", "density", "mean", "consistency"),
-  mat.thresh = 0, sub.thresh = 0.5, inds = list(1:length(A.files)),
+  threshold.by = c("consensus", "density", "mean", "consistency", "raw"),
+  mat.thresh = 0, sub.thresh = 0.5, inds = list(seq_along(A.files)),
   algo = c("probabilistic", "deterministic"), P = 5000, ...)
 }
 \arguments{
@@ -41,35 +41,55 @@ element should be a vector of length equal to the group sizes}
 
 \item{P}{Integer; number of samples per seed voxel (default: 5000)}
 
-\item{...}{Arguments passed to \code{\link{symmetrize_mats}}}
+\item{...}{Arguments passed to \code{\link{symmetrize}}}
 }
 \value{
 A list containing:
 \item{A}{A 3-d array of the raw connection matrices}
 \item{A.norm}{A 3-d array of the normalized connection matrices}
-\item{A.bin}{A 3-d array of binarized connection matrices}
-\item{A.bin.sums}{A list of 2-d arrays of connection matrices, with each
+\item{A.bin}{A list of 3-d arrays of binarized connection matrices, one array
+  for each threshold}
+\item{A.bin.sums}{A list of 3-d arrays of connection matrices, with each
   entry signifying the number of subjects with a connection present; the
-  number of list elements equals the length of \code{mat.thresh}}
+  number of list elements equals the length of \code{mat.thresh}, and the
+  extent of the arrays equals the number of groups}
 \item{A.inds}{A list of arrays of binarized connection matrices, containing 1
   if that entry is to be included}
 \item{A.norm.sub}{List of 3-d arrays of the normalized connection matrices
   for all given thresholds}
-\item{A.norm.mean}{List of lists of numeric matrices averaged for each group}
+\item{A.norm.mean}{List of 3-d arrays of connection matrices averaged for
+  each group}
 }
 \description{
-\code{create_mats} will take a vector of filenames which contain connection
-matrices (e.g. the \emph{fdt_network_matrix} files from FSL or the
-\emph{ROICorrelation.txt} files from DPABI) and create arrays of this data.
+\code{create_mats} creates arrays from connection matrices (e.g.,
+\emph{fdt_network_matrix} from FSL or \emph{ROICorrelation.txt} from DPABI).
 You may choose to normalize these matrices by the \emph{waytotal} or
 \emph{region size} (tractography), or not at all.
 }
-\details{
+\section{Connection matrix files}{
+
+The \code{A.files} argument is mandatory and may be specified in a few ways:
+\enumerate{
+  \item A character vector of the filenames (preferably with full path).
+  \item A single character string specifying the \emph{directory} in which
+    all connectivity matrices are located. This will load \emph{all} files in
+    the directory.
+  \item A \emph{named list} in which the names match the arguments to
+    \code{\link{list.files}}. This will load \emph{all} files in \code{path}
+    that match the \code{pattern} argument, if present, and will load
+    \emph{all} files in child directories if \code{recursive=TRUE}. See
+    examples below.
+}
+The same options apply to \code{div.files} as well.
+}
+
+\section{Thresholding methods}{
+
 The argument \code{threshold.by} has 4 options:
 \enumerate{
   \item \code{consensus} Threshold based on the raw (normalized, if selected)
     values in the matrices. If this is selected, it uses the
-    \code{sub.thresh} value to perform "consensus" thresholding.
+    \code{sub.thresh} value to perform \dQuote{consensus} thresholding.
   \item \code{density} Threshold the matrices to yield a specific graph
     density (given by the \code{mat.thresh} argument).
   \item \code{mean} Keep only connections for which the cross-subject mean is
@@ -78,7 +98,10 @@ The argument \code{threshold.by} has 4 options:
   \item \code{consistency} Threshold based on the coefficient of variation to
     yield a graph with a specific density (given by \code{mat.thresh}). The
     edge weights will still represent those of the input matrices. See
-    Roberts et al. (2017) for more on "consistency-based" thresholding.
+    Roberts et al. (2017) for more on \dQuote{consistency-based}
+    thresholding.
+  \item \code{raw} Threshold each subject's matrix \emph{individually},
+    irrespective of group membership. Ignores \code{sub.thresh}.
 }
 
 The argument \code{mat.thresh} allows you to choose a numeric threshold,
@@ -87,6 +110,7 @@ accept a numeric vector. The argument \code{sub.thresh} will keep only those
 connections for which at least \emph{X}\% of subjects have a positive entry
 (the default is 0.5, or 50\%).
 }
+
 \examples{
 \dontrun{
 thresholds <- seq(from=0.001, to=0.01, by=0.001)
@@ -94,19 +118,18 @@ fmri.mats <- create_mats(f.A, modality='fmri', threshold.by='consensus',
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
 dti.mats <- create_mats(f.A, divisor='waytotal', div.files=f.way,
   mat.thresh=thresholds, sub.thresh=0.5, inds=inds)
+
+# Specify a directory and filename pattern
+conn_files <- list(path='~/data', pattern='.*fdt_network_matrix')
+dti.mats <- create_mats(conn_files, ...)
 }
 }
 \references{
-Roberts JA, Perry A, Roberts G, Mitchell PB, Breakspear M (2017).
-  \emph{Consistency-based thresholding of the human connectome.} NeuroImage,
-  145:118-129.
-}
-\seealso{
-Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{cor.diff.test}},
-  \code{\link{symmetrize_mats}}
+Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
+  Breakspear, M (2017) Consistency-based thresholding of the human
+  connectome. \emph{NeuroImage}. \bold{145}, 118--129.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Matrix functions}

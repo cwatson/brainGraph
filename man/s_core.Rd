@@ -7,7 +7,7 @@
 s_core(g, W = NULL)
 }
 \arguments{
-\item{g}{The \code{igraph} graph object of interest}
+\item{g}{An \code{igraph} graph object}
 
 \item{W}{Numeric matrix of edge weights (default: \code{NULL})}
 }
@@ -33,9 +33,10 @@ there are almost as many unique values as there are vertices, then several
 separate cores will have a single vertex. See the reference provided below.
 }
 \references{
-Eidsaa M & Almaas E. (2013) \emph{s-core network decomposition: a
-  generalization of k-core analysis to weighted networks.} Physical Review E,
-  88:062819.
+Eidsaa, M and Almaas, E. (2013) s-core network decomposition: a
+  generalization of k-core analysis to weighted networks. \emph{Physical
+  Review E}, \bold{88}, 062819.
+  \url{https://dx.doi.org/10.1103/PhysRevE.88.062819}
 }
 \seealso{
 \code{\link[igraph]{coreness}}

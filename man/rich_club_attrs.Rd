@@ -9,12 +9,12 @@ rich_club_attrs(g, deg.range = NULL, adj.vsize = FALSE)
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{deg.range}{Integer vector of the range of degrees indicating
+\item{deg.range}{Numeric vector of the range of degrees indicating
 inclusion in the rich-club; if the default \emph{NULL}, it will be from 1
 to the maximum degree in the graph}
 
 \item{adj.vsize}{Logical indicating whether to adjust vertex size
-proportional to degree (default: FALSE)}
+proportional to degree. Default: \code{FALSE}}
 }
 \value{
 An \code{igraph} graph object with additional attributes:
@@ -24,10 +24,10 @@ An \code{igraph} graph object with additional attributes:
   \item{size.rich}{Edge and vertex attributes}
 }
 \description{
-This function will assign vertex- and edge-level attributes based on the
-results of a \emph{rich-club} analysis, based on a range of vertex degrees in
-which the rich-club coefficient was determined to be significantly greater
-than that of a set of random graphs (see \code{\link{rich_club_norm}}).
+Assigns vertex- and edge-level attributes based on the results of a
+\emph{rich-club} analysis, based on a range of vertex degrees in which the
+rich-club coefficient was determined to be significantly greater than that of
+a set of random graphs (see \code{\link{rich_club_norm}}).
 }
 \details{
 Vertices which are in the rich club will be assigned an attribute
@@ -39,10 +39,10 @@ their degree.
 Edge attribute \code{type.rich} takes on three values: \emph{rich-club} (if
 it connects two rich-club vertices), \emph{feeder} (if it connects a rich- to
 a non-rich-club vertex), and \emph{local} (if it connects two non-rich-club
-vertices). They will also be given a \code{color.rich} attribute (either
-\emph{red}, \emph{orange}, or \emph{green}). Edge sizes (\code{size.rich})
-will be largest for \emph{rich-club} connections, then smaller for
-\emph{feeder}, and smallest for \emph{local}.
+vertices). The \code{color.rich} attribute is \emph{red}, \emph{orange}, or
+\emph{green}. Edge sizes (\code{size.rich}) will be largest for
+\emph{rich-club} connections, then smaller for \emph{feeder}, and smallest
+for \emph{local}.
 }
 \examples{
 \dontrun{
@@ -51,7 +51,7 @@ g <- rich_club_attrs(g, rich.dt[density == densities[N] & p.fdr < .01,
 }
 }
 \seealso{
-Other Rich-club functions: \code{\link{RichClub}},
+Other Rich-club functions: \code{\link{Rich Club}},
   \code{\link{plot_rich_norm}}
 }
 \author{

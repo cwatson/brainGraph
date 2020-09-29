@@ -19,64 +19,87 @@
 #'
 #' @param g An \code{igraph} graph object
 #' @param type Character string; either \code{local}, \code{nodal}, or
-#'   \code{global} (default: \code{local})
+#'   \code{global}. Default: \code{local}
 #' @param weights Numeric vector of edge weights; if \code{NULL} (the default),
 #'   and if the graph has edge attribute \code{weight}, then that will be used.
 #'   To avoid using weights, this should be \code{NA}.
-#' @param use.parallel Logical indicating whether or not to use \code{foreach}
-#'   (default: \code{TRUE})
-#' @param A Numeric matrix; the (weighted or unweighted) adjacency matrix of the
-#'   input graph (default: \code{NULL})
+#' @param xfm Logical indicating whether to transform the edge weights. Default:
+#' \code{FALSE}
+#' @param use.parallel Logical indicating whether or not to use \code{foreach}.
+#'   Default: \code{TRUE}
+#' @param A Numeric matrix; the adjacency matrix of the input graph. Default:
+#'   \code{NULL}
+#' @param D Numeric matrix; the graph's \dQuote{distance matrix}
+#' @inheritParams xfm.weights
 #' @export
 #' @importFrom Matrix rowSums
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return A numeric vector of the efficiencies for each vertex of the graph
 #'   (if \emph{type} is \code{local|nodal}) or a single number (if \emph{type}
 #'   is \code{global}).
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Latora V., Marchiori M. (2001) \emph{Efficient behavior of
-#'   small-world networks}. Phys Rev Lett, 87.19:198701.
-#' @references Latora V., Marchiori M. (2003) \emph{Economic small-world
-#'   behavior in weighted networks}. Eur Phys J B, 32:249-263.
+#' @references Latora, V. and Marchiori, M. (2001) Efficient behavior of
+#'   small-world networks. \emph{Phys Rev Lett}, \bold{87.19}, 198701.
+#'   \url{https://dx.doi.org/10.1103/PhysRevLett.87.198701}
+#' @references Latora, V. and Marchiori, M. (2003) Economic small-world
+#'   behavior in weighted networks. \emph{Eur Phys J B}, \bold{32}, 249--263.
+#'   \url{https://dx.doi.org/10.1140/epjb/e2003-00095-5}
 
 efficiency <- function(g, type=c('local', 'nodal', 'global'), weights=NULL,
-                       use.parallel=TRUE, A=NULL) {
+                       xfm=FALSE, xfm.type=NULL, use.parallel=TRUE, A=NULL, D=NULL) {
   stopifnot(is_igraph(g))
   i <- NULL
+  if (isTRUE(xfm)) {
+    if (is.null(xfm.type)) {
+      xfm.type <- if ('xfm.type' %in% graph_attr_names(g)) g$xfm.type else '1/w'
+    }
+    g <- xfm.weights(g, xfm.type)
+  }
   weights <- check_weights(g, weights)
 
   type <- match.arg(type)
   if (type == 'local') {
+    e.attr <- weighted <- NULL
     if (is.null(weights)) {
-      if (is.null(A)) A <- as_adj(g, names=FALSE, attr='weight')
+      e.attr <- 'weight'
       weighted <- TRUE
-    } else {
-      A <- as_adj(g, names=FALSE, sparse=FALSE)
-      weighted <- NULL
     }
-    eff <- rep(0, nrow(A))
-    nodes <- which(rowSums((A > 0) + 0) > 1)
-    X <- apply(A, 1, function(x) which(x > 0))
+    if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE, attr=e.attr)
+    eff <- rep.int(0, dim(A)[1L])
+    verts <- which(rowSums((A > 0) + 0) > 1)
+    X <- apply(A, 1L, function(x) which(x > 0))
+    if (is.matrix(X)) X <- as.list(data.frame(X))   # If the graph is complete
 
-    if (length(nodes) > 0) {
+    if (length(verts) > 0L) {
+      `%d%` <- `%do%`
       if (isTRUE(use.parallel)) {
-        eff[nodes] <- foreach (i=nodes, .combine='c') %dopar% {
-          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
-          efficiency(g.sub, 'global', weights=weights)
+        if (!getDoParRegistered()) {
+          cl <- makeCluster(getOption('bg.ncpus'))
+          registerDoParallel(cl)
         }
-      } else {
-        for (i in nodes) {
-          g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
-          eff[i] <- efficiency(g.sub, 'global', weights=weights)
-        }
+        `%d%` <- `%dopar%`
+      }
+      eff[verts] <- foreach(i=verts, .combine='c') %d% {
+        g.sub <- graph_from_adjacency_matrix(A[X[[i]], X[[i]]], mode='undirected', weighted=weighted)
+        efficiency(g.sub, 'global', weights=weights)
       }
     }
   } else {
-    D <- distances(g, weights=weights)
-    Nv <- nrow(D)
+    Nv <- vcount(g)
+    if (is.null(D)) {
+      if (Nv > 650) {
+        D <- foreach(i=seq_len(Nv), .combine=rbind) %dopar% {
+          distances(g, v=i, weights=weights)
+        }
+      } else {
+        D <- distances(g, weights=weights)
+      }
+    }
     Dinv <- 1 / D
-    eff <- colSums(Dinv * is.finite(Dinv), na.rm=T) / (Nv - 1)
+    eff <- colSums(Dinv * is.finite(Dinv), na.rm=TRUE) / (Nv - 1L)
     if (type == 'global') eff <- sum(eff) / length(eff)
   }
   return(eff)

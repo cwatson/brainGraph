@@ -17,17 +17,19 @@
 #'
 #' @inheritParams efficiency
 #' @export
-#' @importFrom expm expm
 #'
 #' @return A numeric matrix of the communicability
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Estrada E. & Hatano N. (2008) \emph{Communicability in complex
-#'   networks}. Physical Review E, 77:036111.
-#' @references Crofts J.J. & Higham D.J. (2009) \emph{A weighted communicability
-#'   measure applied to complex brain networks}. J. R. Soc. Interface, 6:411-414.
+#' @references Estrada, E. and Hatano, N. (2008) Communicability in complex
+#'   networks. \emph{Physical Review E}. \bold{77}, 036111.
+#'   \url{https://dx.doi.org/10.1103/PhysRevE.77.036111}
+#' @references Crofts, J.J. and Higham, D.J. (2009) A weighted communicability
+#'   measure applied to complex brain networks. \emph{J. R. Soc. Interface}.
+#'   \bold{6}, 411--414. \url{https://dx.doi.org/10.1098/rsif.2008.0484}
 
 communicability <- function(g, weights=NULL) {
+  if (!requireNamespace('expm', quietly=TRUE)) stop('Must install the "expm" package.')
   stopifnot(is_igraph(g), is_connected(g))
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
     d <- check_strength(g)
@@ -38,7 +40,7 @@ communicability <- function(g, weights=NULL) {
     A <- as_adj(g, names=FALSE, sparse=FALSE)
   }
 
-  C <- expm(S %*% A %*% S)
+  C <- expm::expm(S %*% A %*% S)
   return(C)
 }
 
@@ -50,30 +52,30 @@ communicability <- function(g, weights=NULL) {
 #' (e^{\mathbf{A} + \mathbf{E}(r)})_{pq}}{(e^{\mathbf{A}})_{pq}}}
 #' where \eqn{C = (n - 1)^2 - (n - 1)} is a normalization factor.
 #'
-#' @param g An \code{igraph} graph object
-#' @param A Numeric matrix, the graph's adjacency matrix (default: \code{NULL})
+#' @inheritParams efficiency
 #' @export
-#' @importFrom expm expm
 #'
 #' @return A numeric vector of the centrality for each vertex
 #'
 #' @family Centrality functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Estrada E., Higham D.J., Hatano N. (2009) \emph{Communicability
-#'   betweenness in complex networks}. Physica A, 388:764-774.
+#' @references Estrada, E. and Higham, D.J. and Hatano N. (2009) Communicability
+#'   betweenness in complex networks. \emph{Physica A}, \bold{388}, 764--774.
+#'   \url{https://dx.doi.org/10.1016/j.physa.2008.11.011}
 
 centr_betw_comm <- function(g, A=NULL) {
   stopifnot(is_igraph(g), is_connected(g))
+  if (!requireNamespace('expm', quietly=TRUE)) stop('Must install the "expm" package.')
   if (is.null(A)) A <- as_adj(g, names=FALSE, sparse=FALSE)
 
-  C <- expm(A)
-  N <- nrow(A)
+  C <- expm::expm(A)
+  N <- dim(A)[1L]
   n <- (N - 1)^2 - (N - 1)
-  Wr <- rep(0, N)
+  Wr <- rep.int(0, N)
   for (i in seq_len(N)) {
     Er <- A
     Er[i, ] <- Er[, i] <- 0
-    G <- (C - expm(Er)) / C
+    G <- (C - expm::expm(Er)) / C
     Wr[i] <- (sum(G[-i, -i]) - sum(diag(G[-i, -i]))) / n
   }
   return(Wr)

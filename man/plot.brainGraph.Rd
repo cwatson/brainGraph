@@ -2,75 +2,120 @@
 % Please edit documentation in R/plot_brainGraph.R
 \name{plot.brainGraph}
 \alias{plot.brainGraph}
-\alias{plot_brainGraph}
 \title{Plot a brain graph with a specific spatial layout}
 \usage{
 \method{plot}{brainGraph}(x, plane = c("axial", "sagittal", "circular"),
-  hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
-  rescale = FALSE, asp = 0, main = NULL, subt = "default",
-  mni = TRUE, ...)
-
-plot_brainGraph(x, plane = c("axial", "sagittal", "circular"),
-  hemi = c("both", "L", "R"), subgraph = NULL, show.legend = FALSE,
-  rescale = FALSE, asp = 0, main = NULL, subt = "default",
-  mni = TRUE, ...)
+  hemi = c("both", "L", "R"), mni = TRUE, subgraph = NULL,
+  main = NULL, subtitle = "default", label = NULL, side = 1,
+  line = -2, adj = 0.025, cex = 2.5, col = "white", font = 2,
+  show.legend = FALSE, rescale = FALSE, asp = 0, ...)
 }
 \arguments{
 \item{x}{A \code{brainGraph} graph object}
 
-\item{plane}{Character string indicating which orientation to plot
-(default: \code{'axial'})}
+\item{plane}{Character string indicating which orientation to plot.
+Default: \code{'axial'}}
 
-\item{hemi}{Character string indicating which hemisphere to plot (default:
-\code{'both'})}
-
-\item{subgraph}{Character string specifying an equation for vertices to plot
-(default: \code{NULL})}
-
-\item{show.legend}{Logical indicating whether or not to show a legend
-(default: \code{FALSE})}
-
-\item{rescale}{Logical, whether to rescale the coordinates (default:
-\code{FALSE})}
-
-\item{asp}{Numeric constant; the aspect ratio (default: 0)}
-
-\item{main}{Character string; the main title (default: \code{NULL})}
-
-\item{subt}{Character string; the subtitle (default: \code{default})}
+\item{hemi}{Character string indicating which hemisphere to plot. Default:
+\code{'both'}}
 
 \item{mni}{Logical indicating whether or not to plot over a slice of the
-brain (default: \code{TRUE})}
+brain. Default: \code{TRUE}}
+
+\item{subgraph}{Character string specifying a logical condition for vertices
+to plot. Default: \code{NULL}}
+
+\item{main}{Character string; the main title. Default: \code{NULL}}
+
+\item{subtitle}{Character string; the subtitle. Default: \code{'default'}}
+
+\item{label}{Character string specifying text to display in one corner of the
+plot (e.g., \code{'A.'}). Default: NULL}
+
+\item{side}{Label placement. Default: \code{1} (bottom)}
+
+\item{line}{Which margin line to place the text.}
+
+\item{adj}{If \code{side=1}, a value closer to 0 places the text closer to
+the left margin. Default: \code{0.025}}
+
+\item{cex}{Amount of character expansion of the label text. Default:
+\code{2.5}}
+
+\item{col}{Label font color. Default: \code{'white'}}
+
+\item{font}{Integer specifying the font type. Default: \code{2} (bold face)}
+
+\item{show.legend}{Logical indicating whether or not to show a legend.
+Default: \code{FALSE}}
+
+\item{rescale}{Logical, whether to rescale the coordinates. Default:
+\code{FALSE}}
+
+\item{asp}{Numeric constant; the aspect ratio. Default: 0}
 
 \item{...}{Other parameters (passed to \code{\link[igraph]{plot.igraph}}).
-See \code{\link[igraph]{igraph.plotting}} for details.}
+See \code{\link[igraph]{plot.common}} for details.}
 }
 \description{
 \code{plot.brainGraph} plots a graph in which the spatial layout of the nodes
 is important. The network itself is plotted over a brain MRI slice from the
-MNI152 template if \code{mni=TRUE}.
+MNI152 template by default (when \code{mni=TRUE}).
 }
-\details{
-With the argument \code{subgraph}, you can specify a simple logical equation
-for which vertices to show. For example, \emph{'degree > 10'} will plot only
-vertices with a \emph{degree} greater than 10. Combinations of \emph{AND}
-(i.e., \code{&}) and \emph{OR} (i.e., \code{|}) are allowed.
+\section{Selecting specific vertices to display}{
 
-To remove the subtitle at the bottom, simply specify \code{subt=NULL}.
+With the argument \code{subgraph}, you can supply a simple logical expression
+specifying which vertices to show. For example, \emph{'degree > 10'} will
+plot only vertices with a \emph{degree} greater than 10. Combinations of
+\emph{AND} (i.e., \code{&}) and \emph{OR} (i.e., \code{|}) are allowed. This
+requires that any vertex attribute in the expression must be present in the
+graph; e.g., \code{V(g)$degree} must exist.
 }
+
+\section{Title, subtitle, and label}{
+
+By default, a \emph{title} (i.e., text displayed at the top of the figure) is
+not included. You can include one by passing a character string to
+\code{main}, and control the size with \code{cex.main}. A \emph{subtitle}
+(i.e., text at the bottom), is included by default and displays the number of
+vertices and edges along with the graph density. To exclude this, specify
+\code{subtitle=NULL}. A \dQuote{label} can be included in one corner of the
+figure (for publications). For example, you can choose \code{label='A.'} or
+\code{label='a)'}. Arguments controlling the location and appearance can be
+changed, but the default values are optimal for bottom-left placement. See
+\code{\link[graphics]{mtext}} for more details. The label-specific arguments
+are:
+\describe{
+  \item{side}{The location. \code{1} is for bottom placement.}
+  \item{line}{If \code{side=1} (bottom), a negative number places the text
+    \emph{above} the bottom of the figure; a higher number could result in
+    the bottom part of the text to be missing. This can differ if
+    \code{plane='circular'}, in which case you may want to specify a positive
+    number.}
+  \item{adj}{Seems to be the percentage away from the margin. So, for
+    example, \code{adj=0.1} would place the text closer to the center than
+    the default value, and \code{adj=0.5} places it in the center.}
+  \item{cex}{The degree of \dQuote{character expansion}. A value of 1 would
+    not increase the text size.}
+  \item{col}{The text color.}
+  \item{font}{The font type. The default \code{font=2} is bold face. See
+    \code{\link[graphics]{par}} for details.}
+}
+}
+
 \examples{
 \dontrun{
 plot(g[[1]], hemi='R')
 plot(g[[1]], subgraph='degree > 10 | btwn.cent > 50')
+
+## Place label in upper-left
+plot(g.ex, label='A)', side=3, line=-2.5)
 }
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
-  \code{\link{plot.brainGraph_NBS}},
-  \code{\link{plot.brainGraph_mediate}},
-  \code{\link{plot.brainGraph_mtpc}},
+Other Plotting functions: \code{\link{Plotting GLM graphs}},
+  \code{\link{plot.brainGraphList}},
   \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \author{

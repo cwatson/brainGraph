@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_brainGraph_gui.R
 \name{plot_brainGraph_gui}
 \alias{plot_brainGraph_gui}
-\title{GUI for plotting graphs overlaid on an MNI152 image or in a circle.}
+\title{GUI for plotting graphs overlaid on an MNI152 image or in a circle}
 \usage{
 plot_brainGraph_gui()
 }
@@ -15,12 +15,9 @@ vertex- and edge-level attributes (set by
 \code{\link{set_brainGraph_attr}}).
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
-  \code{\link{plot.brainGraph_NBS}},
-  \code{\link{plot.brainGraph_mediate}},
-  \code{\link{plot.brainGraph_mtpc}},
+Other Plotting functions: \code{\link{Plotting GLM graphs}},
+  \code{\link{plot.brainGraphList}},
   \code{\link{plot.brainGraph}},
-  \code{\link{plot_brainGraph_list}},
   \code{\link{plot_brainGraph_multi}}
 }
 \concept{Plotting functions}

@@ -4,25 +4,20 @@
 \alias{cor.diff.test}
 \title{Calculate the p-value for differences in correlation coefficients}
 \usage{
-cor.diff.test(r1, r2, n1, n2, alternative = c("two.sided", "less",
-  "greater"))
+cor.diff.test(r1, r2, n, alternative = c("two.sided", "less", "greater"))
 }
 \arguments{
-\item{r1}{Numeric (vector or matrix) of correlation coefficients, group 1}
+\item{r1, r2}{Numeric (vector or matrix) of correlation coefficients for both
+groups}
 
-\item{r2}{Numeric (vector or matrix) of correlation coefficients, group 2}
+\item{n}{Integer vector; number of observations for both groups}
 
-\item{n1}{Integer; number of observations, group 1}
-
-\item{n2}{Integer; number of observations, group 2}
-
-\item{alternative}{Character string specifying the alternative hypothesis
-test to use; one of: 'two.sided' (default), 'less', 'greater'}
+\item{alternative}{Character string, whether to do a two- or one-sided test.
+Default: \code{'two.sided'}}
 }
 \value{
-A list containing:
-\item{p}{The p-values}
-\item{z}{The z-score for the difference in correlation coefficients}
+A list with elements \code{p} and \code{z}, the p-values
+  and z-scores for the difference in correlations.
 }
 \description{
 Given two sets of correlation coefficients and sample sizes, this function
@@ -33,8 +28,7 @@ adapted from \url{http://stackoverflow.com/a/14519007/3357706}.
 \examples{
 \dontrun{
 kNumSubjs <- summary(covars$Group)
-corr.diffs <- cor.diff.test(corrs[[1]][[1]]$R, corrs[[2]][[1]]$R,
-                            kNumSubjs[1], kNumSubjs[2], alternative='two.sided')
+corr.diffs <- cor.diff.test(corrs$R[, , 1], corrs$R[, , 2], kNumSubjs)
 edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
                        mapply('[[',
                               dimnames(corr.diffs$p),
@@ -42,11 +36,6 @@ edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
                               ))
 }
 }
-\seealso{
-Other Matrix functions: \code{\link{apply_thresholds}},
-  \code{\link{create_mats}}, \code{\link{symmetrize_mats}}
-}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Matrix functions}

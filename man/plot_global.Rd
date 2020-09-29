@@ -4,43 +4,48 @@
 \alias{plot_global}
 \title{Plot global graph measures across densities}
 \usage{
-plot_global(tidy.dt, xvar = c("density", "threshold"), vline = NULL,
-  level.names = NULL, exclude = NULL, perms = NULL, g = NULL,
-  alt = NULL)
+plot_global(g.list, xvar = c("density", "threshold"), vline = NULL,
+  level.names = "default", exclude = NULL, perms = NULL,
+  alt = "two.sided")
 }
 \arguments{
-\item{tidy.dt}{A \code{\link{data.table}} that has been "tidied", containing
-global graph measures for all densities and subject groups}
+\item{g.list}{List of \code{brainGraphList} objects; the length of this list
+should equal the number of thresholds/densities in the study}
 
 \item{xvar}{A character string indicating whether the variable of
-interest is "density" or "threshold" (e.g. with DTI data)}
+interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 
-\item{vline}{Numeric; required to plot a dashed vertical line (default: NULL)}
+\item{vline}{Numeric of length 1 specifying the x-intercept if you would like
+to plot a vertical dashed line (e.g., if there is a particular density of
+interest). Default: \code{NULL}}
 
-\item{level.names}{Character vector of facet label names, if you wish to
-change them (default: NULL)}
+\item{level.names}{Character vector of variable names, which are displayed as
+facet labels. If you do not want to change them, specify \code{NULL}. By
+default, they are changed to pre-set values.}
 
-\item{exclude}{Character vector of variables to exclude (default: NULL)}
+\item{exclude}{Character vector of variables to exclude. Default: \code{NULL}}
 
-\item{perms}{A \code{\link{data.table}} of permutation group differences
-(default: NULL)}
-
-\item{g}{A list of lists of \code{igraph} graph objects; required if
-\emph{perms} is provided (default: NULL)}
+\item{perms}{A \code{\link{data.table}} of permutation group differences}
 
 \item{alt}{Character vector of alternative hypotheses; required if
-\emph{perms} is provided, but defaults to "two.sided" for all variables}
+\emph{perms} is provided, but defaults to \dQuote{two.sided} for all
+variables}
 }
 \value{
-A \code{\link[ggplot2]{ggplot}} object
+Either a \code{trellis} or \code{ggplot} object
 }
 \description{
 Create a faceted line plot of global graph measures across a range of graph
-densities. Given a "tidied" \code{data.table}, you can choose to insert a
-dashed vertical line at a density of interest, rename the variable levels
-(which become the facet titles), exclude certain variables, and include a
-\code{data.table} of permutation data to add asterisks indicating signficant
-group differences.
+densities, calculated from a list of \code{brainGraphList} objects. This
+requires that the variables of interest are graph-level attributes of the
+input graphs.
+}
+\details{
+You can choose to insert a dashed vertical line at a specific
+density/threshold of interest, rename the variable levels (which become the
+facet titles), exclude variables, and include a \code{brainGraph_permute}
+object of permutation data to add asterisks indicating significant group
+differences.
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

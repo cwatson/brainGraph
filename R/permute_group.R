@@ -9,13 +9,15 @@
 #' If you would like to calculate differences in the area-under-the-curve (AUC)
 #' across densities, then specify \code{auc=TRUE}.
 #'
-#' There are three possible "levels":
+#' There are three possible \dQuote{levels}:
 #' \enumerate{
 #'   \item \emph{graph} Calculate modularity (Louvain algorithm), clustering
-#'   coefficient, characteristic path length, degree assortativity, global
-#'   efficiency, lobe assortativity, and edge asymmetry.
-#'   \item \emph{vertex} Choose one of: betweenness centrality, degree, nodal
-#'   efficiency, k-nearest neighbor degree, transitivity, or vulnerability.
+#'   coefficient, characteristic path length, degree assortativity, and global
+#'   efficiency.
+#'   \item \emph{vertex} Choose one of: centrality metrics (betweenness,
+#'   closeness, communicability, eigenvector, leverage, pagerank, subgraph);
+#'   k-core; degree; eccentricity; nodal or local efficiency; k-nearest neighbor
+#'   degree; shortest path length; transitivity; or vulnerability.
 #'   \item \emph{other} Supply your own function. This is useful if you want to
 #'   calculate something that I haven't hard-coded. It must take as its own
 #'   arguments: \code{g} (a list of lists of \code{igraph} graph objects); and
@@ -30,22 +32,23 @@
 #'   your own (default: \code{NULL})
 #' @param auc Logical indicating whether or not to calculate differences in the
 #'   area-under-the-curve of metrics (default: \code{FALSE})
-#' @param level A character string for the attribute "level" to calculate
+#' @param level A character string for the attribute \dQuote{level} to calculate
 #'   differences (default: \code{graph})
-#' @param atlas Character string of the atlas name; required if
-#'   \code{level='graph'} (default: \code{NULL})
 #' @param measure A character string specifying the vertex-level metric to
 #'   calculate, only used if \code{level='vertex'} (default: \code{btwn.cent}).
 #'   For the \code{summary} method, this is to focus on a single
 #'   \emph{graph-level} measure (since multiple are calculated at once).
 #' @param .function A custom function you can pass if \code{level='other'}
 #' @export
+#' @importFrom permute shuffleSet
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
 #'
 #' @return An object of class \code{brainGraph_permute} with input arguments in
 #'   addition to:
 #'   \item{DT}{A data table with permutation statistics}
 #'   \item{obs.diff}{A data table of the observed group differences}
-#'   \item{groups}{Group names}
+#'   \item{Group}{Group names}
 #'
 #' @family Group analysis functions
 #' @family Structural covariance network functions
@@ -55,7 +58,7 @@
 #' \dontrun{
 #' myResids <- get.resid(lhrh, covars)
 #' myPerms <- shuffleSet(n=nrow(myResids$resids.all), nset=1e3)
-#' out <- brainGraph_permute(densities, m, perms=myPerms, atlas='dk')
+#' out <- brainGraph_permute(densities, m, perms=myPerms)
 #' out <- brainGraph_permute(densities, m, perms=myPerms, level='vertex')
 #' out <- brainGraph_permute(densities, m, perms=myPerms,
 #'   level='other', .function=myFun)
@@ -63,66 +66,51 @@
 
 brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
                                level=c('graph', 'vertex', 'other'),
-                               measure=c('btwn.cent', 'degree', 'E.nodal', 'ev.cent',
-                                         'knn', 'transitivity', 'vulnerability'),
-                               atlas=NULL, .function=NULL) {
-  Group <- NULL
+                               measure=c('btwn.cent', 'coreness', 'degree', 'eccentricity',
+                                         'clo.cent', 'communicability', 'ev.cent', 'lev.cent',
+                                         'pagerank', 'subg.cent', 'E.local', 'E.nodal',
+                                         'knn', 'Lp', 'transitivity', 'vulnerability'),
+                               .function=NULL) {
   stopifnot(inherits(resids, 'brainGraph_resids'))
+  gID <- getOption('bg.group')
   measure <- match.arg(measure)
   level <- match.arg(level)
   if (level == 'other') {
-    if (is.null(.function) | !is.function(.function)) {
-      stop(paste('Argument ".function" must be a function!'))
-    }
+    if (!is.function(.function)) stop('".function" must be a function!')
     measure <- 'other'
   } else if (level == 'graph') {
-    stopifnot(!is.null(atlas))
     measure <- NULL
-  } else if (level == 'vertex') {
-    if (isTRUE(auc)) {
-      diffFun <- function(densities, meas.list) {
-        sapply(seq_len(ncol(meas.list[[1]])), function(x)
-               auc_diff(densities, cbind(meas.list[[1]][, x], meas.list[[2]][, x])))
-      }
-    } else {
-      diffFun <- function(densities, meas.list) cbind(densities, meas.list[[1]] - meas.list[[2]])
-    }
   }
 
-  if (is.null(perms)) perms <- shuffleSet(n=nrow(resids$resids.all), nset=N)
-  N <- nrow(perms)
-  perms <- rbind(perms, 1:ncol(perms))  # last row is observed metrics
-  groups <- as.numeric(resids$resids.all$Group)
+  if (is.null(perms)) perms <- shuffleSet(n=nobs(resids), nset=N)
+  dims <- dim(perms)
+  N <- dims[1L]
+  perms <- rbind(perms, seq_len(dims[2L]))  # last row is observed metrics
+  grps <- as.numeric(resids$resids.all[, get(gID)])
 
-  # Loop through the permutation matrix
+  if (!getDoParRegistered()) {
+    cl <- makeCluster(getOption('bg.ncpus'))
+    registerDoParallel(cl)
+  }
+  # Should return a "data.table" (graph-level) or numeric matrix (vertex-level)
+  # When "auc=FALSE", should have a "densities" column
   res.perm <- switch(level,
-               vertex=permute_vertex_foreach(perms, densities, resids, groups, measure, diffFun),
-               other=permute_other_foreach(perms, densities, resids, groups, .function),
-               graph=permute_graph_foreach(perms, densities, resids, groups, atlas, auc))
+               vertex=permute_vertex_foreach(perms, densities, resids, grps, auc, measure),
+               other=permute_other_foreach(perms, densities, resids, grps, .function),
+               graph=permute_graph_foreach(perms, densities, resids, grps, auc))
 
-  if (length(densities) == 1) res.perm <- cbind(densities=densities, res.perm)
-
+  if (length(densities) == 1L) res.perm <- cbind(densities=densities, res.perm)
   if (level == 'vertex') {
     res.perm <- as.data.table(res.perm)
-    regions <- names(resids$resids.all[, !c('Study.ID', 'Group')])
-    if (isTRUE(auc)) {
-      setnames(res.perm, 1:ncol(res.perm), regions)
-    } else {
-      setnames(res.perm, 2:ncol(res.perm), regions)
-    }
+    start <- if (isTRUE(auc)) 1L else 2L
+    setnames(res.perm, seq.int(start, dim(res.perm)[2L]), region.names(resids))
   }
 
-  if (!isTRUE(auc)) {
-    setkey(res.perm, densities)
-    obs.ind <- (N + 1) * 1:length(densities)
-    obs.diff <- res.perm[obs.ind]
-    res.perm <- res.perm[-obs.ind]
-  } else {
-    obs.diff <- res.perm[.N]
-    res.perm <- res.perm[-.N]
-  }
-  out <- list(atlas=atlas, auc=auc, N=N, level=level, measure=measure, densities=densities,
-              resids=resids, DT=res.perm, obs.diff=obs.diff, groups=resids$groups)
+  obs.ind <- if (isTRUE(auc)) N + 1L else (N + 1L) * seq_along(densities)
+  obs.diff <- res.perm[obs.ind]
+  res.perm <- res.perm[-obs.ind]
+  out <- list(atlas=resids$atlas, auc=auc, N=N, level=level, measure=measure, densities=densities,
+              resids=resids, DT=res.perm, obs.diff=obs.diff, Group=resids$Group)
   class(out) <- c('brainGraph_permute', class(out))
   return(out)
 }
@@ -130,77 +118,91 @@ brainGraph_permute <- function(densities, resids, N=5e3, perms=NULL, auc=FALSE,
 #==============================================================================
 # Helper functions
 #==============================================================================
-make_graphs_perm <- function(densities, resids, inds, groups) {
-  corrs <- lapply(unique(groups), function(x)
-                  corr.matrix(resids[which(groups[inds] == x)],
+make_graphs_perm <- function(densities, resids, inds, grps) {
+  corrs <- lapply(unique(grps), function(x)
+                  corr.matrix(resids[which(grps[inds] == x)],
                               densities=densities, rand=TRUE))
   sapply(corrs, lapply, function(x)
-         apply(x$r.thresh, 3, graph_from_adjacency_matrix, mode='undirected', diag=F))
+         apply(x$r.thresh, 3L, graph_from_adjacency_matrix, mode='undirected', diag=FALSE))
 }
 
 # Graph level
-diffFun_graph_noAUC <- function(densities, meas.list) {
-  tmp <- data.table(densities=densities, meas=meas.list[, 1] - meas.list[, 2], key='densities')
-  setnames(tmp, 'meas', deparse(substitute(meas.list)))
-  return(tmp)
-}
-graph_attr_perm <- function(g, densities, atlas) {
-  g <- lapply(g, lapply, make_brainGraph, atlas, rand=TRUE)
-
+graph_attr_perm <- function(g, densities) {
   mod <- sapply(g, sapply, function(x) modularity(cluster_louvain(x)))
   Cp <- sapply(g, sapply, function(x) transitivity(x, type='localaverage'))
   Lp <- sapply(g, sapply, mean_distance)
   assort <- sapply(g, sapply, assortativity_degree)
   E.global <- sapply(g, sapply, efficiency, 'global')
-  assort.lobe <- sapply(g, sapply, function(x)
-                        assortativity_nominal(x, as.integer(factor(V(x)$lobe))))
-  asymm <- sapply(g, sapply, function(x) edge_asymmetry(x)$asymm)
-  list(mod=mod, Cp=Cp, Lp=Lp, assort=assort, E.global=E.global, assort.lobe=assort.lobe, asymm=asymm)
+  list(mod=mod, Cp=Cp, Lp=Lp, assort=assort, E.global=E.global)
 }
-graph_attr_perm_diffs <- function(densities, meas.list, auc) {
-  if (isTRUE(auc)) {
-    tmp <- data.table(t(sapply(meas.list, function(y) auc_diff(densities, y))))
-  } else {
-    meas.dt <- lapply(meas.list, function(y) diffFun_graph_noAUC(densities, y))
-    for (i in 1:7) setnames(meas.dt[[i]], 'y', names(meas.dt)[i])
-    tmp <- Reduce(merge, meas.dt)
-  }
-  return(tmp)
-}
-permute_graph_foreach <- function(perms, densities, resids, groups, atlas, auc) {
+
+permute_graph_foreach <- function(perms, densities, resids, grps, auc) {
   i <- NULL
-  res.perm <- foreach(i=seq_len(nrow(perms)), .combine='rbind') %dopar% {
-    g <- make_graphs_perm(densities, resids, perms[i, ], groups)
-    meas.list <- graph_attr_perm(g, densities, atlas)
-    graph_attr_perm_diffs(densities, meas.list, auc)
+  N <- dim(perms)[1L]
+  if (isTRUE(auc)) {
+    res.perm <- foreach(i=seq_len(N), .combine='rbind') %dopar% {
+      g <- make_graphs_perm(densities, resids, perms[i, ], grps)
+      meas.list <- graph_attr_perm(g, densities)
+      t(vapply(meas.list, function(y) auc_diff_perm(densities, y), numeric(1L)))
+    }
+    res.perm <- as.data.table(res.perm)
+  } else {
+    # Returns a list of (Ndensities * Nperms) X 2 matrices for all metrics
+    res.perm <- foreach(i=seq_len(N), .combine=function(a, b) Map(rbind, a, b)) %dopar% {
+      g <- make_graphs_perm(densities, resids, perms[i, ], grps)
+      meas.list <- graph_attr_perm(g, densities)
+    }
+    res.perm <- data.table(densities=rep.int(densities, N),
+                           sapply(res.perm, function(x) as.numeric(-diff(t(x)))))
+    setkey(res.perm, densities)
   }
+  return(res.perm)
 }
 
 # Vertex-level
-vertex_attr_perm <- function(measure, g, densities) {
+vertex_attr_funs <- function(measure) {  # Move the "switch" outside the "foreach" loop
   switch(measure,
-    vulnerability=lapply(g, function(x) t(sapply(x, vulnerability))),
-    degree=lapply(g, function(x) t(sapply(x, degree))),
-    E.nodal=lapply(g, function(x) t(sapply(x, efficiency, 'nodal'))),
-    ev.cent=lapply(g, function(x) t(sapply(x, function(y) centr_eigen(y)$vector))),
-    knn=lapply(g, function(x) t(sapply(x, function(y) graph.knn(y)$knn))),
-    transitivity=lapply(g, function(x) t(sapply(x, transitivity,type='local', isolates='zero'))),
-    lapply(g, function(x) t(sapply(x, function(y) centr_betw(y)$res))))
+         coreness=coreness,
+         degree=degree,
+         eccentricity=eccentricity,
+         clo.cent=function(x) centr_clo(x)$res,
+         communicability=centr_betw_comm,
+         ev.cent=function(x) centr_eigen(x)$vector,
+         lev.cent=function(x) centr_lev(x)$res,
+         pagerank=function(x) page_rank(x, weights=NA)$vector,
+         subg.cent=subgraph_centrality,
+         E.local=function(x) efficiency(x, type='local', weights=NA, use.parallel=FALSE),
+         E.nodal=function(x) efficiency(x, type='nodal', weights=NA),
+         knn=function(x) knn(x)$knn,
+         Lp=function(x) mean_distance_wt(x, level='vertex', weights=NA),
+         transitivity=function(x) transitivity(x, type='local', isolates='zero'),
+         vulnerability=function(x) vulnerability(x, use.parallel=FALSE),
+         function(x) centr_betw(x)$res)
 }
-permute_vertex_foreach <- function(perms, densities, resids, groups, measure, diffFun) {
+
+permute_vertex_foreach <- function(perms, densities, resids, grps, auc, measure) {
   i <- NULL
-  res.perm <- foreach(i=seq_len(nrow(perms)), .combine='rbind') %dopar% {
-    g <- make_graphs_perm(densities, resids, perms[i, ], groups)
-    meas.list <- vertex_attr_perm(measure, g, densities)
+  if (isTRUE(auc)) {
+    diffFun <- function(densities, meas.list) {
+      sapply(seq_len(dim(meas.list[[1L]])[2L]), function(x)
+             auc_diff(densities, cbind(meas.list[[1L]][, x], meas.list[[2L]][, x])))
+    }
+  } else {
+    diffFun <- function(densities, meas.list) cbind(densities, meas.list[[1L]] - meas.list[[2L]])
+  }
+  fun <- vertex_attr_funs(measure)
+  res.perm <- foreach(i=seq_len(dim(perms)[1L]), .combine='rbind') %dopar% {
+    g <- make_graphs_perm(densities, resids, perms[i, ], grps)
+    meas.list <- lapply(g, function(x) t(sapply(x, fun)))
     diffFun(densities, meas.list)
   }
 }
 
 # Other-level
-permute_other_foreach <- function(perms, densities, resids, groups, .function) {
+permute_other_foreach <- function(perms, densities, resids, grps, .function) {
   i <- NULL
-  res.perm <- foreach(i=seq_len(nrow(perms)), .combine='rbind') %dopar% {
-    g <- make_graphs_perm(densities, resids, perms[i, ], groups)
+  res.perm <- foreach(i=seq_len(dim(perms)[1L]), .combine='rbind') %dopar% {
+    g <- make_graphs_perm(densities, resids, perms[i, ], grps)
     .function(g, densities)
   }
 }
@@ -211,166 +213,122 @@ permute_other_foreach <- function(perms, densities, resids, groups, .function) {
 
 #' Print a summary from a permutation analysis
 #'
-#' @param object A \code{brainGraph_permute} object (output by
+#' @param object,x A \code{brainGraph_permute} object (output by
 #'   \code{\link{brainGraph_permute}}).
 #' @param p.sig Character string specifying which p-value to use for displaying
 #'   significant results (default: \code{p})
 #' @param ... Unused
 #' @inheritParams GLM
 #' @export
-#' @method summary brainGraph_permute
 #' @rdname brainGraph_permute
 
-summary.brainGraph_permute <- function(object, measure=NULL,
+summary.brainGraph_permute <- function(object, measure=object$measure,
                                        alternative=c('two.sided', 'less', 'greater'),
                                        alpha=0.05, p.sig=c('p', 'p.fdr'), ...) {
-  perm.diff <- p <- N <- p.fdr <- region <- obs.diff <- NULL
-
-  permDT <- copy(object$DT)
-  g <- with(object, make_graphs_perm(densities, resids, 1:nrow(resids$resids.all),
-                                     resids$resids.all[, as.numeric(Group)]))
-  # OTHER
-  #-------------------------------------
+  perm.diff <- p <- p.fdr <- region <- obs.diff <- ..measure <- NULL
+  gID <- getOption('bg.group')
   if (object$level == 'other') {  # Hack to figure out which level it is when level="other"
-    if (ncol(permDT) > 8) {
-      object$level <- 'vertex'
-    } else {
-      object$level <- 'graph'
-    }
+    object$level <- if (dim(object$DT)[2L] > 6L) 'vertex' else 'graph'
   }
 
+  if (object$level == 'graph' && is.null(measure)) measure <- 'mod'
+  group_str <- paste0(measure, '.', object$Group)
+  permDT <- copy(object$DT)
+  g <- with(object, make_graphs_perm(densities, resids, seq_len(nobs(resids)),
+                                     resids$resids.all[, as.numeric(get(gID))]))
+
+  densities <- object$densities
   # VERTEX-LEVEL
   #-------------------------------------
   if (object$level == 'vertex') {
-    densities <- object$densities
-    measure <- object$measure
     obsDT <- copy(object$obs.diff)
-    meas.list <- with(object, vertex_attr_perm(measure, g, densities))
+    fun <- vertex_attr_funs(measure)
+    obs <- lapply(g, function(x) t(sapply(x, fun)))
 
     if (isTRUE(object$auc)) {
-      obs <- lapply(meas.list, apply, 2, function(y) sum(diff(object$densities) * (head(y, -1) + tail(y, -1))) / 2)
+      obs <- lapply(obs, apply, 2L, function(y) -auc_diff(densities, y))
       permDT[, densities := 1]
       obsDT[, densities := 1]
       densities <- 1
-    } else {
-      obs <- meas.list
     }
     sum.dt <- data.table(densities=densities,
-                         region=rep(V(g[[1]][[1]])$name, each=length(densities)),
-                         g1=c(obs[[1]]),
-                         g2=c(obs[[2]]),
-                         key='densities')
-    setnames(sum.dt, c('g1', 'g2'), paste0(measure, '.', object$groups))
-    obs <- melt(obsDT, id.vars='densities', variable.name='region', value.name='obs.diff')
-    sum.dt <- merge(sum.dt, obs, by=c('densities', 'region'))
+                         region=rep(V(g[[1L]][[1L]])$name, each=length(densities)),
+                         g1=c(obs[[1L]]), g2=c(obs[[2L]]),
+                         key=c('densities', 'region'))
+    setnames(sum.dt, c('g1', 'g2'), group_str)
+    obs.m <- melt(obsDT, id.vars='densities', variable.name='region', value.name='obs.diff')
+    sum.dt <- merge(sum.dt, obs.m)
     permDT <- melt(permDT, id.vars='densities', variable.name='region', value.name=measure)
     setkeyv(permDT, key(sum.dt))
-    permdiff <- permDT[, list(perm.diff=mean(get(measure))), by=list(densities, region)]
+    permdiff <- permDT[, list(perm.diff=mean(get(measure))), by=key(sum.dt)]
     sum.dt <- merge(sum.dt, permdiff, by=key(sum.dt))
 
   # GRAPH-LEVEL
   #-------------------------------------
   } else if (object$level == 'graph') {
-    if (is.null(measure)) measure <- 'mod'
-    stopifnot(measure %in% names(permDT))
+    stopifnot(hasName(permDT, measure))
     permDT[, region := 'graph']
-    if (measure %in% c('asymm', 'assortativity.lobe')) {
-      g <- lapply(g, lapply, make_brainGraph, object$atlas, rand=TRUE)
-    }
-    meas.list <- with(object, graph_attr_perm(g, densities, atlas))
+    obs <- graph_attr_perm(g, densities)[[measure]]
 
-    obs <- meas.list[[measure]]
     if (isTRUE(object$auc)) {
-      obs <- apply(obs, 2, function(y) sum(diff(object$densities) * (head(y, -1) + tail(y, -1))) / 2)
-      sum.dt <- data.table(densities=1, region='graph')
-      sum.dt[, (paste0(measure, '.', object$groups)) := as.list(obs)]
-      sum.dt[, obs.diff := object$obs.diff[[measure]]]
-      sum.dt[, perm.diff := permDT[, mean(get(measure))]]
-
+      obs <- t(apply(obs, 2L, function(y) -auc_diff(densities, y)))
       permDT[, densities := 1]
-
-    } else {
-      sum.dt <- data.table(densities=object$densities, region='graph')
-      for (i in seq_along(object$groups)) {
-        sum.dt[, paste0(measure, '.', object$groups[i]) := obs[, i]]
-      }
-      sum.dt[, obs.diff := object$obs.diff[[measure]]]
-      sum.dt[, perm.diff := permDT[, mean(get(measure)), by=list(densities, region)]$V1]
+      densities <- 1
     }
+
+    sum.dt <- data.table(densities=densities, region='graph', obs)
+    setnames(sum.dt, c('V1', 'V2'), group_str)
+    sum.dt[, obs.diff := object$obs.diff[[measure]]]
+    sum.dt[, perm.diff := permDT[, mean(get(measure)), by=densities]$V1]
   }
-  result.dt <- merge(permDT[, c('densities', 'region', measure), with=F],
-                     sum.dt[, c('densities', 'region', 'obs.diff'), with=F],
+  result.dt <- merge(permDT[, c('densities', 'region', ..measure)],
+                     sum.dt[, c('densities', 'region', 'obs.diff')],
                      by=c('densities', 'region'))
 
   alt <- match.arg(alternative)
-  if (alt == 'two.sided') {
-    result.dt[, p := (sum(abs(get(measure)) >= abs(unique(obs.diff))) + 1) / (.N + 1), by=key(result.dt)]
-    CI <- c(alpha / 2, 1 - (alpha / 2))
-  } else if (alt == 'less') {
-    result.dt[, p := (sum(get(measure) <= unique(obs.diff)) + 1) / (.N + 1), by=key(result.dt)]
-    CI <- c(alpha, 1)
-  } else if (alt == 'greater') {
-    result.dt[, p := (sum(get(measure) >= unique(obs.diff)) + 1) / (.N + 1), by=key(result.dt)]
-    CI <- c(1 / N, 1 - alpha)
-  }
+  compfun <- switch(alt,
+                    two.sided=function(perm, obs) sum(abs(perm) >= abs(unique(obs))),
+                    less=function(perm, obs) sum(perm <= unique(obs)),
+                    greater=function(perm, obs) sum(perm >= unique(obs)))
+  result.dt[, p := (compfun(get(measure), obs.diff) + 1L) / (.N + 1L), by=key(result.dt)]
+  CI <- switch(alt, two.sided=c(alpha / 2, 1 - (alpha / 2)), less=c(alpha, 1), greater=c(1 / object$N, 1 - alpha))
   result.dt[, c('ci.low', 'ci.high') := as.list(sort(get(measure))[ceiling(.N * CI)]), by=key(result.dt)]
-  result.dt <- result.dt[, .SD[1], by=key(result.dt)]
-  sum.dt <- merge(sum.dt, result.dt[, !c(measure, 'obs.diff'), with=F], by=key(result.dt))
-  setcolorder(sum.dt,
-              c('densities', 'region', paste0(measure, '.', object$groups), 'obs.diff',
-                'ci.low', 'ci.high', 'perm.diff', 'p'))
-  if (!isTRUE(object$auc)) {
-    if (object$level == 'graph') {
-      sum.dt[, p.fdr := p.adjust(p, 'fdr')]
-    } else {
-      sum.dt[, p.fdr := p.adjust(p, 'fdr'), by=densities]
-    }
+  result.dt <- result.dt[, .SD[1L], by=key(result.dt)]
+  sum.dt <- merge(sum.dt, result.dt[, !c(measure, 'obs.diff'), with=FALSE], by=key(result.dt))
+  setcolorder(sum.dt, c('densities', 'region', group_str, 'obs.diff', 'perm.diff', 'ci.low', 'ci.high', 'p'))
+  if (isFALSE(object$auc)) {
+    groupby <- if (object$level == 'graph') NULL else 'densities'
+    sum.dt[, p.fdr := p.adjust(p, 'fdr'), by=groupby]
   }
 
-  meas.full <- switch(measure,
-                      mod='Modularity',
-                      E.global='Global efficiency',
-                      E.global.wt='Global efficiency (weighted)',
-                      Cp='Clustering coefficient',
-                      Lp='Characteristic path length',
-                      assort='Degree assortativity',
-                      assort.lobe='Lobe assortativity',
-                      asymm='Edge asymmetry',
-                      btwn.cent='Betweenness centrality',
-                      vulnerability='Vulnerability',
-                      degree='Degree',
-                      E.nodal='Nodal efficiency',
-                      ev.cent='Eigenvector centrality',
-                      knn='K-nearest neighbor degree',
-                      transitivity='Local transitivity')
-
+  meas.full <- print_full_metric(measure)
   p.sig <- match.arg(p.sig)
-  perm.sum <- with(object, list(auc=auc, N=N, level=level, densities=densities,
-                                DT.sum=sum.dt, meas.full=meas.full, groups=groups,
-                                alt=alt, alpha=alpha, p.sig=p.sig))
+  perm.sum <- c(object, list(DT.sum=sum.dt, meas.full=meas.full, alt=alt, alpha=alpha, p.sig=p.sig))
+  perm.sum$measure <- measure
   class(perm.sum) <- c('summary.brainGraph_permute', class(perm.sum))
   perm.sum
 }
 
 #' @aliases summary.brainGraph_permute
 #' @method print summary.brainGraph_permute
+#' @export
 
 print.summary.brainGraph_permute <- function(x, ...) {
-  message('\nPermutation analysis\n', rep('-', getOption('width') / 2))
+  print_title_summary('Permutation analysis')
   cat('# of permutations:', prettyNum(x$N, ','), '\n')
   cat('Level: ', x$level, '\n')
   cat('Graph metric: ', x$meas.full, '\n')
   if (isTRUE(x$auc)) cat('Area-under-the-curve (AUC) calculated across', length(x$densities), 'densities:\n', x$densities, '\n')
 
-  alt <- switch(x$alt,
-                two.sided=with(x, sprintf('%s - %s != 0', groups[1], groups[2])),
-                greater=with(x, sprintf('%s - %s > 0', groups[1], groups[2])),
-                less=with(x, sprintf('%s - %s < 0', groups[1], groups[2])))
-  cat('Alternative hypothesis: ', alt, '\n')
+  symb <- switch(x$alt, two.sided='!=', greater='>', less='<')
+  alt <- sprintf('%s - %s %s 0', x$Group[1L], x$Group[2L], symb)
+  cat('Alternative hypothesis: ', '\t', alt, '\n')
   cat('Alpha: ', x$alpha, '\n\n')
-  if (with(x, nrow(DT.sum[get(p.sig) < alpha])) == 0) {
-    cat ('No significant results!\n')
+  if (with(x, dim(DT.sum[get(p.sig) < alpha])[1L]) == 0L) {
+    cat('No significant results!\n')
   } else {
+    clp <- 100 * (1 - x$alpha)
+    setnames(x$DT.sum, c('ci.low', 'ci.high'), paste0(clp, '% CI ', c('low', 'high')))
     with(x, print(DT.sum[get(p.sig) < alpha]))
   }
   invisible(x)
@@ -378,95 +336,155 @@ print.summary.brainGraph_permute <- function(x, ...) {
 
 #' Plot results from permutation testing
 #'
-#' @param x A \code{brainGraph_permute} object (output by
-#'   \code{\link{brainGraph_permute}}).
 #' @param ptitle Character string specifying a title for the plot (default:
 #'   \code{NULL})
 #' @export
-#' @method plot brainGraph_permute
 #' @return The \code{plot} method returns a \emph{list} of \code{ggplot} objects
 #' @rdname brainGraph_permute
 
-plot.brainGraph_permute <- function(x, measure=NULL,
+plot.brainGraph_permute <- function(x, measure=x$measure,
                                     alternative=c('two.sided', 'less', 'greater'),
                                     alpha=0.05, p.sig=c('p', 'p.fdr'), ptitle=NULL, ...) {
   densities <- Group <- sig <- trend <- yloc <- obs <- mylty <- ci.low <- ci.high <-
-    variable <- value <- reg.num <- region <- perm.diff <- obs.diff <- NULL
+    variable <- value <- reg.num <- region <- perm.diff <- obs.diff <- plot2 <- reg.num2 <- NULL
   p.sig <- match.arg(p.sig)
-  if (x$level == 'graph') {
-    if (is.null(measure)) measure <- 'mod'
-    stopifnot(measure %in% names(x$DT))
-  } else {
-    measure <- x$measure
-  }
   perm.sum <- summary(x, measure=measure, alternative=alternative, alpha=alpha)
+  measure <- perm.sum$measure
   sum.dt <- perm.sum$DT.sum
   if (is.null(ptitle)) ptitle <- perm.sum$meas.full
-  ylabel2 <- sprintf('Observed and permutation difference (%s - %s)', x$groups[1], x$groups[2])
+  ylabel2 <- sprintf('Observed and permutation difference (%s - %s)', x$Group[1L], x$Group[2L])
 
   # GRAPH LEVEL
   #-------------------------------------
   if (x$level == 'graph') {
-    plot.dt <- melt(sum.dt, id.vars=setdiff(names(sum.dt), paste0(measure, '.', x$groups)),
+    plot.dt <- melt(sum.dt, id.vars=setdiff(names(sum.dt), paste0(measure, '.', x$Group)),
                     variable.name='Group', value.name='obs')
-    plot.dt[, Group := factor(Group, labels=x$groups)]
-    plot.dt <- melt(plot.dt, id.vars=c('densities', 'region', 'p', 'p.fdr', 'Group', 'obs'))
+    plot.dt[, Group := factor(Group, labels=x$Group)]
+    idvars <- c('densities', 'region', 'p', 'Group', 'obs')
+    if (isFALSE(x$auc)) idvars <- c(idvars, 'p.fdr')
+    plot.dt <- melt(plot.dt, id.vars=idvars)
     plot.dt[, c('sig', 'trend') := '']
     plot.dt[get(p.sig) < alpha, sig := '*']
     plot.dt[get(p.sig) >= alpha & get(p.sig) < 2 * alpha, trend := '*']
-    plot.dt[, yloc := round(min(obs) - 0.05 * diff(range(obs)), 3)]
+    plot.dt[, yloc := extendrange(obs, f=0.07)[1L]]
     plot.dt[, mylty := 0]
     plot.dt[variable == 'obs.diff', mylty := 1]
     plot.dt[variable %in% c('ci.low', 'ci.high'), mylty := 2]
     plot.dt[variable == 'perm.diff', mylty := 3]
-    # Line plot of observed group values
-    p <- ggplot(plot.dt, aes(x=densities))
-    plot1 <- p +
-      geom_line(aes(y=obs, col=Group)) +
-      geom_text(aes(y=yloc, label=sig), col='red', size=8) +
-      geom_text(aes(y=yloc, label=trend), col='blue', size=8) +
-      theme(legend.position='bottom')
 
-    # Line plot of observed difference and CI's
-    plot2 <- p +
-      geom_line(data=plot.dt[variable=='obs.diff'], aes(y=value, lty=factor(mylty)), col='red') +
-      geom_point(data=plot.dt[variable == 'obs.diff'], aes(y=value), col='red', size=3) +
-      geom_line(data=plot.dt[variable == 'perm.diff'], aes(y=value, lty=factor(mylty))) +
-      geom_line(data=plot.dt[variable == 'ci.low'], aes(y=value, lty=factor(mylty))) +
-      geom_line(data=plot.dt[variable == 'ci.high'], aes(y=value, lty=factor(mylty))) +
-      scale_linetype_manual(name='',
-                            labels=c('  Observed diff.     ',
-                                     '  95% CI     ',
-                                     '  Mean permutation diff.     '),
-                            values=1:3) +
-      theme(legend.position='bottom',
-            legend.key=element_rect(fill='white'),
-            legend.background=element_rect(fill='gray79'))
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      # 1. Line plot of observed group values
+      gID <- getOption('bg.group')
+      grps <- paste(perm.sum$measure, x$Group, sep='.')
+      ymin <- plot.dt[1L, yloc]
+      ymax <- plot.dt[, max(obs)]
 
-    ylabel1 <- 'Observed values'
-    plot1 <- plot1 +
-      labs(title=ptitle, y=ylabel1, x='Density') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
-    plot2 <- plot2 +
-      labs(title=ptitle, y=ylabel2, x='Density') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
+      par(mar=c(8.6, 4.1, 4.1, 2.1), xpd=TRUE)
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              plot(densities, obs, type='l', col=plot.cols[1L],
+                   main=perm.sum$meas.full, xlab='Density', ylab='Observed values')]
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[2L],
+              lines(densities, obs, col=plot.cols[2L])]
+      plot.dt[variable == 'obs.diff' & sig == '*',
+              text(densities, yloc, sig, cex=1.75, col='red')]
+      plot.dt[variable == 'obs.diff' & trend == '*',
+              text(densities, yloc, trend, cex=1.75, col='blue')]
+      legend('bottom', title=gID, sub(paste0(perm.sum$measure, '.'), '', grps),
+             fill=plot.cols[1L:2L], inset=c(0, -0.35), horiz=TRUE)
+
+      # 2. Line plot of observed difference and CI's
+      ymin <- plot.dt[variable == 'ci.low', min(value)]
+      ymax <- plot.dt[variable == 'ci.high', max(value)]
+
+      par(mar=c(9.1, 4.1, 4.1, 2.1), xpd=TRUE)
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              plot(densities, value, type='l', col='red', ylim=c(ymin, ymax),
+                   main=perm.sum$meas.full, xlab='Density', ylab=ylabel2)]
+      plot.dt[variable == 'obs.diff' & get(gID) == grps[1L],
+              points(densities, value, col='red', pch=19)]
+      plot.dt[variable == 'ci.high' & get(gID) == grps[1L],
+              lines(densities, value, lty=2)]
+      plot.dt[variable == 'ci.low' & get(gID) == grps[1L],
+              lines(densities, value, lty=2)]
+      plot.dt[variable == 'perm.diff' & get(gID) == grps[1L],
+              lines(densities, value, lty=3)]
+      legend('bottom', c('Observed diff.', '95% CI', 'Mean permutation diff.'),
+             lty=1L:3L, inset=c(0, -0.4))
+      return(invisible(x))
+
+    # 'ggplot2' plotting
+    } else {
+      # 1. Line plot of observed group values
+      p <- ggplot2::ggplot(plot.dt, ggplot2::aes(x=densities))
+      plot1 <- p +
+        ggplot2::geom_line(ggplot2::aes(y=obs, col=Group)) +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=sig), col='red', size=8) +
+        ggplot2::geom_text(ggplot2::aes(y=yloc, label=trend), col='blue', size=8) +
+        ggplot2::theme(legend.position='bottom')
+
+      # 2. Line plot of observed difference and CI's
+      plot2 <- p +
+        ggplot2::geom_line(data=plot.dt[variable =='obs.diff'], ggplot2::aes(y=value, lty=factor(mylty)), col='red') +
+        ggplot2::geom_point(data=plot.dt[variable == 'obs.diff'], ggplot2::aes(y=value), col='red', size=3) +
+        ggplot2::geom_line(data=plot.dt[variable == 'perm.diff'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::geom_line(data=plot.dt[variable == 'ci.low'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::geom_line(data=plot.dt[variable == 'ci.high'], ggplot2::aes(y=value, lty=factor(mylty))) +
+        ggplot2::scale_linetype_manual(name='',
+                                       labels=c('Observed diff.', '95% CI', 'Mean permutation diff.'),
+                                       values=1:3) +
+        ggplot2::theme(legend.position='bottom', legend.spacing.x=ggplot2::unit(9, 'pt'),
+                       legend.key=ggplot2::element_rect(fill='white'),
+                       legend.background=ggplot2::element_rect(fill='gray79'))
+
+      ylabel1 <- 'Observed values'
+      plot1 <- plot1 +
+        ggplot2::labs(title=ptitle, y=ylabel1, x='Density') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      plot2 <- plot2 +
+        ggplot2::labs(title=ptitle, y=ylabel2, x='Density') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      return(list(plot1, plot2))
+    }
 
   # VERTEX LEVEL
   #-------------------------------------
   } else {
-    if (nrow(sum.dt[get(p.sig) < alpha]) == 0) stop('No significant results!')
     plot.dt <- droplevels(sum.dt[get(p.sig) < alpha])
-    plot.dt[, reg.num := seq_len(.N), by=densities]
-    p <- ggplot(plot.dt[get(p.sig) < alpha], aes(x=region))
-    plot1 <- p +
-      geom_point(aes(y=perm.diff)) +
-      geom_errorbar(aes(ymin=ci.low, ymax=ci.high)) +
-      geom_segment(aes(x=reg.num - .25, xend=reg.num + .25, y=obs.diff, yend=obs.diff),
-                   col='red', size=1.25) +
-      facet_wrap(~ densities, scales='free') +
-      labs(title=ptitle, y=ylabel2, x='Region') +
-      theme(plot.title=element_text(hjust=0.5, face='bold'))
-    plot2 <- NULL
+    if (dim(plot.dt)[1L] == 0L) stop('No significant results!')
+
+    # 'base' plotting
+    if (!requireNamespace('ggplot2', quietly=TRUE)) {
+      ymin <- plot.dt[, min(c(obs.diff, ci.low))]
+      ymax <- plot.dt[, max(c(obs.diff, ci.high))]
+      plot.dt[, reg.num2 := as.numeric(as.factor(region))]
+      dotplot(perm.diff ~ region | as.factor(densities),
+              xlab='Region', ylab=ylabel2, main=perm.sum$meas.full,
+              data=plot.dt, ylim=extendrange(c(ymin, ymax)),
+              x0=plot.dt$reg.num2, y0=plot.dt$ci.low, y1=plot.dt$ci.high, yobs=plot.dt$obs.diff,
+              scales=list(x=list(relation='free')),
+              panel=function(x, y, x0, y0, y1, yobs, subscripts) {
+                lpoints(x, y, pch=19)
+                panel.abline(h=0, lty=3)
+                larrows(x0=x0[subscripts], y0=y0[subscripts], x1=x0[subscripts], y1=y1[subscripts],
+                        code=3, angle=90, length=0.1)
+                lsegments(x0[subscripts] - 0.1, yobs[subscripts],
+                          x0[subscripts] + 0.1, yobs[subscripts],
+                          col='red', lwd=3)
+              })
+
+    # 'ggplot2' plotting
+    } else {
+      plot.dt[, reg.num := seq_len(.N), by=densities]
+      plot1 <- ggplot2::ggplot(plot.dt, ggplot2::aes(x=region)) +
+        ggplot2::geom_point(ggplot2::aes(y=perm.diff)) +
+        ggplot2::geom_errorbar(ggplot2::aes(ymin=ci.low, ymax=ci.high)) +
+        ggplot2::geom_segment(ggplot2::aes(x=reg.num - .25, xend=reg.num + .25, y=obs.diff, yend=obs.diff),
+                              col='red', size=1.25) +
+        ggplot2::facet_wrap(~ densities, scales='free') +
+        ggplot2::labs(title=ptitle, y=ylabel2, x='Region') +
+        ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, face='bold'))
+      return(list(plot1, plot2))
+    }
   }
-  return(list(plot1, plot2))
 }

@@ -1,74 +1,70 @@
 #' Write files to be used for visualization with BrainNet Viewer
 #'
-#' This function will write the \emph{.node} and \emph{.edge} files necessary
-#' for visualization with the BrainNet Viewer software (see Reference below).
+#' Write the \code{.node} and \code{.edge} files necessary for visualization
+#' with the BrainNet Viewer software.
 #'
-#' @details For the \emph{.node} file, there are 6 columns:
+#' @details For the \code{.node} file, there are 6 columns:
 #' \itemize{
-#' \item \emph{Column 1}: x-coordinates
-#' \item \emph{Column 2}: y-coordinates
-#' \item \emph{Column 3}: z-coordinates
-#' \item \emph{Column 4}: Vertex color
-#' \item \emph{Column 5}: Vertex size
-#' \item \emph{Column 6}: Vertex label
+#'   \item \emph{Columns 1-3}: Vertex x-, y-, and z-coordinates
+#'   \item \emph{Column 4}: Vertex color
+#'   \item \emph{Column 5}: Vertex size
+#'   \item \emph{Column 6}: Vertex label
 #' }
-#' The \emph{.edge} file is the graph's associated adjacency matrix; a weighted
+#' The \code{.edge} file is the graph's associated adjacency matrix; a weighted
 #' adjacency matrix can be returned by using the \code{edge.wt} argument.
 #'
 #' @param g The \code{igraph} graph object of interest
-#' @param node.color Character string indicating whether to color the vertices or
-#'   not (default: \code{'none'})
-#' @param node.size Character string indicating what size the vertices should be;
+#' @param vcolor Character string indicating how to color the vertices (default:
+#'   \code{'none'})
+#' @param vsize Character string indicating what size the vertices should be;
 #'   can be any vertex-level attribute (default: \code{'constant'})
 #' @param edge.wt Character string indicating the edge attribute to use to
 #'   return a weighted adjacency matrix (default: \code{NULL})
-#' @param file.prefix Character string for the basename of the \emph{.node} and
-#'   \emph{.edge} files that are written
+#' @param file.prefix Character string for the basename of the \code{.node} and
+#'   \code{.edge} files that are written
 #' @export
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-#' @references Xia M, Wang J, He Y (2013). \emph{BrainNet Viewer: a network
-#' visualization tool for human brain connectomics}. PLoS One, 8(7):e68910.
+#' @references Xia, M. and Wang, J. and He, Y. (2013). BrainNet Viewer: a
+#'   network visualization tool for human brain connectomics. \emph{PLoS One},
+#'   \bold{8(7)}, e68910. \url{https://dx.doi.org/10.1371/journal.pone.0068910}
 #' @examples
 #' \dontrun{
-#' write_brainnet(g, node.color='community', node.size='degree',
-#'   edge.wt='t.stat')
+#' write_brainnet(g, vcolor='community', vsize='degree', edge.wt='t.stat')
 #' }
 
-write_brainnet <- function(g, node.color='none', node.size='constant',
-                           edge.wt=NULL, file.prefix='') {
+write_brainnet <- function(g, vcolor='none', vsize='constant', edge.wt=NULL, file.prefix='') {
   x.mni <- y.mni <- z.mni <- NULL
-  stopifnot(is_igraph(g))
+  stopifnot(is.brainGraph(g))
 
   atlas.dt <- get(g$atlas)
-  coords.cur <- round(atlas.dt[, matrix(c(x.mni, y.mni, z.mni), ncol=3)])
+  coords <- round(atlas.dt[, cbind(x.mni, y.mni, z.mni)])
 
-  if (node.color == 'none') {
-    color <- rep(1, vcount(g))
+  vnames <- vertex_attr_names(g)
+  if (vcolor == 'none') {
+    cols <- rep.int(1L, vcount(g))
   } else {
-    stopifnot(node.color %in% vertex_attr_names(g))
-    color <- vertex_attr(g, node.color)
+    stopifnot(vcolor %in% vnames)
+    cols <- as.integer(factor(vertex_attr(g, vcolor)))
   }
 
-  if (node.size == 'constant') {
-    size <- 5
+  if (vsize == 'constant') {
+    size <- 5L
   } else {
-    stopifnot(node.size %in% vertex_attr_names(g))
-    size <- vertex_attr(g, node.size)
+    stopifnot(vsize %in% vnames)
+    size <- vertex_attr(g, vsize)
   }
 
   if (file.prefix == '') {
-    nodefile <- paste0(quote(g), '_', node.size, '_', node.color, '.node')
+    nodefile <- paste0(quote(g), '_', vsize, '_', vcolor, '.node')
     edgefile <- paste0(quote(g), '.edge')
   } else {
     nodefile <- paste0(file.prefix, '.node')
     edgefile <- paste0(file.prefix, '.edge')
   }
-  write.table(cbind(coords.cur, color, size, V(g)$name),
-              file=nodefile,
-              row.names=F, col.names=F, sep='\t', quote=F)
+  fwrite(cbind(coords, cols, size, V(g)$name),
+         file=nodefile, quote=FALSE, sep='\t', col.names=FALSE)
 
-  write.table(as_adj(g, sparse=F, attr=edge.wt),
-              file=edgefile,
-              row.names=F, col.names=F, sep='\t', quote=F)
+  fwrite(as_adj(g, sparse=FALSE, attr=edge.wt),
+         file=edgefile, quote=FALSE, sep='\t', col.names=FALSE)
 }

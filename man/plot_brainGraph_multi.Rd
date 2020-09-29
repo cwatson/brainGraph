@@ -2,73 +2,115 @@
 % Please edit documentation in R/plot_brainGraph_multi.R
 \name{plot_brainGraph_multi}
 \alias{plot_brainGraph_multi}
-\title{Save PNG of three views of a brain graph}
+\alias{slicer}
+\title{Save PNG of one or three views for all graphs in a brainGraphList}
 \usage{
-plot_brainGraph_multi(g.list, groups = 1, N = 1,
-  filename = "tmp.png", subgraph = NULL, main = NULL, ...)
+plot_brainGraph_multi(g.list, filename = "orthoview.png",
+  subgraph = NULL, main = NULL, label = NULL, cex.main = 1, ...)
+
+slicer(g.list, nrows, ncols, plane = "axial", hemi = "both",
+  filename = "all.png", main = NULL, cex.main = 1, ...)
 }
 \arguments{
-\item{g.list}{A list of lists of \code{igraph} graph objects}
+\item{g.list}{A \code{brainGraphList} or a list of \code{brainGraph} objects}
 
-\item{groups}{An integer vector indicating which groups to plot; corresponds
-to the first element of the list \code{g.list} (default: 1)}
+\item{filename}{Character string of the filename of the PNG to be written.}
 
-\item{N}{Integer corresponding to the second element of the list
-\code{g.list} (default: 1)}
+\item{subgraph}{A vector or list of character strings to (optionally) subset
+the graph(s), possibly by multiple conditions}
 
-\item{filename}{Character string of the filename of the PNG to be written
-(default: 'tmp.png')}
+\item{main}{A vector or list of character strings to be placed in the main
+title of the center (axial) plot for each graph}
 
-\item{subgraph}{A list of character strings to (optionally) subset the
-graph(s), possibly by multiple conditions (default: \code{NULL})}
+\item{label}{A vector or list of character strings to be placed in one of the
+corners of the left plot (sagittal) in each row}
 
-\item{main}{A list of character strings to be placed in the main title of the
-center plot for each group (default: \code{NULL})}
+\item{cex.main}{Numeric specifying the level of character expansion for the
+plot titles. Default: \code{1} (no expansion)}
 
-\item{...}{Other arguments passed to
-\code{\link{plot_brainGraph}}}
+\item{...}{Other arguments passed to \code{\link{plot.brainGraph}}}
+
+\item{nrows}{Integer; the number of rows in the figure}
+
+\item{ncols}{Integer; the number of columns in the figure}
+
+\item{plane}{Character string indicating which orientation to plot.
+Default: \code{'axial'}}
+
+\item{hemi}{Character string indicating which hemisphere to plot. Default:
+\code{'both'}}
 }
 \description{
-This function will save a PNG file to disk containing three views (columns)
-of a brain graph (from left-to-right): left sagittal, axial, and right
-sagittal. The number of rows in the figure will equal the number of groups to
-plot.
+\code{plot_brainGraph_multi} writes a PNG file to disk containing three views
+(columns) of 1 or more \code{brainGraph} objects (from left-to-right): left
+sagittal, axial, and right sagittal. The number of rows in the figure will
+equal the number of graphs to plot.
+
+\code{slicer} writes a PNG file to disk containing a single view (i.e.,
+either sagittal, axial, or circular) of all \code{brainGraph} objects in the
+input list/\code{brainGraphList}.
 }
 \details{
-The function argument \code{N} tells the function to use the \code{N-th}
-element of the input list \code{g.list} for each group. So, for example, if
-\code{g.list} consists of lists of graphs for two groups, and \code{N} is 4,
-then the plots for \code{g.list[[1]][[4]]} and \code{g.list[[2]][[4]]} will
-be written to the file.
-
-The \code{subgraph} argument can be used to apply one or more conditions for
-subsetting the graph. If you would like multiple conditions, then it must be
-a \code{list} variable that equals in length to the number of groups. For a
-single group and multiple conditions, simply write e.g., \code{groups=c(1,
-1)}. The \code{main} argument has the same rule except it controls the main
-plot title, which appears in the \emph{axial} view along with the
-\emph{Group} name.
+Whether the first input is a \code{brainGraphList} object or a \code{list} of
+\code{brainGraph} objects, \emph{all} graphs in the object will be displayed
+in the figure. For \code{plot_brainGraph_multi}, this may be undesirable if
+you have more than 4 or 5 graphs in one object. You can choose fewer by using
+simple subsetting operations (see Examples below).
 }
+\note{
+All other arguments (passed to \code{\link{plot.brainGraph}}) will be
+applied to \emph{all} graphs. For example, if you include
+\code{vertex.label=NA} in the function call, vertex labels will be omitted
+for all graphs.
+}
+\section{Using subgraphs, titles, and labels}{
+
+There are three arguments that can differ for each graph to be displayed.
+Each follows the same \dQuote{rules}. If you would like the same value
+applied to all graphs, you can specify a \code{character} string. If you
+would like a different value for each group, you must supply a \code{vector}
+or \code{list} with length equal to the number of graphs. If its length is
+less than the number of graphs, values will be recycled. To \dQuote{skip}
+applying a value to one (or more) graph(s), you can use the \code{NULL} value
+only within a list (see the Examples below).
+\describe{
+  \item{subgraph}{Can be used to apply one or more conditions for subsetting
+    the graph(s).}
+  \item{main}{Controls the main plot title, which appears in the \emph{axial}
+    view along with each graph's \code{name} attribute. Depending on the
+    \code{level} of the \code{brainGraphList}, this will either be a Study
+    ID, Group name, or contrast name.}
+  \item{label}{Can be used to print a text label in a corner for each
+    group/graph. For example, you can print a letter if you will refer to,
+    e.g., \dQuote{Figure 1A}, \dQuote{Figure 1B}, etc.}
+}
+}
+
 \examples{
 \dontrun{
-plot_brainGraph_multi(g.hubs, groups=1:2, filename='Figure01_hubs.png',
+## "g.hubs" contains 2 groups; apply same subset to both
+plot_brainGraph_multi(g.hubs, filename='Figure01_hubs.png',
   subgraph='N > 0', vertex.color='color.lobe', vertex.size=15,
   show.legend=TRUE, vertex.label.cex=1.5)
-## Single group, different subgraphs for each plot
-plot_brainGraph_multi(g, groups=c(1, 1), N=5, filename='5_6core.png',
+
+## Single group, different subgraphs for both plots
+## "g" is a "brainGraphList" object
+gg <- g[rep(1, 3), drop=FALSE]
+plot_brainGraph_multi(gg, filename='group1_5-6-7core.png',
   vertex.color='color.lobe', edge.color='color.lobe', vertex.label=NA,
-  subgraph=list('coreness > 5', 'coreness > 6'),
-  main=list('k-core 5', 'k-core 6'))
+  subgraph=as.list(paste('coreness >', 5:7)),
+  main=as.list(paste('k-core', 5:7)))
+
+## Apply different subset for groups 1 & 3; no subset for group 2
+plot_brainGraph_multi(g, groups=1:3, vertex.label=NA,
+  subgraph=list('degree > 5', NULL, 'degree > 4'))
 }
 }
 \seealso{
-Other Plotting functions: \code{\link{plot.brainGraph_GLM}},
-  \code{\link{plot.brainGraph_NBS}},
-  \code{\link{plot.brainGraph_mediate}},
-  \code{\link{plot.brainGraph_mtpc}},
+Other Plotting functions: \code{\link{Plotting GLM graphs}},
+  \code{\link{plot.brainGraphList}},
   \code{\link{plot.brainGraph}},
-  \code{\link{plot_brainGraph_gui}},
-  \code{\link{plot_brainGraph_list}}
+  \code{\link{plot_brainGraph_gui}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

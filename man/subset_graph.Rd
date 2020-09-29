@@ -4,12 +4,12 @@
 \alias{subset_graph}
 \title{Subset graphs based on a given logical condition}
 \usage{
-subset_graph(g, subgraph)
+subset_graph(g, condition)
 }
 \arguments{
 \item{g}{A graph object}
 
-\item{subgraph}{Character string specifying an equation for which vertices to
+\item{condition}{Character string specifying an equation for which vertices to
 keep}
 }
 \value{
@@ -17,7 +17,7 @@ A graph object
 }
 \description{
 \code{subset_graph} will subset a given graph based on the given logical
-condition(s). This can be a "simple" logical equation, or can include
+condition(s). This can be a \dQuote{simple} logical equation, or can include
 combinations of \emph{AND} and \emph{OR} (i.e., \code{&} and \code{|}).
 }
 \keyword{internal}

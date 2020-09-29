@@ -1,3 +1,10 @@
+#' Check if all elements in a list are identical
+#'
+#' @param l A list
+#' @noRd
+
+all.identical <- function(l) all(mapply(identical, head(l, 1L), tail(l, -1L)))
+
 #' Convert arguments into a single list
 #'
 #' \code{args_as_list} converts its arguments into a single list. If the
@@ -5,61 +12,23 @@
 #' objects are given, it wraps them in a list.
 #'
 #' @param ... Graphs or a list of graphs
-#' @keywords internal
-#' @return A list object
+#' @noRd
 
 args_as_list <- function(...) {
-  graphs <- unlist(recursive=FALSE,
-    lapply(list(...), function(l) {
-             if (is_igraph(l)) {
-               list(l)
-             } else {
-               l
-             }}
-    )
-  )
-  return(graphs)
+  ll <- lapply(list(...), function(l) if (is_igraph(l)) list(l) else l)
+  unlist(ll, recursive=FALSE)
 }
 
-#' Difference in the area-under-the-curve of two vectors
-#'
-#' This function takes two vectors, calculates the area-under-the-curve (AUC),
-#' and calculates the difference between the two.
-#'
-#' If \code{y} has 2 columns, then each column should be the values for each
-#' subject group. If \code{y} has multiple columns (e.g., equal to the number of
-#' vertices of a graph), it will calculate the AUC for each column.
-#'
-#' @param x Numeric vector of the x-values
-#' @param y A numeric matrix
-#'
-#' @keywords internal
-#' @return A numeric value of the difference between two groups, or a numeric
-#'   vector of the AUC across vertices
-
-auc_diff <- function(x, y) {
-  if (length(x) > 1) {
-    if (is.null(dim(y))) {  # A single vector, for MTPC
-      return(sum(-diff(x) * (head(y, -1) + tail(y, -1))) / 2)
-    } else if (ncol(y) > 2) {
-      return(apply(y, 2, function(z) auc_diff(x, z)))
-    } else {
-      return(-diff(apply(y, 2, function(z)
-                         sum(diff(x) * (head(z, -1) + tail(z, -1))) / 2)))
-    }
-  } else {
-    return(y[1] - y[2])
-  }
-}
-
-#' Check for edge weights
+#' Check for vertex or edge attributes
 #'
 #' \code{check_weights} is a helper function for dealing with edge weights that
 #' get passed to different \code{igraph} functions.
 #'
-#' If \code{weights=NULL} and the graph has a \code{'weight'} attribute, that
-#' will be returned. If \code{weights=NA}, then that is returned.
+#' @return \code{check_weights} - If \code{weights=NULL} and the graph has a
+#'   \code{'weight'} attribute, then \code{NULL} will be returned. If
+#'   \code{weights=NA}, then \code{NA} is returned.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_weights <- function(g, weights) {
   if (is.null(weights) && 'weight' %in% edge_attr_names(g)) {
@@ -71,53 +40,62 @@ check_weights <- function(g, weights) {
       weights <- NA
     }
   }
-  return(weights)
+  weights
 }
 
 #' Check for presence of a degree attribute
 #'
-#' Helper function to check if \code{degree} is a vertex attribute of the input
-#' graph. Returns a numeric vector of the degree values.
+#' \code{check_degree} is a helper function to check if \code{degree} is a
+#' vertex attribute of the input graph. Returns a numeric vector of the degree
+#' values.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_degree <- function(g) {
-  if ('degree' %in% vertex_attr_names(g)) {
-    x <- V(g)$degree
-  } else {
-    x <- degree(g)
-  }
-  return(x)
+  if ('degree' %in% vertex_attr_names(g)) V(g)$degree else degree(g)
 }
 
 #' Check for presence of a strength attribute
 #'
-#' Helper function to check if \code{strength} is a vertex attribute of the
-#' input graph. Returns a numeric vector of the strength values.
+#' \code{check_strength} is a helper function to check if \code{strength} is a
+#' vertex attribute of the input graph. Returns a numeric vector of the strength
+#' values.
 #' @keywords internal
+#' @rdname check_attributes
 
 check_strength <- function(g) {
-  if ('strength' %in% vertex_attr_names(g)) {
-    x <- V(g)$strength
-  } else {
-    x <- strength(g)
-  }
-  return(x)
+  if ('strength' %in% vertex_attr_names(g)) V(g)$strength else strength(g)
 }
 
-#' Calculate coefficient of variation
+#' Test if an object is a character vector of numbers
 #'
-#' Calculates the \emph{coefficient of variation}, defined as
-#' \deqn{CV(x) = \frac{sd(x)}{mean(x)}}
+#' \code{check_sID} is a convenience function to test if a vector (typically the
+#' \emph{subject ID} column in a \code{data.table}) is a character vector of
+#' numbers, a factor vector of numbers, or a numeric vector. If so, it will
+#' zero-pad the variable to have equal width.
 #'
-#' @param x Numeric vector
+#' This function is meant to avoid issues that arise when sorting a vector of
+#' numbers that have been converted to \code{character}. For example,
+#' \code{\link{import_scn}} automatically reads in the first column (with
+#' \emph{FreeSurfer} outputs this is the column of subject IDs) as a
+#' \code{character} variable. If the subject IDs had been all numbers/integers,
+#' then sorting (i.e., setting the \code{key} in a \code{data.table}) would be
+#' incorrect: e.g., it might be \code{'1', '10', '2', ...}.
+#'
+#' @return \code{check_sID} returns either the input vector or a character
+#'   vector padded with \code{0}
 #' @export
-#'
-#' @return A numeric value
+#' @rdname pad_zeros
 
-coeff_var <- function(x) {
-  N <- length(x)
-  mu <- sum(x) / N
-  return(sqrt(1 / (N - 1) * (sum((x - mu)^2))) / mu)
+check_sID <- function(x) {
+  cls <- class(x)
+  if (cls == 'factor') {
+    test <- suppressWarnings(as.numeric(as.character(x)) == x)
+  } else {
+    test <- suppressWarnings(as.character(as.numeric(x)) == x)
+  }
+  if (isTRUE(all(test))) x <- pad_zeros(x)
+  return(x)
 }
 
 #' Calculate the p-value for differences in correlation coefficients
@@ -127,287 +105,322 @@ coeff_var <- function(x) {
 #' with the difference between correlation coefficients. This function was
 #' adapted from \url{http://stackoverflow.com/a/14519007/3357706}.
 #'
-#' @param r1 Numeric (vector or matrix) of correlation coefficients, group 1
-#' @param r2 Numeric (vector or matrix) of correlation coefficients, group 2
-#' @param n1 Integer; number of observations, group 1
-#' @param n2 Integer; number of observations, group 2
-#' @param alternative Character string specifying the alternative hypothesis
-#'   test to use; one of: 'two.sided' (default), 'less', 'greater'
+#' @param r1,r2 Numeric (vector or matrix) of correlation coefficients for both
+#'   groups
+#' @param n Integer vector; number of observations for both groups
+#' @inheritParams GLM
 #' @export
 #'
-#' @return A list containing:
-#' \item{p}{The p-values}
-#' \item{z}{The z-score for the difference in correlation coefficients}
+#' @return A list with elements \code{p} and \code{z}, the p-values
+#'   and z-scores for the difference in correlations.
 #'
-#' @family Matrix functions
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
 #' \dontrun{
 #' kNumSubjs <- summary(covars$Group)
-#' corr.diffs <- cor.diff.test(corrs[[1]][[1]]$R, corrs[[2]][[1]]$R,
-#'                             kNumSubjs[1], kNumSubjs[2], alternative='two.sided')
+#' corr.diffs <- cor.diff.test(corrs$R[, , 1], corrs$R[, , 2], kNumSubjs)
 #' edge.diffs <- t(sapply(which(corr.diffs$p < .05), function(x)
 #'                        mapply('[[',
 #'                               dimnames(corr.diffs$p),
 #'                               arrayInd(x, dim(corr.diffs$p)))
 #'                               ))
 #' }
-cor.diff.test <- function(r1, r2, n1, n2,
-                          alternative = c('two.sided', 'less', 'greater')) {
+cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater')) {
+  stopifnot(length(n) == 2L)
 
   z1 <- 0.5 * log((1 + r1) / (1 - r1))
   z2 <- 0.5 * log((1 + r2) / (1 - r2))
 
-  SEdiff <- sqrt((1 / (n1 - 3)) + (1 / (n2 - 3)))
+  n <- n - 3L
+  SEdiff <- sqrt((1 / n[1L]) + (1 / n[2L]))
   diff.z <- (z1 - z2) / SEdiff
 
   alt <- match.arg(alternative)
-  if (alt == 'less') {
-    p <- pnorm(diff.z)
-  } else if (alt == 'greater') {
-    p <- pnorm(diff.z, lower.tail=F)
-  } else if (alt == 'two.sided') {
-    p <- 2 * pnorm(abs(diff.z), lower.tail=F)
-  }
+  p <- switch(alt,
+              less=pnorm(diff.z),
+              greater=pnorm(diff.z, lower.tail=FALSE),
+              two.sided=2 * pnorm(abs(diff.z), lower.tail=FALSE))
 
   return(list(p=p, z=diff.z))
 }
 
-#' Delete all attributes of a graph
+#' Utility functions
 #'
-#' Deletes all graph-, vertex-, and edge-level attributes of an \code{igraph}
-#' graph object.
+#' \code{get_metadata} adds metadata to a list-like object.
 #'
-#' @param g An \code{igraph} graph object
-#' @param keep.names Logical indicating whether to keep the \code{name} vertex
-#'   attribute (default: \code{FALSE})
+#' If the object is a graph, graph-level attributes will be added. The
+#' elements added are:
+#' \itemize{
+#'   \item{version}{A list with R, brainGraph, and igraph versions}
+#'   \item{sys}{Character vector of system information}
+#'   \item{date}{The date and time of creation}
+#' }
 #'
+#' @param object A list-like object
 #' @keywords internal
-#' @return An \code{igraph} graph object
-#' @seealso \code{\link[igraph]{delete_graph_attr},
-#'   \link[igraph]{delete_vertex_attr}, \link[igraph]{delete_edge_attr}}
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @return \code{get_metadata} - the same object with version, system, and date
+#'   information added
+#' @name Utility functions
+#' @rdname utils
 
-delete_all_attr <- function(g, keep.names=FALSE) {
-  for (att in graph_attr_names(g)) g <- delete_graph_attr(g, att)
-  for (att in edge_attr_names(g)) g <- delete_edge_attr(g, att)
-  if (isTRUE(keep.names)) {
-    vattrs <- setdiff(vertex_attr_names(g), 'name')
-  } else {
-    vattrs <- vertex_attr_names(g)
-  }
-  for (att in vattrs) g <- delete_vertex_attr(g, att)
-
-  return(g)
+get_metadata <- function(object) {
+  object$version <- list(r=R.version.string,
+                         bg=packageVersion('brainGraph'),
+                         ig=packageVersion('igraph'))
+  object$sys <- Sys.info()[c(1L:3L, 5L)]
+  object$date <- format(Sys.time(), '%Y-%m-%dT%H:%M:%OS0')
+  return(object)
 }
 
-#' Symmetrize a matrix with the mean of off-diagonal elements
+#' Create a data.table with a single graph metric
 #'
-#' \code{symm_mean} returns a symmetric matrix in which the off-diagonal
-#' elements \eqn{A[i, j]} and \eqn{A[j, i]} are equal to the mean of the values
-#' in the input matrix.
-#' @param A Numeric matrix
+#' \code{glm_data_table} is used in \code{brainGraph_GLM} and
+#' \code{brainGraph_mediate} to create a \code{data.table} with the
+#' \emph{subject IDs} and column(s) for the graph- or vertex-level metric of
+#' interest.
+#'
+#' @inheritParams GLM
+#' @return \code{glm_data_table} - A \code{data.table} with one column
+#'   containing the subject ID's and 1 or more columns with the graph- or
+#'   vertex-level measure of interest.
 #' @keywords internal
-#' @return Numeric matrix
+#' @rdname glm_helpers
 
-symm_mean <- function(A) {
-  0.5 * (A + t(A))
+glm_data_table <- function(g.list, level, measure) {
+  sID <- getOption('bg.subject_id')
+  if (level == 'vertex') {
+    y <- t(vapply(g.list, vertex_attr, numeric(vcount(g.list[[1L]])), measure))
+    colnames(y) <- V(g.list[[1L]])$name
+    DT.y <- as.data.table(y, keep.rownames=sID)
+  } else if (level == 'graph') {
+    DT.y <- as.data.table(vapply(g.list, graph_attr, numeric(1L), measure), keep.rownames=TRUE)
+    setnames(DT.y, names(DT.y), c(sID, 'graph'))
+  }
+  return(DT.y)
+}
+
+#' Convert a matrix to a list of rows
+#'
+#' \code{matrix2list} makes working with different contrast types (i.e., t or F)
+#' a little simpler.
+#'
+#' @param mat Numeric matrix in which each row is a single contrast vector
+#' @return \code{matrix2list} -- A list with length equal to the number of rows
+#'   of \code{C}
+#' @keywords internal
+#' @rdname glm_helpers
+
+matrix2list <- function(mat) {
+  l <- lapply(seq_len(dim(mat)[1L]), function(i) mat[i, , drop=FALSE])
+  nam <- dimnames(mat)[[1L]]
+  if (!is.null(nam)) names(l) <- nam
+  return(l)
+}
+
+#' Helper function to calculate a max or min
+#'
+#' @keywords internal
+#' @rdname glm_helpers
+maxfun <- function(alternative) {
+  switch(alternative,
+         two.sided=function(x) max(abs(x), na.rm=TRUE),
+         less=function(x) min(x, na.rm=TRUE),
+         greater=function(x) max(x, na.rm=TRUE))
+}
+
+#' Helper function to sort values
+#'
+#' @keywords internal
+#' @rdname glm_helpers
+sortfun <- function(alternative) {
+  switch(alternative,
+         two.sided=function(x, ind) sort(abs(x), partial=ind)[ind],
+         less=function(x, ind) sort(x, decreasing=TRUE)[ind],
+         greater=function(x, ind) sort(x, partial=ind)[ind])
+}
+
+#' Faster version of outer for 2 vectors
+#'
+#' \code{outer_vec} simply performs the cross-product, specifically \code{x %*%
+#' t(y)}, and assigns dimnames to the resulting matrix.
+#' @keywords internal
+#' @rdname utils
+
+outer_vec <- function(x, y) {
+  robj <- tcrossprod(x, y)
+  dimnames(robj) <- list(names(x), names(y))
+  robj
+}
+
+#' Pad the front of a numeric or character vector with zeros
+#'
+#' \code{pad_zeros} pads a vector with zeros to avoid issues with ordering a
+#' column of integers or integers converted to \code{character}.
+#'
+#' If \dQuote{x} is a numeric vector, then the resultant string width will be
+#' determined by \code{max(x)} or \code{x} itself if the input is a single
+#' integer. For example, if \code{x=10}, it will return \code{'01', '02', ...,
+#' '10'}. If \dQuote{x} is a character vector, then the output's string width
+#' will be \code{max(nchar(x))}. For example, if \code{x} includes both
+#' \code{'1'} and \code{'1000'}, it will return \code{'0001'}, etc.
+#'
+#' @param x \code{pad_zeros} accepts either a vector (numeric or character) or a
+#'   single integer. \code{check_sID} accepts a character, numeric, or factor
+#'   vector
+#' @return A character vector with zero-padded values
+#' @export
+#' @examples
+#' pad_zeros(10)  # '01' '02' ... '10'
+#' x <- c(1, 10, 100)
+#' pad_zeros(x)   # '001' '010' '100'
+#' x <- as.character(x)
+#' pad_zeros(x)   # '001' '010' '100'
+
+pad_zeros <- function(x) {
+  if (is.numeric(x)) {
+    if (length(x) == 1L) x <- seq_len(x)
+    n <- max(x)
+    x <- formatC(x, width=floor(log10(n) + 1L), flag='0')
+  } else if (is.character(x)) {
+    nc <- nchar(x)
+    if (length(unique(nc)) == 1L) return(x)
+    spec <- paste0('%0', max(nc), 's')
+    x <- gsub(' ', '0', sprintf(spec, x))
+  }
+  return(x)
 }
 
 #' Apply a rotation matrix to a set of points
 #'
 #' This function takes a set of points and applies a rotation matrix (e.g. will
-#' rotate points 90 deg. if given "pi/2" as input)
+#' rotate points 90 deg. if given \dQuote{pi/2} as input)
 #'
 #' @param x A matrix with 2 columns of the points to rotate
 #' @param theta The angle to apply
-#'
-#' @keywords internal
 #' @return A matrix with 2 columns of the points' new locations
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
+#' @noRd
 
 rotation <- function(x, theta) {
-  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)),
-              nrow=2, ncol=2, byrow=F)
-  x.rot <- x %*% R
-  return(x.rot)
+  R <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow=2L)
+  x %*% R
 }
 
-#' Color graph vertices and edges
+#' Capitalize the first letter of a character string
 #'
-#' \code{set_vertex_color} takes an integer vector representing membership of
-#' some grouping (e.g., a community or connected component) and creates a
-#' character vector of colors for each grouping. Isolated vertices will be
-#' colored \emph{gray}.
+#' @noRd
+simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
+
+#' Add newlines to a character string for printing
 #'
-#' @param g An \code{igraph} graph object
-#' @param name Character string of the name of the vertex attribute to add
-#' @param memb An integer vector representing membership of e.g. a community
+#' \code{split_string} inserts separator characters in a character string to
+#' truncate strings for printing.
 #'
-#' @return The same graph with additional vertex or edge attribute
+#' The \code{delim} argument determines \emph{where} to insert the separator.
+#' For example, given the default, it will attempt to insert newline characters
+#' only following a plus sign.
 #'
+#' @param x A character string
+#' @param max.len Integer; the max length of one line. Default: 80
+#' @param delim Character specifying where to end a line if it is longer than
+#'   \code{max.len}. Default: \code{'+'}
+#' @param sep Character specifying what to split by. Default: \code{'\n'} (a
+#'   newline character)
 #' @keywords internal
-#' @name GraphColors
-#' @aliases set_vertex_color
-#' @rdname color_vertices_edges
+#' @rdname utils
 
-set_vertex_color <- function(g, name, memb) {
-  big.groups <- which(as.integer(table(memb)) > 1)
-
-  group.cols.memb <- rep('gray', length=max(memb))
-  group.cols.memb[big.groups] <- group.cols[big.groups]
-
-  g <- set_vertex_attr(g, name, value=group.cols.memb[memb])
-  return(g)
-}
-
-#' Color graph edges
-#'
-#' \code{set_edge_color} assigns a color to each edge (the same as the vertex
-#' membership colors). Edges that connect vertices of two different groups are
-#' colored gray.
-#'
-#' @keywords internal
-#' @aliases set_edge_color
-#' @rdname color_vertices_edges
-
-set_edge_color <- function(g, name, memb) {
-  stopifnot(length(memb) == vcount(g))
-  big.groups <- as.integer(names(which(table(memb) > 1)))
-
-  newcols <- rep('gray50', length=ecount(g))
-  tmp <- vector('list', length=max(big.groups))
-  for (i in big.groups) {
-    x <- which(memb == i)
-    tmp[[i]] <- as.vector(E(g)[x %--% x])
-    if (!is.null(tmp[[i]])) newcols[tmp[[i]]] <- group.cols[i]
+split_string <- function(x, max_len=80L, delim='\\+', sep='\n') {
+  str_len <- nchar(x)
+  if (str_len > max_len) {
+    nlines <- (str_len %/% max_len) + (str_len %% max_len > 0L)
+    delims <- gregexpr(delim, x)[[1L]]
+    endpts <- rep.int(str_len, nlines)
+    for (i in seq_len(nlines - 1L)) endpts[i] <- max(delims[delims < max_len*i])
+    startpts <- c(1L, endpts[-nlines] + 1L)
+    lines <- paste(Map(function(a, b) substr(x, a, b), startpts, endpts), '\n')
+    x <- trimws(paste(lines, collapse=''), 'right')
   }
-
-  g <- set_edge_attr(g, name, value=newcols)
-  return(g)
+  return(x)
 }
 
 #' Subset graphs based on a given logical condition
 #'
 #' \code{subset_graph} will subset a given graph based on the given logical
-#' condition(s). This can be a "simple" logical equation, or can include
+#' condition(s). This can be a \dQuote{simple} logical equation, or can include
 #' combinations of \emph{AND} and \emph{OR} (i.e., \code{&} and \code{|}).
 #'
 #' @param g A graph object
-#' @param subgraph Character string specifying an equation for which vertices to
+#' @param condition Character string specifying an equation for which vertices to
 #'   keep
 #' @keywords internal
 #' @return A graph object
 
-subset_graph <- function(g, subgraph) {
-  stopifnot(nchar(subgraph) > 0)
-  orig.class <- class(g)
+subset_graph <- function(g, condition) {
+  stopifnot(nzchar(condition))
+
   # Function for creating the condition string to later subset the graph
   get_cond_string <- function(orig) {
-    substrings <- strsplit(orig, split='\\s\\&\\s|\\s\\|\\s')[[1]]
-    if (length(substrings) > 1) {  # Multiple conditions
-      if (!isTRUE(grepl('\\s\\&\\s|\\s\\|\\s', orig))) {
+    spec <- '\\s\\&\\s|\\s\\|\\s'  # Splits are either " & " or " | "
+    conditions <- strsplit(orig, split=spec)[[1L]]
+    if (length(conditions) > 1L) {  # Multiple conditions
+      if (isFALSE(grepl(spec, orig))) {
         stop('Logical operators must be surrounded by spaces!')
       }
-      nchars <- cumsum(sapply(substrings, nchar))
-      splits <- sapply(seq_along(substrings), function(x)
-                       substr(orig, start=nchars[x]+(3*x-1), stop=nchars[x]+(3*x-1)))
-      substrings <- gsub('^\\s+|\\s+$', '', substrings) # Remove unnecessary whitespace
+      nchars <- cumsum(nchar(conditions))
+      endpts <- nchars + seq.int(from=2L, by=3L, length.out=length(nchars))
+      splits <- vapply(endpts, function(x) substr(orig, start=x, stop=x), character(1L))
+      conditions <- trimws(conditions) # Remove unnecessary whitespace
 
-      cond.string <- paste(sapply(seq_along(substrings), function(x)
-                                  paste0('V(g)$', substrings[x], splits[x])),
+      cond.string <- paste(vapply(seq_along(conditions), function(x)
+                                  paste0('V(g)$', conditions[x], splits[x]), character(1L)),
                            collapse='')
     } else {
-      cond.string <- paste0('V(g)$', substrings)
+      cond.string <- paste0('V(g)$', conditions)
     }
     return(cond.string)
   }
 
   # Handle when logical expressions are separated by parentheses
-  if (isTRUE(grepl('\\(.*\\&.*\\)', subgraph)) || isTRUE(grepl('\\(.*\\|.*\\)', subgraph))) {
-    subs <- strsplit(subgraph, split='\\)\\s\\&\\s\\(')[[1]]
-    subs <- as.list(gsub('^\\(|\\)$|^\\s+|\\s+$', '', subs))
-    cond.strings <- sapply(subs, get_cond_string)
-    cond.string <- paste0('(', cond.strings[1], ') & (', cond.strings[2], ')')
+  if (isTRUE(grepl('\\(.*\\&.*\\)', condition)) || isTRUE(grepl('\\(.*\\|.*\\)', condition))) {
+    subs <- strsplit(condition, split='\\) & \\(')[[1L]]
+    subs <- as.list(trimws(subs, whitespace='[\\(\\) ]'))
+    cond.strings <- vapply(subs, get_cond_string, character(1L))
+    cond.string <- paste0('(', paste(cond.strings, collapse=') & ('), ')')
   } else {
-    cond.string <- get_cond_string(subgraph)
+    cond.string <- get_cond_string(condition)
   }
 
   cond <- eval(parse(text=cond.string))
-  if (sum(cond, na.rm=TRUE) == 0) {
+  if (sum(cond, na.rm=TRUE) == 0L) {
     warning('No vertices meet criteria! No graph created')
-    return(list(g=NULL, inds=NULL))
+    g <- inds <- NULL
   } else {
     inds <- which(cond)
-    cond <- setdiff(seq_len(vcount(g)), which(cond))
+    cond <- setdiff(seq_len(vcount(g)), inds)
+    orig.class <- class(g)
     g <- delete.vertices(g, cond)
     class(g) <- orig.class
   }
-  return(list(g=g, inds=inds))
+  list(g=g, inds=inds)
 }
 
 #' Transform a vector to have a different range
 #'
-#' This function takes a vector and transforms it to have a new range, given
-#' the input, or the default values of [0, 1].
+#' \code{vec.transform} takes a vector and transforms it to have a new range,
+#' given the input, or the default values of [0, 1].
 #'
-#' @param x the vector to transform
 #' @param min.val the minimum value of the new range
 #' @param max.val the maximum value of the new range
 #'
 #' @keywords internal
 #' @return A vector of the transformed input.
+#' @rdname utils
 
 vec.transform <- function(x, min.val=0, max.val=1) {
-  if (diff(range(x, na.rm=TRUE)) == 0) {
-    return(rep(max.val, length=length(x)))
+  diffrange <- diff(range(x, na.rm=TRUE))
+  if (diffrange == 0) {
+    out <- rep_len(max.val, length(x))
   } else {
-    return(((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diff(range(x, na.rm=TRUE))) + min.val)
+    out <- ((x - min(x, na.rm=TRUE)) * (max.val - min.val) / diffrange) + min.val
   }
-}
-
-#' Transform edge weights
-#'
-#' For distance-based measures, it is important to transform the edge weights so
-#' that the \emph{strongest} connections are re-mapped to having the
-#' \emph{lowest} weights. Then you may calculate e.g., the \emph{shortest path
-#' length} which will include the strongest connections.
-#'
-#' There are 3 options for the type of transform to apply:
-#' \enumerate{
-#'   \item \code{1/w}: calculate the inverse
-#'   \item \code{-log(w)}: calculate the negative (natural) logarithm
-#'   \item \code{1-w}: subtract each weight from 1
-#' }
-#'
-#' To transform the weights back to original values, specify \code{invert=TRUE}.
-#'
-#' @param g An \code{igraph} graph object
-#' @param xfm.type Character string specifying how to transform the weights
-#'   (default: \code{1/w})
-#' @param invert Logical indicating whether or not to invert the transformation
-#'   (default: \code{FALSE})
-#' @export
-#'
-#' @return An \code{igraph} graph object with transformed edge weights and a
-#'   graph attribute, \code{xfm.type}, of the type of transform
-#' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
-
-xfm.weights <- function(g, xfm.type=c('1/w', '-log(w)', '1-w'), invert=FALSE) {
-  stopifnot(is_igraph(g), is_weighted(g))
-  xfm.type <- match.arg(xfm.type)
-  if (xfm.type == '1/w') {
-    E(g)$weight <- 1 / E(g)$weight
-  } else if (xfm.type == '-log(w)') {
-    if (isTRUE(invert)) {
-      E(g)$weight <- exp(-E(g)$weight)
-    } else {
-      E(g)$weight <- -log(E(g)$weight)
-    }
-  } else if (xfm.type == '1-w') {
-    E(g)$weight <- 1 - E(g)$weight
-  }
-
-  g$xfm.type <- xfm.type
-  return(g)
+  return(out)
 }

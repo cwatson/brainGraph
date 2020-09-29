@@ -1,7 +1,7 @@
 Package: brainGraph
 Type: Package
-Version: 2.7.3
-Date: 2019-11-07
+Version: 3.0.0
+Date: 2020-09-28
 Title: Graph Theory Analysis of Brain MRI Data
 Authors@R: person(given="Christopher G.", family="Watson",
                   email="cgwatson@bu.edu", role=c("aut", "cre"),
@@ -17,30 +17,88 @@ URL: https://github.com/cwatson/brainGraph
 BugReports: https://groups.google.com/forum/?hl=en#!forum/brainGraph-help
 LazyData: true
 Depends:
-    R (>= 3.0.0),
-    igraph (>= 1.0.0),
+    R (>= 3.5.0),
+    igraph (>= 1.2.4),
 Imports:
     abind,
-    ade4,
-    boot,
-    data.table,
-    expm,
+    data.table (>= 1.12.4),
+    doParallel,
     foreach,
-    ggplot2,
-    ggrepel,
-    gridExtra,
-    Hmisc,
+    grid,
+    lattice,
     MASS,
     Matrix,
     methods,
-    oro.nifti,
     permute,
-    parallel,
-    RcppEigen,
-    scales
+    parallel
 Suggests:
+    Hmisc,
     RGtk2,
+    ade4,
+    boot,
     cairoDevice,
-    mediation
+    car,
+    expm,
+    ggplot2,
+    ggrepel,
+    gridExtra,
+    mediation,
+    oro.nifti,
+    scales
 License: GPL-3
 RoxygenNote: 6.1.1
+Collate: 
+    'glm_stats.R'
+    'brainGraph_GLM.R'
+    'glm_methods.R'
+    'NBS.R'
+    'analysis_random_graphs.R'
+    'atlas.R'
+    'auc.R'
+    'boot_global.R'
+    'brainGraph_mediate.R'
+    'centr_lev.R'
+    'communicability.R'
+    'contract_brainGraph.R'
+    'corr_matrix.R'
+    'count_edges.R'
+    'create_graphs.R'
+    'create_mats.R'
+    'data.R'
+    'data_tables.R'
+    'distances.R'
+    'edge_asymmetry.R'
+    'get_resid.R'
+    'glm_design.R'
+    'glm_fit.R'
+    'glm_randomise.R'
+    'graph_efficiency.R'
+    'hubs.R'
+    'import.R'
+    'individ_contrib.R'
+    'list.R'
+    'method_helpers.R'
+    'mtpc.R'
+    'methods.R'
+    'permute_group.R'
+    'plot_brainGraph.R'
+    'plot_brainGraph_gui.R'
+    'plot_brainGraph_multi.R'
+    'plot_global.R'
+    'plot_group_means.R'
+    'plot_rich_norm.R'
+    'plot_vertex_measures.R'
+    'random_graphs.R'
+    'rich_club.R'
+    'robustness.R'
+    's_core.R'
+    'set_brainGraph_attributes.R'
+    'small_world.R'
+    'spatial_dist.R'
+    'update_brainGraph_gui.R'
+    'utils.R'
+    'utils_matrix.R'
+    'vertex_roles.R'
+    'vulnerability.R'
+    'write_brainnet.R'
+    'zzz.R'

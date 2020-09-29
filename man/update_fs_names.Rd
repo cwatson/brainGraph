@@ -4,7 +4,7 @@
 \alias{update_fs_names}
 \title{Update column names in a Freesurfer table}
 \usage{
-update_fs_names(filename, modality, parcellation, hemi)
+update_fs_names(filename, modality, parcellation, hemi, exclude.subs)
 }
 \description{
 Updates column names by abbreviating to match with the names in the

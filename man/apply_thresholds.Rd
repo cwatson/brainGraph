@@ -13,11 +13,11 @@ apply_thresholds(sub.mats, group.mats, W.files, inds)
 \item{group.mats}{List (equal to number of thresholds) of lists (equal to
 number of groups) of numeric matrices for group-level data}
 
-\item{W.files}{Character vector of the filenames of the files containing your
+\item{W.files}{Character vector of the filenames of the files with
 connectivity matrices}
 
 \item{inds}{List (length equal to number of groups) of integers; each list
-element should be an integer vector of length equal to the group sizes}
+element should be a vector of length equal to the group sizes}
 }
 \value{
 List containing:
@@ -27,21 +27,20 @@ List containing:
 \item{W.norm.mean}{List of lists of numeric matrices averaged for each group}
 }
 \description{
-\code{apply_thresholds} will threshold an additional set of matrices (e.g.,
+\code{apply_thresholds} thresholds an additional set of matrices (e.g.,
 FA-weighted matrices for DTI tractography) based on the matrices that have
 been returned from \code{\link{create_mats}}. This ensures that the same
 connections are present in both sets of matrices.
+}
+\details{
+The argument \code{W.files} accepts the same formats as \code{A.files}; see
+\code{\link{create_mats}} for details.
 }
 \examples{
 \dontrun{
   W.mats <- apply_thresholds(A.norm.sub, A.norm.mean, f.W, inds)
 }
 }
-\seealso{
-Other Matrix functions: \code{\link{cor.diff.test}},
-  \code{\link{create_mats}}, \code{\link{symmetrize_mats}}
-}
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Matrix functions}

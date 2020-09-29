@@ -5,36 +5,35 @@
 \title{Plot normalized rich club coefficients against degree threshold}
 \usage{
 plot_rich_norm(rich.dt, facet.by = c("density", "threshold"), densities,
-  alpha = 0.05, fdr = TRUE, g = NULL, smooth = TRUE)
+  alpha = 0.05, fdr = TRUE, g.list = NULL, smooth = TRUE)
 }
 \arguments{
 \item{rich.dt}{A \code{data.table} with rich-club coefficients}
 
 \item{facet.by}{A character string indicating whether the variable of
-interest is "density" or "threshold" (e.g. with DTI data)}
+interest is \dQuote{density} or \dQuote{threshold} (e.g. with DTI data)}
 
 \item{densities}{A numeric vector of the densities to plot}
 
-\item{alpha}{The significance level (default: 0.05)}
+\item{alpha}{The significance level. Default: \code{0.05}}
 
 \item{fdr}{A logical, indicating whether or not to use the FDR-adjusted
-p-value for determining significance (default: TRUE)}
+p-value for determining significance. Default: \code{TRUE}}
 
-\item{g}{A list (of lists) of \code{igraph} graph objects; required if you
-want to plot a shaded region demarcating the \code{\link{rich_core}}}
+\item{g.list}{A list \code{brainGraphList} objects; required if you want to
+plot a shaded region demarcating the \code{\link{rich_core}}}
 
-\item{smooth}{Logical indicating whether or not to use
-\code{\link[ggplot2]{stat_smooth}} when data from multiple subjects (per
-group) are present (default: \code{TRUE}). Ignored for group-level data.}
+\item{smooth}{Logical indicating whether or not to plot a smooth curve when
+data from multiple subjects (per group) are present. Default: \code{TRUE}.
+Ignored for group-level data.}
 }
 \value{
-A \code{\link[ggplot2]{ggplot}} object
+A \code{trellis} or \code{ggplot} object
 }
 \description{
-Returns a \code{\link[ggplot2]{ggplot}} object of a line plot of the
-normalized rich club coefficient. Optionally will include a shaded region
-demarcating the \code{\link{rich_core}} cutoff (if you supply a list of graph
-objects to the \code{g} argument).
+Returns a line plot of the normalized rich club coefficient. Optionally, can
+include a shaded region demarcating the \code{\link{rich_core}} cutoff (if
+you supply a list of graph objects to the \code{g} argument).
 }
 \examples{
 \dontrun{
@@ -42,7 +41,7 @@ plot_rich_norm(rich.dt, facet.by='density', densities[N:(N+1)], g=g)
 }
 }
 \seealso{
-Other Rich-club functions: \code{\link{RichClub}},
+Other Rich-club functions: \code{\link{Rich Club}},
   \code{\link{rich_club_attrs}}
 }
 \author{

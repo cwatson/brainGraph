@@ -14,8 +14,7 @@
 #'   edge count of the input graph, consisting of the Euclidean distance (in
 #'   \emph{mm}) of each edge
 #'
-#' @name GraphDistances
-#' @aliases edge_spatial_dist
+#' @name Graph Distances
 #' @rdname spatial_dist
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
@@ -26,8 +25,8 @@ edge_spatial_dist <- function(g) {
   coords <- get(g$atlas)[, list(name, x.mni, y.mni, z.mni)]
   setkey(coords, name)
   es <- as_edgelist(g)
-  dists <- sqrt(rowSums((coords[es[, 2], list(x.mni, y.mni, z.mni)] -
-                         coords[es[, 1], list(x.mni, y.mni, z.mni)])^2))
+  dists <- sqrt(rowSums((coords[es[, 2L], list(x.mni, y.mni, z.mni)] -
+                         coords[es[, 1L], list(x.mni, y.mni, z.mni)])^2))
 }
 
 #' Calculate average Euclidean distance for each vertex
@@ -37,22 +36,22 @@ edge_spatial_dist <- function(g) {
 #'
 #' @inheritParams edge_spatial_dist
 #' @export
+#' @importFrom Matrix colSums
 #'
 #' @return \code{vertex_spatial_dist} - a named numeric vector with length equal
 #'   to the number of vertices, consisting of the average distance (in
 #'   \emph{mm}) for each vertex
 #'
-#' @aliases vertex_spatial_dist
 #' @rdname spatial_dist
-#' @references Alexander-Bloch A.F., Vertes P.E., Stidd R. et al. (2013)
-#'   \emph{The anatomical distance of functional connections predicts brain
-#'   network topology in health and schizophrenia}. Cerebral Cortex, 23:127-138.
+#' @references Alexander-Bloch, A.F. and Vertes, P.E. and Stidd, R. et al.
+#'   (2013) The anatomical distance of functional connections predicts brain
+#'   network topology in health and schizophrenia. \emph{Cerebral Cortex},
+#'   \bold{23}, 127--138. \url{https://dx.doi.org/10.1093/cercor/bhr388}
 
 vertex_spatial_dist <- function(g) {
-  from <- to <- dist <- NULL
   stopifnot(is_igraph(g), 'dist' %in% edge_attr_names(g))
 
-  dt.e <- as.data.table(as_data_frame(g))
-  dists <- sapply(V(g)$name, function(x) dt.e[from == x | to == x, mean(dist)])
+  A <- as_adj(g, names=FALSE, attr='dist')
+  dists <- colSums(A) / colSums(A != 0)
   return(dists)
 }

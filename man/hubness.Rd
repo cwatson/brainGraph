@@ -4,42 +4,47 @@
 \alias{hubness}
 \title{Calculate vertex hubness}
 \usage{
-hubness(g, xfm.type = g$xfm.type, weights = NULL)
+hubness(g, xfm.type = g$xfm.type, weights = NULL, prop.keep = 0.2)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
 
-\item{xfm.type}{Character string specifying how to transform the weights
-(default: \code{1/w})}
+\item{xfm.type}{Character string specifying how to transform the weights.
+Default: \code{1/w}}
 
 \item{weights}{Numeric vector of edge weights; if \code{NULL} (the default),
 and if the graph has edge attribute \code{weight}, then that will be used.
 To avoid using weights, this should be \code{NA}.}
+
+\item{prop.keep}{Numeric (between 0 and 1) indicating the proportion of
+vertices to consider as having a high score. Default: 0.2 (20\%)}
 }
 \value{
 A numeric vector with the vertices' hubness score
 }
 \description{
-\code{hubness} calculates the "hubness" (see reference) of the vertices in a
-graph. These are vertices which meet at least two of the following four
-criteria:
+\code{hubness} calculates the \dQuote{hubness} (see reference) of the
+vertices in a graph. These are vertices which meet at least two of the
+following four criteria:
 \enumerate{
   \item Have high degree/strength
   \item Have high betweenness centrality
   \item Have low clustering coefficient
   \item Have low average path length
 }
-For each criterion, "high" or "low" means "in the top 20\%" across all
-vertices. Vertices meeting any of the criteria get a value of 1 for that
-metric; these are summed to yield the hubness score which ranges from 0-4. As
-in the reference article, vertices with a score of 2 or higher are to be
-considered hubs, although that determination isn't made in this function.
+For each criterion, \dQuote{high} or \dQuote{low} means \dQuote{in the top
+20\%} across all vertices. Vertices meeting any of the criteria get a value
+of 1 for that metric; these are summed to yield the hubness score which
+ranges from 0-4. As in the reference article, vertices with a score of 2 or
+higher are to be considered hubs, although that determination isn't made in
+this function.
 }
 \references{
-van den Heuvel M.P., Mandl R.C.W., Stam C.J., Kahn R.S., Pol
-  H.E.H. (2010) \emph{Aberrant frontal and temporal complex network structure
-  in schizophrenia: a graph theoretical analysis}. The Journal of
-  Neuroscience, 30(47):15915-15926.
+van den Heuvel, M.P. and Mandl, R.C.W. and Stam, C.J. and Kahn,
+  R.S. and Pol, H.E.H. (2010) Aberrant frontal and temporal complex network
+  structure in schizophrenia: a graph theoretical analysis. \emph{The Journal
+  of Neuroscience}, \bold{30(47)}, 15915--15926.
+  \url{https://dx.doi.org/10.1523/JNEUROSCI.2874-10.2010}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

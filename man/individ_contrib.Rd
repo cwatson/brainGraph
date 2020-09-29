@@ -10,13 +10,13 @@
 \usage{
 loo(resids, corrs, level = c("global", "regional"))
 
-aop(resids, corr.mat, level = c("global", "regional"),
-  control.value = 1)
+aop(resids, corrs, level = c("global", "regional"), control.value = 1L)
 
-\method{summary}{IC}(object, region = NULL, ...)
+\method{summary}{IC}(object, region = NULL, digits = max(3L,
+  getOption("digits") - 2L), ...)
 
 \method{plot}{IC}(x, plot.type = c("mean", "smooth", "boxplot"),
-  region = NULL, ...)
+  region = NULL, ids = TRUE, ...)
 }
 \arguments{
 \item{resids}{An object of class \code{brainGraph_resids} (the output from
@@ -28,22 +28,23 @@ aop(resids, corr.mat, level = c("global", "regional"),
 \item{level}{Character string; the level at which you want to calculate
 contributions (either \code{global} or \code{regional})}
 
-\item{corr.mat}{Numeric; correlation matrix of the \emph{control} group}
-
 \item{control.value}{Integer or character string specifying the control group
-(default: 1)}
+(default: 1L)}
 
-\item{object}{A \code{IC} object}
+\item{object, x}{A \code{IC} object}
 
-\item{region}{Character vector of regions to plot; default is to plot for all
-regions}
+\item{region}{Character vector specifying which regions' IC's to print. Only
+relevant if \code{method='Leave one out'}}
+
+\item{digits}{Integer specifying the number of digits to display for P-values}
 
 \item{...}{Unused}
 
-\item{x}{A \code{IC} object}
-
 \item{plot.type}{Character string indicating the type of plot; the default is
 to plot the mean (along with standard errors)}
+
+\item{ids}{Logical indicating whether to plot Study ID's for outliers.
+Otherwise plots the integer index}
 }
 \value{
 A \code{data.table} with columns for
@@ -54,14 +55,15 @@ A \code{data.table} with columns for
 }
 \description{
 \code{loo} calculates the individual contribution to group network data for
-each subject in each group using a "leave-one-out" approach. The residuals of
-a single subject are excluded, and a correlation matrix is created. This is
-compared to the original correlation matrix using the Mantel test.
+each subject in each group using a \dQuote{leave-one-out} approach. The
+residuals of a single subject are excluded, and a correlation matrix is
+created. This is compared to the original correlation matrix using the Mantel
+test.
 
-\code{aop} calculates the individual contribution using an "add-one-patient"
-approach. The residuals of a single patient are added to those of a control
-group, and a correlation matrix is created. This is repeated for all
-individual patients and each patient group.
+\code{aop} calculates the individual contribution using an
+\dQuote{add-one-patient} approach. The residuals of a single patient are
+added to those of a control group, and a correlation matrix is created. This
+is repeated for all individual patients and each patient group.
 
 The \code{summary} method prints the group/region-wise means and standard
 deviations.
@@ -70,21 +72,26 @@ The \code{plot} method is only valid for \emph{regional} contribution
 estimates, and plots the average regional contribution for each
 vertex/region.
 }
+\note{
+For \code{aop}, it is assumed by default that the control group is the
+  first group.
+}
 \examples{
 \dontrun{
 IC <- loo(resids.all, corrs)
 RC <- loo(resids.all, corrs, level='regional')
 }
 \dontrun{
-IC <- aop(resids.all, corrs[[1]]$R)
-RC <- aop(resids.all, corrs[[1]]$R, level='regional')
+IC <- aop(resids.all, corrs)
+RC <- aop(resids.all, corrs, level='regional')
 }
 }
 \references{
-Saggar M., Hosseini S.M.H., Buno J.L., Quintin E., Raman M.M.,
-  Kesler S.R., Reiss A.L. (2015) \emph{Estimating individual contributions
-  from group-based structural correlations networks}. NeuroImage, 120:274-284.
-  doi:10.1016/j.neuroimage.2015.07.006
+Saggar, M. and Hosseini, S.M.H. and Buno, J.L. and Quintin, E.
+  and Raman, M.M. and Kesler, S.R. and Reiss, A.L. (2015) Estimating
+  individual contributions from group-based structural correlations networks.
+  \emph{NeuroImage}, \bold{120}, 274--284.
+  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
 }
 \seealso{
 Other Structural covariance network functions: \code{\link{Bootstrapping}},
@@ -92,14 +99,8 @@ Other Structural covariance network functions: \code{\link{Bootstrapping}},
   \code{\link{brainGraph_permute}},
   \code{\link{corr.matrix}}, \code{\link{import_scn}},
   \code{\link{plot_volumetric}}
-
-Other Group analysis functions: \code{\link{Bootstrapping}},
-  \code{\link{GLM}}, \code{\link{MediationAnalysis}},
-  \code{\link{NBS}}, \code{\link{brainGraph_permute}},
-  \code{\link{mtpc}}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}
 }
-\concept{Group analysis functions}
 \concept{Structural covariance network functions}
