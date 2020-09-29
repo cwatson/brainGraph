@@ -12,7 +12,6 @@ NULL
 #' observation in the object.
 #'
 #' @param x,object An object
-#' @param ... Unused
 #' @export
 #' @method groups brainGraphList
 #' @rdname brainGraph-methods

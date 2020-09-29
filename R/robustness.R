@@ -35,7 +35,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Albert, R. and Jeong, H. and Barabasi, A. (2000) Error and attack
 #'   tolerance of complex networks. \emph{Nature}, \bold{406}, 378--381.
-#'   \url{https://dx.doi.org/10.1515/9781400841356.503}
+#'   \url{https://dx.doi.org/10.1038/35019019}
 
 robustness <- function(g, type=c('vertex', 'edge'),
                        measure=c('btwn.cent', 'degree', 'random'), N=1e3) {

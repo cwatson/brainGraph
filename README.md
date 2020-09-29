@@ -21,8 +21,6 @@ perform analyses for *structural covariance networks (SCN)*, DTI tractography
 resting-state fMRI covariance (I have used the Matlab-based [DPABI](http://rfmri.org/dpabi)
 toolbox).
 
-Table of Contents
-====
 <!-- vim-markdown-toc GFM -->
 
 * [Requirements](#requirements)
@@ -35,7 +33,9 @@ Table of Contents
 * [Installation](#installation)
     * [Multi-core processing](#multi-core-processing-1)
     * [GUI](#gui)
+    * [Suggested packages](#suggested-packages)
 * [Usage - the User Guide](#usage---the-user-guide)
+* [Major changes in v3.0.0](#major-changes-in-v300)
 * [Graph measures](#graph-measures)
     * [Group analyses](#group-analyses)
         * [GLM-based](#glm-based)
@@ -162,6 +162,15 @@ install.packages('gWidgetsRGtk2', dependencies=TRUE)
 install.packages('RGtk2Extras', dependencies=TRUE)
 ```
 
+## Suggested packages
+There are a few suggested packages that may be required for certain functions:
+
+* `RGtk2` and `cairoDevice`: as mentioned above, these are required to use the GUI
+* `boot`: required for `brainGraph_boot`
+* `Hmisc`: required for `corr.matrix`
+* `ade4`: required for `loo` and `aop`
+* `expm`: required for `communicability` and `centr_betw_comm`
+
 # Usage - the User Guide
 I have a User Guide that contains *extensive* code examples for analyses common to
 brain MRI studies. I also include some code for getting your data *into* R *from*
@@ -171,6 +180,17 @@ The User Guide is the most complete documentation of this package.
 If you are a beginner using R, I encourage you to read it thoroughly.
 You may start with the [Preface](https://cwatson.github.io/files/brainGraph_UserGuide.pdf#chapter*.1)
 or at whichever chapter is suitable for your analyses.
+
+# Major changes in v3.0.0
+There are several major changes in `v3.0.0`. See the User Guide for more extensive details.
+
+* There are several fewer package dependencies, allowing for a quicker install process
+* There are a few new built-in atlases (see below for the full list)
+* Graph creation is simpler (in terms of code) with the new `brainGraphList` object
+* The GLM-based functions are significantly faster and easily handle large models. The most significant speed improvements are seen in `NBS` and `mtpc`
+* There are more methods to calculate GLM-based statistics (including residuals, coefficient of determination, ANOVA, etc.)
+* There are global options that give the user some more control
+* There are other methods that make manipulating data objects easier/more flexible
 
 To access the User Guide, a PDF is available at
 [this link.](https://cwatson.github.io/files/brainGraph_UserGuide.pdf)

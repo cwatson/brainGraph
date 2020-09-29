@@ -21,8 +21,6 @@ nregions(object)
 }
 \arguments{
 \item{x, object}{An object}
-
-\item{...}{Unused}
 }
 \description{
 These functions are S3 \emph{generics} for various \code{brainGraph}-defined

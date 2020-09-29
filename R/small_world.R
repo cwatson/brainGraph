@@ -21,7 +21,7 @@
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @references Watts, D.J. and Strogatz S.H. (1998) Collective dynamics of
 #'   "small-world" networks. \emph{Nature}, \bold{393}, 440--442.
-#'   \url{https://dx.doi.org/10.1515/9781400841356.301}
+#'   \url{https://dx.doi.org/10.1038/30918}
 
 small.world <- function(g.list, rand) {
   level <- NULL
