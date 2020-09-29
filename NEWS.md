@@ -18,7 +18,7 @@ There are multiple S3 methods for this object, including the creation method `ma
 `inv` calculates the the "unscaled covariance" matrix used in linear models.
 `pinv` calculates the *pseudoinverse*.
 `qr` calculates the QR decomposition for each matrix in a 3D array.
-`colMax`, `colMin`, and `colMaxAbs` calculate the max, min, and max of the absolue value across matrix columns.
+`colMax`, `colMin`, and `colMaxAbs` calculate the max, min, and max of the absolute value across matrix columns.
 `is_binary` determines if a matrix consists only of 0's and 1's.
 `symmetrize` is now a S3 method. `symm_mean` symmetrizes a matrix using the mean of off-diagonal elements.
 7. There are 4 new atlases: `hcp_mmp1.0` (HCP multimodal atlas), `power264`, `gordon333`, and `brainnetome`
@@ -109,7 +109,7 @@ There are multiple S3 methods for this object, including the creation method `ma
 
 ## Minor changes
 * Updated code that symmetrizes matrices:
-    * Introduced new function, `symm_mean`, that more quickly symmetrizes a matrix about the diagonal by assigining `mean(c(A[i, j], A[j, i]))` to the off-diagonal elements
+    * Introduced new function, `symm_mean`, that more quickly symmetrizes a matrix about the diagonal by assigning `mean(c(A[i, j], A[j, i]))` to the off-diagonal elements
     * Uses `pmin` and `pmax` for symmetrizing matrices based on the off-diagonal minimum and maximum, respectively
 * Optimized code in a few functions for faster execution:
     * `sim.rand.graph.clust` is about 2x faster due to improvement in the `choose.edges` helper function
@@ -178,7 +178,7 @@ There are multiple S3 methods for this object, including the creation method `ma
     * Fixed bug when calling `corr.matrix` (added `rand=TRUE`)
     * Also had to update the return object of `corr.matrix` for this purpose
 * `mtpc`
-    * Previously gave some incorrect resuls when `alt='less'`; fixed
+    * Previously gave some incorrect results when `alt='less'`; fixed
     * The `plot` method also now gives correct values when `alt='less'`
 * `brainGraph_GLM` now returns the correct *null.thresh* when `alt != 'greater'`
 * `plot.brainGraph`: fixed bug that occurred when `plane='sagittal'` and a `hemi` value was not supplied

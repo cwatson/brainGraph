@@ -203,7 +203,7 @@ fastLmBG_3dY_1p <- function(X, Y, runX, QR=qr(X[, , runX, drop=FALSE]),
 #' @inheritParams GLM
 #' @export
 #' @return \code{fastLmBG_t} -- A multidimensional array with the third
-#'   dimension equalling the number of contrasts; each matrix contains the
+#'   dimension equaling the number of contrasts; each matrix contains the
 #'   contrast of parameter estimates, standard error of the contrast,
 #'   T-statistics, P-values, FDR-adjusted P-values, and confidence intervals (if
 #'   \code{alpha} is given)

@@ -8,7 +8,7 @@
 #' parallel processing.
 #'
 #' If you do not want to match by clustering, then simple rewiring of the input
-#' graph is performed (the number of rewire's equaling the larger of \code{1e4}
+#' graph is performed (the number of rewires equaling the larger of \code{1e4}
 #' and \eqn{10 \times m}, where \eqn{m} is the graph's edge count).
 #'
 #' @param g A graph object

@@ -16,7 +16,7 @@
 #' @param resids An object of class \code{brainGraph_resids} (the output from
 #'   \code{\link{get.resid}})
 #' @param densities Numeric vector indicating the resultant network
-#'   density(ies); keeps the top \emph{X}\% of correlations
+#'   densities; keeps the top \emph{X}\% of correlations
 #' @param thresholds Numeric; absolute correlation value to threshold by
 #'   (default: \code{NULL})
 #' @param what Character string indicating whether to correlate the residuals or

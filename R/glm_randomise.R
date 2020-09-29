@@ -50,7 +50,7 @@ NULL
 #'     the partitioned model \code{[X, Z]} and considering all covariates}
 #'   \item{eCx}{Same as \code{eCm}, but considering only \code{X}}
 #' @references Beckmann, C.F. and Jenkinson, M. and Smith, S.M. (2001) General
-#'   multi-level linear mdoelling for group analysis in FMRI. Tech Rep.
+#'   multi-level linear modelling for group analysis in FMRI. Tech Rep.
 #'   University of Oxford, Oxford.
 #' @references Guttman, I. (1982) \emph{Linear Models: An Introduction}. Wiley,
 #'   New York.

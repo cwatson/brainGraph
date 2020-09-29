@@ -1,6 +1,6 @@
 #' Calculate graph small-worldness
 #'
-#' \code{small.world} calculates the normalizaed characteristic path length and
+#' \code{small.world} calculates the normalized characteristic path length and
 #' clustering coefficient based on observed and random graphs, used to calculate
 #' the small-world coefficient \eqn{\sigma}.
 #'
