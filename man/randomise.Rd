@@ -120,7 +120,7 @@ covariate) matrix when calculating the permuted statistics.
 
 \references{
 Beckmann, C.F. and Jenkinson, M. and Smith, S.M. (2001) General
-  multi-level linear mdoelling for group analysis in FMRI. Tech Rep.
+  multi-level linear modelling for group analysis in FMRI. Tech Rep.
   University of Oxford, Oxford.
 
 Guttman, I. (1982) \emph{Linear Models: An Introduction}. Wiley,

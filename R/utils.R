@@ -103,7 +103,7 @@ check_sID <- function(x) {
 #' Given two sets of correlation coefficients and sample sizes, this function
 #' calculates and returns the \emph{z-scores} and \emph{p-values} associated
 #' with the difference between correlation coefficients. This function was
-#' adapted from \url{http://stackoverflow.com/a/14519007/3357706}.
+#' adapted from \url{https://stackoverflow.com/a/14519007/3357706}.
 #'
 #' @param r1,r2 Numeric (vector or matrix) of correlation coefficients for both
 #'   groups

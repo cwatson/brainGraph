@@ -28,7 +28,7 @@ corr.matrix(resids, densities, thresholds = NULL, what = c("resids",
 \code{\link{get.resid}})}
 
 \item{densities}{Numeric vector indicating the resultant network
-density(ies); keeps the top \emph{X}\% of correlations}
+densities; keeps the top \emph{X}\% of correlations}
 
 \item{thresholds}{Numeric; absolute correlation value to threshold by
 (default: \code{NULL})}

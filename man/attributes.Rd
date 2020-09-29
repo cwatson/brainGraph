@@ -111,7 +111,7 @@ value and the type of input graph:
   \item Uses \code{spinglass} if there are any negative edges and/or the
     selected method is \code{spinglass}
   \item Uses \code{walktrap} if there are any negative edge weights and any
-    other method (besided \code{spinglass}) is selected
+    other method (besides \code{spinglass}) is selected
   \item Automatically transforms the edge weights if \code{edge_betweenness}
     is selected and the graph is weighted, because the algorithm considers
     edges as \emph{distances}
