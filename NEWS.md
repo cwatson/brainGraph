@@ -1,3 +1,13 @@
+# brainGraph 3.0.1
+
+2020-10-19
+
+## Bug fixes
+* Assigning *dimnames* to *null.max.all* in `mtpc` no longer throws an error
+* Creating connected random graphs (from `analysis_random_graphs`) will no longer throw an error
+    from within the hidden function `get_rand_attrs`
+* `graph_attr_dt` no longer throws an error if *subnet* is a graph-level attribute
+
 # brainGraph 3.0.0
 
 2020-09-28
