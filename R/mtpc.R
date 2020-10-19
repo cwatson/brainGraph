@@ -118,7 +118,7 @@ mtpc <- function(g.list, thresholds, covars, measure, contrasts, con.type=c('t',
   # Dimensions will be "thresholds X Nperms X contrasts"
   null.max.all <- aperm(sapply(res.glm, function(x) x$perm$null.max, simplify='array'),
                         c(3L, 1L, 2L))
-  dimnames(null.max.all)[[3L]] <- conNames
+  dimnames(null.max.all) <- list(NULL, NULL, conNames)
   null.max.perms <- apply(null.max.all, 3L, myMax)
   Scrit <- structure(apply(null.max.perms, 2L, mySort, index), names=conNames)
   for (x in conNames) mtpc.all[Contrast == x, S.crit := Scrit[x]]

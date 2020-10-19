@@ -85,7 +85,7 @@ The same options apply to \code{div.files} as well.
 
 \section{Thresholding methods}{
 
-The argument \code{threshold.by} has 4 options:
+The argument \code{threshold.by} has 5 options:
 \enumerate{
   \item \code{consensus} Threshold based on the raw (normalized, if selected)
     values in the matrices. If this is selected, it uses the

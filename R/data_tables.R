@@ -20,31 +20,33 @@ graph_attr_dt <- function(bg.list) {
     bg.list <- bg.list$graphs
   } else {
     if (!inherits(bg.list, 'list')) bg.list <- list(bg.list)
+    level <- 'subject'
   }
   N <- length(bg.list)
   inds <- which(vapply(graph_attr(bg.list[[1L]]), is.numeric, logical(1L)))
-  g.attrs <- graph_attr_names(bg.list[[1L]])
   g.attr.num <- names(inds)
-  g.dt <- as.data.table(vapply(g.attr.num, function(x)
+  if ('subnet' %in% g.attr.num) g.attr.num <- setdiff(g.attr.num, 'subnet')
+  dt.G <- as.data.table(vapply(g.attr.num, function(x)
                                vapply(bg.list, graph_attr, numeric(1L), x), numeric(N)))
 
   if (N == 1L) {
-    g.dt <- as.data.table(t(g.dt))
-    colnames(g.dt) <- g.attr.num
+    dt.G <- as.data.table(t(dt.G))
+    setnames(dt.G, g.attr.num)
   }
 
+  g.attrs <- graph_attr_names(bg.list[[1L]])
   g.attrs.char <- c('name', 'atlas', 'modality', 'weighting', 'Group')
   for (x in g.attrs.char) {
-    if (x %in% g.attrs) g.dt[, eval(x) := vapply(bg.list, graph_attr, character(1L), x)]
+    if (x %in% g.attrs) dt.G[, eval(x) := vapply(bg.list, graph_attr, character(1L), x)]
   }
   if (level == 'subject') {
-    setnames(g.dt, 'name', getOption('bg.subject_id'))
+    setnames(dt.G, 'name', getOption('bg.subject_id'))
   } else if (level == 'group') {
-    g.dt[, name := NULL]
+    dt.G[, name := NULL]
   }
-  setnames(g.dt, 'Group', getOption('bg.group'))
+  setnames(dt.G, 'Group', getOption('bg.group'))
 
-  return(g.dt)
+  return(dt.G)
 }
 
 #' Create a data table with graph vertex measures

@@ -63,6 +63,7 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
         tmp$Group <- g$Group
         tmp$name <- g$name
         tmp$threshold <- g$threshold
+        tmp$density <- graph.density(tmp)
         tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
         tmp
       }

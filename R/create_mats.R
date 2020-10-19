@@ -21,7 +21,7 @@
 #' The same options apply to \code{div.files} as well.
 #'
 #' @section Thresholding methods:
-#' The argument \code{threshold.by} has 4 options:
+#' The argument \code{threshold.by} has 5 options:
 #' \enumerate{
 #'   \item \code{consensus} Threshold based on the raw (normalized, if selected)
 #'     values in the matrices. If this is selected, it uses the
@@ -381,8 +381,8 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #'
 #' @param sub.mats List (length equal to number of thresholds) of numeric arrays
 #'   (3-dim) for all subjects
-#' @param group.mats List (equal to number of thresholds) of lists (equal to
-#'   number of groups) of numeric matrices for group-level data
+#' @param group.mats List (length equal to number of thresholds) of numeric
+#'   arrays (3-dim) for group-level data
 #' @param W.files Character vector of the filenames of the files with
 #'   connectivity matrices
 #' @inheritParams create_mats
@@ -392,7 +392,8 @@ normalize_mats <- function(A, divisor, div.files, P) {
 #' \item{W}{A 3-d array of the raw connection matrices}
 #' \item{W.norm.sub}{List of 3-d arrays of the normalized connection matrices
 #'   for all given thresholds}
-#' \item{W.norm.mean}{List of lists of numeric matrices averaged for each group}
+#' \item{W.norm.mean}{List of 3-d arrays of the normalized connection matrices
+#'   averaged for each group}
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
