@@ -8,11 +8,11 @@
 \title{Gateway coefficient, participation coefficient, and within-mod degree z-score}
 \usage{
 gateway_coeff(g, memb, centr = c("btwn.cent", "degree", "strength"),
-  A = NULL)
+  A = NULL, weighted = FALSE)
 
-part_coeff(g, memb, A = NULL)
+part_coeff(g, memb, A = NULL, weighted = FALSE)
 
-within_module_deg_z_score(g, memb, A = NULL)
+within_module_deg_z_score(g, memb, A = NULL, weighted = FALSE)
 }
 \arguments{
 \item{g}{An \code{igraph} graph object}
@@ -20,10 +20,13 @@ within_module_deg_z_score(g, memb, A = NULL)
 \item{memb}{A numeric vector of membership indices of each vertex}
 
 \item{centr}{Character string; the type of centrality to use in calculating
-GC (default: \code{btwn.cent})}
+GC. Default: \code{btwn.cent}}
 
 \item{A}{Numeric matrix; the adjacency matrix of the input graph. Default:
 \code{NULL}}
+
+\item{weighted}{Logical indicating whether to calculate metrics using edge
+weights. Default: \code{FALSE}}
 }
 \value{
 A vector of the participation coefficients, within-module degree

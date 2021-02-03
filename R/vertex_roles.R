@@ -19,7 +19,9 @@
 #' @inheritParams efficiency
 #' @param memb A numeric vector of membership indices of each vertex
 #' @param centr Character string; the type of centrality to use in calculating
-#'   GC (default: \code{btwn.cent})
+#'   GC. Default: \code{btwn.cent}
+#' @param weighted Logical indicating whether to calculate metrics using edge
+#' weights. Default: \code{FALSE}
 #' @export
 #' @return A vector of the participation coefficients, within-module degree
 #'   z-scores, or gateway coefficients for each vertex of the graph.
@@ -33,9 +35,17 @@
 #'   \emph{Eur Phys J B}, \bold{87}, 161--170.
 #'   \url{https://dx.doi.org/10.1140/epjb/e2014-40800-7}
 
-gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A=NULL) {
+gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'),
+                          A=NULL, weighted=FALSE) {
   stopifnot(is_igraph(g))
-  Ki <- check_degree(g)
+  if (is.null(A)) {
+    if (isTRUE(weighted)) {
+      A <- as_adj(g, sparse=FALSE, names=FALSE, attr='weight')
+    } else {
+      A <- as_adj(g, sparse=FALSE, names=FALSE)
+    }
+  }
+  Ki <- colSums(A)
   centr <- match.arg(centr)
   if (centr == 'btwn.cent') {
     if ('btwn.cent' %in% vertex_attr_names(g)) {
@@ -43,31 +53,26 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A
     } else {
       cent <- centr_betw(g)$res
     }
-  } else if (centr == 'degree') {
+  } else {
     cent <- Ki
-  } else if (centr == 'strength') {
-    cent <- check_strength(g)
   }
   N <- max(memb)
   if (N == 1L) return(rep.int(0, length(memb)))
   Cn <- max(vapply(seq_len(N), function(x) sum(cent[memb == x]), numeric(1L)))
 
-  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
-  Kis <- vapply(seq_len(N), function(x) colSums(A * (memb==x)), numeric(length(Ki)))
+  Kis <- t(rowsum(A, memb))
   Kjs <- rowsum(Kis, memb)
   barKis <- Cis <- matrix(0, nrow=length(Ki), ncol=N)
 
   for (i in which(Ki > 0)) {
     barKis[i, ] <- Kis[i, ] / Kjs[, memb[i]]
-    Vi <- which(A[, i] == 1)
+    Vi <- which(A[, i] != 0)
     Cis[i, ] <- vapply(seq_len(N), function(x) sum(cent[Vi[memb[Vi] == x]]), numeric(1L))
   }
 
   barCis <- Cis / Cn
   gis <- 1 - barKis * barCis
-  G <- 1 - ((1 / Ki^2) * rowSums(Kis^2 * gis^2, na.rm=TRUE))
-
-  return(G)
+  1 - ((1 / Ki^2) * rowSums(Kis^2 * gis^2, na.rm=TRUE))
 }
 
 #' Participation coefficient
@@ -93,15 +98,19 @@ gateway_coeff <- function(g, memb, centr=c('btwn.cent', 'degree', 'strength'), A
 #'   Mechanics: Theory and Experiment}, \bold{02}, P02001.
 #'   \url{https://dx.doi.org/10.1088/1742-5468/2005/02/P02001}
 
-part_coeff <- function(g, memb, A=NULL) {
+part_coeff <- function(g, memb, A=NULL, weighted=FALSE) {
   stopifnot(is_igraph(g))
-  Ki <- check_degree(g)
+  if (is.null(A)) {
+    if (isTRUE(weighted)) {
+      A <- as_adj(g, sparse=FALSE, names=FALSE, attr='weight')
+    } else {
+      A <- as_adj(g, sparse=FALSE, names=FALSE)
+    }
+  }
+  Ki <- colSums(A)
   N <- max(memb)
-  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
-  Kis <- vapply(seq_len(N), function(x) colSums(A * (memb == x)), numeric(length(Ki)))
-  PC <- 1 - ((1 / Ki^2) * rowSums(Kis^2))
-
-  return(PC)
+  Kis <- t(rowsum(A, memb))
+  1 - ((1 / Ki^2) * rowSums(Kis^2))
 }
 
 #' Calculate vertex within-module degree z-score
@@ -119,18 +128,25 @@ part_coeff <- function(g, memb, A=NULL) {
 #' @export
 #' @rdname vertex_roles
 
-within_module_deg_z_score <- function(g, memb, A=NULL) {
+within_module_deg_z_score <- function(g, memb, A=NULL, weighted=FALSE) {
   stopifnot(is_igraph(g))
+  if (is.null(A)) {
+    if (isTRUE(weighted)) {
+      A <- as_adj(g, sparse=FALSE, names=FALSE, attr='weight')
+    } else {
+      A <- as_adj(g, sparse=FALSE, names=FALSE)
+    }
+  }
   N <- max(memb)
-  if (is.null(A)) A <- as_adj(g, sparse=FALSE, names=FALSE)
+  nS <- tabulate(memb)
   z <- Ki <- rep.int(0, dim(A)[1L])
   Ksi <- sigKsi <- rep.int(0, N)
 
   for (S in seq_len(N)) {
-    x <- A[memb==S, ] %*% (memb==S)
-    Ki[memb==S] <- x
-    Ksi[S] <- mean(x)
-    sigKsi[S] <- sd(x)
+    x <- rowSums(A[memb == S, memb == S])
+    Ki[memb == S] <- x
+    Ksi[S] <- sum(x) / nS[S]
+    sigKsi[S] <- sqrt(sum((x - Ksi[S])^2) / (nS[S] - 1L))
   }
   z <- (Ki - Ksi[memb]) / sigKsi[memb]
   z[is.infinite(z)] <- 0

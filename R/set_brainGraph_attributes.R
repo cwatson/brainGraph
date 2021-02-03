@@ -190,9 +190,9 @@ set_brainGraph_attr <- function(g, type=c('observed', 'random'),
       x <- comm.wt$membership
       V(g)$comm.wt <- match(x, order(table(x), decreasing=TRUE))
       if (length(unique(x)) < n) g <- set_graph_colors(g, 'color.comm.wt', V(g)$comm.wt)
-      V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt, A=A)
-      V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt, A=A)
-      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt, A=A)
+      V(g)$GC.wt <- gateway_coeff(g, V(g)$comm.wt, A=A, weighted=TRUE)
+      V(g)$PC.wt <- part_coeff(g, V(g)$comm.wt, A=A, weighted=TRUE)
+      V(g)$z.score.wt <- within_module_deg_z_score(g, V(g)$comm.wt, A=A, weighted=TRUE)
     }
 
     if (is_directed(g)) {
