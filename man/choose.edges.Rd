@@ -4,10 +4,10 @@
 \alias{choose.edges}
 \title{Select edges for re-wiring}
 \usage{
-choose.edges(A, degs.large)
+choose.edges(g, degs.large)
 }
 \arguments{
-\item{A}{Numeric (adjacency) matrix}
+\item{g}{A graph object}
 
 \item{degs.large}{Integer vector of vertex numbers with degree greater than
 one}
