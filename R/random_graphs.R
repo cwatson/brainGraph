@@ -50,8 +50,9 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
     registerDoParallel(clust)
   }
   if (isTRUE(clustering)) {
-    r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
+    r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph'), .export=g$atlas) %dopar% {
       tmp <- sim.rand.graph.clust(g, rewire.iters, cl, max.iters)
+      tmp$atlas <- g$atlas
       tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
       tmp
     }

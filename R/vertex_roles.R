@@ -143,7 +143,7 @@ within_module_deg_z_score <- function(g, memb, A=NULL, weighted=FALSE) {
   Ksi <- sigKsi <- rep.int(0, N)
 
   for (S in seq_len(N)) {
-    x <- rowSums(A[memb == S, memb == S])
+    x <- rowSums(A[memb == S, memb == S, drop=FALSE])
     Ki[memb == S] <- x
     Ksi[S] <- sum(x) / nS[S]
     sigKsi[S] <- sqrt(sum((x - Ksi[S])^2) / (nS[S] - 1L))

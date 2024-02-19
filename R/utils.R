@@ -150,7 +150,7 @@ cor.diff.test <- function(r1, r2, n, alternative=c('two.sided', 'less', 'greater
 #'
 #' If the object is a graph, graph-level attributes will be added. The
 #' elements added are:
-#' \itemize{
+#' \describe{
 #'   \item{version}{A list with R, brainGraph, and igraph versions}
 #'   \item{sys}{Character vector of system information}
 #'   \item{date}{The date and time of creation}

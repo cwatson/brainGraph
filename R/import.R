@@ -89,7 +89,7 @@ import_scn <- function(datadir, atlas, modality='thickness', exclude.subs=NULL, 
   # Subcortical measures
   if (grepl('scgm', atlas)) {
     asegfile <- file.path(datadir, 'asegstats.csv')
-    scgm <- update_fs_names(asegfile, 'aseg', exclude.subs)
+    scgm <- update_fs_names(asegfile, 'aseg', parc=NULL, hemi=NULL, exclude.subs=exclude.subs)
     sID <- getOption('bg.subject_id')
     subs.missing <- union(setdiff(scgm[[sID]], lhrh[[sID]]), setdiff(lhrh[[sID]], scgm[[sID]]))
   }
