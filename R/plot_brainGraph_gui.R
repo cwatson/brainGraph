@@ -16,6 +16,53 @@ plot_brainGraph_gui <- function() {
     return(NULL)
   }
 
+  graphObj <- plotdev <- vector('list', 2L)
+
+  # The graph selector window
+  select_graphs <- function(widget, window) {
+    dialog <- RGtk2::gtkDialogNewWithButtons(title='Choose graph objects',
+                                             parent=window, flags='destroy-with-parent',
+                                             'gtk-ok', RGtk2::GtkResponseType['ok'],
+                                             'gtk-cancel', RGtk2::GtkResponseType['cancel'],
+                                             show=FALSE)
+    tempVbox <- dialog$getContentArea()
+    graphObjEntry <- tempHbox <- vector('list', length=2)
+    for (i in 1:2) {
+      tempHbox[[i]] <- RGtk2::gtkHBoxNew(homogeneous=FALSE, spacing=8)
+      tempVbox$packStart(tempHbox[[i]], expand=FALSE)
+      graphObjEntry[[i]] <- add_entry(tempHbox[[i]], label=paste0('Graph ', i, ' name:'), nchars=20)
+    }
+    RGtk2::gSignalConnect(dialog, signal='response', function(dialog, response) {
+        if (response == RGtk2::GtkResponseType['ok']) {
+          graphObj[[1L]] <<- graphObjEntry[[1L]]$getText()
+          graphObj[[2L]] <<- graphObjEntry[[2L]]$getText()
+
+          if (nchar(graphObj[[1L]]) > 0L) {
+            if (!is_igraph(eval(parse(text=graphObj[[1L]])))) {
+              warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                                    type='error', buttons='close',
+                                                    'Error: Not an igraph object!')
+              response <- warnDialog$run()
+            }
+            if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
+          } else {
+            if (nchar(graphObj[[2L]]) > 0L) {
+              if (!is_igraph(eval(parse(text=graphObj[[2L]])))) {
+                warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
+                                                      type='error', buttons='close',
+                                                      'Error: Not an igraph object!')
+                response <- warnDialog$run()
+                if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
+              }
+            }
+          }
+          dialog$destroy()
+        }
+    })
+    dialog$showAll()
+    dialog$setModal(TRUE)
+  }
+
   window <- RGtk2::gtkWindow('toplevel')
   window$setTitle('brainGraph')
   window$setIconFromFile(system.file('extdata', 'brainGraph_icon.png', package='brainGraph'))
@@ -29,8 +76,8 @@ plot_brainGraph_gui <- function() {
   file.actions <- list(
     list('FileMenu', NULL, '_File'),
     list('SelectGraphs', 'gtk-open', 'Select graphs', '<control>O', 'Select graphs', select_graphs),
-    list('Save1', 'gtk-save', 'Save plot _1', '<control>1', 'Save plot 1?', save_cb1),
-    list('Save2', 'gtk-save', 'Save plot _2', '<control>2', 'Save plot 2?', save_cb2),
+    list('Save1', 'gtk-save', 'Save plot _1', '<control>1', 'Save plot 1?', function(widget, win) save_cb(widget, win, plot.dev=plotdev[[1L]])),
+    list('Save2', 'gtk-save', 'Save plot _2', '<control>2', 'Save plot 2?', function(widget, win) save_cb(widget, win, plot.dev=plotdev[[2L]])),
     list('Quit', 'gtk-quit', '_Quit', '<control>Q', 'Quit the application', quit_cb)
   )
   action_group$addActions(file.actions, window)
@@ -396,51 +443,6 @@ plot_brainGraph_gui <- function() {
 #===============================================================================
 # Helper functions for adding/updating the GUI elements
 #===============================================================================
-# The graph selector window
-select_graphs <- function(widget, window) {
-  dialog <- RGtk2::gtkDialogNewWithButtons(title='Choose graph objects',
-                                           parent=window, flags='destroy-with-parent',
-                                           'gtk-ok', RGtk2::GtkResponseType['ok'],
-                                           'gtk-cancel', RGtk2::GtkResponseType['cancel'],
-                                           show=FALSE)
-  tempVbox <- dialog$getContentArea()
-  graphObjEntry <- tempHbox <- vector('list', length=2)
-  for (i in 1:2) {
-    tempHbox[[i]] <- RGtk2::gtkHBoxNew(homogeneous=FALSE, spacing=8)
-    tempVbox$packStart(tempHbox[[i]], expand=FALSE)
-    graphObjEntry[[i]] <- add_entry(tempHbox[[i]], label=paste0('Graph ', i, ' name:'), nchars=20)
-  }
-  RGtk2::gSignalConnect(dialog, signal='response', function(dialog, response) {
-      if (response == RGtk2::GtkResponseType['ok']) {
-        graphObj[[1L]] <<- graphObjEntry[[1L]]$getText()
-        graphObj[[2L]] <<- graphObjEntry[[2L]]$getText()
-
-        if (nchar(graphObj[[1L]]) > 0L) {
-          if (!is_igraph(eval(parse(text=graphObj[[1L]])))) {
-            warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
-                                                  type='error', buttons='close',
-                                                  'Error: Not an igraph object!')
-            response <- warnDialog$run()
-          }
-          if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
-        } else {
-          if (nchar(graphObj[[2L]]) > 0L) {
-            if (!is_igraph(eval(parse(text=graphObj[[2L]])))) {
-              warnDialog <- RGtk2::gtkMessageDialog(parent=dialog, flags='destroy-with-parent',
-                                                    type='error', buttons='close',
-                                                    'Error: Not an igraph object!')
-              response <- warnDialog$run()
-              if (response == RGtk2::GtkResponseType['close']) warnDialog$destroy()
-            }
-          }
-        }
-        dialog$destroy()
-      }
-  })
-  dialog$showAll()
-  dialog$setModal(TRUE)
-}
-
 # Add frames for orientation + hemi, and extract graph objects
 #-----------------------------------------------------------
 add_orient_hemi <- function(container, graphObj, kNumGroups, vGroupAttr) {
@@ -524,8 +526,6 @@ save_cb <- function(widget, window, plot.dev) {
                           dialog$destroy()})
 }
 
-save_cb1 <- function(widget, win) save_cb(widget, win, plot.dev=plotdev[[1L]])
-save_cb2 <- function(widget, win) save_cb(widget, win, plot.dev=plotdev[[2L]])
 quit_cb <- function(widget, win) win$destroy()
 
 # Add a frame for "vertex size" and "edge width"
