@@ -21,8 +21,10 @@ vec.transform(x, min.val = 0, max.val = 1)
 
 \item{x}{A character string}
 
+\item{max_len}{Integer; the max length of one line. Default: 80}
+
 \item{delim}{Character specifying where to end a line if it is longer than
-\code{max.len}. Default: \code{'+'}}
+\code{max_len}. Default: \code{'+'}}
 
 \item{sep}{Character specifying what to split by. Default: \code{'\n'} (a
 newline character)}
@@ -30,8 +32,6 @@ newline character)}
 \item{min.val}{the minimum value of the new range}
 
 \item{max.val}{the maximum value of the new range}
-
-\item{max.len}{Integer; the max length of one line. Default: 80}
 }
 \value{
 \code{get_metadata} - the same object with version, system, and date
@@ -54,7 +54,7 @@ given the input, or the default values of [0, 1].
 \details{
 If the object is a graph, graph-level attributes will be added. The
 elements added are:
-\itemize{
+\describe{
   \item{version}{A list with R, brainGraph, and igraph versions}
   \item{sys}{Character vector of system information}
   \item{date}{The date and time of creation}

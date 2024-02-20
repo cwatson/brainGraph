@@ -50,8 +50,9 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
     registerDoParallel(clust)
   }
   if (isTRUE(clustering)) {
-    r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph')) %dopar% {
+    r <- foreach(i=seq_len(N), .packages=c('igraph', 'brainGraph'), .export=g$atlas) %dopar% {
       tmp <- sim.rand.graph.clust(g, rewire.iters, cl, max.iters)
+      tmp$atlas <- g$atlas
       tmp <- make_brainGraph(tmp, type='random', level=level, set.attrs=TRUE, ...)
       tmp
     }
@@ -91,7 +92,7 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
 #' @references Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
 #'   biological network structure with clustered random networks. \emph{BMC
 #'   Bioinformatics}, \bold{10}, 405--421.
-#'   \url{https://dx.doi.org/10.1186/1471-2105-10-405}
+#'   \doi{10.1186/1471-2105-10-405}
 
 sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.iters=100) {
   g <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
@@ -208,7 +209,7 @@ choose.edges <- function(A, degs.large) {
 #' @references Hirschberger M., Qi Y., Steuer R.E. (2007) Randomly generating
 #'   portfolio-selection covariance matrices with specified distributional
 #'   characteristics. \emph{European Journal of Operational Research}.
-#'   \bold{177}, 1610--1625. \url{https://dx.doi.org/10.1016/j.ejor.2005.10.014}
+#'   \bold{177}, 1610--1625. \doi{10.1016/j.ejor.2005.10.014}
 
 sim.rand.graph.hqs <- function(resids, level=c('subject', 'group'), N=100L,
                                weighted=TRUE, r.thresh=NULL, ...) {

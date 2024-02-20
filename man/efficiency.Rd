@@ -59,11 +59,11 @@ efficiencies.
 \references{
 Latora, V. and Marchiori, M. (2001) Efficient behavior of
   small-world networks. \emph{Phys Rev Lett}, \bold{87.19}, 198701.
-  \url{https://dx.doi.org/10.1103/PhysRevLett.87.198701}
+  \doi{10.1103/PhysRevLett.87.198701}
 
 Latora, V. and Marchiori, M. (2003) Economic small-world
   behavior in weighted networks. \emph{Eur Phys J B}, \bold{32}, 249--263.
-  \url{https://dx.doi.org/10.1140/epjb/e2003-00095-5}
+  \doi{10.1140/epjb/e2003-00095-5}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

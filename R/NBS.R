@@ -44,7 +44,7 @@
 #' @references Zalesky, A. and Fornito,  A. and Bullmore, E.T. (2010)
 #'   Network-based statistic: identifying differences in brain networks.
 #'   \emph{NeuroImage}, \bold{53(4)}, 1197--1207.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2010.06.041}
+#'   \doi{10.1016/j.neuroimage.2010.06.041}
 #' @examples
 #' \dontrun{
 #' max.comp.nbs <- NBS(A.norm.sub[[1]], covars.dti, N=5e3)

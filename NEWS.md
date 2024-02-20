@@ -1,3 +1,16 @@
+# brainGraph 3.0.3
+
+2024-02-20
+
+## Bug fixes
+* Fix bug in `import_scn` when importing data that includes subcortical gray matter
+* Export the *atlas* in `sim.rand.graph.par` when controlling for clustering coefficient
+* Fix indexing bug in `within_module_deg_z_score`
+* Refactor GUI code to avoid global variables (although `RGtk2` and `cairoDevice` have been archived)
+
+## Minor changes
+* Add colors and labeling to `plot` method for `brainGraph_resids` objects
+
 # brainGraph 3.0.2
 
 2021-02-03

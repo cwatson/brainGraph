@@ -91,7 +91,7 @@ Saggar, M. and Hosseini, S.M.H. and Buno, J.L. and Quintin, E.
   and Raman, M.M. and Kesler, S.R. and Reiss, A.L. (2015) Estimating
   individual contributions from group-based structural correlations networks.
   \emph{NeuroImage}, \bold{120}, 274--284.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.07.006}
+  \doi{10.1016/j.neuroimage.2015.07.006}
 }
 \seealso{
 Other Structural covariance network functions: \code{\link{Bootstrapping}},

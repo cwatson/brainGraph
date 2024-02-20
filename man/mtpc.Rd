@@ -199,7 +199,7 @@ Drakesmith, M. and Caeyenberghs, K. and Dutt, A. and Lewis, G. and
   David, A.S. and Jones, D.K. (2015) Overcoming the effects of false
   positives and threshold bias in graph theoretical analyses of neuroimaging
   data. \emph{NeuroImage}, \bold{118}, 313--333.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2015.05.011}
+  \doi{10.1016/j.neuroimage.2015.05.011}
 }
 \seealso{
 Other Group analysis functions: \code{\link{Bootstrapping}},

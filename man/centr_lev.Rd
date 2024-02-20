@@ -29,7 +29,7 @@ set of neighbors of \emph{i}. This function replaces \emph{NaN} with
 \references{
 Joyce, K.E. and Laurienti P.J. and Burdette J.H. and Hayasaka S.
 (2010) A new measure of centrality for brain networks. \emph{PLoS One},
-\bold{5(8)}, e12200. \url{https://dx.doi.org/10.1371/journal.pone.0012200}
+\bold{5(8)}, e12200. \doi{10.1371/journal.pone.0012200}
 }
 \seealso{
 Other Centrality functions: \code{\link{centr_betw_comm}}

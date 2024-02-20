@@ -96,20 +96,20 @@ integer.
 \references{
 Zhou, S. and Mondragon, R.J. (2004) The rich-club phenomenon
   in the internet topology. \emph{IEEE Comm Lett}, \bold{8}, 180--182.
-  \url{https://dx.doi.org/10.4018/978-1-59140-993-9.ch066}
+  \doi{10.4018/978-1-59140-993-9.ch066}
 
 Opsahl, T. and Colizza, V. and Panzarasa, P. and Ramasco, J.J.
   (2008) Prominence and control: the weighted rich-club effect. \emph{Physical
   Review Letters}, \bold{101.16}, 168702.
-  \url{https://dx.doi.org/10.1103/PhysRevLett.101.168702}
+  \doi{10.1103/PhysRevLett.101.168702}
 
 Colizza, V. and Flammini, A. and Serrano, M.A. and Vespignani, A.
   (2006) Detecting rich-club ordering in complex networks. \emph{Nature
-  Physics}, \bold{2}, 110--115. \url{https://dx.doi.org/10.1038/nphys209}
+  Physics}, \bold{2}, 110--115. \doi{10.1038/nphys209}
 
 Ma, A and Mondragon, R.J. (2015) Rich-cores in networks.
   \emph{PLoS One}, \bold{10(3)}, e0119678.
-  \url{https://dx.doi.org/10.1371/journal.pone.0119678}
+  \doi{10.1371/journal.pone.0119678}
 }
 \seealso{
 Other Rich-club functions: \code{\link{plot_rich_norm}},

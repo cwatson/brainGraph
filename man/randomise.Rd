@@ -135,7 +135,7 @@ Draper, N.R. and Stoneman, D.M. (1966) Testing for the inclusion
 
 Freedman, D. and Lane, D. (1983) A nonstochastic interpretation
   of reported significance levels. \emph{J Bus Econ Stat}, \bold{1(4)},
-  292--298. \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
+  292--298. \doi{10.1080/07350015.1983.10509354}
 
 Manly B.F.J. (1986) Randomization and regression methods for
   testing for associations with geographical, environmental, and biological
@@ -145,12 +145,12 @@ Manly B.F.J. (1986) Randomization and regression methods for
 Nichols, T.E. and Holmes, A.P. (2001) Nonparametric permutation
   tests for functional neuroimaging: A primer with examples. \emph{Human
   Brain Mapping}. \bold{15(1)}, 1--25.
-  \url{https://dx.doi.org/10.1002/hbm.1058}
+  \doi{10.1002/hbm.1058}
 
 Smith, S.M. and Jenkinson, M. and Beckmann, C. and Miller, K. and
   Woolrich, M. (2007) Meaningful design and contrast estimability in fMRI.
   \emph{NeuroImage}. \bold{34(1)}, 127--36.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
+  \doi{10.1016/j.neuroimage.2006.09.019}
 
 Still, A.W. and White, A.P. (1981) The approximate randomization
   test as an alternative to the F test in analysis of variance. \emph{Br J
@@ -163,5 +163,5 @@ ter Braak, C.J.F. 1992. Permutation versus bootstrap significance
 Winkler, A.M. and Ridgway, G.R. and Webster, M.A. and Smith, S.M.
   and Nichols, T.E. (2014) Permutation inference for the general linear
   model. \emph{NeuroImage}. \bold{92}, 381--397.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
+  \doi{10.1016/j.neuroimage.2014.01.060}
 }

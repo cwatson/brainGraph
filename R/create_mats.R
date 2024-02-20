@@ -90,7 +90,7 @@
 #' @references Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
 #'   Breakspear, M (2017) Consistency-based thresholding of the human
 #'   connectome. \emph{NeuroImage}. \bold{145}, 118--129.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
+#'   \doi{10.1016/j.neuroimage.2016.09.053}
 #' @examples
 #' \dontrun{
 #' thresholds <- seq(from=0.001, to=0.01, by=0.001)

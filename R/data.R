@@ -57,11 +57,11 @@
 #'   (2002) Automated anatomical labeling of activations in SPM using a
 #'   macroscopic anatomical parcellation of the MNI MRI single-subject brain.
 #'   \emph{NeuroImage}, \bold{15(1)}, 273--289.
-#'   \url{https://doi.org/10.1006/nimg.2001.0978}
+#'   \doi{10.1006/nimg.2001.0978}
 #' @references Rolls, E.T. and Joliot, M. and Tzourio-Mazoyer, N. (2015)
 #'   Implementation of a new parcellation of the orbitofrontal cortex in the
 #'   automated anatomical labelling atlas. \emph{NeuroImage}, \bold{122}, 1--5.
-#'   \url{https://doi.org/10.1016/j.neuroimage.2015.07.075}
+#'   \doi{10.1016/j.neuroimage.2015.07.075}
 "aal116"
 
 #' @aliases aal90
@@ -83,14 +83,14 @@
 #' @references Destrieux, C. and Fischl, B. and Dale, A. and Halgren E. (2010)
 #'   Automatic parcellation of human cortical gyri and sulci using standard
 #'   anatomic nomenclature. \emph{NeuroImage}, \bold{53(1)}, 1--15.
-#'   \url{https://doi.org/10.1016/j.neuroimage.2010.06.010}
+#'   \doi{10.1016/j.neuroimage.2010.06.010}
 #' @references Desikan, R.S. and Segonne, F. and Fischl, B. et al. (2006) An
 #'   automated labeling system for subdividing the human cerebral cortex on MRI
 #'   scans into gyral based regions of interest. \emph{NeuroImage}, \bold{31},
-#'   968--980. \url{https://doi.org/10.1016/j.neuroimage.2006.01.021}
+#'   968--980. \doi{10.1016/j.neuroimage.2006.01.021}
 #' @references Klein, A. and Tourville, J. (2012) 101 labeled brain images
 #'   and a consistent human cortical labeling protocol. \emph{Front Neurosci},
-#'   6. \url{https://doi.org/10.3389/fnins.2012.00171}
+#'   6. \doi{10.3389/fnins.2012.00171}
 "destrieux"
 
 #' @rdname brain_atlases
@@ -128,7 +128,7 @@
 #' @references Craddock, R.C. and James, G.A. and Holtzheimer, P.E. and Hu, X.P.
 #'   and Mayberg, H.S. (2012) A whole brain fMRI atlas generated via spatially
 #'   constrained spectral clustering. \emph{Human Brain Mapping}, \bold{33},
-#'   1914--1928. \url{https://doi.org/10.1002/hbm.21333}
+#'   1914--1928. \doi{10.1002/hbm.21333}
 "craddock200"
 
 #' Coordinates for data from the Dosenbach160 atlas
@@ -158,7 +158,7 @@
 #'   C. and Salamon, G. and Narr, K.L. and Poldrack, R.A. and Bilder, R.M. and
 #'   Toga, A.W. (2008) Construction of a 3D probabilistic atlas of human
 #'   cortical structures. \emph{NeuroImage}, \bold{39(3)}, 1064--1080.
-#'   \url{https://doi.org/10.1016/j.neuroimage.2007.09.031}
+#'   \doi{10.1016/j.neuroimage.2007.09.031}
 "lpba40"
 
 #' Coordinates for data from HCP-MMP1.0 atlas
@@ -176,7 +176,7 @@
 #'   C.D. and Harwell, J. and Yacoub, E. and Ugurbil, K. and Andersson, J. and
 #'   Beckmann, C.F. and Jenkinson, M. and Smith, S.M. and van Essen, D.C.
 #'   (2016) A multi-modal parcellation of human cerebral cortex. \emph{Nature},
-#'   \bold{536}, 171--178. \url{https://doi.org/10.1038/nature18933}. PMID:
+#'   \bold{536}, 171--178. \doi{10.1038/nature18933}. PMID:
 #'   27437579.
 "hcp_mmp1.0"
 
@@ -188,7 +188,7 @@
 #'   Barnes, K.A. and Church, J.A. and Vogel, A.C. and Laumann, T.O. and Miezin,
 #'   F.M. and Schlaggar, B.L. and Petersen, S.E. (2011) Functional network
 #'   organization of the human brain. \emph{Neuron}, \bold{72(4)}, 665--678.
-#'   \url{https://doi.org/10.1016/j.neuron.2011.09.006}
+#'   \doi{10.1016/j.neuron.2011.09.006}
 "power264"
 
 #' Coordinates for data from the Brainnetome atlas
@@ -200,7 +200,7 @@
 #'   P.T. and Eickhoff, S.B. and Yu, C. and Jiang, T (2016) The Human
 #'   Brainnetome Atlas: A New Brain Atlas Based on Connectional Architecture.
 #'   \emph{Cerebral Cortex}, \bold{26(8)}, 3508--3526.
-#'   \url{https://doi.org/10.1093/cercor/bhw157}
+#'   \doi{10.1093/cercor/bhw157}
 
 "brainnetome"
 
@@ -216,5 +216,5 @@
 #'   and Kelley, W.M. and Petersen, S.E. (2014) Generation and Evaluation of a
 #'   Cortical Area Parcellation from Resting-State Correlations. \emph{Cerebral
 #'   Cortex}, \bold{26(1)}, 288--303.
-#'   \url{https://doi.org/10.1093/cercor/bhu239}
+#'   \doi{10.1093/cercor/bhu239}
 "gordon333"

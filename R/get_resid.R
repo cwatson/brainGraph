@@ -303,23 +303,51 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' }
 
 plot.brainGraph_resids <- function(x, region=NULL, outlier.thresh=2, cols=FALSE, ids=TRUE, ...) {
-  Region <- ind <- mark <- resids <- NULL
+  Region <- ind <- mark <- resids <- pch <- cex <- labpos <- NULL
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
   DT <- summary(x, region=region, outlier.thresh=outlier.thresh)$DT.sum
   regions <- DT[, levels(Region)]
   setkeyv(DT, c(gID, sID))
 
+  rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(nobs(x)))
+  DT[, ind := rnames, by=Region]
+  setkey(DT, Region, resids)
+  DT[, x := qnorm(ppoints(resids)), by=Region]
+  DT[mark == 0, ind := '']
+
   # 'base' plotting
   if (!requireNamespace('ggplot2', quietly=TRUE)) {
     xylabs <- paste(c('Theoretical', 'Sample'), 'Quantiles')
+
+    # Set plotting parameters
+    DT[, pch := 1]
+    DT[, cex := 0.5]
+    DT[mark == 1, pch := 17]
+    DT[mark == 1, cex := 1]
+    DT[, labpos := 4]
+    DT[resids > 0, labpos := 2]
+
     if (isTRUE(cols)) {
+      #TODO: save as object and control # of rows for panels
       DT[Region %in% regions,
-         qqmath(~ resids | Region, xlab=xylabs[1L], ylab=xylabs[2L], col=c('red', 'blue')[get(gID)],
-                panel=function(x, ...) {
-                  panel.qqmathline(x, ...)
-                  panel.qqmath(x, ...)
-                })]
+         qqmath(~ resids | Region, xlab=xylabs[1L], ylab=xylabs[2L],
+                as.table=TRUE, pch=pch, cex=cex, col=plot.cols[factor(get(gID))],
+                panel=function(x, ..., subscripts) {
+                  panel.qqmathline(x, col='black')
+                  funArgs <- list(...)
+                  pch <- if (hasArg('pch')) funArgs$pch[subscripts] else 16
+                  cex <- if (hasArg('cex')) funArgs$cex[subscripts] else 0.5
+                  col <- if (hasArg('col')) funArgs$col[subscripts] else 'black'
+                  panel.qqmath(x, pch=pch, cex=cex, col=col, grid=TRUE)
+                  panel.text(DT$x[subscripts], x, label=ind[subscripts], col='black', cex=0.7, pos=labpos[subscripts], offset=0.75)
+                },
+                par.settings=list(layout.heights=list(xlab.key.padding=1)),
+                scales=list(x=list(tck=c(1, 0), alternating=FALSE)),
+                key=list(title='Group', cex.title=1, space='bottom', columns=length(unique(get(gID))),
+                         text=list(levels(factor(get(gID))), cex=0.9),
+                         points=list(pch=16, col=plot.cols[1L:nlevels(factor(get(gID)))]))
+                )]
     } else {
       DT[Region %in% regions,
          qqmath(~ resids | Region, xlab=xylabs[1L], ylab=xylabs[2L],
@@ -331,11 +359,6 @@ plot.brainGraph_resids <- function(x, region=NULL, outlier.thresh=2, cols=FALSE,
 
   # 'ggplot2' plotting
   } else {
-    rnames <- if (isTRUE(ids)) case.names(x) else as.character(seq_len(nobs(x)))
-    DT[, ind := rnames, by=Region]
-    setkey(DT, Region, resids)
-    DT[, x := qnorm(ppoints(resids)), by=Region]
-    DT[mark == 0, ind := '']
     DT[, mark := as.factor(mark)]
 
     textfun <- if (!requireNamespace('ggrepel', quietly=TRUE)) ggplot2::geom_text else ggrepel::geom_text_repel
