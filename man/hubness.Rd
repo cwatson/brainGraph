@@ -44,7 +44,7 @@ van den Heuvel, M.P. and Mandl, R.C.W. and Stam, C.J. and Kahn,
   R.S. and Pol, H.E.H. (2010) Aberrant frontal and temporal complex network
   structure in schizophrenia: a graph theoretical analysis. \emph{The Journal
   of Neuroscience}, \bold{30(47)}, 15915--15926.
-  \url{https://dx.doi.org/10.1523/JNEUROSCI.2874-10.2010}
+  \doi{10.1523/JNEUROSCI.2874-10.2010}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

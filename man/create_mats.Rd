@@ -128,7 +128,7 @@ dti.mats <- create_mats(conn_files, ...)
 Roberts, JA and Perry, A and Roberts, G and Mitchell, PB and
   Breakspear, M (2017) Consistency-based thresholding of the human
   connectome. \emph{NeuroImage}. \bold{145}, 118--129.
-  \url{https://dx.doi.org/10.1016/j.neuroimage.2016.09.053}
+  \doi{10.1016/j.neuroimage.2016.09.053}
 }
 \author{
 Christopher G. Watson, \email{cgwatson@bu.edu}

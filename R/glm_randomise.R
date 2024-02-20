@@ -256,7 +256,7 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #'   \emph{Technometrics}. \bold{8(4)}, 695--699.
 #' @references Freedman, D. and Lane, D. (1983) A nonstochastic interpretation
 #'   of reported significance levels. \emph{J Bus Econ Stat}, \bold{1(4)},
-#'   292--298. \url{https://dx.doi.org/10.1080/07350015.1983.10509354}
+#'   292--298. \doi{10.1080/07350015.1983.10509354}
 #' @references Manly B.F.J. (1986) Randomization and regression methods for
 #'   testing for associations with geographical, environmental, and biological
 #'   distances between populations. \emph{Res Popul Ecol}. \bold{28(2)},
@@ -264,11 +264,11 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #' @references Nichols, T.E. and Holmes, A.P. (2001) Nonparametric permutation
 #'   tests for functional neuroimaging: A primer with examples. \emph{Human
 #'   Brain Mapping}. \bold{15(1)}, 1--25.
-#'   \url{https://dx.doi.org/10.1002/hbm.1058}
+#'   \doi{10.1002/hbm.1058}
 #' @references Smith, S.M. and Jenkinson, M. and Beckmann, C. and Miller, K. and
 #'   Woolrich, M. (2007) Meaningful design and contrast estimability in fMRI.
 #'   \emph{NeuroImage}. \bold{34(1)}, 127--36.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2006.09.019}
+#'   \doi{10.1016/j.neuroimage.2006.09.019}
 #' @references Still, A.W. and White, A.P. (1981) The approximate randomization
 #'   test as an alternative to the F test in analysis of variance. \emph{Br J
 #'   Math Stat Psychol}. \bold{34(2)}, 243--252.
@@ -278,7 +278,7 @@ setup_randomise <- function(perm.method, part.method, X, contrasts, con.type, nC
 #' @references Winkler, A.M. and Ridgway, G.R. and Webster, M.A. and Smith, S.M.
 #'   and Nichols, T.E. (2014) Permutation inference for the general linear
 #'   model. \emph{NeuroImage}. \bold{92}, 381--397.
-#'   \url{https://dx.doi.org/10.1016/j.neuroimage.2014.01.060}
+#'   \doi{10.1016/j.neuroimage.2014.01.060}
 
 randomise <- function(perm.method, part.method, N, perms, X, y, contrasts,
                       ctype, nC, skip=NULL, n=dim(X)[1L], p=qr.default(X)$rank,

@@ -135,12 +135,12 @@ rand1.cl <- sim.rand.graph.par(g[[1]][[N]], N=1e2,
 Bansal, S. and Khandelwal, S. and Meyers, L.A. (2009) Exploring
   biological network structure with clustered random networks. \emph{BMC
   Bioinformatics}, \bold{10}, 405--421.
-  \url{https://dx.doi.org/10.1186/1471-2105-10-405}
+  \doi{10.1186/1471-2105-10-405}
 
 Hirschberger M., Qi Y., Steuer R.E. (2007) Randomly generating
   portfolio-selection covariance matrices with specified distributional
   characteristics. \emph{European Journal of Operational Research}.
-  \bold{177}, 1610--1625. \url{https://dx.doi.org/10.1016/j.ejor.2005.10.014}
+  \bold{177}, 1610--1625. \doi{10.1016/j.ejor.2005.10.014}
 }
 \seealso{
 \code{\link{small.world}}

@@ -100,23 +100,23 @@
 #' @references Tingley, D. and Yamamoto, T. and Hirose, K. and Keele, L. and
 #'   Imai, K. (2014) mediation: R package for causal mediation analysis.
 #'   \emph{Journal of Statistical Software}, \bold{59(5)}, 1--38.
-#'   \url{https://dx.doi.org/10.18637/jss.v059.i05}
+#'   \doi{10.18637/jss.v059.i05}
 #' @references Imai, K. and Keele, L. and Yamamoto, T. (2010) Identification
 #'   inference, and sensitivity analysis for causal mediation effects.
 #'   \emph{Statistical Science}, \bold{25(1)}, 51--71.
-#'   \url{https://dx.doi.org/10.1214/10-STS321}
+#'   \doi{10.1214/10-STS321}
 #' @references Imai, K. and Keele, L. and Tingley, D. (2010) A general approach
 #'   to causal mediation analysis. \emph{Psychological Methods}, \bold{15(4)},
-#'   309--334. \url{https://dx.doi.org/10.1037/a0020761}
+#'   309--334. \doi{10.1037/a0020761}
 #' @references Imai, K. and Keele, L. and Tingley, D. and Yamamoto, T. (2011)
 #'   Unpacking the black box of causality: learning about causal mechanisms from
 #'   experimental and observational studies. \emph{American Political Science
 #'   Review}, \bold{105(4)}, 765--789.
-#'   \url{https://dx.doi.org/10.1017/S0003055411000414}
+#'   \doi{10.1017/S0003055411000414}
 #' @references Imai, K. and Yamamoto, T. (2013) Identification and sensitivity
 #'   analysis for multiple causal mechanisms: revisiting evidence from framing
 #'   experiments. \emph{Political Analysis}, \bold{21(2)}, 141--171.
-#'   \url{https://dx.doi.org/10.1093/pan/mps040}
+#'   \doi{10.1093/pan/mps040}
 #' @examples
 #' \dontrun{
 #' med.EglobWt.FSIQ <- brainGraph_mediate(g[[5]], covars.med, 'E.global.wt',
