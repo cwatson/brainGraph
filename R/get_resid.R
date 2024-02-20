@@ -303,7 +303,7 @@ print.summary.brainGraph_resids <- function(x, ...) {
 #' }
 
 plot.brainGraph_resids <- function(x, region=NULL, outlier.thresh=2, cols=FALSE, ids=TRUE, ...) {
-  Region <- ind <- mark <- resids <- NULL
+  Region <- ind <- mark <- resids <- pch <- cex <- labpos <- NULL
   sID <- getOption('bg.subject_id')
   gID <- getOption('bg.group')
   DT <- summary(x, region=region, outlier.thresh=outlier.thresh)$DT.sum

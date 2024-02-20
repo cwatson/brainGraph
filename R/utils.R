@@ -320,9 +320,9 @@ simpleCap <- function(x) paste0(toupper(substring(x, 1L, 1L)), substring(x, 2L))
 #' only following a plus sign.
 #'
 #' @param x A character string
-#' @param max.len Integer; the max length of one line. Default: 80
+#' @param max_len Integer; the max length of one line. Default: 80
 #' @param delim Character specifying where to end a line if it is longer than
-#'   \code{max.len}. Default: \code{'+'}
+#'   \code{max_len}. Default: \code{'+'}
 #' @param sep Character specifying what to split by. Default: \code{'\n'} (a
 #'   newline character)
 #' @keywords internal
