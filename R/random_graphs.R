@@ -96,26 +96,25 @@ sim.rand.graph.par <- function(g, level=c('subject', 'group'), N=100L,
 
 sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.iters=100) {
   g <- rewire(g, keeping_degseq(loops=FALSE, rewire.iters))
-  g.cand <- g
-  A <- as_adj(g.cand, sparse=FALSE, names=FALSE)
-  degs <- colSums(A)
+  degs <- degree(g)
   degs.large <- which(degs > 1)
 
   cur.iter <- 0
   while ((transitivity(g) < cl) & (cur.iter < max.iters)) {
     repeat {
       g.cand <- g
-      A <- as_adj(g.cand, sparse=FALSE, names=FALSE)
 
       # If E(y1, y2) and E(z1, z2) don't exist, rewire 2 edges
       repeat {
-        e <- choose.edges(A, degs.large)
-        if ((A[e$y1, e$y2] == 0) && (A[e$z1, e$z2] == 0)) break
+        e <- choose.edges(g.cand, degs.large)
+        if (!are_adjacent(g.cand, e$y1, e$y2) &&
+            !are_adjacent(g.cand, e$z1, e$z2)) break
       }
 
-      A[e$y1, e$z1] <- A[e$z1, e$y1] <- A[e$y2, e$z2] <- A[e$z2, e$y2] <- 0
-      A[e$y1, e$y2] <- A[e$y2, e$y1] <- A[e$z1, e$z2] <- A[e$z2, e$z1] <- 1
-      g.cand <- graph_from_adjacency_matrix(A, mode='undirected')
+      edges_to_remove <- get.edge.ids(g.cand, c(e$y1, e$z1, e$y2, e$z2), directed=FALSE)
+      edges_to_add <- c(e$y1, e$y2, e$z1, e$z2)
+      g.cand <- delete_edges(g.cand, edges_to_remove)
+      g.cand <- add_edges(g.cand, edges_to_add)
 
       if (transitivity(g.cand) > transitivity(g)) break
     }
@@ -133,7 +132,7 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 #' graphs while controlling for \emph{clustering}. It is based on the algorithm
 #' by Bansal et al. (2009), BMC Bioinformatics.
 #'
-#' @param A Numeric (adjacency) matrix
+#' @param g A graph object
 #' @param degs.large Integer vector of vertex numbers with degree greater than
 #'   one
 #'
@@ -143,25 +142,25 @@ sim.rand.graph.clust <- function(g, rewire.iters=1e4, cl=g$transitivity, max.ite
 #' @keywords internal
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 
-choose.edges <- function(A, degs.large) {
+choose.edges <- function(g, degs.large) {
   # Uniformly select a random vertex with degree > 1 (x),
   # and 2 of its neighbors (y1 & y2)
   #-----------------------------------------------------------------------------
-  get_random_v <- function(A, degs.large) {
+  get_random_v <- function(g, degs.large) {
     repeat {
       x <- degs.large[sample.int(length(degs.large), 1L)]
-      neighb <- intersect(which(A[x, ] == 1), degs.large)
+      neighb <- intersect(neighbors(g, x), degs.large)
       if (length(neighb) >= 2L) return(list(x, neighb[sample.int(length(neighb), 2L)]))
     }
   }
   #-----------------------------------------------------------------------------
   repeat {
-    tmp <- get_random_v(A, degs.large)
+    tmp <- get_random_v(g, degs.large)
     x <- tmp[[1L]]
     y <- tmp[[2L]]
 
     # Try to select random neighbors (z1 & z2) of y1 & y2 s.t. z1 != z2 != x
-    y1.neighb <- which(A[y[1L], ] == 1)
+    y1.neighb <- neighbors(g, y[1L])
     choices1 <- setdiff(y1.neighb, c(x, y[2L]))
     if (length(choices1) == 0L) {
       next
@@ -169,7 +168,7 @@ choose.edges <- function(A, degs.large) {
       z1 <- choices1[sample.int(length(choices1), 1L)]
     }
 
-    y2.neighb <- which(A[y[2L], ] == 1)
+    y2.neighb <- neighbors(g, y[2L])
     choices2 <- setdiff(y2.neighb, c(x, y[1L], z1))
     if (length(choices2) > 0L) break
   }
